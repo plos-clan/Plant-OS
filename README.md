@@ -23,7 +23,7 @@ README 的格式应该遵照这个规范（包括顺序），方便使用脚本�
 编码时应该暂且将惯例作为规范。
 
 ## Principle
-<img src="assets/README.md.19-23.svg" alt="SVG Image" width="200" height="200">
+<img src="assets/README.md.19-23.svg" alt="SVG Image" width="200" height="200" align="left">
 boot、loader、kernel 是三个独立的部分，我们通常通过 boot 引导 loader, 通过 loader 加载 kernel 。绝大部分代码都是 Kernel 的一部分。boot 和 loader 相互独立的原因在于，boot 主要与系统外部的事物有关，而 loader 主要与系统内部的事物有关。例如，Kernel 可能被安装在不同文件系统上，在这样的情况下，我们需要重新编译 loader 。而另一种可能是系统被安装在不同的存储介质或磁盘分区上，这可能只需要不同的 boot 。  
 也就是说，如果你想复制一份操作系统，你需要复制 loader 和 kernel 。你想要将复制的系统安装在怎样的存储介质上？安装在哪个磁盘分区上？你只需要为你要安装它的环境编译 boot 即可。
 

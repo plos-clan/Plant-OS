@@ -47,7 +47,7 @@ def compile(filename):
                                                                    str(start) +
                                                                    '-' +
                                                                    str(end) +
-                                        '.svg')}" alt="SVG Image" width="200" height="200">']
+                                        '.svg')}" alt="SVG Image" width="200" height="200" align="left">']
 
         with open("build/doc/" + filename, 'w') as f:
                 f.write('\n'.join(content_lineslist))
