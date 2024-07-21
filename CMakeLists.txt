@@ -10,7 +10,7 @@ set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS asm ASM)
 
 # ----------------------------------------------------------------------------------------------------
 # 项目配置
--
+
 project(Plant-OS VERSION 0.0.0)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -32,8 +32,6 @@ set(CMAKE_CXX_FLAGS "-std=gnu++2b")
 
 message("本机 环境")
 include(cmake/show-flags)
-
-add_subdirectory(util)
 
 # ----------------------------------------------------------------------------------------------------
 # 以下设定 PLOS 编译配置
