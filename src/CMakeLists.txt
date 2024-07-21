@@ -1,0 +1,5 @@
+add_subdirectory(asm)
+add_subdirectory(c)
+add_subdirectory(cpp)
+add_subdirectory(loader)
+add_subdirectory(kernel)

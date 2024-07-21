@@ -1,0 +1,48 @@
+macro(add_binary_asm name)
+  # set(obj_files)
+  # foreach(file ${ARGN})
+  #   get_filename_component(absolute_path ${file} ABSOLUTE)
+  #   add_custom_command(OUTPUT ${file}.o COMMAND nasm -f elf ${absolute_path} -o ${file}.o)
+  #   list(APPEND obj_files ${file}.o)
+  # endforeach()
+
+  add_executable(${name} ${ARGN})
+  set_target_properties(${name} PROPERTIES OUTPUT_NAME ${name}.bin)
+  # set_property(TARGET ${name} PROPERTY LINKER_LANGUAGE C)
+endmacro(add_binary_asm)
+
+macro(add_binary_asm_no_elf name file)
+  get_filename_component(absolute_path ${file} ABSOLUTE)
+  add_custom_target(${name} ALL COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && nasm -f bin ${absolute_path} -o ${EXECUTABLE_OUTPUT_PATH}/${name}.bin)
+endmacro(add_binary_asm_no_elf)
+
+macro(add_binary_exclude name)
+  set(without_files)
+  foreach(file ${ARGN})
+    get_filename_component(absolute_path ${file} ABSOLUTE)
+    list(APPEND without_files ${absolute_path})
+  endforeach()
+
+  file(GLOB_RECURSE asm_files "*.asm")
+  list(REMOVE_ITEM asm_files ${without_files})
+
+  file(GLOB_RECURSE c_files "*.c")
+  list(REMOVE_ITEM c_files ${without_files})
+
+  file(GLOB_RECURSE cpp_files "*.cpp")
+  list(REMOVE_ITEM cpp_files ${without_files})
+
+  # set(obj_files)
+  # foreach(file ${asm_files})
+  #   file(RELATIVE_PATH relative ${CMAKE_CURRENT_SOURCE_DIR} ${file})
+  #   add_custom_command(OUTPUT ${relative}.o COMMAND nasm -f elf ${file} -o ${relative}.o)
+  #   list(APPEND obj_files ${relative}.o)
+  # endforeach()
+
+  add_executable(${name} ${c_files} ${cpp_files} ${asm_files})
+  set_target_properties(${name} PROPERTIES OUTPUT_NAME ${name}.bin)
+endmacro(add_binary_exclude)
+
+macro(add_binary name)
+  add_binary_exclude(${name})
+endmacro(add_binary)

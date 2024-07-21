@@ -1,0 +1,7 @@
+---
+Checks: >
+  readability-*,
+  performance-*,
+  bugprone-*,
+  modernize-*,
+FormatStyle: none

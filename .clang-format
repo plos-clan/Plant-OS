@@ -1,0 +1,551 @@
+---
+# 基于 LLVM 样式
+#
+#
+# 语言，可选: None Cpp Java JavaScript ObjC Proto TableGen TextProto 等
+# Language: Cpp
+# BasedOnStyle: "LLVM"
+
+# 访问修饰符的额外缩进，例如 public:.
+AccessModifierOffset: -2
+#^ 开括号后的对齐
+# 如果 true, 在左括号后水平对齐参数。
+# 这适用于圆括号（圆括号）、尖括号和方括号 括号。
+#+ Align       对齐第一个元素
+#+ DontAlign   不对齐
+#+ AlwaysBreak (若无法置于单行)在开括号后换行
+#+ BlockIndent (若无法置于单行)在开括号后与闭括号前换行
+AlignAfterOpenBracket: Align
+# 对齐数组列 def:None
+#    Left  左对齐
+#    Right 右对齐
+#    None  不对齐
+AlignArrayOfStructures: Left
+
+#^ 对齐连续赋值 (AlignConsecutiveStyle) (3.8)
+## 对齐连续赋值的风格。
+## 嵌套配置标志： 对齐选项。
+#+ Enabled          是否启用对齐功能。
+#+ AcrossEmptyLines 是否跨越空行对齐。
+#+ AcrossComments   是否跨越注释对齐。
+#+ AlignCompound    是否将 += 等复合赋值运算符与 = 对齐。
+#+ PadOperators     是否将短赋值运算符左侧填充到与长赋值运算符相同的长度，
+#+                  以便将所有赋值运算符放置在左侧的右侧。
+#- 最后两项仅 AlignConsecutiveAssignments 可用
+## 它们也可以作为一个整体读取以获得兼容性。选择有：
+#+ None                        不对齐
+#+ Consecutive                 对齐连续的行
+#+ AcrossEmptyLines            跨越空行
+#+ AcrossComments              跨越注释
+#+ AcrossEmptyLinesAndComments 跨越空行与注释
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: true
+  PadOperators: true
+#^ 对齐连续位域 (AlignConsecutiveStyle) (11)
+## 对齐连续位域的风格。
+#+ 同上
+AlignConsecutiveBitFields: Consecutive
+#^ 对齐连续声明 (AlignConsecutiveStyle) (3.8)
+## 对齐连续声明的风格。
+#+ 同上
+AlignConsecutiveDeclarations: AcrossComments
+#^ 对齐连续宏 (AlignConsecutiveStyle) (9)
+## 对齐连续宏定义的风格。
+#+ 同上
+AlignConsecutiveMacros: AcrossComments
+
+# 对齐逃脱换行 (使用反斜杠换行) 的反斜杠
+#   DontAlign 不对齐
+#   Left      左对齐
+#   Right     右对齐
+AlignEscapedNewlines: Right
+# 水平对齐二元和三元表达式的操作数
+#   DontAlign 不对齐
+#   Align     对齐
+AlignOperands: Align
+# 对齐连续的尾随的注释 (TF)
+AlignTrailingComments: true
+# 允许函数调用的所有参数在放在下一行 (TF)
+AllowAllArgumentsOnNextLine: true
+# 允许函数声明的所有参数在放在下一行 (TF)
+AllowAllParametersOfDeclarationOnNextLine: true
+# 允许短的枚举放在同一行 (Boolean)
+AllowShortEnumsOnASingleLine: false
+# 允许短的块放在同一行 def:Never
+#   Never  永不
+#   Empty  仅在块为空时
+#   Always 总是
+AllowShortBlocksOnASingleLine: Always
+# 允许短的 case 标签放在同一行 (TF)
+AllowShortCaseLabelsOnASingleLine: true
+# 允许短的函数放在同一行 def:All
+#   None       永不
+#   InlineOnly 仅内联函数
+#   Empty      仅空函数
+#   Inline     仅内联与空函数
+#   All        所有
+AllowShortFunctionsOnASingleLine: Empty
+# 允许短的 lambda 函数放在同一行
+#  同上 (除 InlineOnly)
+AllowShortLambdasOnASingleLine: All
+# 允许短的 if 语句放在同一行 def: Never
+#   Never          永不
+#   WithoutElse   仅没有 else 的
+#   OnlyFirstIf   仅第一个 if
+#   AllIfsAndElse 所有
+AllowShortIfStatementsOnASingleLine: WithoutElse
+# 允许短的循环保持在同一行 (TF) def:false
+AllowShortLoopsOnASingleLine: false
+#^ 总是在定义返回类型后断行 (DefinitionReturnTypeBreakingStyle) (3.7)
+#` 此选项已弃用，仅用于向后兼容。
+#+ None     自动在返回类型后断行。PenaltyReturnTypeOnItsOwnLine 被考虑在内。
+#+ All      总是在返回类型后断行。
+#+ TopLevel 总是在顶级函数的返回类型后断行。
+AlwaysBreakAfterDefinitionReturnType: None
+#^ 总是在返回类型后换行 (ReturnTypeBreakingStyle) (3.8)
+#+ None                自动在返回类型后换行。 PenaltyReturnTypeOnItsOwnLine 会被考虑。
+#+ All                 始终在返回类型后换行。
+#+ TopLevel            始终在顶级函数的返回类型后换行。
+#+ AllDefinitions      始终在函数定义的返回类型后换行。
+#+ TopLevelDefinitions 始终在顶级定义的返回类型后换行。
+AlwaysBreakAfterReturnType: None
+# 总是在多行string字面量前换行 (TF) def:false
+AlwaysBreakBeforeMultilineStrings: false
+# 总是在 template 声明后换行
+#   No        从不
+#   MultiLine 仅声明有多行
+#   Yes       总是
+AlwaysBreakTemplateDeclarations: Yes
+# 语言扩展的 属性/限定词
+AttributeMacros:
+  #% gcc 定义的
+  - __restrict
+  - __LEAF_ATTR
+  - __THROW
+  - __THROWNL
+  - __NTH
+  - __NTHNL
+  - __inline
+  - __attribute__
+  - __attribute_malloc__
+  - __attribute_alloc_size__
+  - __attribute_alloc_align__
+  - __attribute_pure__
+  - __attribute_const__
+  - __attribute_maybe_unused__
+  - __attribute_used__
+  - __attribute_noinline__
+  - __attribute_deprecated__
+  - __attribute_deprecated_msg__
+  - __attribute_format_arg__
+  - __attribute_format_strfmon__
+  - __attribute_nonnull__
+  - __nonnull
+  - __returns_nonnull
+  - __attribute_warn_unused_result__
+  - __wur
+  - __always_inline
+  - __attribute_artificial__
+  - __extern_inline
+  - __extern_always_inline
+  - __attribute_nonstring__
+  - __attribute_copy__
+  - __attr_access
+  - __fortified_attr_access
+  - __attr_access_none
+  - __attr_dealloc
+  - __attr_dealloc_free
+  - __attribute_returns_twice__
+  #% 我自己定义的
+  - __attr
+  - __attr_NTHLF
+  - __attr_NTHLF_nnul
+  - ___inline
+  - _il_
+  - _rest
+# BinPackArguments (Boolean)
+# 如果 false, 一个函数调用的参数要么全部在 同一行或每行一行
+BinPackArguments: true
+# BinPackParameters (Boolean)
+# 如果 false, 函数声明或函数定义 参数要么全部在同一行，要么各占一行。
+BinPackParameters: true
+# 大括号包裹
+# 如果 BreakBeforeBraces 被设置为 BS_Custom, 用它来指定如何 应处理每个单独的大括号案例。 否则，这将被忽略。
+#   AfterCaseLabel (bool) 包裹case标签
+#
+#
+#   BitFieldColonSpacing
+#
+#
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeBinaryOperators: None
+BreakBeforeConceptDeclarations: true
+BreakBeforeBraces: Attach
+BreakBeforeInheritanceComma: false
+BreakInheritanceList: BeforeColon
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: BeforeColon
+BreakAfterJavaFieldAnnotations: false
+BreakStringLiterals: true
+ColumnLimit: 100
+CommentPragmas: "^ IWYU pragma:"
+QualifierAlignment: Leave
+CompactNamespaces: false
+ConstructorInitializerIndentWidth: 4
+# 续行缩进宽度 (Unsigned)
+# 续行的缩进宽度
+ContinuationIndentWidth: 4
+#^ Cpp11BracedListStyle (Boolean)
+# 如果 true, 将大括号列表格式化为最适合 C++11 大括号 列出。
+# 重要区别:
+#   花括号列表内没有空格。
+#   右括号前没有换行符。
+#   使用连续缩进而不是块缩进进行缩进。
+## 从根本上说，C++11 花括号列表的格式与函数完全一样call会在他们的地方格式化。
+## 如果花括号列表跟随一个名字 （例如类型或变量名称），clang-format 格式就像
+## {}是 具有该名称的函数调用的括号。 如果没有名字， 假定一个零长度名称。
+Cpp11BracedListStyle: true
+#^ 派生行结束 (Boolean) ???
+#` 此选项已弃用。参见 DeriveLF 和 DeriveCRLF 的 LineEnding。
+DeriveLineEnding: true
+#^ 派生指针对齐 (Boolean) ???
+## 如果 true, 分析最常见的格式化文件 对齐方式 &和 *.
+## 指针和参考对齐样式将根据 到文件中的首选项。 PointerAlignment
+## 仅用作后备。
+DerivePointerAlignment: false
+#^ 禁用格式化 (Boolean)
+# 完全禁用格式化。
+DisableFormat: false
+#^ EmptyLineAfterAccessModifier (EmptyLineAfterAccessModifierStyle)
+## 定义何时在访问修饰符之后放置一个空行。 EmptyLineBeforeAccessModifier配置句柄数 两个访问修饰符之间的空行。
+#+ Never  删除访问修饰符后的所有空行。
+#+ Leave  在访问修饰符之后保留现有的空行。 改为应用 MaxEmptyLinesToKeep。
+#+ Always 如果没有，始终在访问修饰符后添加空行。 MaxEmptyLinesToKeep 也适用。
+EmptyLineAfterAccessModifier: Never
+#^ EmptyLineBeforeAccessModifier (EmptyLineBeforeAccessModifierStyle)
+## 定义在哪些情况下将空行放在访问修饰符之前。
+#+ Never        删除所有访问修饰符之前的空行。
+#+ Leave         保留访问修饰符之前的空行。
+#+ LogicalBlock 只有当访问修饰符开始一个新的逻辑块时才添加空行。逻辑块是一组一个或多个成员字段或函数。
+#+ Always     除非访问修饰符在结构或类定义开始时，否则始终在访问修饰符之前添加空行。
+EmptyLineBeforeAccessModifier: LogicalBlock
+#
+# 如果为true，clang-format将检测函数调用和定义是否每行一个参数进行格式化。
+# 每次调用可以是bin-packed（每行一个），一行一个或无法确定。如果无法确定，例如完全在一行上，但需要做出决定，clang-format将分析输入文件中是否有其他bin-packed（每行一个）情况，并相应地采取行动。
+#` 注意：这是一个实验性标志，可能会消失或重命名。不要在配置文件中使用。使用需自担风险。
+ExperimentalAutoDetectBinPacking: false
+PackConstructorInitializers: BinPack
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+AllowAllConstructorInitializersOnNextLine: true
+#^ 修复命名空间注释 (Boolean)
+# 如果设置为 true，clang-format 会为命名空间添加缺失的命名空间结束注释，
+# 并修复无效的现有注释。这不会影响短命名空间，短命名空间由 ShortNamespaceLines 控制。
+FixNamespaceComments: true
+#^ foreach 宏 (字符串列表)
+## 一组应该被解释为foreach循环而不是函数调用的宏。
+## 这些宏的格式应该是：
+##   FOREACH(<变量声明>, ...)
+##     <循环体>
+## 在.clang-format配置文件中，可以像这样配置：
+##   ForEachMacros: ['RANGES_FOR', 'FOREACH']
+## 例如：BOOST_FOREACH。
+ForEachMacros:
+  - foreach
+  - Q_FOREACH
+  - BOOST_FOREACH
+IfMacros:
+  - KJ_IF_MAYBE
+#^ include 块 (IncludeBlocksStyle)
+## 根据值的不同，多个#include块可以被归类为一个，并根据类别进行划分。
+#+ Preserve 分别排序每个#include块。
+#+ Merge    将多个#include块合并在一起，并按一个顺序排序。
+#+ Regroup  将多个#include块合并在一起，并按一个顺序排序。
+#+          然后根据类别优先级将其分成几组。请参阅IncludeCategories。
+IncludeBlocks: Preserve
+#^ include 类别 (List of IncludeCategories) (3.8)
+## 正则表达式用于指示用于排序#includes的不同#include类别。
+## 支持POSIX扩展正则表达式。
+## 这些正则表达式按顺序匹配包括 <> 或 "" 在内的include的文件名。属于第一个匹配的正则表达式的值被分配，#includes首先按照增加的类别编号排序，然后在每个类别内按字母顺序排序。
+## 如果没有正则表达式匹配，则将INT_MAX分配为类别。源文件的主头文件自动获得类别0，因此它通常保留在#includes开头（https://llvm.org/docs/CodingStandards.html#include-style）。但是，如果您有某些始终需要放在最前面的头文件，您也可以分配负优先级。
+## 还有第三个可选字段SortPriority，可以在IncludeBlocks = IBS_Regroup时使用，以定义#includes应排序的优先级。 Priority的值定义#include块的顺序，并允许不同优先级的#includes的分组。如果未指定，SortPriority将默认设置为Priority的值。
+## 每个正则表达式可以使用字段CaseSensitive标记为大小写敏感，默认情况下不是。
+IncludeCategories:
+  - Regex: '^"(llvm|llvm-c|clang|clang-c)/'
+    Priority: 2
+    SortPriority: 0
+    CaseSensitive: false
+  - Regex: '^(<|"(gtest|gmock|isl|json)/)'
+    Priority: 3
+    SortPriority: 0
+    CaseSensitive: false
+  - Regex: ".*"
+    Priority: 1
+    SortPriority: 0
+    CaseSensitive: false
+#^
+##
+IncludeIsMainRegex: "(Test)?$"
+#^
+##
+IncludeIsMainSourceRegex: ""
+#^
+##
+IndentAccessModifiers: false
+#^
+##
+IndentCaseLabels: false
+#^
+##
+IndentCaseBlocks: false
+#^
+##
+IndentGotoLabels: true
+#^
+##
+IndentPPDirectives: AfterHash
+#^
+##
+IndentExternBlock: AfterExternBlock
+#^
+##
+IndentRequires: false
+#^
+##
+IndentWidth: 2
+#^
+##
+IndentWrappedFunctionNames: false
+#^
+##
+InsertTrailingCommas: None
+#^
+##
+JavaScriptQuotes: Leave
+#^
+##
+JavaScriptWrapImports: true
+#^
+##
+KeepEmptyLinesAtTheStartOfBlocks: true
+#^
+##
+LambdaBodyIndentation: Signature
+#^
+##
+MacroBlockBegin: ""
+#^
+##
+MacroBlockEnd: ""
+#^
+##
+MaxEmptyLinesToKeep: 1
+#^
+##
+NamespaceIndentation: None
+#^
+##
+ObjCBinPackProtocolList: Auto
+#^
+##
+ObjCBlockIndentWidth: 2
+#^
+##
+ObjCBreakBeforeNestedBlockParam: true
+#^
+##
+ObjCSpaceAfterProperty: false
+#^
+##
+ObjCSpaceBeforeProtocolList: true
+#^
+##
+PenaltyBreakAssignment: 2
+#^
+##
+PenaltyBreakBeforeFirstCallParameter: 19
+#^
+##
+PenaltyBreakComment: 300
+#^
+##
+PenaltyBreakFirstLessLess: 120
+#^
+##
+PenaltyBreakOpenParenthesis: 0
+#^
+##
+PenaltyBreakString: 1000
+#^
+##
+PenaltyBreakTemplateDeclaration: 10
+#^
+##
+PenaltyExcessCharacter: 1000000
+#^
+##
+PenaltyReturnTypeOnItsOwnLine: 60
+#^
+##
+PenaltyIndentedWhitespace: 0
+#^
+##
+PointerAlignment: Right
+#^
+##
+PPIndentWidth: -1
+#^
+##
+ReferenceAlignment: Pointer
+#^
+##
+ReflowComments: false
+#^
+##
+RemoveBracesLLVM: false
+#^
+##
+SeparateDefinitionBlocks: Leave
+#^
+##
+ShortNamespaceLines: 1
+#^
+##
+SortIncludes: CaseSensitive
+#^
+##
+SortJavaStaticImport: Before
+#^
+##
+SortUsingDeclarations: true
+#^
+##
+SpaceAfterCStyleCast: false
+#^
+##
+SpaceAfterLogicalNot: false
+#^
+##
+SpaceAfterTemplateKeyword: true
+#^
+##
+SpaceBeforeAssignmentOperators: true
+#^
+##
+SpaceBeforeCaseColon: false
+#^
+##
+SpaceBeforeCpp11BracedList: false
+#^
+##
+SpaceBeforeCtorInitializerColon: true
+#^
+##
+SpaceBeforeInheritanceColon: true
+#^
+##
+SpaceBeforeParens: ControlStatements
+#^
+##
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterForeachMacros: true
+  AfterFunctionDefinitionName: false
+  AfterFunctionDeclarationName: false
+  AfterIfMacros: true
+  AfterOverloadedOperator: false
+  BeforeNonEmptyParentheses: false
+#^
+##
+SpaceAroundPointerQualifiers: Default
+#^
+##
+SpaceBeforeRangeBasedForLoopColon: true
+#^
+##
+SpaceInEmptyBlock: false
+#^
+##
+SpaceInEmptyParentheses: false
+#^
+##
+SpacesBeforeTrailingComments: 1
+#^
+##
+SpacesInAngles: Never
+#^
+##
+SpacesInConditionalStatement: false
+#^
+##
+SpacesInContainerLiterals: true
+#^
+##
+SpacesInCStyleCastParentheses: false
+#^
+##
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: -1
+#^
+##
+SpacesInParentheses: false
+#^
+##
+SpacesInSquareBrackets: false
+#^
+##
+SpaceBeforeSquareBrackets: false
+#^
+##
+BitFieldColonSpacing: Both
+#^
+##
+Standard: Latest
+#^
+##
+StatementAttributeLikeMacros:
+  - Q_EMIT
+#^
+##
+StatementMacros:
+  - Q_UNUSED
+  - QT_REQUIRE_VERSION
+#^
+##
+TabWidth: 2
+#^
+##
+UseCRLF: false
+#^
+##
+UseTab: Never
+#^
+##
+WhitespaceSensitiveMacros:
+  - STRINGIZE
+  - PP_STRINGIZE
+  - BOOST_PP_STRINGIZE
+  - NS_SWIFT_NAME
+  - CF_SWIFT_NAME

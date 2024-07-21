@@ -1,0 +1,6 @@
+.cache
+.vscode
+.VSCodeCounter
+bin
+build
+lib
