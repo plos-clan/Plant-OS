@@ -71,6 +71,10 @@ def build_doc():
         tools.intromark.compile_all_subprojects_intromark()
         tools.intromark.compile('README.md')
 
+def run():
+        build()
+        os.system("qemu-system-x86_64 -net nic,model=pcnet -net user -serial stdio -device sb16 -device floppy -s -S -fda build/PlantOS.img -boot a -m 256")
+
 if args.branch_arg == 'build':
         build()
 elif args.branch_arg == 'build-doc':
@@ -83,6 +87,8 @@ elif args.branch_arg == 'repl':
         os.system('python tools/repl.py')
 elif args.branch_arg == 'call':
         os.system('python tools/call.py')
+elif args.branch_arg == 'run':
+        run()
 else:
         print('Wrong parameter!\n')
         parser.print_help()

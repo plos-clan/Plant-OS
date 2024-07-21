@@ -1,15 +1,8 @@
 import os
 
 def compile(filename):
-        if not os.path.exists("build/doc/" + filename):
-                os.makedirs("build/doc/" + filename, exist_ok=True)
-
-        if not os.path.exists("build/intromark-tmp"):
-                os.mkdir("build/intromark-tmp")
-        if not os.path.exists("build/doc"):
-                os.mkdir("build/doc")
-        if not os.path.exists("build/doc/svg"):
-                os.mkdir("build/doc/svg")
+        if not os.path.exists(os.path.dirname("build/doc/" + filename)):
+                os.makedirs(os.path.dirname("build/doc/" + filename), exist_ok=True)
 
         with open(filename) as f:
                 content = f.read()
@@ -60,8 +53,6 @@ def compile(filename):
                 f.write('\n'.join(content_lineslist))
 
 def compile_all_subprojects_intromark():
-        if not os.path.exists("build/doc"):
-                os.mkdir("build/doc")
         ret = '# Subprojects List\n\n'
         for root, dirs, files in os.walk('./src', topdown=False):
                 if 'README.md' in files:
