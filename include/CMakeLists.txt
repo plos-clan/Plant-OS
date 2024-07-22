@@ -1,4 +1,6 @@
 mkheader_recurse(config)
+mkheader_recurse(libc)
+mkheader_recurse(libplos)
 add_subdirectory(libc)
 add_subdirectory(libplos)
 add_subdirectory(kernel)
