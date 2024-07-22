@@ -1,25 +1,20 @@
-#include <libc.h>
+#include "print.h"
 
-const char *sprint_foramt(struct print_fmtarg *__restrict arg, const char *__restrict fmt,
-                          va_list va) {
-  arg->align   = 0;
-  arg->setfg   = false;
-  arg->setfg   = false;
-  arg->decimal = 0;
-  arg->maxlen  = 0;
-  arg->minlen  = 0;
-  memset(arg->buf, 0, arg->bufsize);
-  arg->text = arg->buf;
+dlimport cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va);
 
+dlexport cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
+  fmtarg_clear(arg);
   fmt++;
 
   if (*fmt == '%') {
-    *arg->text = '%';
+    arg->text    = arg->buf;
+    arg->text[0] = '%';
+    arg->text[1] = '\0';
     return fmt + 1;
   }
 
   char *_fmt;
-  arg->maxlen = strb10toi(fmt, &_fmt);
+  arg->maxlen = strtoi(fmt, &_fmt);
   if (fmt == _fmt && *_fmt == '*') {
     arg->maxlen = va_arg(va, int);
     _fmt++;
@@ -32,7 +27,7 @@ const char *sprint_foramt(struct print_fmtarg *__restrict arg, const char *__res
 
   if (*fmt == '.') {
     fmt++;
-    arg->decimal = strb10toi(fmt, &_fmt);
+    arg->decimal = strtoi(fmt, &_fmt);
     if (fmt == _fmt && *_fmt == '*') {
       arg->decimal = va_arg(va, int);
       _fmt++;
@@ -47,26 +42,22 @@ const char *sprint_foramt(struct print_fmtarg *__restrict arg, const char *__res
   // long long 5
   int _size = 3;
 
-  while (1)
+  while (1) {
     switch (*fmt++) {
 
     case 'h':
-      if (0 < _size && _size <= 3) {
-        _size--;
-        continue;
-      }
-      return NULL; // 解析失败
+      if (_size <= 0 || _size > 3) return null; // 解析失败
+      _size--;
+      break;
 
     case 'l':
-      if (3 <= _size && _size < 6) {
-        _size++;
-        continue;
-      }
-      return NULL; // 解析失败
+      if (_size < 3 || _size >= 6) return null; // 解析失败
+      _size++;
+      break;
 
     case 'c':
     case 'C':
-      if (_size != 3) return NULL; // 解析失败
+      if (_size != 3) return null; // 解析失败
       *arg->text = va_arg(va, int);
       goto end;
 
@@ -138,82 +129,99 @@ const char *sprint_foramt(struct print_fmtarg *__restrict arg, const char *__res
       }
       goto end;
 
-    case 'n': // 字符串
+    case 'n':
     case 'N':
-      if (_size != 3) return NULL; // 解析失败
-      int *np = va_arg(va, int *);
-      *np     = arg->n;
+      if (_size != 3) return null; // 解析失败
+      *va_arg(va, int *) = arg->n;
       goto end;
 
     case 's': // 字符串
     case 'S':
-      if (_size != 3) return NULL; // 解析失败
+      if (_size != 3) return null; // 解析失败
       arg->text = va_arg(va, void *);
       if (!arg->text) arg->text = arg->buf;
       goto end;
 
-    default: return NULL; // 解析失败
+    default: return null; // 解析失败
     }
+  }
 
 end:
-  arg->len = strlen(arg->text);
   return fmt;
 }
 
-int vsprintf(char *__restrict s, const char *__restrict fmt, va_list va) {
-  if (!s) return 0;
-  if (!fmt) return 0;
+finline char *vsprintf_align(char *s, fmtarg *arg) {
+  if (!arg->text) return s;
+  ssize_t arg_len = strlen(arg->text);
 
-  char *__s = s;
-
-  char                buf[1024];
-  struct print_fmtarg arg = {.buf = buf, .bufsize = 1024};
-
-  while (*fmt) {
-    if (*fmt == '%') {
-      arg.n            = s - __s;
-      const char *_fmt = sprint_foramt(&arg, fmt, va);
-      if (_fmt) {
-        fmt = _fmt;
-        // 长度超过了最大限制
-        if (arg.maxlen && arg.len >= arg.maxlen) {
-          for (int i = 0; i < arg.maxlen; i++)
-            *s++ = arg.text[i];
-        }
-
-        int blank = arg.minlen - (int)arg.len;
-
-        if (blank > 0)
-          if (arg.align == 0) // 靠右对齐
-            for (int i = 0; i < blank; i++)
-              *s++ = ' ';
-          else if (arg.align == 2) // 居中对齐
-            for (int i = 0; i < blank / 2; i++)
-              *s++ = ' ';
-
-        while (*arg.text)
-          *s++ = *arg.text++;
-
-        if (blank > 0)
-          if (arg.align == 1) // 靠左对齐
-            for (int i = 0; i < blank; i++)
-              *s++ = ' ';
-          else if (arg.align == 2) // 居中对齐
-            for (int i = 0; i < (blank + 1) / 2; i++)
-              *s++ = ' ';
-
-        continue;
-      }
+  if (arg->maxlen > 0 && arg_len > arg->maxlen) { // 放不下就进行截断 假如 maxlen 为 25
+    if (arg->maxlen <= 3) {                       // This is a long long long long line.
+      for (size_t i = 0; i < arg->maxlen; i++)    // This is a long long lo...
+        *s++ = '.';
+    } else {
+      for (size_t i = 0; i < arg->maxlen - 3; i++)
+        *s++ = arg->text[i];
+      for (size_t i = 0; i < 3; i++)
+        *s++ = '.';
     }
+    return s;
+  }
+
+  ssize_t blank      = arg->minlen - arg_len;
+  size_t  blank_left = 0, blank_right = 0;
+
+  if (blank > 0) {
+    if (arg->align == align_left) {
+      blank_right = blank;
+    } else if (arg->align == align_middle) {
+      blank_left  = blank / 2;
+      blank_right = blank - blank_left;
+    } else if (arg->align == align_right) {
+      blank_left = blank;
+    } else {
+      blank_right = blank; // 异常值当作左对齐
+    }
+  }
+
+  for (size_t i = 0; i < blank_left; i++)
+    *s++ = ' ';
+  while (*arg->text++ != '\0')
+    *s++ = *arg->text++;
+  for (size_t i = 0; i < blank_right; i++)
+    *s++ = ' ';
+
+  return s;
+}
+
+finline bool vsprintf_tryfmt(char *_rest *_s, char *sb, cstr _rest *fmt, fmtarg *arg, va_list va) {
+  if (**fmt != '%') return false;
+  arg->n    = *_s - sb;
+  cstr _fmt = sprint_foramt(arg, *fmt, va);
+  if (_fmt == null) return false;
+  *fmt = _fmt;
+  *_s  = vsprintf_align(*_s, arg);
+  return true;
+}
+
+#define vsprintf_bufsize 1024
+
+dlexport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) {
+  if (s == null || fmt == null) return 0;
+  char *s_begin = s;
+
+  static char   buf[vsprintf_bufsize];
+  static fmtarg arg = {.buf = buf, .bufsize = vsprintf_bufsize};
+
+  while (*fmt != '\0') {
+    if (vsprintf_tryfmt(&s, s_begin, &fmt, &arg, va)) continue;
     *s++ = *fmt++;
   }
 
-  return s - __s;
+  return s - s_begin;
 }
 
-int sprintf(char *__restrict s, const char *__restrict fmt, ...) {
-  if (!s) return 0;
-  if (!fmt) return 0;
+dlexport int sprintf(char *_rest s, cstr _rest fmt, ...) {
+  if (fmt == null) return 0;
   va_list va;
   va_start(va, fmt);
   int rets = vsprintf(s, fmt, va);
@@ -221,6 +229,18 @@ int sprintf(char *__restrict s, const char *__restrict fmt, ...) {
   return rets;
 }
 
-ssize_t sformat(char *_rest _s, cstr _rest _fmt) {}
+dlexport ssize_t vsformat(char *_rest s, cstr _rest fmt, va_list va) {
+  return 0;
+}
 
-int vsnprintf(char *__restrict s, size_t maxlen, const char *__restrict fmt, va_list va) {}
+dlexport ssize_t sformat(char *_rest s, cstr _rest fmt, ...) {
+  if (s == null || fmt == null) return 0;
+  va_list va;
+  va_start(va, fmt);
+  ssize_t rets = vsformat(s, fmt, va);
+  va_end(va);
+}
+
+int vsnprintf(char *_rest s, size_t maxlen, const char *_rest fmt, va_list va) {
+  return 0;
+}

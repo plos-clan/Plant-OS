@@ -1,1 +1,1 @@
-
+add_binary(libc)

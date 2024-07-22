@@ -1,5 +1,7 @@
 #pragma once
-#include <config.h>
+#ifndef NO_CONFIG
+#  include <config.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

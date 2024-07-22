@@ -5,6 +5,9 @@
 #define _plos_c_xtoa_buf_len 32
 extern char _plos_c_xtoa_buf[_plos_c_xtoa_buf_len];
 
+extern const char _plos_lut_alnum_lower[62];
+extern const char _plos_lut_alnum_upper[62];
+
 // 这些函数将数字转换为字符串形式
 
 #define __toa(t, type)                                                                             \
@@ -57,11 +60,6 @@ _utoa(u64);
 
 #undef __utoa
 #undef __toa
-
-//
-
-extern const char _plos_lut_alnum_lower[62];
-extern const char _plos_lut_alnum_upper[62];
 
 #define __tostr_begin                                                                              \
   char *s = buf + len;                                                                             \
@@ -191,28 +189,6 @@ extern const char _plos_lut_alnum_upper[62];
     return s;                                                                                      \
   }
 
-#define __(name)                                                                                   \
-  __##name(hh, char, uchar);                                                                       \
-  __u##name(uhh, uchar);                                                                           \
-  __##name(h, short, ushort);                                                                      \
-  __u##name(uh, ushort);                                                                           \
-  __##name(i, int, uint);                                                                          \
-  __u##name(ui, uint);                                                                             \
-  __##name(l, long, ulong);                                                                        \
-  __u##name(ul, ulong);                                                                            \
-  __##name(ll, llong, ullong);                                                                     \
-  __u##name(ull, ullong);
-
-__(tostrb2);
-__(tostrb8);
-__(tostrb10);
-__(tostrb16);
-__(tostrB16);
-
-__(tostr);
-
-#undef __
-
 #define _tostrb2(t, u)  __tostrb2(t, t, u)
 #define _utostrb2(t)    __utostrb2(t, t)
 #define _tostrb8(t, u)  __tostrb8(t, t, u)
@@ -227,6 +203,16 @@ __(tostr);
 #define _utostr(t)      __utostr(t, t)
 
 #define __(name)                                                                                   \
+  __##name(hh, char, uchar);                                                                       \
+  __u##name(uhh, uchar);                                                                           \
+  __##name(h, short, ushort);                                                                      \
+  __u##name(uh, ushort);                                                                           \
+  __##name(i, int, uint);                                                                          \
+  __u##name(ui, uint);                                                                             \
+  __##name(l, long, ulong);                                                                        \
+  __u##name(ul, ulong);                                                                            \
+  __##name(ll, llong, ullong);                                                                     \
+  __u##name(ull, ullong);                                                                          \
   _##name(i8, u8);                                                                                 \
   _u##name(u8);                                                                                    \
   _##name(i16, u16);                                                                               \
@@ -241,7 +227,6 @@ __(tostrb8);
 __(tostrb10);
 __(tostrb16);
 __(tostrB16);
-
 __(tostr);
 
 #undef __
