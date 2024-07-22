@@ -1,8 +1,52 @@
-#include "print.h"
+#include <libc.h>
 
-dlimport cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va);
+#define vsprintf_bufsize 1024
+static char vsprintf_buf[vsprintf_bufsize];
 
-dlexport cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
+enum fmtalign {
+  align_left,
+  align_middle,
+  align_right,
+};
+
+typedef struct fmtarg {
+  int align; // 对齐方式
+
+  int n; // 当前已格式化的字符数
+
+  // 背景颜色
+  bool setfg : 1, setbg : 1;
+  struct {
+    byte r, g, b;
+  } fg, bg;
+
+  int decimal; // 小数部分的长度
+
+  ssize_t maxlen; // 输出字符串的最大长度
+  ssize_t minlen; // 输出字符串的最小长度
+
+  // 格式化时的缓冲区
+  char  *buf;
+  size_t bufsize;
+
+  // 原数据直接转换成的字符串
+  // 包括结尾的 '\0'
+  // 不包括用于对齐的空格
+  // 指向 buf 中的内容
+  char *text;
+} fmtarg;
+
+finline void fmtarg_clear(fmtarg *arg) {
+  arg->align   = align_left;
+  arg->setfg   = false;
+  arg->setfg   = false;
+  arg->decimal = 0;
+  arg->maxlen  = 0;
+  arg->minlen  = 0;
+  arg->text    = null;
+}
+
+static cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
   fmtarg_clear(arg);
   fmt++;
 
@@ -150,7 +194,11 @@ end:
   return fmt;
 }
 
-finline char *vsprintf_align(char *s, fmtarg *arg) {
+static cstr sformat_format(fmtarg *arg, cstr fmt, va_list va) {
+  return null;
+}
+
+static char *vsprintf_align(char *s, fmtarg *arg) {
   if (!arg->text) return s;
   ssize_t arg_len = strlen(arg->text);
 
@@ -193,7 +241,7 @@ finline char *vsprintf_align(char *s, fmtarg *arg) {
   return s;
 }
 
-finline bool vsprintf_tryfmt(char *_rest *_s, char *sb, cstr _rest *fmt, fmtarg *arg, va_list va) {
+static bool vsprintf_tryfmt(char *_rest *_s, char *sb, cstr _rest *fmt, fmtarg *arg, va_list va) {
   if (**fmt != '%') return false;
   arg->n    = *_s - sb;
   cstr _fmt = sprint_foramt(arg, *fmt, va);
@@ -203,14 +251,11 @@ finline bool vsprintf_tryfmt(char *_rest *_s, char *sb, cstr _rest *fmt, fmtarg 
   return true;
 }
 
-#define vsprintf_bufsize 1024
-
 dlexport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) {
   if (s == null || fmt == null) return 0;
   char *s_begin = s;
 
-  static char   buf[vsprintf_bufsize];
-  static fmtarg arg = {.buf = buf, .bufsize = vsprintf_bufsize};
+  static fmtarg arg = {.buf = vsprintf_buf, .bufsize = vsprintf_bufsize};
 
   while (*fmt != '\0') {
     if (vsprintf_tryfmt(&s, s_begin, &fmt, &arg, va)) continue;

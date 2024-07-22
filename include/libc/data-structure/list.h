@@ -94,15 +94,15 @@ extern void list_print(list_t list);
 
 static list_t list_alloc(void *data) {
   list_t node = malloc(sizeof(*node));
-  if (node == NULL) return NULL;
+  if (node == null) return null;
   node->data = data;
-  node->prev = NULL;
-  node->next = NULL;
+  node->prev = null;
+  node->next = null;
   return node;
 }
 
 static void list_free(list_t list) {
-  while (list != NULL) {
+  while (list != null) {
     list_t next = list->next;
     free(list);
     list = next;
@@ -110,7 +110,7 @@ static void list_free(list_t list) {
 }
 
 static void list_free_with(list_t list, void (*free_data)(void *)) {
-  while (list != NULL) {
+  while (list != null) {
     list_t next = list->next;
     free_data(list->data);
     free(list);
@@ -120,13 +120,13 @@ static void list_free_with(list_t list, void (*free_data)(void *)) {
 
 static list_t list_append(list_t list, void *data) {
   list_t node = list_alloc(data);
-  if (node == NULL) return list;
+  if (node == null) return list;
 
-  if (list == NULL) {
+  if (list == null) {
     list = node;
   } else {
     list_t current = list;
-    while (current->next != NULL) {
+    while (current->next != null) {
       current = current->next;
     }
     current->next = node;
@@ -138,10 +138,10 @@ static list_t list_append(list_t list, void *data) {
 
 static list_t list_prepend(list_t list, void *data) {
   list_t node = list_alloc(data);
-  if (node == NULL) return list;
+  if (node == null) return list;
 
   node->next = list;
-  if (list != NULL) list->prev = node;
+  if (list != null) list->prev = node;
   list = node;
 
   return list;
@@ -149,7 +149,7 @@ static list_t list_prepend(list_t list, void *data) {
 
 static bool list_search(list_t list, void *data) {
   list_t current = list;
-  while (current != NULL) {
+  while (current != null) {
     if (current->data == data) return true;
     current = current->next;
   }
@@ -157,7 +157,7 @@ static bool list_search(list_t list, void *data) {
 }
 
 static list_t list_delete(list_t list, void *data) {
-  if (list == NULL) return NULL;
+  if (list == null) return null;
 
   if (list->data == data) {
     list_t temp = list;
@@ -169,7 +169,7 @@ static list_t list_delete(list_t list, void *data) {
   for (list_t current = list->next; current; current = current->next) {
     if (current->data == data) {
       current->prev->next = current->next;
-      if (current->next != NULL) current->next->prev = current->prev;
+      if (current->next != null) current->next->prev = current->prev;
       free(current);
       break;
     }
@@ -179,7 +179,7 @@ static list_t list_delete(list_t list, void *data) {
 }
 
 static list_t list_delete_node(list_t list, list_t node) {
-  if (list == NULL || node == NULL) return list;
+  if (list == null || node == null) return list;
 
   if (list == node) {
     list_t temp = list;
@@ -191,7 +191,7 @@ static list_t list_delete_node(list_t list, list_t node) {
   for (list_t current = list->next; current; current = current->next) {
     if (current == node) {
       current->prev->next = current->next;
-      if (current->next != NULL) current->next->prev = current->prev;
+      if (current->next != null) current->next->prev = current->prev;
       free(current);
       break;
     }
@@ -203,7 +203,7 @@ static list_t list_delete_node(list_t list, list_t node) {
 static size_t list_length(list_t list) {
   size_t count   = 0;
   list_t current = list;
-  while (current != NULL) {
+  while (current != null) {
     count++;
     current = current->next;
   }
@@ -212,11 +212,11 @@ static size_t list_length(list_t list) {
 
 static void list_print(list_t list) {
   list_t current = list;
-  while (current != NULL) {
+  while (current != null) {
     printf("%p -> ", current->data);
     current = current->next;
   }
-  printf("NULL\n");
+  printf("null\n");
 }
 
 #  undef LIST_IMPLEMENTATION
