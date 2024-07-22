@@ -564,7 +564,7 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
   // (VIII): Sending the packet data:
   // ------------------------------------------------------------------
   printk("VIII\n");
-  u16 *_atapi_packet = atapi_packet;
+  u16 *_atapi_packet = (u16 *)atapi_packet;
   for (int i = 0; i < 6; i++) {
     asm_out16(bus, _atapi_packet[i]);
   }

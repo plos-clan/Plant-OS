@@ -1,12 +1,12 @@
-
-![](doc/plos.png)
-
 # PlantOS
-
 A simple OS used to study made by several students
 
 ## Contribute
 
+<div>
+        <div id="afterTitle">A simple OS used to study made by several students</div>
+        <img id="logo"src="assets/plos.png" width="350" height="350" align="right">
+</div>
 除本描述文件使用标准 Markdown 以外，其余描述文件会使用一种 Markdown 方言，经过预处理器翻译可以得到标准 Markdown ，它主要支持如下的附加功能：
 
 1. 一种快速编写图表的语法。
@@ -35,9 +35,10 @@ boot、loader、kernel 是三个独立的部分，我们通常通过 boot 引导
 
 ## Dependencies
 
-你至少需要在系统范围内安装 mtools 、Python 、GCC 。<br>
-为了在虚拟机中调试本操作系统，你应该在系统范围内安装 QEMU 。<br>
-为了构建文档，你应该在系统范围内安装 Graphviz 。
+你至少需要在系统范围内安装 Python 、在任何位置安装 mformat、mcopy、clang（作为默认值，建议你在系统范围内安装它）以构建本项目<br>
+为了在虚拟机中调试本操作系统，你应该在任何位置安装 QEMU 。（作为默认值，建议你在系统范围内安装它）<br>
+为了构建文档，你应该在系统范围内安装 Graphviz 。<br>
+同时可以使用 gcc 来编译。
 
 ## Using
 
@@ -56,3 +57,5 @@ python make.py run
 ```
 
 来构建并运行
+
+`make.py` 有诸多功能，你应该查看它的代码或使用 `python make.py --help`。

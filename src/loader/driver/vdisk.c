@@ -7,6 +7,7 @@ int   init_vdisk() {
     vdisk_ctl[i].flag = 0; // 设置为未使用
   }
 }
+
 int register_vdisk(vdisk vd) {
   for (int i = 0; i < 10; i++) {
     if (!vdisk_ctl[i].flag) {
@@ -14,7 +15,7 @@ int register_vdisk(vdisk vd) {
       return i + ('A');  // 注册成功，返回drive
     }
   }
-  printf("[vdisk]not found\n");
+//   printf("[vdisk]not found\n");
   return 0; // 注册失败
 }
 int logout_vdisk(char drive) {

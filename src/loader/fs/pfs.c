@@ -667,7 +667,7 @@ void init_pfs(vfs_t *vfs, pfs_t p) {
   *now_pfs_t = p;
   u8 mbr[512];
   now_pfs_t->read_block(now_pfs_t, 0, 1, mbr);
-  pfs_mbr *mb = &mbr;
+  pfs_mbr *mb = (pfs_mbr*)&mbr;
   // if (memcmp(mb->sign, "PFS\xff", 4) != 0) {
   //   free(now_pfs_t);
   //   now_pfs_t = NULL;
@@ -779,13 +779,13 @@ List *pfs_ListFile(struct vfs_t *vfs, char *dictpath) {
         }
         vfs_file *f = malloc(sizeof(vfs_file));
         strcpy(f->name, mstr_get(s));
-        f->day    = 114514;
-        f->hour   = 114514;
-        f->minute = 114514;
-        f->month  = 114514;
+        f->day    = 0;
+        f->hour   = 0;
+        f->minute = 0;
+        f->month  = 0;
         f->size   = pdb.inodes[i].size;
         f->type   = pdb.inodes[i].type == 2 ? DIR : FLE;
-        f->year   = 114514;
+        f->year   = 0;
         AddVal((u32)f, result);
         mstr_free(s);
       }
@@ -824,7 +824,7 @@ void pfs_DeleteFs(struct vfs_t *vfs) {
 bool pfs_Check(u8 disk_number) {
   u8 mbr[512];
   Disk_Read(0, 1, mbr, disk_number);
-  pfs_mbr *mb = &mbr;
+  pfs_mbr *mb = (pfs_mbr *)&mbr;
   if (memcmp(mb->sign, "PFS\xff", 4) != 0) { return false; }
   return true;
 }
@@ -886,13 +886,13 @@ vfs_file *pfs_FileInfo(struct vfs_t *vfs, char *filename) {
   }
   pfs_inode i = pfs_get_inode_by_index(vfs, idx, b);
   strcpy(result->name, filename);
-  result->day    = 114514;
-  result->hour   = 114514;
-  result->minute = 114514;
-  result->month  = 114514;
+  result->day    = 0;
+  result->hour   = 0;
+  result->minute = 0;
+  result->month  = 0;
   result->size   = i.size;
   result->type   = i.type == 2 ? DIR : FLE;
-  result->year   = 114514;
+  result->year   = 0;
   return result;
 }
 void reg_pfs() {

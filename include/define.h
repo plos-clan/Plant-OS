@@ -49,7 +49,7 @@ typedef __builtin_va_list va_list;
 #if DEBUG
 #  define finline static
 #else
-#  define finline static inline __attribute__((always_inline))
+#  define finline static inline
 #endif
 
 // 获取数组的长度
