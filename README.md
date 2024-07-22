@@ -1,3 +1,6 @@
+
+![](doc/plos.png)
+
 # PlantOS
 
 A simple OS used to study made by several students

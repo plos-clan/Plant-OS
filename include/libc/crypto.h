@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "config/plui.h"
+#include "crypto/hash.h"
 #ifdef __cplusplus
 }
 #endif

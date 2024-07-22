@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#define _CONST_(_type_) typedef const _type_ $##_type_
+
 #ifdef __cplusplus
 static const auto null = nullptr;
 #else
@@ -15,11 +17,15 @@ static const auto null = nullptr;
 #  define NULL 0
 #endif
 
+#define $void const void
+
 #ifndef __cplusplus
 #  define bool  _Bool
 #  define true  ((bool)1)
 #  define false ((bool)0)
 #endif
+
+_CONST_(bool);
 
 // gcc 扩展
 #ifndef __cplusplus
@@ -28,6 +34,8 @@ static const auto null = nullptr;
 
 // 获取表达式的类型，类似于 auto
 #define typeof(arg) __typeof__((void)0, arg)
+
+#define $auto const auto
 
 #undef INT8_MIN
 #undef INT8_MAX
@@ -85,6 +93,16 @@ typedef __UINTPTR_TYPE__ uintptr_t;
 typedef __INTPTR_TYPE__  ssize_t;
 typedef __UINTPTR_TYPE__ size_t;
 typedef __INTPTR_TYPE__  ptrdiff_t;
+typedef size_t           usize;
+typedef ssize_t          ssize;
+
+_CONST_(intptr_t);
+_CONST_(uintptr_t);
+_CONST_(ssize_t);
+_CONST_(size_t);
+_CONST_(ptrdiff_t);
+_CONST_(usize);
+_CONST_(ssize);
 
 // 在大多数环境下 schar 就是 char
 typedef signed char        schar;
@@ -94,6 +112,14 @@ typedef unsigned int       uint;
 typedef unsigned long      ulong;
 typedef long long          llong;
 typedef unsigned long long ullong;
+
+_CONST_(schar);
+_CONST_(uchar);
+_CONST_(ushort);
+_CONST_(uint);
+_CONST_(ulong);
+_CONST_(llong);
+_CONST_(ullong);
 
 #ifndef __cplusplus
 typedef __CHAR16_TYPE__ char16_t;
@@ -118,8 +144,28 @@ typedef _Float16          float16_t;
 typedef __float128        float128_t;
 #endif
 
+_CONST_(int8_t);
+_CONST_(uint8_t);
+_CONST_(int16_t);
+_CONST_(uint16_t);
+_CONST_(int32_t);
+_CONST_(uint32_t);
+_CONST_(int64_t);
+_CONST_(uint64_t);
+_CONST_(float32_t);
+_CONST_(float64_t);
+#if defined(__x86_64__)
+_CONST_(int128_t);
+_CONST_(uint128_t);
+_CONST_(float16_t);
+_CONST_(float128_t);
+#endif
+
 typedef __INTMAX_TYPE__  intmax_t;
 typedef __UINTMAX_TYPE__ uintmax_t;
+
+_CONST_(intmax_t);
+_CONST_(uintmax_t);
 
 typedef int8_t    i8;
 typedef uint8_t   u8;
@@ -138,10 +184,32 @@ typedef float16_t  f16;
 typedef float128_t f128;
 #endif
 
+_CONST_(i8);
+_CONST_(u8);
+_CONST_(i16);
+_CONST_(u16);
+_CONST_(i32);
+_CONST_(u32);
+_CONST_(i64);
+_CONST_(u64);
+_CONST_(f32);
+_CONST_(f64);
+#if defined(__x86_64__)
+_CONST_(i128);
+_CONST_(u128);
+_CONST_(f16);
+_CONST_(f128);
+#endif
+
 typedef intmax_t  imax_t;
 typedef uintmax_t umax_t;
 
+_CONST_(imax_t);
+_CONST_(umax_t);
+
 typedef int errno_t;
+
+_CONST_(errno_t);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ 复数
@@ -149,6 +217,10 @@ typedef int errno_t;
 typedef _Complex float  cfloat;
 typedef _Complex double cdouble;
 typedef _Complex double complex;
+
+_CONST_(cfloat);
+_CONST_(cdouble);
+_CONST_(complex);
 
 typedef _Complex __INT8_TYPE__   cint8_t;
 typedef _Complex __UINT8_TYPE__  cuint8_t;
@@ -167,6 +239,23 @@ typedef _Complex __float128 cfloat128_t;
 #  endif
 #endif
 
+_CONST_(cint8_t);
+_CONST_(cuint8_t);
+_CONST_(cint16_t);
+_CONST_(cuint16_t);
+_CONST_(cint32_t);
+_CONST_(cuint32_t);
+_CONST_(cint64_t);
+_CONST_(cuint64_t);
+_CONST_(cfloat32_t);
+_CONST_(cfloat64_t);
+#if defined(__x86_64__)
+_CONST_(cfloat16_t);
+#  ifdef __clang__
+_CONST_(cfloat128_t);
+#  endif
+#endif
+
 typedef cint8_t    ci8;
 typedef cuint8_t   cu8;
 typedef cint16_t   ci16;
@@ -181,6 +270,23 @@ typedef cfloat64_t cf64;
 typedef cfloat16_t cf16;
 #  ifdef __clang__
 typedef cfloat128_t cf128;
+#  endif
+#endif
+
+_CONST_(ci8);
+_CONST_(cu8);
+_CONST_(ci16);
+_CONST_(cu16);
+_CONST_(ci32);
+_CONST_(cu32);
+_CONST_(ci64);
+_CONST_(cu64);
+_CONST_(cf32);
+_CONST_(cf64);
+#if defined(__x86_64__)
+_CONST_(cf16);
+#  ifdef __clang__
+_CONST_(cf128);
 #  endif
 #endif
 
@@ -385,8 +491,6 @@ enum {
 #if NO_STD || !defined(__cplusplus)
 #  define atomic _Atomic
 #endif
-
-#define atom _Atomic
 
 #if defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__)
 
@@ -754,7 +858,14 @@ typedef atomic_flag_t atom_flag_t;
 typedef i8 sbyte;
 typedef u8 byte;
 
+_CONST_(sbyte);
+_CONST_(byte);
+
 typedef const char *cstr;
+
+_CONST_(cstr);
+
+#undef _CONST_
 
 #ifdef __cplusplus
 }

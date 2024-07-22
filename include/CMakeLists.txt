@@ -1,5 +1,5 @@
-add_subdirectory(asm)
-add_subdirectory(c)
-add_subdirectory(cpp)
+mkheader_recurse(config)
+add_subdirectory(libc)
+add_subdirectory(libplos)
 add_subdirectory(kernel)
 add_subdirectory(loader)

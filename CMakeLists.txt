@@ -33,6 +33,8 @@ set(CMAKE_CXX_FLAGS "-std=gnu++2b")
 message("本机 环境")
 include(cmake/show-flags)
 
+add_subdirectory(util)
+
 # ----------------------------------------------------------------------------------------------------
 # 以下设定 PLOS 编译配置
 
