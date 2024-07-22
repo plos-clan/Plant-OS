@@ -1,3 +1,4 @@
+#!/bin/env python
 r'''
 Non-self-compiling auto build RePlantOS
 
