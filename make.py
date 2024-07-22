@@ -1,18 +1,4 @@
 #!/bin/env python
-r'''
-Non-self-compiling auto build RePlantOS
-
-  build                 build RePlantOS minimally
-  build-doc             build RePlantOS document
-  clear                 clear `build` directory
-  init                  initation RePlantOS workspace
-
-options:
-  -h, --help            show this help message and exit
-  --debug               show debug informations
-  --nasm-path NASM_PATH
-                        set NASM compiler path
-'''
 import argparse
 import sys
 import os
@@ -55,10 +41,10 @@ else:
         cc = args.cc
 
 def print_success():
-    print("\033[32;1mBUILD SUCCESS\033[0m")
+        print("\033[32;1mBUILD SUCCESS\033[0m")
 
 def print_error():
-    print("\033[31;1mBUILD FAILED\033[0m")
+        print("\033[31;1mBUILD FAILED\033[0m")
 
 def build_boot():
         import src.boot.make
@@ -129,11 +115,16 @@ def build():
 
         print_success()
 
-def clear():
+def clean():
         shutil.rmtree("build")
 
 def init():
         os.mkdir("build")
+        for root, dirs, files in os.walk('src'):
+                for file in files:
+                        os.makedirs('build/' + root, exist_ok=True)
+                        with open('build/' + root + '/' + file,'w') as bakfile:
+                                bakfile.write('')
 
 def build_doc():
         import tools.intromark
@@ -141,14 +132,14 @@ def build_doc():
         tools.intromark.compile('README.md')
 
 def run():
-        os.system(f"{args.qemu} -net nic,model=pcnet -net user -serial stdio -device sb16 -device floppy -s -S -fda build/PlantOS.img -boot a -m 256")
+        os.system(f"{args.qemu} -net nic,model=pcnet -net user -serial stdio -device sb16 -device floppy -fda build/PlantOS.img -boot a -m 256")
 
 if args.branch_arg == 'build':
         build()
 elif args.branch_arg == 'build-doc':
         build_doc()
-elif args.branch_arg == 'clear':
-        clear()
+elif args.branch_arg == 'clean':
+        clean()
 elif args.branch_arg == 'init':
         init()
 elif args.branch_arg == 'repl':
