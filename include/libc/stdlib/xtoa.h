@@ -5,6 +5,9 @@
 #define _plos_c_xtoa_buf_len 32
 extern char _plos_c_xtoa_buf[_plos_c_xtoa_buf_len];
 
+extern const char _plos_lut_alnum_lower[62];
+extern const char _plos_lut_alnum_upper[62];
+
 // 这些函数将数字转换为字符串形式
 
 #define __toa(t, type)                                                                             \
@@ -40,8 +43,8 @@ __toa(i, int);
 __utoa(ui, unsigned int);
 __toa(l, long int);
 __utoa(ul, unsigned long int);
-// __toa(ll, long long int);
-// __utoa(ull, unsigned long long int);
+__toa(ll, long long int);
+__utoa(ull, unsigned long long int);
 
 _toa(i8);
 _utoa(u8);
@@ -49,19 +52,14 @@ _toa(i16);
 _utoa(u16);
 _toa(i32);
 _utoa(u32);
-// _toa(i64);
-// _utoa(u64);
+_toa(i64);
+_utoa(u64);
 
 #undef _utoa
 #undef _toa
 
 #undef __utoa
 #undef __toa
-
-//
-
-extern const char _plos_lut_alnum_lower[62];
-extern const char _plos_lut_alnum_upper[62];
 
 #define __tostr_begin                                                                              \
   char *s = buf + len;                                                                             \
@@ -200,8 +198,8 @@ extern const char _plos_lut_alnum_upper[62];
   __u##name(ui, uint);                                                                             \
   __##name(l, long, ulong);                                                                        \
   __u##name(ul, ulong);                                                                            \
-//   __##name(ll, llong, ullong);                                                                     \
-//   __u##name(ull, ullong);
+  __##name(ll, llong, ullong);                                                                     \
+  __u##name(ull, ullong);
 
 __(tostrb2);
 __(tostrb8);
@@ -227,21 +225,30 @@ __(tostr);
 #define _utostr(t)      __utostr(t, t)
 
 #define __(name)                                                                                   \
+  __##name(hh, char, uchar);                                                                       \
+  __u##name(uhh, uchar);                                                                           \
+  __##name(h, short, ushort);                                                                      \
+  __u##name(uh, ushort);                                                                           \
+  __##name(i, int, uint);                                                                          \
+  __u##name(ui, uint);                                                                             \
+  __##name(l, long, ulong);                                                                        \
+  __u##name(ul, ulong);                                                                            \
+  __##name(ll, llong, ullong);                                                                     \
+  __u##name(ull, ullong);                                                                          \
   _##name(i8, u8);                                                                                 \
   _u##name(u8);                                                                                    \
   _##name(i16, u16);                                                                               \
   _u##name(u16);                                                                                   \
   _##name(i32, u32);                                                                               \
   _u##name(u32);                                                                                   \
-//   _##name(i64, u64);                                                                               \
-//   _u##name(u64);
+  _##name(i64, u64);                                                                               \
+  _u##name(u64);
 
 __(tostrb2);
 __(tostrb8);
 __(tostrb10);
 __(tostrb16);
 __(tostrB16);
-
 __(tostr);
 
 #undef __

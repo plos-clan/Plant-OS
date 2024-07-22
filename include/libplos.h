@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #include "libplos/include-libc.h"
+#include "libplos/stdio/print.h"
 #ifdef __cplusplus
 }
 #endif

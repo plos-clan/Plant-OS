@@ -73,6 +73,7 @@ finline char *strcat(char *_rest _d, cstr _rest _s) {
 
 finline char *strncat(char *_rest _d, cstr _rest _s, size_t _n) {
   // 未完成
+  return null;
 }
 
 finline int strcmp(cstr _s1, cstr _s2) {

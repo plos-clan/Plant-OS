@@ -1,5 +1,7 @@
 #pragma once
-#include <config.h>
+#ifndef NO_CONFIG
+#  include <config.h>
+#endif
 
 #if !__BYTE_ORDER__ || !__ORDER_LITTLE_ENDIAN__ || !__ORDER_BIG_ENDIAN__
 #  error "请指定端序"
