@@ -146,7 +146,7 @@ static bool queue_mt_isempty(queue_mt_t queue) {
   return queue == null || queue->head == null;
 }
 
-static int size(queue_mt_t queue) {
+static size_t queue_mt_size(queue_mt_t queue) {
   return (queue == null) ? 0 : queue->size;
 }
 

@@ -137,7 +137,7 @@ static bool queue_isempty(queue_t queue) {
   return queue == null || queue->head == null;
 }
 
-static int size(queue_t queue) {
+static size_t queue_size(queue_t queue) {
   return (queue == null) ? 0 : queue->size;
 }
 

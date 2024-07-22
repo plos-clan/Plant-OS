@@ -146,7 +146,7 @@ static bool event_isempty(event_t event) {
   return event == null || event->head == null;
 }
 
-static int size(event_t event) {
+static size_t event_size(event_t event) {
   return (event == null) ? 0 : event->size;
 }
 

@@ -165,7 +165,7 @@ void page_free(void *p, int size) {
   struct MEMMAN *man = (struct MEMMAN *)MEMMAN_ADDR;
   memman_free_4k(man, (u32)p, size);
 }
-void *malloc(int size) {
+void *malloc(size_t size) {
   void *p = page_malloc(size + sizeof(int));
   if (p == 0) return 0;
   *(int *)p = size;
