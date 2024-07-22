@@ -2,7 +2,7 @@
 #include <define.h>
 #include <type.h>
 
-#include <asm/asm.h>
+#include <libc.h>
 
 int  io_load_eflags();
 void io_store_eflags(int eflags);
