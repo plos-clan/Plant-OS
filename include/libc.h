@@ -7,10 +7,21 @@ extern "C" {
 #include "libc/asm.h"
 #include "libc/color.h"
 #include "libc/crypto/hash.h"
+#include "libc/math/base.h"
+#include "libc/math/bits.h"
+#include "libc/math/complex/base.h"
+#include "libc/math/complex/fft.h"
+#include "libc/math/exp-log.h"
+#include "libc/math/float.h"
+#include "libc/math/math.h"
+#include "libc/math/sqrt.h"
+#include "libc/spin.h"
+#include "libc/stdio/sprintf.h"
+#include "libc/stdlib/atox.h"
+#include "libc/stdlib/xtoa.h"
 #include "libc/string/mem.h"
 #include "libc/string/str.h"
 #include "libc/syscall/linux-x64.h"
-#include "libc/xtoa.h"
 #ifdef __cplusplus
 }
 #endif

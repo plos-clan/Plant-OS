@@ -2,6 +2,46 @@
 #include <define.h>
 #include <type.h>
 
+// 声明
+
+finline char  *strcpy(char *_rest d, cstr _rest s);
+finline char  *strncpy(char *_rest d, cstr _rest s, size_t n);
+finline char  *strcat(char *_rest _d, cstr _rest _s);
+finline char  *strncat(char *_rest _d, cstr _rest _s, size_t _n);
+finline int    strcmp(cstr _s1, cstr _s2);
+finline int    tolower(int c);
+finline int    toupper(int c);
+finline int    strncmp(cstr _s1, cstr _s2, size_t n);
+dlimport char *strdup(cstr _s);
+dlimport char *strndup(cstr _s, size_t _n);
+finline char  *strchr(cstr _s, int _c);
+finline char  *strrchr(cstr _s, int _c);
+finline char  *strchrnul(cstr _s, int _c);
+finline size_t strcspn(cstr __s, cstr __reject);
+finline size_t strspn(cstr s, cstr accept);
+finline char  *strpbrk(cstr __s, cstr __accept);
+finline char  *strstr(cstr _s, cstr _t);
+finline char  *strtok(char *_rest __s, cstr _rest __delim);
+finline char  *strtok_r(char *_rest __s, cstr _rest __delim, char **_rest __save_ptr);
+finline char  *strcasestr(cstr _s, cstr _t);
+finline size_t strlen(cstr _s);
+finline size_t strnlen(cstr _s, size_t _l);
+dlimport char *strerror(int e);
+dlimport char *strerror_r(int e, char *buf, size_t n);
+dlimport cstr  strerrordesc_np(int __err);
+dlimport cstr  strerrorname_np(int __err);
+dlimport char *strsep(char **_rest __stringp, cstr _rest __delim);
+dlimport char *strsignal(int __sig);
+finline cstr   sigabbrev_np(int __sig);
+finline cstr   sigdescr_np(int __sig);
+finline char  *stpcpy(char *_rest __dest, cstr _rest __src);
+finline char  *stpncpy(char *_rest __dest, cstr _rest __src, size_t __n);
+finline int    strverscmp(cstr __s1, cstr __s2);
+finline char  *strfry(char *__string);
+finline char  *basename(cstr __filename);
+
+// 定义
+
 #if NO_STD
 
 finline char *strcpy(char *_rest d, cstr _rest s) {
@@ -70,9 +110,9 @@ finline int strncmp(cstr _s1, cstr _s2, size_t n) {
 #  if __has(strncmp)
   return __builtin_strncmp(_s1, _s2, n);
 #  else
-  const byte *s1 = _s1;
-  const byte *e1 = _s1 + n;
-  const byte *s2 = _s2;
+  const byte *s1 = (const byte *)_s1;
+  const byte *e1 = (const byte *)_s1 + n;
+  const byte *s2 = (const byte *)_s2;
   byte        c1, c2;
   while (s1 != e1) {
     c1 = *s1++;
@@ -128,13 +168,28 @@ finline size_t strspn(cstr s, cstr accept);
 
 finline char *strpbrk(cstr __s, cstr __accept);
 
-finline char *strstr(cstr __haystack, cstr __needle);
+finline char *strstr(cstr _s, cstr _t) {
+#  if __has(strstr)
+  return __builtin_strstr(_s, _t);
+#  else
+  size_t _sn = strlen(_s);
+  size_t _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s;
+  cstr t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#  endif
+}
 
 finline char *strtok(char *_rest __s, cstr _rest __delim);
 
 finline char *strtok_r(char *_rest __s, cstr _rest __delim, char **_rest __save_ptr);
 
-finline char *strcasestr(cstr __haystack, cstr __needle);
+finline char *strcasestr(cstr _s, cstr _t);
 
 finline size_t strlen(cstr _s) {
 #  if __has(strlen)

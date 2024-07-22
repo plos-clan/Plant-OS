@@ -72,7 +72,7 @@ extern const char _plos_lut_alnum_upper[62];
   __tostr_begin
 
 #define __tostrb2(t, type, utype)                                                                  \
-  char *t##tostrb2(char *buf, size_t len, type _n) {                                               \
+  finline char *t##tostrb2(char *buf, size_t len, type _n) {                                       \
     __tostr_begin;                                                                                 \
     if (_n == 0) return (*--s = '0', s);                                                           \
     bool  neg = _n < 0;                                                                            \
@@ -83,7 +83,7 @@ extern const char _plos_lut_alnum_upper[62];
     return s;                                                                                      \
   }
 #define __utostrb2(t, type)                                                                        \
-  char *t##tostrb2(char *buf, size_t len, type n) {                                                \
+  finline char *t##tostrb2(char *buf, size_t len, type n) {                                        \
     __tostr_begin;                                                                                 \
     if (n == 0) return (*--s = '0', s);                                                            \
     for (; n; n >>= 1)                                                                             \
@@ -92,7 +92,7 @@ extern const char _plos_lut_alnum_upper[62];
   }
 
 #define __tostrb8(t, type, utype)                                                                  \
-  char *t##tostrb8(char *buf, size_t len, type _n) {                                               \
+  finline char *t##tostrb8(char *buf, size_t len, type _n) {                                       \
     __tostr_begin;                                                                                 \
     if (_n == 0) return (*--s = '0', s);                                                           \
     bool  neg = _n < 0;                                                                            \
@@ -103,7 +103,7 @@ extern const char _plos_lut_alnum_upper[62];
     return s;                                                                                      \
   }
 #define __utostrb8(t, type)                                                                        \
-  char *t##tostrb8(char *buf, size_t len, type n) {                                                \
+  finline char *t##tostrb8(char *buf, size_t len, type n) {                                        \
     __tostr_begin;                                                                                 \
     if (n == 0) return (*--s = '0', s);                                                            \
     for (; n; n >>= 3)                                                                             \
@@ -112,7 +112,7 @@ extern const char _plos_lut_alnum_upper[62];
   }
 
 #define __tostrb10(t, type, utype)                                                                 \
-  char *t##tostrb10(char *buf, size_t len, type _n) {                                              \
+  finline char *t##tostrb10(char *buf, size_t len, type _n) {                                      \
     __tostr_begin;                                                                                 \
     if (_n == 0) return (*--s = '0', s);                                                           \
     bool  neg = _n < 0;                                                                            \
@@ -123,7 +123,7 @@ extern const char _plos_lut_alnum_upper[62];
     return s;                                                                                      \
   }
 #define __utostrb10(t, type)                                                                       \
-  char *t##tostrb10(char *buf, size_t len, type n) {                                               \
+  finline char *t##tostrb10(char *buf, size_t len, type n) {                                       \
     __tostr_begin;                                                                                 \
     if (n == 0) return (*--s = '0', s);                                                            \
     for (; n; n /= 10)                                                                             \
@@ -132,7 +132,7 @@ extern const char _plos_lut_alnum_upper[62];
   }
 
 #define __tostrb16(t, type, utype)                                                                 \
-  char *t##tostrb16(char *buf, size_t len, type _n) {                                              \
+  finline char *t##tostrb16(char *buf, size_t len, type _n) {                                      \
     __tostr_begin;                                                                                 \
     if (_n == 0) return (*--s = '0', s);                                                           \
     bool  neg = _n < 0;                                                                            \
@@ -143,7 +143,7 @@ extern const char _plos_lut_alnum_upper[62];
     return s;                                                                                      \
   }
 #define __utostrb16(t, type)                                                                       \
-  char *t##tostrb16(char *buf, size_t len, type n) {                                               \
+  finline char *t##tostrb16(char *buf, size_t len, type n) {                                       \
     __tostr_begin;                                                                                 \
     if (n == 0) return (*--s = '0', s);                                                            \
     for (; n; n >>= 4)                                                                             \
@@ -152,7 +152,7 @@ extern const char _plos_lut_alnum_upper[62];
   }
 
 #define __tostrB16(t, type, utype)                                                                 \
-  char *t##tostrB16(char *buf, size_t len, type _n) {                                              \
+  finline char *t##tostrB16(char *buf, size_t len, type _n) {                                      \
     __tostr_begin;                                                                                 \
     if (_n == 0) return (*--s = '0', s);                                                           \
     bool  neg = _n < 0;                                                                            \
@@ -163,7 +163,7 @@ extern const char _plos_lut_alnum_upper[62];
     return s;                                                                                      \
   }
 #define __utostrB16(t, type)                                                                       \
-  char *t##tostrB16(char *buf, size_t len, type n) {                                               \
+  finline char *t##tostrB16(char *buf, size_t len, type n) {                                       \
     __tostr_begin;                                                                                 \
     if (n == 0) return (*--s = '0', s);                                                            \
     for (; n; n >>= 4)                                                                             \
@@ -172,7 +172,7 @@ extern const char _plos_lut_alnum_upper[62];
   }
 
 #define __tostr(t, type, utype)                                                                    \
-  char *t##tostr(char *buf, size_t len, type _n, int b) {                                          \
+  finline char *t##tostr(char *buf, size_t len, type _n, int b) {                                  \
     __tostr_begin_nlt;                                                                             \
     if (_n == 0) return (*--s = '0', s);                                                           \
     bool  neg = _n < 0;                                                                            \
@@ -183,7 +183,7 @@ extern const char _plos_lut_alnum_upper[62];
     return s;                                                                                      \
   }
 #define __utostr(t, type)                                                                          \
-  char *t##tostr(char *buf, size_t len, type n, int b) {                                           \
+  finline char *t##tostr(char *buf, size_t len, type n, int b) {                                   \
     __tostr_begin_nlt;                                                                             \
     if (n == 0) return (*--s = '0', s);                                                            \
     for (; n; n /= b)                                                                              \

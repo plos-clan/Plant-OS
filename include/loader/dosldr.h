@@ -16,6 +16,7 @@ extern "C" {
 #include "dosldr/fs/pfs.h"
 #include "dosldr/fs/vfs.h"
 #include "dosldr/ide.h"
+#include "dosldr/include-libc.h"
 #include "dosldr/kbd.h"
 #include "dosldr/list.h"
 #include "dosldr/mem.h"

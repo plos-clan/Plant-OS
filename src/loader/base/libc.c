@@ -3,60 +3,7 @@
 #define LONG_MIN (-LONG_MAX - 1)
 // strcmp
 void printk(char *s, ...) {}
-int  strcmp(const char *s1, const char *s2) {
-  while (*s1 == *s2) {
-    if (*s1 == '\0') return 0;
-    s1++;
-    s2++;
-  }
-  return *s1 - *s2;
-}
-// strcpy
-char *strcpy(char *dest, const char *src) {
-  char *tmp = dest;
-  while ((*dest++ = *src++) != '\0')
-    ;
-  return tmp;
-}
-// strncpy
-char *strncpy(char *dest, const char *src, size_t n) {
-  char *tmp = dest;
-  while (n-- > 0 && (*dest++ = *src++) != '\0')
-    ;
-  return tmp;
-}
-// strlen
-size_t strlen(const char *s) {
-  size_t len = 0;
-  while (s[len])
-    len++;
-  return len;
-}
-// strcat
-char *strcat(char *dest, const char *src) {
-  char *tmp = dest;
-  while (*dest)
-    dest++;
-  while ((*dest++ = *src++) != '\0')
-    ;
-  return tmp;
-}
-// strncat
-char *strncat(char *dest, const char *src, size_t n) {
-  char *tmp = dest;
-  while (*dest)
-    dest++;
-  while (n-- > 0 && (*dest++ = *src++) != '\0')
-    ;
-  return tmp;
-}
-// memset
-void *memset(void *s, int c, size_t n) {
-  u8 *p = s;
-  while (n-- > 0)
-    *p++ = c;
-  return s;
-}
+
 // strtol
 long strtol(const char *nptr, char **endptr, int base) {
   long acc = 0;
@@ -130,48 +77,7 @@ long strtol(const char *nptr, char **endptr, int base) {
   if (endptr != 0) *endptr = (char *)(any ? nptr : (char *)nptr - 1);
   return (acc);
 }
-// memcmp
-int memcmp(const void *s1, const void *s2, size_t n) {
-  const u8 *p1 = s1, *p2 = s2;
-  while (n-- > 0) {
-    if (*p1 != *p2) return *p1 - *p2;
-    p1++, p2++;
-  }
-  return 0;
-}
-// memcpy
-void *memcpy(void *s, const void *ct, size_t n) {
-  if (NULL == s || NULL == ct || n <= 0) return NULL;
-  while (n--)
-    *(char *)s++ = *(char *)ct++;
-  return s;
-}
-// isspace
-int isspace(int c) {
-  return (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v');
-}
-// isdigit
-int isdigit(int c) {
-  return (c >= '0' && c <= '9');
-}
-// isalpha
-int isalpha(int c) {
-  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-// isupper
-int isupper(int c) {
-  return (c >= 'A' && c <= 'Z');
-}
-// strncmp
-int strncmp(const char *s1, const char *s2, size_t n) {
-  const u8 *p1 = (const u8 *)s1, *p2 = (const u8 *)s2;
-  while (n-- > 0) {
-    if (*p1 != *p2) return *p1 - *p2;
-    if (*p1 == '\0') return 0;
-    p1++, p2++;
-  }
-  return 0;
-}
+
 #define FLAG_ALTNT_FORM    0x01
 #define FLAG_ALTNT_FORM_CH '#'
 
@@ -714,48 +620,7 @@ void *_Znwj(u32 size) {
   printk("_Znwj:%d\n", size);
   return malloc(size);
 }
-char *strchr(const char *s, int c) {
-  char *p = s;
-  while (*p && *p != c) {
-    p++;
-  }
-  if (*p == c) { return p; }
-  return NULL;
-}
-char *strrchr(const char *s1, int ch) {
-  char *s2;
-  char *s3;
-  s2 = strchr(s1, ch);
-  while (s2 != NULL) {
-    s3 = strchr(s2 + 1, ch);
-    if (s3 != NULL) {
-      s2 = s3;
-    } else {
-      return s2;
-    }
-  }
-  return NULL;
-}
-void *memmove(void *dest, const void *src, int n) {
-  /*因为char类型为1字节，所以将数据转化为char*
-  进行操作。并不是因为操作的对象是字符串*/
-  char       *pdest = (char *)dest;
-  const char *psrc  = (const char *)src;
-  assert((int)dest);
-  assert((int)src);
-  if (pdest <= psrc && pdest >= psrc + n) //正常情况下从前向后拷贝
-  {
-    while (n--) {
-      *pdest = *psrc;
-    }
-  } else //当出现内存覆盖时从后向前拷贝
-  {
-    while (n--) {
-      *(pdest + n) = *(psrc + n);
-    }
-  }
-  return dest;
-}
+
 int vsnprintf(char *str, u32 size, const char *format, va_list ap) {
   return vsprintf(str, format, ap);
 }
@@ -769,13 +634,7 @@ int snprintf(char *str, size_t size, const char *format, ...) {
 void assert(int expression) {
   if (!expression) { printk("AN ERROR\n"); }
 }
-void *memchr(const void *s, int c, size_t n) {
-  u8 *p = (u8 *)s;
-  for (; n-- > 0; ++p) {
-    if (*p == c) return (void *)p;
-  }
-  return NULL;
-}
+
 void *calloc(u32 num, u32 size) {
   return malloc(num * size);
 }

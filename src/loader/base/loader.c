@@ -2,9 +2,8 @@
 #include <dosldr.h>
 void        _IN(int cs, int eip);
 struct TASK MainTask;
-void       *malloc(int size);
-void       *memcpy(void *s, const void *ct, size_t n);
-bool        elf32Validate(Elf32_Ehdr *hdr) {
+
+bool elf32Validate(Elf32_Ehdr *hdr) {
   return hdr->e_ident[EI_MAG0] == ELFMAG0 && hdr->e_ident[EI_MAG1] == ELFMAG1 &&
          hdr->e_ident[EI_MAG2] == ELFMAG2 && hdr->e_ident[EI_MAG3] == ELFMAG3;
 }

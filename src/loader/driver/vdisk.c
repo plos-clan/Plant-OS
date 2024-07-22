@@ -1,4 +1,5 @@
 #include <dosldr.h>
+
 int   getReadyDisk(); // init.c
 vdisk vdisk_ctl[10];
 int   init_vdisk() {
