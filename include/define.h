@@ -20,7 +20,7 @@
 #define __nonnull(params) __attribute__((nonnull params))
 
 typedef __builtin_va_list va_list;
-#define va_start(ap, ...)  __builtin_va_start(ap, 0)
+#define va_start(ap, para) __builtin_va_start(ap, para)
 #define va_end(ap)         __builtin_va_end(ap)
 #define va_arg(ap, type)   __builtin_va_arg(ap, type)
 #define va_copy(dest, src) __builtin_va_copy(dest, src)
@@ -49,7 +49,7 @@ typedef __builtin_va_list va_list;
 #if DEBUG
 #  define finline static
 #else
-#  define finline static inline
+#  define finline static inline __attribute__((always_inline))
 #endif
 
 // 获取数组的长度
@@ -68,11 +68,6 @@ typedef __builtin_va_list va_list;
 
 #define CONCAT_(a, b) a##b
 #define CONCAT(a, b)  CONCAT_(a, b)
-
-#ifdef DEBUG
-#  include <stdio.h>
-#  include <stdlib.h>
-#endif
 
 #define CRGB(r, g, b) "\033[38;2;" #r ";" #g ";" #b "m"
 #define CEND          "\033[0m"

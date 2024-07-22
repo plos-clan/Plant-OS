@@ -46,9 +46,11 @@ finline void fmtarg_clear(fmtarg *arg) {
   arg->text    = null;
 }
 
-static cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
+static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
   fmtarg_clear(arg);
-  fmt++;
+  cstr fmt = *_fmt + 1;
+
+  va_list va = *_va;
 
   if (*fmt == '%') {
     arg->text    = arg->buf;
@@ -57,13 +59,13 @@ static cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
     return fmt + 1;
   }
 
-  char *_fmt;
-  arg->maxlen = strtoi(fmt, &_fmt);
-  if (fmt == _fmt && *_fmt == '*') {
+  char *f;
+  arg->maxlen = strtoi(fmt, &f);
+  if (fmt == f && *f == '*') {
     arg->maxlen = va_arg(va, int);
-    _fmt++;
+    f++;
   }
-  fmt = _fmt;
+  fmt = f;
   if (arg->maxlen < 0) {
     arg->maxlen = -arg->maxlen;
     arg->align  = 1;
@@ -71,12 +73,12 @@ static cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
 
   if (*fmt == '.') {
     fmt++;
-    arg->decimal = strtoi(fmt, &_fmt);
-    if (fmt == _fmt && *_fmt == '*') {
+    arg->decimal = strtoi(fmt, &f);
+    if (fmt == f && *f == '*') {
       arg->decimal = va_arg(va, int);
-      _fmt++;
+      f++;
     }
-    fmt = _fmt;
+    fmt = f;
   }
 
   // char 1
@@ -90,19 +92,21 @@ static cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
     switch (*fmt++) {
 
     case 'h':
-      if (_size <= 0 || _size > 3) return null; // 解析失败
+      if (_size <= 0 || _size > 3) return false; // 解析失败
       _size--;
       break;
 
     case 'l':
-      if (_size < 3 || _size >= 6) return null; // 解析失败
+      if (_size < 3 || _size >= 6) return false; // 解析失败
       _size++;
       break;
 
     case 'c':
     case 'C':
-      if (_size != 3) return null; // 解析失败
-      *arg->text = va_arg(va, int);
+      if (_size != 3) return false; // 解析失败
+      arg->text    = arg->buf;
+      arg->text[0] = va_arg(va, int);
+      arg->text[1] = '\0';
       goto end;
 
 #define __tostr_arg(type)     arg->buf, arg->bufsize, va_arg(va, type)
@@ -175,27 +179,32 @@ static cstr sprint_foramt(fmtarg *arg, cstr fmt, va_list va) {
 
     case 'n':
     case 'N':
-      if (_size != 3) return null; // 解析失败
+      if (_size != 3) return false; // 解析失败
       *va_arg(va, int *) = arg->n;
       goto end;
 
     case 's': // 字符串
     case 'S':
-      if (_size != 3) return null; // 解析失败
-      arg->text = va_arg(va, void *);
-      if (!arg->text) arg->text = arg->buf;
+      if (_size != 3) return false; // 解析失败
+      arg->text = va_arg(va, char *);
+      if (!arg->text) {
+        arg->text    = arg->buf;
+        arg->text[0] = '\0';
+      }
       goto end;
 
-    default: return null; // 解析失败
+    default: return false; // 解析失败
     }
   }
 
 end:
-  return fmt;
+  *_fmt = fmt;
+  *_va  = va;
+  return true;
 }
 
-static cstr sformat_format(fmtarg *arg, cstr fmt, va_list va) {
-  return null;
+static bool sformat_format(fmtarg *arg, cstr *_fmt, va_list *_va) {
+  return false;
 }
 
 static char *vsprintf_align(char *s, fmtarg *arg) {
@@ -233,7 +242,7 @@ static char *vsprintf_align(char *s, fmtarg *arg) {
 
   for (size_t i = 0; i < blank_left; i++)
     *s++ = ' ';
-  while (*arg->text++ != '\0')
+  while (*arg->text != '\0')
     *s++ = *arg->text++;
   for (size_t i = 0; i < blank_right; i++)
     *s++ = ' ';
@@ -241,13 +250,11 @@ static char *vsprintf_align(char *s, fmtarg *arg) {
   return s;
 }
 
-static bool vsprintf_tryfmt(char *_rest *_s, char *sb, cstr _rest *fmt, fmtarg *arg, va_list va) {
+static bool vsprintf_tryfmt(char *_rest *_s, char *sb, cstr _rest *fmt, fmtarg *arg, va_list *va) {
   if (**fmt != '%') return false;
-  arg->n    = *_s - sb;
-  cstr _fmt = sprint_foramt(arg, *fmt, va);
-  if (_fmt == null) return false;
-  *fmt = _fmt;
-  *_s  = vsprintf_align(*_s, arg);
+  arg->n = *_s - sb;
+  if (!sprint_foramt(arg, fmt, va)) return false;
+  *_s = vsprintf_align(*_s, arg);
   return true;
 }
 
@@ -258,7 +265,7 @@ dlexport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) {
   static fmtarg arg = {.buf = vsprintf_buf, .bufsize = vsprintf_bufsize};
 
   while (*fmt != '\0') {
-    if (vsprintf_tryfmt(&s, s_begin, &fmt, &arg, va)) continue;
+    if (vsprintf_tryfmt(&s, s_begin, &fmt, &arg, &va)) continue;
     *s++ = *fmt++;
   }
 

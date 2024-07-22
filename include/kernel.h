@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "config/debug.h"
-#include "config/plui.h"
+#include "kernel/include-libc.h"
+#include "kernel/os.h"
 #ifdef __cplusplus
 }
 #endif
