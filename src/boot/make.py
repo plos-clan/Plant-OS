@@ -5,5 +5,5 @@ def run(command, debug = False):
                 os.system(command)
         else:
                 subprocess.Popen(command.split(" "))
-def build(nasm_path = "nasm", debug = False):
-        run(f"{nasm_path} {os.path.dirname(__file__)}/mbrboot.asm -o build/boot.bin", debug)
+def build(nasm = "nasm", debug = False):
+        run(f"{nasm} {os.path.dirname(__file__)}/mbrboot.asm -o build/boot.bin", debug)

@@ -23,7 +23,6 @@ int   memman_free_4k(MEMMAN *man, u32 addr, u32 size);
 void *page_malloc(int size);
 void  page_free(void *p, int size);
 
-void *memcpy(void *s, const void *ct, size_t n);
 void *malloc(int size);
 void  free(void *p);
 void *realloc(void *ptr, u32 size);
@@ -31,4 +30,3 @@ void *realloc(void *ptr, u32 size);
 void  clean(char *s, int len);
 u32   memtest_sub(u32 start, u32 end);
 void *memset(void *s, int c, size_t n);
-int   memcmp(const void *s1, const void *s2, size_t n);

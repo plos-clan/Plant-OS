@@ -31,8 +31,8 @@ __ato(i, int);
 __uato(ui, uint);
 __ato(l, long);
 __uato(ul, ulong);
-__ato(ll, llong);
-__uato(ull, ullong);
+// __ato(ll, llong);
+// __uato(ull, ullong);
 
 #define _ato(t)  __ato(t, t)
 #define _uato(t) __uato(t, t)
@@ -43,8 +43,8 @@ _ato(i16);
 _uato(u16);
 _ato(i32);
 _uato(u32);
-_ato(i64);
-_uato(u64);
+// _ato(i64);
+// _uato(u64);
 #if defined(__x86_64__)
 _ato(i128);
 _uato(u128);

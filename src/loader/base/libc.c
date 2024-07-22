@@ -658,31 +658,3 @@ void qsort(void *base, size_t num, size_t width, int (*sort)(const void *e1, con
     }
   }
 }
-char *strstr(const char *arr1,
-             const char *arr2) //查找字符串，目的地字符串和源头字符串的内容不发生改变（const)
-{
-  char *s1  = arr1;
-  char *s2  = arr2;
-  char *cur = arr1;  //将arr1的地址赋给cur，用cur来控制查找的起始位置
-  if (*arr2 == '\0') //说明arr2字符串是空串，则返回arr1的地址
-  {
-    return arr1;
-  }
-  while (*cur) //循环继续的条件是*cur！=NULL
-  {
-    s1 = cur; //将cur赋给S1
-    s2 = arr2;
-    while ((*s1 != '\0') && (*s2 != '\0') &&
-           (*s1 == *s2)) //满足这三个条件，则继续查找下一个字符，判断是否相同
-    {
-      s1++;
-      s2++;
-    }
-    if (*s2 == '\0') //字符串2已经查找结束，说明找到了
-    {
-      return cur;
-    }
-    cur++; //如果上面的情况均不是，则cur++找目的字符串的下一个字符进行下一次对比
-  }
-  return NULL; //说明*cur为0，即找不到，返回空指针
-}

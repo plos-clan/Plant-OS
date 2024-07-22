@@ -6,8 +6,8 @@ def run(command, debug = False):
         else:
                 subprocess.Popen(command.split(" "))
 def build(cc, nasm = "nasm", ld = "ld", debug = False):
-        cc += ' -Iinclude/loader'
-        for root, dirs, files in os.walk('src/loader', topdown=False):
+        cc += ' -Iinclude/kernel'
+        for root, dirs, files in os.walk('src/kernel', topdown=False):
                 for filename in files:
                         filebasename, fileext = os.path.splitext(filename)
                         if fileext == '.c':
@@ -27,13 +27,13 @@ def build(cc, nasm = "nasm", ld = "ld", debug = False):
                                         raise "NASM Error"
 
         objfile_list = []
-        for root, dirs, files in os.walk('build/src/loader'):
+        for root, dirs, files in os.walk('build/src/kernel'):
                 for filename in files:
                         filebasename, fileext = os.path.splitext(filename)
                         if fileext == '.o':
                                 objfile_list.append(root + '/' + filename)
         retcode = os.system(
-                f"{ld} -Ttext 0x100000 -m elf_i386 -e loader_main {' '.join(objfile_list)} build/src/libc/libc.a -o build/src/loader/dosldr.bin"
+                f"{ld} -m elf_i386 -Ttext 0x280000 -e kernel_main {' '.join(objfile_list)} build/src/libc/libc.a -o build/src/kernel/kernel.bin"
         )
         if retcode > 0:
                 raise "Linker Error"
