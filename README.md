@@ -1,11 +1,12 @@
 # PlantOS
-<div>
-        <div id="afterTitle">A simple OS used to study made by several students</div>
-        <img id="logo"src="assets/plos.png" width="400" height="400" align="right">
-</div>
+A simple OS used to study made by several students
 
 ## Contribute
 
+<div>
+        <div id="afterTitle">A simple OS used to study made by several students</div>
+        <img id="logo"src="assets/plos.png" width="350" height="350" align="right">
+</div>
 除本描述文件使用标准 Markdown 以外，其余描述文件会使用一种 Markdown 方言，经过预处理器翻译可以得到标准 Markdown ，它主要支持如下的附加功能：
 
 1. 一种快速编写图表的语法。
