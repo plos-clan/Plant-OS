@@ -27,13 +27,23 @@ parser.add_argument("branch_arg", nargs="?")
 
 parser.add_argument("--debug", action="store_true", help="show debug informations")
 parser.add_argument("--nasm-path", type=str, help="set NASM compiler path", default='nasm')
+parser.add_argument("--cc", type=str, help="set C compiler path", default='\
+gcc -m32 -Iinclude \
+-nostdinc -nolibc -nostdlib \
+-fno-builtin -ffreestanding -fno-stack-protector -Qn \
+-fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer \
+-O1 \
+-finput-charset=UTF-8 -fexec-charset=UTF-8 -mno-mmx -mno-sse')
+
 args = parser.parse_args()
 
 def build_boot():
         import src.boot.make
         print("Building bootstrap...")
         try:
-                src.boot.make.build(args.nasm_path, args.debug)
+                src.boot.make.build(
+                        nasm_path=args.nasm_path,
+                        debug=args.debug)
         except Exception as e:
                 print("Error: ", end="")
                 print(e)
@@ -42,7 +52,18 @@ def build_boot():
                 print("...Ok")
 
 def build_loader():
-        pass
+        import src.loader.make
+        print("Building loader...")
+        try:
+                src.loader.make.build(args.cc,
+                                      nasm_path=args.nasm_path,
+                                      debug=args.debug)
+        except Exception as e:
+                print("Error: ", end="")
+                print(e)
+                exit()
+        else:
+                print("...Ok")
 
 def build_kernel():
         pass
@@ -72,7 +93,6 @@ def build_doc():
         tools.intromark.compile('README.md')
 
 def run():
-        build()
         os.system("qemu-system-x86_64 -net nic,model=pcnet -net user -serial stdio -device sb16 -device floppy -s -S -fda build/PlantOS.img -boot a -m 256")
 
 if args.branch_arg == 'build':
@@ -88,6 +108,7 @@ elif args.branch_arg == 'repl':
 elif args.branch_arg == 'call':
         os.system('python tools/call.py')
 elif args.branch_arg == 'run':
+        build()
         run()
 else:
         print('Wrong parameter!\n')

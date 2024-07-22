@@ -8,7 +8,8 @@ import subprocess
 import ast
 
 tool_name_alias_list = {
-        "transform_tab_to_spaces": "ttts"
+        "ttts": "transform_tab_to_spaces",
+        "make": "../make"
 }
 
 class TextAttribute(Enum):
@@ -258,14 +259,69 @@ class Window:
                         ), self.__begin_x)
                 self.__curses_window.resize(self.get_height(), self.get_width())
 
-        def set_begin_y(self, begin_y):
-                self.__begin_y = begin_y
-                self.__curses_window.resize(self.get_height(), self.get_width())
+        def set_begin_x(self, begin_x):
+                if begin_x < 0:
+                        begin_x = Window.__reverse_pos(Screen.get_width(), begin_x)
+
+                self.__begin_x = begin_x
                 self.__curses_window.mvwin(
                         Window.__reverse_pos(
                                 Screen.get_height(),
                                 self.__begin_y
                         ), self.__begin_x)
+                self.__curses_window.resize(self.get_height(), self.get_width())
+
+        def set_begin_y(self, begin_y):
+                if begin_y < 0:
+                        begin_y = Window.__reverse_pos(Screen.get_height(), begin_y)
+
+                self.__begin_y = begin_y
+                self.__curses_window.mvwin(
+                        Window.__reverse_pos(
+                                Screen.get_height(),
+                                self.__begin_y
+                        ), self.__begin_x)
+                self.__curses_window.resize(self.get_height(), self.get_width())
+
+        def set_begin_xy(self, begin_x, begin_y):
+                if begin_x < 0:
+                        begin_x = Window.__reverse_pos(Screen.get_width(), begin_x)
+                if begin_y < 0:
+                        begin_y = Window.__reverse_pos(Screen.get_height(), begin_y)
+
+                self.__begin_x = begin_x
+                self.__begin_y = begin_y
+
+                self.__curses_window.mvwin(
+                        Window.__reverse_pos(
+                                Screen.get_height(),
+                                self.__begin_y
+                        ), self.__begin_x)
+                self.__curses_window.resize(self.get_height(), self.get_width())
+
+        def set_end_x(self, end_x):
+                if end_x < 0:
+                        end_x = Window.__reverse_pos(Screen.get_width(), end_x)
+
+                self.__end_x = end_x
+                self.__curses_window.resize(self.get_height(), self.get_width())
+
+        def set_end_y(self, end_y):
+                if end_y < 0:
+                        end_y = Window.__reverse_pos(Screen.get_height(), end_y)
+
+                self.__end_y = end_y
+                self.__curses_window.resize(self.get_height(), self.get_width())
+
+        def set_end_xy(self, end_x, end_y):
+                if end_x < 0:
+                        end_x = Window.__reverse_pos(Screen.get_width(), end_x)
+                if end_y < 0:
+                        end_y = Window.__reverse_pos(Screen.get_height(), end_y)
+
+                self.__end_x = end_x
+                self.__end_y = end_y
+                self.__curses_window.resize(self.get_height(), self.get_width())
 
         def __reverse_pos(field_len, pos_weight: int):
                 '''
@@ -544,10 +600,10 @@ class Screen:
                 curses.endwin()
 
         def get_width() -> int:
-                return curses.COLS
+                return __STDSCR.getmaxyx()[1]
 
         def get_height() -> int:
-                return curses.LINES
+                return __STDSCR.getmaxyx()[0]
 
         def get_main_window() -> Window:
                 return Window._from_curses_window(
@@ -578,6 +634,8 @@ def preprocess(content: str, stringio: StringIO):
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT)
                 if result.stdout != None:
+                        # TODO: 驯服 GCC 之道 就在其中（"`make build"在gcc报错的情况下目前会出问题）
+                        # 但是单步调试就诡异的没问题了，亦或者和多线程有关
                         stringio.write(result.stdout.decode())
                 if result.stderr != None:
                         stringio.write(result.stderr.decode())
@@ -839,9 +897,10 @@ def highlight():
 
         inputwindow.set_point(real_point)       # 清除输出字符时对鼠标指针的所有副作用
 
-current_outputwindow_content: PrecoloredContent = []
-last_contents: list[str] = []
+history_input: list[str] = []
 last_contents_point = 0
+
+current_outputwindow_content: PrecoloredContent = []
 allow_multilines = False
 # 光标指向下一个字符，而非当前字符
 while ch := inputwindow.wait_char():
@@ -865,29 +924,29 @@ while ch := inputwindow.wait_char():
                         highlight()
                 else:
                         pass
-        elif ch == SpecialKey.UP and last_contents != [] and last_contents_point > 0:
+        elif ch == SpecialKey.UP and history_input != [] and last_contents_point > 0:
                 last_contents_point -= 1
-                len_ = len(last_contents[last_contents_point].splitlines())
+                len_ = len(history_input[last_contents_point].splitlines())
                 if len_ > 1:
                         allow_multilines = True
                 else:
                         allow_multilines = False
                 inputwindow.add_begin_y(len_ - inputwindow.get_height())
-                inputwindow.put(last_contents[last_contents_point])
+                inputwindow.put(history_input[last_contents_point])
                 highlight()
         elif (ch == SpecialKey.DOWN
-              and last_contents != []):
-                if last_contents_point < len(last_contents) - 1:
+              and history_input != []):
+                if last_contents_point < len(history_input) - 1:
                         last_contents_point += 1
-                        len_ = len(last_contents[last_contents_point].splitlines())
+                        len_ = len(history_input[last_contents_point].splitlines())
                         if len_ > 1:
                                 allow_multilines = True
                         else:
                                 allow_multilines = False
                         inputwindow.add_begin_y(len_ - inputwindow.get_height())
-                        inputwindow.put(last_contents[last_contents_point])
+                        inputwindow.put(history_input[last_contents_point])
                         highlight()
-                elif last_contents_point == len(last_contents) - 1:
+                elif last_contents_point == len(history_input) - 1:
                         allow_multilines = False
                         last_contents_point += 1
                         inputwindow.clear()
@@ -899,6 +958,11 @@ while ch := inputwindow.wait_char():
                 if len(content) != 0:
                         if content == 'exit':
                                 break
+                        elif content == 'cls':
+                                outputwindow.clear()
+                                history_input.append('cls')
+                                last_contents_point += 1
+                                inputwindow.clear()
                         elif content[-1] == '\\' and allow_multilines:
                                 multilines_cache = content[1:-1]
                                 current_outputwindow_content = (
@@ -907,7 +971,7 @@ while ch := inputwindow.wait_char():
                                                 current_outputwindow_content,
                                                 True))
                                 inputwindow.clear()
-                                last_contents.append(content)
+                                history_input.append(content)
                                 last_contents_point += 1
                                 inputwindow.set_begin_y(0)
                                 allow_multilines = False
@@ -923,7 +987,7 @@ while ch := inputwindow.wait_char():
                                                         current_outputwindow_content,
                                                         False))
                                 inputwindow.clear()
-                                last_contents.append(content)
+                                history_input.append(content)
                                 last_contents_point += 1
         elif ch == '(':
                 inputwindow.insert(inputwindow.get_point(), "()")
@@ -943,6 +1007,13 @@ while ch := inputwindow.wait_char():
                 highlight()
         elif ch == '\033':      # ESC 键
                 break
+        elif ch == SpecialKey.RESIZE:
+
+                inputwindow.set_begin_xy(0, 0)
+                inputwindow.set_end_xy(-1, 0)
+
+                outputwindow.set_begin_xy(0, -1)
+                outputwindow.set_end_xy(-1, 1)
         elif type(ch) == SpecialKey:    # 暂且忽略其它控制字符
                 pass
         else:
