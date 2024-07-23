@@ -15,3 +15,4 @@
 #define PIC1_ICW4 0x00a1
 void irq_mask_clear(u8 irq);
 void irq_mask_set(u8 irq);
+void init_pic(void);

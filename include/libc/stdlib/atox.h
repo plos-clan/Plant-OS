@@ -78,81 +78,78 @@ _atof(f128);
 
 #undef __atof
 
+#define __strto_begin                                                                              \
+  cstr __s = s;                                                                                    \
+  bool neg = *s == '-';                                                                            \
+  if (neg || *s == '+') s++;                                                                       \
+  cstr _s = s;
+
 #define __strb2to(t, type)                                                                         \
   finline type strb2to##t(cstr _rest s, char **_rest e) {                                          \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
+    __strto_begin;                                                                                 \
     type n = 0;                                                                                    \
-    if (!isdigit2(*s) && (*s == '-' || *s == '+')) {                                               \
-      *e = (void *)s - 1;                                                                          \
-      return 0;                                                                                    \
-    }                                                                                              \
+    if (!isdigit2(*s)) return 0;                                                                   \
     for (; isdigit2(*s); s++)                                                                      \
       n = n * 2 + (*s - '0');                                                                      \
-    *e = (void *)s;                                                                                \
+    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strb8to(t, type)                                                                         \
   finline type strb8to##t(cstr _rest s, char **_rest e) {                                          \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
+    __strto_begin;                                                                                 \
     type n = 0;                                                                                    \
-    if (!isdigit8(*s) && (*s == '-' || *s == '+')) {                                               \
-      *e = (void *)s - 1;                                                                          \
-      return 0;                                                                                    \
-    }                                                                                              \
     for (; isdigit8(*s); s++)                                                                      \
       n = n * 8 + (*s - '0');                                                                      \
-    *e = (void *)s;                                                                                \
+    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strb10to(t, type)                                                                        \
   finline type strb10to##t(cstr _rest s, char **_rest e) {                                         \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
+    __strto_begin;                                                                                 \
     type n = 0;                                                                                    \
-    if (!isdigit(*s) && (*s == '-' || *s == '+')) {                                                \
-      *e = (void *)s - 1;                                                                          \
-      return 0;                                                                                    \
-    }                                                                                              \
     for (; isdigit(*s); s++)                                                                       \
       n = n * 10 + (*s - '0');                                                                     \
-    *e = (void *)s;                                                                                \
+    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strb16to(t, type)                                                                        \
   finline type strb16to##t(cstr _rest s, char **_rest e) {                                         \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
+    __strto_begin;                                                                                 \
     type n = 0;                                                                                    \
-    if (!isdigit16(*s) && (*s == '-' || *s == '+')) {                                              \
-      *e = (void *)s - 1;                                                                          \
-      return 0;                                                                                    \
-    }                                                                                              \
     for (; isdigit16(*s); s++) {                                                                   \
       if (isdigit(*s)) {                                                                           \
         n = n * 16 + (*s - '0');                                                                   \
       } else if ('a' <= *s && *s <= 'f') {                                                         \
         n = n * 16 + (*s - 'a' + 10);                                                              \
-      } else {                                                                                     \
+      } else if ('A' <= *s && *s <= 'Z') {                                                         \
         n = n * 16 + (*s - 'A' + 10);                                                              \
+      } else {                                                                                     \
+        break;                                                                                     \
       }                                                                                            \
     }                                                                                              \
-    *e = (void *)s;                                                                                \
+    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strto(t, type)                                                                           \
-  finline type strto##t(cstr _rest s, char **_rest e) {                                            \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
+  finline type strto##t(cstr _rest s, char **_rest e, int base) {                                  \
+    __strto_begin;                                                                                 \
     type n = 0;                                                                                    \
-    if (!isdigit(*s) && (*s == '-' || *s == '+')) {                                                \
-      *e = (void *)s - 1;                                                                          \
-      return 0;                                                                                    \
+    for (;; s++) {                                                                                 \
+      if (isdigit(*s)) {                                                                           \
+        n = n * base + (*s - '0');                                                                 \
+      } else if (base > 10) {                                                                      \
+        if ('a' <= *s && *s <= 'a' + base - 11) {                                                  \
+          n = n * base + (*s - 'a' + 10);                                                          \
+        } else if ('A' <= *s && *s <= 'A' + base - 11) {                                           \
+          n = n * base + (*s - 'A' + 10);                                                          \
+        } else {                                                                                   \
+          break;                                                                                   \
+        }                                                                                          \
+      } else {                                                                                     \
+        break;                                                                                     \
+      }                                                                                            \
     }                                                                                              \
-    for (; isdigit(*s); s++)                                                                       \
-      n = n * 10 + (*s - '0');                                                                     \
-    *e = (void *)s;                                                                                \
+    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 

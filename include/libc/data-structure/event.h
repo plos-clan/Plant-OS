@@ -153,6 +153,31 @@ static size_t event_size(event_t event) {
   return (event == null) ? 0 : event->size;
 }
 
+static void event_copyto_with(event_t src, event_t dst, void *(*callback)(void *)) {
+  for (event_node_t node = src->head; node != null; node = node->next) {
+    event_push(dst, callback(node->data));
+  }
+}
+
+static void event_copyto(event_t src, event_t dst) {
+  for (event_node_t node = src->head; node != null; node = node->next) {
+    event_push(dst, node->data);
+  }
+}
+
+static event_t event_copy_with(event_t event, void *(*callback)(void *)) {
+  event_t e_new = event_alloc();
+  event_copyto_with(event, e_new, callback);
+  return e_new;
+}
+
+static event_t event_copy(event_t event) {
+  event_t e_new = event_alloc();
+  event_copyto(event, e_new);
+  return e_new;
+}
+
+#  ifdef __libplos__
 static void event_print(event_t event) {
   spin_lock(event->spin);
   event_node_t current = event->head;
@@ -163,6 +188,7 @@ static void event_print(event_t event) {
   printf("null\n");
   spin_unlock(event->spin);
 }
+#  endif
 
 #  undef EVENT_IMPLEMENTATION
 #endif

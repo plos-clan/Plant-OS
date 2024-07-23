@@ -72,8 +72,8 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
 
 parse_length : {
   char *f;
-  arg->minlen = strtoi(fmt, &f); // 解析 %15d 这样的写法
-  if (fmt == f && *f == '*') {   // 解析 %*d 这样的写法
+  arg->minlen = strb10toi(fmt, &f); // 解析 %15d 这样的写法
+  if (fmt == f && *f == '*') {      // 解析 %*d 这样的写法
     arg->minlen = va_arg(va, int);
     f++;
   }
@@ -90,7 +90,7 @@ parse_length : {
   if (*fmt == '.') { // 解析小数
     fmt++;
     char *f;
-    arg->decimal = strtoi(fmt, &f);
+    arg->decimal = strb10toi(fmt, &f);
     if (fmt == f && *f == '*') {
       arg->decimal = va_arg(va, int);
       f++;

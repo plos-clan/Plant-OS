@@ -10,6 +10,7 @@ extern "C" {
 #include "libc/crypto/hash.h"
 #include "libc/data-structure/avltree.h"
 #include "libc/data-structure/bitmap.h"
+#include "libc/data-structure/circular-queue.h"
 #include "libc/data-structure/event.h"
 #include "libc/data-structure/list.h"
 #include "libc/data-structure/queue-mt.h"

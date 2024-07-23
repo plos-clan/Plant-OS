@@ -56,10 +56,8 @@ int getch() {
     return keytable1[ch];
   }
 }
-// FIXME:
-// extern struct tty *tty_default = NULL
-struct tty *tty_default = NULL;
-int         tty_fifo_status() {
+extern struct tty *tty_default;
+int                tty_fifo_status() {
   mtask *task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->fifo_status(tty_default);
@@ -241,8 +239,8 @@ void   inthandler21(int *esp) {
       // 一般进程
     THROUGH:
       //    logk("send\n");
-      if (e0_flag) { fifo8_put(task_get_key_fifo(task), 0xe0); }
-      fifo8_put(task_get_key_fifo(task), data);
+      if (e0_flag) { circular_queue_put(task_get_key_queue(task), 0xe0); }
+      circular_queue_put(task_get_key_queue(task), data);
     }
   if (e0_flag == 1) e0_flag = 0;
   return;

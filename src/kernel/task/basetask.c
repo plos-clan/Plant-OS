@@ -1,13 +1,10 @@
 #include <kernel.h>
 
 void idle() {
-  for (;;) {
-    logd("A");
-  }
+  for (;;) {}
 }
 void init() {
-  //  logd("init function has been called successfully!");
-  for (;;) {
-    logd("B");
-  }
+  logd("init function has been called successfully!");
+  logd("%p", malloc(200));
+  for (;;) {}
 }
