@@ -26,7 +26,7 @@ def build(cc, nasm = "nasm", ld = "ld", debug = False):
                                         raise "C Compiler Error"
 
                                 # 如果编译没问题就缓存当前文件
-                                with open('build/' + root + '/' + filename,'r') as bakfile:
+                                with open('build/' + root + '/' + filename,'w') as bakfile:
                                         with open(root + '/' + filename,'r') as srcfile:
                                                 bakfile.write(srcfile.read())
                         elif fileext == '.asm':
@@ -45,7 +45,7 @@ def build(cc, nasm = "nasm", ld = "ld", debug = False):
                                         raise "NASM Error"
 
                                 # 如果编译没问题就缓存当前文件
-                                with open('build/' + root + '/' + filename,'r') as bakfile:
+                                with open('build/' + root + '/' + filename,'w') as bakfile:
                                         with open(root + '/' + filename,'r') as srcfile:
                                                 bakfile.write(srcfile.read())
 
