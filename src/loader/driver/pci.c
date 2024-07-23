@@ -78,29 +78,29 @@ void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
 void init_PCI(u32 adder_Base) {
   u32 i, BUS, Equipment, F, ADDER, *i1;
   u8 *PCI_DATA = (u8 *)adder_Base, *PCI_DATA1;
-  for (BUS = 0; BUS < 256; BUS++) {                    //查询总线
-    for (Equipment = 0; Equipment < 32; Equipment++) { //查询设备
-      for (F = 0; F < 8; F++) {                        //查询功能
+  for (BUS = 0; BUS < 256; BUS++) {                    // 查询总线
+    for (Equipment = 0; Equipment < 32; Equipment++) { // 查询设备
+      for (F = 0; F < 8; F++) {                        // 查询功能
         pci_config(BUS, F, Equipment, 0);
         if (asm_in32(PCI_DATA_PORT) != 0xFFFFFFFF) {
-          //当前插槽有设备
-          //把当前设备信息映射到PCI数据区
+          // 当前插槽有设备
+          // 把当前设备信息映射到PCI数据区
           int key = 1;
           while (key) {
-            //此配置表为空
-            // printf("PCI_DATA:%x\n", PCI_DATA);
-            // getch();
+            // 此配置表为空
+            //  printf("PCI_DATA:%x\n", PCI_DATA);
+            //  getch();
             PCI_DATA1  = PCI_DATA;
-            *PCI_DATA1 = 0xFF; //表占用标志
+            *PCI_DATA1 = 0xFF; // 表占用标志
             PCI_DATA1++;
-            *PCI_DATA1 = BUS; //总线号
+            *PCI_DATA1 = BUS; // 总线号
             PCI_DATA1++;
-            *PCI_DATA1 = Equipment; //设备号
+            *PCI_DATA1 = Equipment; // 设备号
             PCI_DATA1++;
-            *PCI_DATA1 = F; //功能号
+            *PCI_DATA1 = F; // 功能号
             PCI_DATA1++;
             PCI_DATA1 = PCI_DATA1 + 8;
-            //写入寄存器配置
+            // 写入寄存器配置
             for (ADDER = 0; ADDER < 256; ADDER = ADDER + 4) {
               pci_config(BUS, F, Equipment, ADDER);
               i  = asm_in32(PCI_DATA_PORT);
@@ -187,7 +187,7 @@ void init_PCI(u32 adder_Base) {
       }
     }
   }
-  //函数执行完PCI_DATA就是PCI设备表的结束地址
+  // 函数执行完PCI_DATA就是PCI设备表的结束地址
 }
 void PCI_ClassCode_Print(struct pci_config_space_public *pci_config_space_puclic) {
   u8 *pci_drive = (u8 *)pci_config_space_puclic - 12;

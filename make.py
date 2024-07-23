@@ -4,6 +4,8 @@ import sys
 import os
 import shutil
 
+from tools import change_indent
+
 sys.dont_write_bytecode = True # 禁止其生成 __pycache__ 文件夹
 
 parser = argparse.ArgumentParser(
@@ -24,14 +26,14 @@ parser.add_argument("--mcopy-path", type=str, help="set mcopy path", default='mc
 args = parser.parse_args()
 
 if args.cc == 'clang':
-        cc = "clang -m32 -Iinclude -c \
+        cc = f"clang -m32 -I{os.path.realpath('include')} -c \
 -nostdinc -nostdlib \
 -ffreestanding -fno-stack-protector -Qn \
 -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer \
 -Oz \
 -finput-charset=UTF-8 -fexec-charset=UTF-8 -mno-mmx -mno-sse"
 elif args.cc == 'gcc':
-        cc = "gcc -m32 -Iinclude -c \
+        cc = f"gcc -m32 -I{os.path.realpath('include')} -c \
 -nostdinc -nolibc -nostdlib \
 -ffreestanding -fno-stack-protector -Qn \
 -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer \
@@ -131,8 +133,53 @@ def build_doc():
         tools.intromark.compile_all_subprojects_intromark()
         tools.intromark.compile('README.md')
 
+def scan_files(dirname) -> str:
+        ret = []
+        for root, dirs, files in os.walk(dirname):
+                for file in files:
+                        ret.append(root + '/' + file)
+        return ret
+
+def build_lsp_hints():
+        import json
+        content = []
+        for filename in scan_files('src'):
+                filebasename, fileext = os.path.splitext(filename)
+                if fileext != '.c' and fileext != '.cpp':
+                        continue
+                realpathfilename = os.path.realpath(filename)
+
+                subprojectname = filename.split('/')[1]
+
+                if os.path.exists('include/' + subprojectname):
+                        content.append({
+                                "directory": os.path.realpath('build'),
+                                "command": f"{cc} -o {filebasename}.o {realpathfilename} -I{os.path.realpath('include/' + subprojectname)}",
+                                "file": realpathfilename,
+                                "output": filebasename + ".o"
+                        })
+                else:
+                        content.append({
+                                "directory": os.path.realpath('build'),
+                                "command": f"{cc} -o {filebasename}.o {realpathfilename}",
+                                "file": realpathfilename,
+                                "output": filebasename + ".o"
+                        })
+        with open('build/compile_commands.json','w') as file:
+                file.write(json.dumps(content, indent=8))
+
 def run():
         os.system(f"{args.qemu} -net nic,model=pcnet -net user -serial stdio -device sb16 -device floppy -fda build/PlantOS.img -boot a -m 256")
+
+def precommit():
+        import tools.change_indent
+        change_indent.change_to(2)
+        for filename in scan_files('src'):
+                filebasename, fileext = os.path.splitext(filename)
+                if fileext != '.c' and fileext != '.cpp':
+                        continue
+                else:
+                        os.system(f'clang-format -i {filename}')
 
 if args.branch_arg == 'build':
         build()
@@ -146,9 +193,13 @@ elif args.branch_arg == 'repl':
         os.system('python tools/repl.py')
 elif args.branch_arg == 'call':
         os.system('python tools/call.py')
+elif args.branch_arg == 'build-lsp-hints':
+        build_lsp_hints()
 elif args.branch_arg == 'run':
         build()
         run()
+elif args.branch_arg == 'precommit':
+        precommit()
 else:
         print('Wrong parameter!\n')
         parser.print_help()
