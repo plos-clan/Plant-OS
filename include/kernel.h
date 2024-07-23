@@ -4,8 +4,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "kernel/cpu.h"
+#include "kernel/fat.h"
 #include "kernel/include-libc.h"
+#include "kernel/ipc.h"
+#include "kernel/lock.h"
+#include "kernel/log.h"
+#include "kernel/mem.h"
+#include "kernel/mtask.h"
 #include "kernel/os.h"
+#include "kernel/page.h"
+#include "kernel/screen.h"
+#include "kernel/tty.h"
 #ifdef __cplusplus
 }
 #endif

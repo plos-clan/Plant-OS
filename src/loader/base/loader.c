@@ -8,7 +8,7 @@ bool elf32Validate(Elf32_Ehdr *hdr) {
          hdr->e_ident[EI_MAG2] == ELFMAG2 && hdr->e_ident[EI_MAG3] == ELFMAG3;
 }
 void load_segment(Elf32_Phdr *phdr, void *elf) {
-  printf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
+  logf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
   memcpy((void *)phdr->p_vaddr, elf + phdr->p_offset, phdr->p_filesz);
   if (phdr->p_memsz > phdr->p_filesz) { // 这个是bss段
     memset((void *)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
@@ -94,23 +94,23 @@ void DOSLDR_MAIN() {
   NowTask()->drive_number = default_drive_number;
   vfs_mount_disk(NowTask()->drive, NowTask()->drive);
   vfs_change_disk(NowTask()->drive);
-  printf("DOSLDR 386 v0.2\n");
-  printf("Copyright zhouzhihao & min0911 2022\n");
-  printf("memtotal=%dMB\n", memtotal / 1024 / 1024);
+  logf("DOSLDR 386 v0.2\n");
+  logf("Copyright zhouzhihao & min0911 2022\n");
+  logf("memtotal=%dMB\n", memtotal / 1024 / 1024);
   char path[15] = " :\\kernel.bin";
   path[0]       = NowTask()->drive;
-  printf("Load file:%s\n", path);
+  logf("Load file:%s\n", path);
   int sz = vfs_filesize(path);
   if (sz == -1) {
-    printf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
+    logf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
     while (true)
       ;
   }
   // printf("fp = %08x\n%d\n",fp, fp->size);
   u8 *s = page_malloc(sz);
-  printf("Will load in %08x size = %08x\n", s, sz);
+  logf("Will load in %08x size = %08x\n", s, sz);
   vfs_readfile(path, s);
-  printf("Loading...\n");
+  logf("Loading...\n");
   u32 entry = load_elf((Elf32_Ehdr *)s);
 
   // printf("ESP:%08x\n", *(u32 *)(0x00280000 + 12));

@@ -329,179 +329,6 @@ static char *insert_str(char *buf, const char *str) {
   return p;
 }
 
-int vsprintf(char *buf, const char *fmt, va_list args) {
-  char   *str       = buf;
-  int     flag      = 0;
-  int     int_type  = INT_TYPE_INT;
-  int     tot_width = 0;
-  int     sub_width = 0;
-  char    buf2[64]  = {0};
-  char   *s         = NULL;
-  char    ch        = 0;
-  int8_t  num_8     = 0;
-  u8      num_u8    = 0;
-  int16_t num_16    = 0;
-  u16     num_u16   = 0;
-  int32_t num_32    = 0;
-  u32     num_u32   = 0;
-  int64_t num_64    = 0;
-  u64     num_u64   = 0;
-
-  for (const char *p = fmt; *p; p++) {
-    if (*p != '%') {
-      *str++ = *p;
-      continue;
-    }
-
-    flag      = 0;
-    tot_width = 0;
-    sub_width = 0;
-    int_type  = INT_TYPE_INT;
-
-    p++;
-
-    while (*p == FLAG_ALTNT_FORM_CH || *p == FLAG_ZERO_PAD_CH || *p == FLAG_LEFT_ADJUST_CH ||
-           *p == FLAG_SPACE_BEFORE_POS_NUM_CH || *p == FLAG_SIGN_CH) {
-      if (*p == FLAG_ALTNT_FORM_CH) {
-        flag |= FLAG_ALTNT_FORM;
-      } else if (*p == FLAG_ZERO_PAD_CH) {
-        flag |= FLAG_ZERO_PAD;
-      } else if (*p == FLAG_LEFT_ADJUST_CH) {
-        flag |= FLAG_LEFT_ADJUST;
-        flag &= ~FLAG_ZERO_PAD;
-      } else if (*p == FLAG_SPACE_BEFORE_POS_NUM_CH) {
-        flag |= FLAG_SPACE_BEFORE_POS_NUM;
-      } else if (*p == FLAG_SIGN_CH) {
-        flag |= FLAG_SIGN;
-      } else {
-      }
-
-      p++;
-    }
-
-    if (*p == '*') {
-      tot_width = va_arg(args, int);
-      if (tot_width < 0) tot_width = 0;
-      p++;
-    } else {
-      while (isdigit(*p)) {
-        tot_width = tot_width * 10 + *p - '0';
-        p++;
-      }
-    }
-    if (*p == '.') {
-      if (*p == '*') {
-        sub_width = va_arg(args, int);
-        if (sub_width < 0) sub_width = 0;
-        p++;
-      } else {
-        while (isdigit(*p)) {
-          sub_width = sub_width * 10 + *p - '0';
-          p++;
-        }
-      }
-    }
-
-  LOOP_switch:
-    switch (*p) {
-    case 'h':
-      p++;
-      if (int_type >= INT_TYPE_MIN) {
-        int_type >>= 1;
-        goto LOOP_switch;
-      } else {
-        *str++ = '%';
-        break;
-      }
-    case 'l':
-      p++;
-      if (int_type <= INT_TYPE_MAX) {
-        int_type <<= 1;
-        goto LOOP_switch;
-      } else {
-        *str++ = '%';
-        break;
-      }
-    case 's':
-      s   = va_arg(args, char *);
-      str = insert_str(str, s);
-      break;
-    case 'c':
-      ch     = (char)(va_arg(args, int) & 0xFF);
-      *str++ = ch;
-      break;
-    case 'd':
-      switch (int_type) {
-      case INT_TYPE_CHAR:
-        num_8 = (int8_t)va_arg(args, int32_t);
-        str   = insert_str(str, int32_to_str_dec(num_8, flag, tot_width));
-        break;
-      case INT_TYPE_SHORT:
-        num_16 = (int16_t)va_arg(args, int32_t);
-        str    = insert_str(str, int32_to_str_dec(num_16, flag, tot_width));
-        break;
-      case INT_TYPE_INT:
-        num_32 = va_arg(args, int32_t);
-        str    = insert_str(str, int32_to_str_dec(num_32, flag, tot_width));
-        break;
-      case INT_TYPE_LONG:
-        num_64 = va_arg(args, int64_t);
-        str    = insert_str(str, int64_to_str_dec(num_64, flag, tot_width));
-        break;
-      case INT_TYPE_LONG_LONG:
-        num_64 = va_arg(args, int64_t);
-        str    = insert_str(str, int64_to_str_dec(num_64, flag, tot_width));
-        break;
-      }
-      break;
-    case 'x': flag |= FLAG_LOWER;
-    case 'X':
-      switch (int_type) {
-      case INT_TYPE_CHAR:
-        num_u8 = (u8)va_arg(args, u32);
-        str    = insert_str(str, uint32_to_str_hex(num_u8, flag, tot_width));
-        break;
-      case INT_TYPE_SHORT:
-        num_u16 = (u16)va_arg(args, u32);
-        str     = insert_str(str, uint32_to_str_hex(num_u16, flag, tot_width));
-        break;
-      case INT_TYPE_INT:
-        num_u32 = va_arg(args, u32);
-        str     = insert_str(str, uint32_to_str_hex(num_u32, flag, tot_width));
-        break;
-      case INT_TYPE_LONG:
-        num_u64 = va_arg(args, u64);
-        str     = insert_str(str, uint64_to_str_hex(num_u64, flag, tot_width));
-        break;
-      case INT_TYPE_LONG_LONG:
-        num_u64 = va_arg(args, u64);
-        str     = insert_str(str, uint64_to_str_hex(num_u64, flag, tot_width));
-        break;
-      }
-      break;
-    case 'o':
-      num_u32 = va_arg(args, u32);
-      str     = insert_str(str, uint32_to_str_oct(num_u32, flag, tot_width));
-      break;
-    case '%': *str++ = '%'; break;
-    default:
-      *str++ = '%';
-      *str++ = *p;
-      break;
-    }
-  }
-  *str = '\0';
-
-  return str - buf;
-}
-// sprintf
-int sprintf(char *buf, const char *fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  int len = vsprintf(buf, fmt, args);
-  va_end(args);
-  return len;
-}
 void strrev(char *s) {
   if (NULL == s) return;
 
@@ -518,7 +345,19 @@ void strrev(char *s) {
     ++pBegin, --pEnd;
   }
 }
-int printf(const char *format, ...) {
+
+int printf(cstr fmt, ...) {
+  int     len;
+  va_list ap;
+  va_start(ap, fmt);
+  char buf[1024];
+  len = vsprintf(buf, fmt, ap);
+  print(buf);
+  va_end(ap);
+  return len;
+}
+
+int logf(const char *format, ...) {
   int     len;
   va_list ap;
   va_start(ap, format);
@@ -547,9 +386,6 @@ void *_Znwj(u32 size) {
   return malloc(size);
 }
 
-int vsnprintf(char *str, u32 size, const char *format, va_list ap) {
-  return vsprintf(str, format, ap);
-}
 int snprintf(char *str, size_t size, const char *format, ...) {
   va_list args;
   va_start(args, format);

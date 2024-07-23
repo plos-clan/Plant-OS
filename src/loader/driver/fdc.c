@@ -64,19 +64,19 @@ void init_floppy() {
 #ifndef __NO_FLOPPY__
   sendbyte(CMD_VERSION); //发送命令（获取软盘版本），如果收到回应，说明软盘正在工作
   if (getbyte() == -1) {
-    printf("floppy: no floppy drive found");
-    printf("No fount FDC");
+    logf("floppy: no floppy drive found");
+    logf("No fount FDC");
     return;
   }
   //设置软盘驱动器的中断服务程序
   struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
   set_gatedesc(idt + 0x26, (int)floppy_int, 4 * 8, AR_INTGATE32);
   ClearMaskIrq(0x6); //清除IRQ6的中断
-  printf("FLOPPY DISK:RESETING\n");
+  logf("FLOPPY DISK:RESETING\n");
   reset(); //重置软盘驱动器
-  printf("FLOPPY DISK:reset over!\n");
-  sendbyte(CMD_VERSION);               //获取软盘版本
-  printf("FDC_VER:0x%x\n", getbyte()); //并且输出到屏幕上
+  logf("FLOPPY DISK:reset over!\n");
+  sendbyte(CMD_VERSION);             //获取软盘版本
+  logf("FDC_VER:0x%x\n", getbyte()); //并且输出到屏幕上
 #endif
   vdisk vd;
   strcpy(vd.DriveName, "floppy");

@@ -15,7 +15,7 @@ int register_vdisk(vdisk vd) {
       return i + ('A');  // 注册成功，返回drive
     }
   }
-//   printf("[vdisk]not found\n");
+  //   printf("[vdisk]not found\n");
   return 0; // 注册失败
 }
 int logout_vdisk(char drive) {
@@ -87,7 +87,7 @@ int disk_Size(char drive) {
     int indx = drive1 - 'A';
     return vdisk_ctl[indx].size;
   } else {
-    printf("Disk Not Ready.\n");
+    logf("Disk Not Ready.\n");
     return 0;
   }
 

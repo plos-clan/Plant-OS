@@ -312,52 +312,52 @@ u8 ide_polling(u8 channel, u32 advanced_check) {
 u8 ide_print_error(u32 drive, u8 err) {
   if (err == 0) return err;
 
-  printf("IDE:");
+  logf("IDE:");
   if (err == 1) {
-    printf("- Device Fault\n     ");
+    logf("- Device Fault\n     ");
     err = 19;
   } else if (err == 2) {
     u8 st = ide_read(ide_devices[drive].Channel, ATA_REG_ERROR);
     if (st & ATA_ER_AMNF) {
-      printf("- No Address Mark Found\n     ");
+      logf("- No Address Mark Found\n     ");
       err = 7;
     }
     if (st & ATA_ER_TK0NF) {
-      printf("- No Media or Media Error\n     ");
+      logf("- No Media or Media Error\n     ");
       err = 3;
     }
     if (st & ATA_ER_ABRT) {
-      printf("- Command Aborted\n     ");
+      logf("- Command Aborted\n     ");
       err = 20;
     }
     if (st & ATA_ER_MCR) {
-      printf("- No Media or Media Error\n     ");
+      logf("- No Media or Media Error\n     ");
       err = 3;
     }
     if (st & ATA_ER_IDNF) {
-      printf("- ID mark not Found\n     ");
+      logf("- ID mark not Found\n     ");
       err = 21;
     }
     if (st & ATA_ER_MC) {
-      printf("- No Media or Media Error\n     ");
+      logf("- No Media or Media Error\n     ");
       err = 3;
     }
     if (st & ATA_ER_UNC) {
-      printf("- Uncorrectable Data Error\n     ");
+      logf("- Uncorrectable Data Error\n     ");
       err = 22;
     }
     if (st & ATA_ER_BBK) {
-      printf("- Bad Sectors\n     ");
+      logf("- Bad Sectors\n     ");
       err = 13;
     }
   } else if (err == 3) {
-    printf("- Reads Nothing\n     ");
+    logf("- Reads Nothing\n     ");
     err = 23;
   } else if (err == 4) {
-    printf("- Write Protected\n     ");
+    logf("- Write Protected\n     ");
     err = 8;
   }
-  printf(
+  logf(
       "- [%s %s] %s\n",
       (const char *[]){"Primary", "Secondary"}[ide_devices[drive].Channel], // Use the channel as an
                                                                             // index into the array

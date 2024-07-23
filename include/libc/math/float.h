@@ -9,3 +9,6 @@
 finline double isfinite(double v) {
   return __builtin_isfinite(v);
 }
+
+#define isnan(v) __builtin_isnan(v)
+#define isinf(v) __builtin_isinf_sign(v)

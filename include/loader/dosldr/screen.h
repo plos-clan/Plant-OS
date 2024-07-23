@@ -1,7 +1,7 @@
 #pragma once
 #include <define.h>
 #include <type.h>
-int  printf(const char *format, ...);
+int  logf(const char *format, ...);
 void clear();
 void print(const char *str);
 void screen_ne();

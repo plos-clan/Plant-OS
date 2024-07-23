@@ -3,6 +3,8 @@
 #  include <config.h>
 #endif
 
+#define __PACKED__ __attribute__((packed)) // plos kernel 使用
+
 #if !__BYTE_ORDER__ || !__ORDER_LITTLE_ENDIAN__ || !__ORDER_BIG_ENDIAN__
 #  error "请指定端序"
 #endif
@@ -79,8 +81,8 @@ typedef __builtin_va_list va_list;
 #define COLOR_FATAL CRGB(255, 64, 64)
 
 #define STR_DEBUG "[" COLOR_DEBUG "Debug" CEND "] "
-#define STR_INFO  "[" COLOR_INFO "Info" CEND "] "
-#define STR_WARN  "[" COLOR_WARN "Warn" CEND "] "
+#define STR_INFO  "[" COLOR_INFO "Info " CEND "] "
+#define STR_WARN  "[" COLOR_WARN "Warn " CEND "] "
 #define STR_ERROR "[" COLOR_ERROR "Error" CEND "] "
 #define STR_FATAL "[" COLOR_FATAL "Fatal" CEND "] "
 

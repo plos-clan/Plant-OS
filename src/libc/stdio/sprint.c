@@ -10,11 +10,12 @@ enum fmtalign {
 };
 
 typedef struct fmtarg {
-  int align; // 对齐方式
+  int  align; // 对齐方式
+  bool fill_zero;
 
   int n; // 当前已格式化的字符数
 
-  // 背景颜色
+  // 背景颜色s
   bool setfg : 1, setbg : 1;
   struct {
     byte r, g, b;
@@ -37,13 +38,14 @@ typedef struct fmtarg {
 } fmtarg;
 
 finline void fmtarg_clear(fmtarg *arg) {
-  arg->align   = align_left;
-  arg->setfg   = false;
-  arg->setfg   = false;
-  arg->decimal = 0;
-  arg->maxlen  = 0;
-  arg->minlen  = 0;
-  arg->text    = null;
+  arg->align     = align_left;
+  arg->fill_zero = false;
+  arg->setfg     = false;
+  arg->setfg     = false;
+  arg->decimal   = 0;
+  arg->maxlen    = 0;
+  arg->minlen    = 0;
+  arg->text      = null;
 }
 
 static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
@@ -56,23 +58,35 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
     arg->text    = arg->buf;
     arg->text[0] = '%';
     arg->text[1] = '\0';
-    return fmt + 1;
+    *_fmt        = fmt + 1;
+    return true;
   }
 
+  if (*fmt == '0') {
+    arg->fill_zero = true;
+    fmt++;
+  }
+
+parse_length : {
   char *f;
-  arg->maxlen = strtoi(fmt, &f);
-  if (fmt == f && *f == '*') {
-    arg->maxlen = va_arg(va, int);
+  arg->minlen = strtoi(fmt, &f); // 解析 %15d 这样的写法
+  if (fmt == f && *f == '*') {   // 解析 %*d 这样的写法
+    arg->minlen = va_arg(va, int);
     f++;
   }
-  fmt = f;
-  if (arg->maxlen < 0) {
-    arg->maxlen = -arg->maxlen;
-    arg->align  = 1;
+  if (arg->minlen < 0) { // 小于 0 的靠右对齐
+    arg->minlen = -arg->minlen;
+    arg->align  = align_right;
   }
+  fmt = f;
+}
 
-  if (*fmt == '.') {
+  if (arg->fill_zero && arg->align != align_left) goto err;
+  if (arg->fill_zero) arg->align = align_right;
+
+  if (*fmt == '.') { // 解析小数
     fmt++;
+    char *f;
     arg->decimal = strtoi(fmt, &f);
     if (fmt == f && *f == '*') {
       arg->decimal = va_arg(va, int);
@@ -81,126 +95,144 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
     fmt = f;
   }
 
-  // char 1
-  // short 2
-  // int 3
-  // long 4
-  // long long 5
+  // 1 | char      | error
+  // 2 | short     | error
+  // 3 | int       | float
+  // 4 | long      | double
+  // 5 | long long | long double
   int _size = 3;
 
-  while (1) {
-    switch (*fmt++) {
+next_char:
+  switch (*fmt++) {
 
-    case 'h':
-      if (_size <= 0 || _size > 3) return false; // 解析失败
-      _size--;
-      break;
+  case 'h':
+    if (_size <= 0 || _size > 3) goto err;
+    _size--;
+    goto next_char;
 
-    case 'l':
-      if (_size < 3 || _size >= 6) return false; // 解析失败
-      _size++;
-      break;
+  case 'l':
+    if (_size < 3 || _size >= 6) goto err;
+    _size++;
+    goto next_char;
 
-    case 'c':
-    case 'C':
-      if (_size != 3) return false; // 解析失败
-      arg->text    = arg->buf;
-      arg->text[0] = va_arg(va, int);
-      arg->text[1] = '\0';
-      goto end;
+  case 'c':
+  case 'C':
+    if (_size != 3) goto err;
+    arg->text      = arg->buf;
+    arg->text[0]   = va_arg(va, int);
+    arg->text[1]   = '\0';
+    arg->fill_zero = false; // 字符不应该使用 0 填充
+    goto end;
 
 #define __tostr_arg(type)     arg->buf, arg->bufsize, va_arg(va, type)
 #define __tostr_arg2(t, type) arg->buf, arg->bufsize, (t)va_arg(va, type)
 
-    case 'b':
-    case 'B':
-      switch (_size) {
-      case 1: arg->text = hhtostrb2(__tostr_arg2(char, int)); break;
-      case 2: arg->text = htostrb2(__tostr_arg2(short, int)); break;
-      case 3: arg->text = itostrb2(__tostr_arg(int)); break;
-      case 4: arg->text = ltostrb2(__tostr_arg(long int)); break;
-      case 5: arg->text = lltostrb2(__tostr_arg(long long int)); break;
-      }
-      goto end;
-
-    case 'o':
-    case 'O':
-      switch (_size) {
-      case 1: arg->text = hhtostrb8(__tostr_arg2(char, int)); break;
-      case 2: arg->text = htostrb8(__tostr_arg2(short, int)); break;
-      case 3: arg->text = itostrb8(__tostr_arg(int)); break;
-      case 4: arg->text = ltostrb8(__tostr_arg(long int)); break;
-      case 5: arg->text = lltostrb8(__tostr_arg(long long int)); break;
-      }
-      goto end;
-
-    case 'i':
-    case 'I':
-    case 'd':
-    case 'D':
-      switch (_size) {
-      case 1: arg->text = hhtostrb10(__tostr_arg2(char, int)); break;
-      case 2: arg->text = htostrb10(__tostr_arg2(short, int)); break;
-      case 3: arg->text = itostrb10(__tostr_arg(int)); break;
-      case 4: arg->text = ltostrb10(__tostr_arg(long int)); break;
-      case 5: arg->text = lltostrb10(__tostr_arg(long long int)); break;
-      }
-      goto end;
-
-    case 'u':
-    case 'U':
-      switch (_size) {
-      case 1: arg->text = uhhtostrb10(__tostr_arg2(unsigned char, int)); break;
-      case 2: arg->text = uhtostrb10(__tostr_arg2(unsigned short, int)); break;
-      case 3: arg->text = uitostrb10(__tostr_arg(unsigned int)); break;
-      case 4: arg->text = ultostrb10(__tostr_arg(unsigned long int)); break;
-      case 5: arg->text = ulltostrb10(__tostr_arg(unsigned long long int)); break;
-      }
-      goto end;
-
-    case 'x':
-      switch (_size) {
-      case 1: arg->text = hhtostrb16(__tostr_arg2(char, int)); break;
-      case 2: arg->text = htostrb16(__tostr_arg2(short, int)); break;
-      case 3: arg->text = itostrb16(__tostr_arg(int)); break;
-      case 4: arg->text = ltostrb16(__tostr_arg(long int)); break;
-      case 5: arg->text = lltostrb16(__tostr_arg(long long int)); break;
-      }
-      goto end;
-    case 'X':
-      switch (_size) {
-      case 1: arg->text = hhtostrB16(__tostr_arg2(char, int)); break;
-      case 2: arg->text = htostrB16(__tostr_arg2(short, int)); break;
-      case 3: arg->text = itostrB16(__tostr_arg(int)); break;
-      case 4: arg->text = ltostrB16(__tostr_arg(long int)); break;
-      case 5: arg->text = lltostrB16(__tostr_arg(long long int)); break;
-      }
-      goto end;
-
-    case 'n':
-    case 'N':
-      if (_size != 3) return false; // 解析失败
-      *va_arg(va, int *) = arg->n;
-      goto end;
-
-    case 's': // 字符串
-    case 'S':
-      if (_size != 3) return false; // 解析失败
-      arg->text = va_arg(va, char *);
-      if (!arg->text) {
-        arg->text    = arg->buf;
-        arg->text[0] = '\0';
-      }
-      goto end;
-
-    default: return false; // 解析失败
+  case 'b':
+  case 'B':
+    switch (_size) {
+    case 1: arg->text = uhhtostrb2(__tostr_arg2(char, int)); break;
+    case 2: arg->text = uhtostrb2(__tostr_arg2(short, int)); break;
+    case 3: arg->text = uitostrb2(__tostr_arg(int)); break;
+    case 4: arg->text = ultostrb2(__tostr_arg(long int)); break;
+    case 5: arg->text = ulltostrb2(__tostr_arg(long long int)); break;
     }
+    goto end;
+
+  case 'o':
+  case 'O':
+    switch (_size) {
+    case 1: arg->text = uhhtostrb8(__tostr_arg2(char, int)); break;
+    case 2: arg->text = uhtostrb8(__tostr_arg2(short, int)); break;
+    case 3: arg->text = uitostrb8(__tostr_arg(int)); break;
+    case 4: arg->text = ultostrb8(__tostr_arg(long int)); break;
+    case 5: arg->text = ulltostrb8(__tostr_arg(long long int)); break;
+    }
+    goto end;
+
+  case 'i':
+  case 'I':
+  case 'd':
+  case 'D':
+    switch (_size) {
+    case 1: arg->text = hhtostrb10(__tostr_arg2(char, int)); break;
+    case 2: arg->text = htostrb10(__tostr_arg2(short, int)); break;
+    case 3: arg->text = itostrb10(__tostr_arg(int)); break;
+    case 4: arg->text = ltostrb10(__tostr_arg(long int)); break;
+    case 5: arg->text = lltostrb10(__tostr_arg(long long int)); break;
+    }
+    goto end;
+
+  case 'u':
+  case 'U':
+    switch (_size) {
+    case 1: arg->text = uhhtostrb10(__tostr_arg2(unsigned char, int)); break;
+    case 2: arg->text = uhtostrb10(__tostr_arg2(unsigned short, int)); break;
+    case 3: arg->text = uitostrb10(__tostr_arg(unsigned int)); break;
+    case 4: arg->text = ultostrb10(__tostr_arg(unsigned long int)); break;
+    case 5: arg->text = ulltostrb10(__tostr_arg(unsigned long long int)); break;
+    }
+    goto end;
+
+  case 'x':
+    switch (_size) {
+    case 1: arg->text = uhhtostrb16(__tostr_arg2(char, int)); break;
+    case 2: arg->text = uhtostrb16(__tostr_arg2(short, int)); break;
+    case 3: arg->text = uitostrb16(__tostr_arg(int)); break;
+    case 4: arg->text = ultostrb16(__tostr_arg(long int)); break;
+    case 5: arg->text = ulltostrb16(__tostr_arg(long long int)); break;
+    }
+    goto end;
+  case 'X':
+    switch (_size) {
+    case 1: arg->text = uhhtostrB16(__tostr_arg2(char, int)); break;
+    case 2: arg->text = uhtostrB16(__tostr_arg2(short, int)); break;
+    case 3: arg->text = uitostrB16(__tostr_arg(int)); break;
+    case 4: arg->text = ultostrB16(__tostr_arg(long int)); break;
+    case 5: arg->text = ulltostrB16(__tostr_arg(long long int)); break;
+    }
+    goto end;
+
+  case 'f':
+  case 'F':
+    switch (_size) {
+    case 1: goto err;
+    case 2: goto err;
+    case 3: arg->text = fftostr(__tostr_arg2(float, double)); break;
+    case 4: arg->text = ftostr(__tostr_arg(double)); break;
+    case 5: arg->text = fltostr(__tostr_arg(long double)); break;
+    }
+    goto end;
+
+#undef __tostr_arg
+#undef __tostr_arg2
+
+  case 'n':
+  case 'N':
+    if (_size != 3) goto err;
+    *va_arg(va, int *) = arg->n;
+    goto end;
+
+  case 's': // 字符串
+  case 'S':
+    if (_size != 3) goto err;
+    arg->text = va_arg(va, char *);
+    if (!arg->text) {
+      arg->text      = arg->buf;
+      arg->text[0]   = '\0';
+      arg->fill_zero = false; // 字符串不应该使用 0 填充
+    }
+    goto end;
+
+  default: goto err;
   }
 
 end:
   *_fmt = fmt;
   *_va  = va;
   return true;
+
+err:
+  return false;
 }
 
 static bool sformat_format(fmtarg *arg, cstr *_fmt, va_list *_va) {
@@ -208,7 +240,7 @@ static bool sformat_format(fmtarg *arg, cstr *_fmt, va_list *_va) {
 }
 
 static char *vsprintf_align(char *s, fmtarg *arg) {
-  if (!arg->text) return s;
+  if (!arg->text) return s; // 无输出
   ssize_t arg_len = strlen(arg->text);
 
   if (arg->maxlen > 0 && arg_len > arg->maxlen) { // 放不下就进行截断 假如 maxlen 为 25
@@ -240,8 +272,12 @@ static char *vsprintf_align(char *s, fmtarg *arg) {
     }
   }
 
+  if (blank_left > 0 && arg->fill_zero && *arg->text == '-') {
+    *s++ = '-';
+    arg->text++;
+  }
   for (size_t i = 0; i < blank_left; i++)
-    *s++ = ' ';
+    *s++ = arg->fill_zero ? '0' : ' ';
   while (*arg->text != '\0')
     *s++ = *arg->text++;
   for (size_t i = 0; i < blank_right; i++)
@@ -269,6 +305,7 @@ dlexport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) {
     *s++ = *fmt++;
   }
 
+  *s = '\0';
   return s - s_begin;
 }
 

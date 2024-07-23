@@ -296,10 +296,10 @@ void pfs_ls(vfs_t *vfs, u32 dict_block) {
       }
       if (pdb.inodes[i].type != 0) {
         if (pdb.inodes[i].name[13] == 0) {
-          printf("%s ", pdb.inodes[i].name);
+          logf("%s ", pdb.inodes[i].name);
         } else {
           for (int j = 0; j < 13; j++) {
-            printf("%c", pdb.inodes[i].name[j]);
+            logf("%c", pdb.inodes[i].name[j]);
           }
           u32 idx;
           idx = pdb.inodes[i].next;
@@ -308,11 +308,11 @@ void pfs_ls(vfs_t *vfs, u32 dict_block) {
             pi                             = pfs_get_inode_by_index(vfs, idx, dict_block);
             pfs_inode_of_long_file_name *f = (pfs_inode_of_long_file_name *)&pi;
             if (f->name[26] == 0x0) {
-              printf("%s ", f->name);
+              logf("%s ", f->name);
               break;
             } else {
               for (int k = 0; k < 26; k++) {
-                printf("%c", f->name[k]);
+                logf("%c", f->name[k]);
               }
             }
             idx = f->next;
@@ -323,7 +323,7 @@ void pfs_ls(vfs_t *vfs, u32 dict_block) {
     dict_block = pdb.next;
     flags      = 0;
   }
-  printf("\n");
+  logf("\n");
 }
 u32 pfs_get_idx_of_inode_by_name(vfs_t *vfs, char *name, u32 dict_block, u32 *err) {
   int            flags = 1;
@@ -521,12 +521,12 @@ void pfs_delete_file(vfs_t *vfs, char *filename, u32 dict_block) {
   u32 err, idx;
   idx = pfs_get_idx_of_inode_by_name(vfs, filename, dict_block, &err);
   if (err == 0x114514) {
-    printf("delete err.\n");
+    logf("delete err.\n");
     return;
   }
   pfs_inode i = pfs_get_inode_by_index(vfs, idx, dict_block);
   if (i.type != 1) {
-    printf("it isn't a file!\n");
+    logf("it isn't a file!\n");
     return;
   }
   pfs_delete_name_link(vfs, i.next, dict_block);
@@ -542,17 +542,17 @@ void pfs_delete_dict(vfs_t *vfs, char *name, u32 dict_block) {
   u32 err, idx;
   idx = pfs_get_idx_of_inode_by_name(vfs, name, dict_block, &err);
   if (err == 0x114514) {
-    printf("delete err.\n");
+    logf("delete err.\n");
     return;
   }
   pfs_inode i = pfs_get_inode_by_index(vfs, idx, dict_block);
   if (i.type != 2) {
-    printf("it isn't a dict!\n");
+    logf("it isn't a dict!\n");
     return;
   }
   if (i.dat) {
     if (pfs_get_dict_number(vfs, i.dat) > 0) {
-      printf("The dict must be empty!\n");
+      logf("The dict must be empty!\n");
       return;
     }
     pfs_delete_dict_block(vfs, i.dat);
@@ -667,7 +667,7 @@ void init_pfs(vfs_t *vfs, pfs_t p) {
   *now_pfs_t = p;
   u8 mbr[512];
   now_pfs_t->read_block(now_pfs_t, 0, 1, mbr);
-  pfs_mbr *mb = (pfs_mbr*)&mbr;
+  pfs_mbr *mb = (pfs_mbr *)&mbr;
   // if (memcmp(mb->sign, "PFS\xff", 4) != 0) {
   //   free(now_pfs_t);
   //   now_pfs_t = NULL;
@@ -873,7 +873,7 @@ bool pfs_CreateDict(struct vfs_t *vfs, char *filename) {
   }
 }
 bool pfs_Attrib(struct vfs_t *vfs, char *filename, ftype type) {
-  printf("Sorry, pfs does not support attrib at this time.\n");
+  logf("Sorry, pfs does not support attrib at this time.\n");
   return false;
 }
 vfs_file *pfs_FileInfo(struct vfs_t *vfs, char *filename) {

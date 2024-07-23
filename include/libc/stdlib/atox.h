@@ -59,66 +59,7 @@ _uato(u128);
 #undef __ato
 #undef __uato
 
-#define __atof(_t_, _type_)                                                                        \
-  finline _type_ ato##_t_(cstr s) {                                                                \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
-                                                                                                   \
-    if (*s == 'n' || *s == 'N') {                                                                  \
-      if (s++, *s == 'a' || *s == 'A')                                                             \
-        if (s++, *s == 'n' || *s == 'N') return NAN;                                               \
-      return 0;                                                                                    \
-    }                                                                                              \
-                                                                                                   \
-    if (*s == 'i' || *s == 'I') {                                                                  \
-      if (s++, *s == 'n' || *s == 'N') {                                                           \
-        if (s++, *s == 'f' || *s == 'F') {                                                         \
-          if (neg)                                                                                 \
-            return -INFINITY;                                                                      \
-          else                                                                                     \
-            return INFINITY;                                                                       \
-        }                                                                                          \
-      }                                                                                            \
-      return 0;                                                                                    \
-    }                                                                                              \
-                                                                                                   \
-    if (!isdigit(*s) && (*s != '.' || !isdigit(*(s + 1)))) return 0;                               \
-                                                                                                   \
-    _type_ f = 0;                                                                                  \
-                                                                                                   \
-    for (; isdigit(*s); s++)                                                                       \
-      f = f * 10 + (*s - '0');                                                                     \
-                                                                                                   \
-    if (!isfinite(f)) return neg ? -f : f;                                                         \
-                                                                                                   \
-    if (*s == '.') {                                                                               \
-      s++;                                                                                         \
-      _type_ n = 1;                                                                                \
-      for (; isdigit(*s); s++)                                                                     \
-        f += (*s - '0') * (n *= (_type_).1);                                                       \
-    }                                                                                              \
-                                                                                                   \
-    if (*s == 'e' || *s == 'E') {                                                                  \
-      s++;                                                                                         \
-      bool nneg = *s == '-';                                                                       \
-      if (nneg || *s == '+') s++;                                                                  \
-      u32 n = 0;                                                                                   \
-      if (!isdigit(*s)) return 0;                                                                  \
-      for (; isdigit(*s); s++)                                                                     \
-        n = n * 10 + (*s - '0');                                                                   \
-      if (nneg) {                                                                                  \
-        _type_ a = .1;                                                                             \
-        for (; n; n >>= 1, a *= a)                                                                 \
-          if (n & 1) f *= a;                                                                       \
-      } else {                                                                                     \
-        _type_ a = 10;                                                                             \
-        for (; n; n >>= 1, a *= a)                                                                 \
-          if (n & 1) f *= a;                                                                       \
-      }                                                                                            \
-    }                                                                                              \
-                                                                                                   \
-    return neg ? -f : f;                                                                           \
-  }
+#define __atof(_t_, _type_) dlimport _type_ ato##_t_(cstr s);
 
 __atof(ff, float);
 __atof(f, double);
@@ -252,69 +193,7 @@ __(strto);
 #undef __strb16to
 #undef __strto
 
-#define __stof(_t_, _type_)                                                                        \
-  finline _type_ strto##_t_(cstr _rest s, char **_rest e) {                                        \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
-                                                                                                   \
-    if (*s == 'n' || *s == 'N') {                                                                  \
-      if (s++, *s == 'a' || *s == 'A')                                                             \
-        if (s++, *s == 'n' || *s == 'N') {                                                         \
-          if (e) *e = (char *)s;                                                                   \
-          return NAN;                                                                              \
-        }                                                                                          \
-      return 0;                                                                                    \
-    }                                                                                              \
-                                                                                                   \
-    if (*s == 'i' || *s == 'I') {                                                                  \
-      if (s++, *s == 'n' || *s == 'N') {                                                           \
-        if (s++, *s == 'f' || *s == 'F') {                                                         \
-          if (e) *e = (char *)s;                                                                   \
-          if (neg)                                                                                 \
-            return -INFINITY;                                                                      \
-          else                                                                                     \
-            return INFINITY;                                                                       \
-        }                                                                                          \
-      }                                                                                            \
-      return 0;                                                                                    \
-    }                                                                                              \
-                                                                                                   \
-    if (!isdigit(*s) && (*s != '.' || !isdigit(*(s + 1)))) return 0;                               \
-                                                                                                   \
-    _type_ f = 0;                                                                                  \
-                                                                                                   \
-    for (; isdigit(*s); s++)                                                                       \
-      f = f * 10 + (*s - '0');                                                                     \
-                                                                                                   \
-    if (*s == '.') {                                                                               \
-      s++;                                                                                         \
-      _type_ n = 1;                                                                                \
-      for (; isdigit(*s); s++)                                                                     \
-        f += (*s - '0') * (n *= (_type_).1);                                                       \
-    }                                                                                              \
-                                                                                                   \
-    if (*s == 'e' || *s == 'E') {                                                                  \
-      s++;                                                                                         \
-      bool nneg = *s == '-';                                                                       \
-      if (nneg || *s == '+') s++;                                                                  \
-      u32 n = 0;                                                                                   \
-      if (!isdigit(*s)) return 0;                                                                  \
-      for (; isdigit(*s); s++)                                                                     \
-        n = n * 10 + (*s - '0');                                                                   \
-      if (nneg) {                                                                                  \
-        _type_ a = .1;                                                                             \
-        for (; n; n >>= 1, a *= a)                                                                 \
-          if (n & 1) f *= a;                                                                       \
-      } else {                                                                                     \
-        _type_ a = 10;                                                                             \
-        for (; n; n >>= 1, a *= a)                                                                 \
-          if (n & 1) f *= a;                                                                       \
-      }                                                                                            \
-    }                                                                                              \
-                                                                                                   \
-    if (e) *e = (char *)s;                                                                         \
-    return neg ? -f : f;                                                                           \
-  }
+#define __stof(_t_, _type_) dlimport _type_ strto##_t_(cstr _rest s, char **_rest e);
 
 __stof(ff, float);
 __stof(f, double);

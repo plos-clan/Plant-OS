@@ -36,15 +36,15 @@ extern const char _plos_lut_alnum_upper[62];
 #define _utoa(t) __utoa(t, t)
 
 __toa(hh, char);
-__utoa(uhh, unsigned char);
+__utoa(uhh, uchar);
 __toa(h, short);
-__utoa(uh, unsigned short);
+__utoa(uh, ushort);
 __toa(i, int);
-__utoa(ui, unsigned int);
-__toa(l, long int);
-__utoa(ul, unsigned long int);
-__toa(ll, long long int);
-__utoa(ull, unsigned long long int);
+__utoa(ui, uint);
+__toa(l, long);
+__utoa(ul, ulong);
+__toa(ll, llong);
+__utoa(ull, ullong);
 
 _toa(i8);
 _utoa(u8);
@@ -256,6 +256,44 @@ __(tostr);
 #undef __utostrB16
 #undef __tostr
 #undef __utostr
+
+#define __ftostr(t, type, utype, _e_) dlimport char *t##tostr(char *buf, size_t len, type n);
+
+__ftostr(ff, float, u64, 9);
+__ftostr(f, double, u64, 19);
+__ftostr(fl, long double, u64, 19);
+
+#define _ftostr(t, ut, e) __ftostr(t, t, ut, e)
+
+_ftostr(f32, u32, 9);
+_ftostr(f64, u64, 19);
+#if defined(__x86_64__)
+_ftostr(f16, u32, 9);
+_ftostr(f128, u64, 19);
+#endif
+
+#undef _ftostr
+
+#undef __ftostr
+
+#define __ftoa(t, type, utype, _e_) dlimport cstr t##toa(type n);
+
+__ftoa(ff, float, u32, 9);
+__ftoa(f, double, u64, 19);
+__ftoa(fl, long double, u64, 19);
+
+#define _ftoa(t, ut, e) __ftoa(t, t, ut, e)
+
+_ftoa(f32, u32, 9);
+_ftoa(f64, u64, 19);
+#if defined(__x86_64__)
+_ftoa(f16, u32, 9);
+_ftoa(f128, u64, 19);
+#endif
+
+#undef _ftoa
+
+#undef __ftoa
 
 #undef __tostr_begin
 #undef __tostr_begin_nlt
