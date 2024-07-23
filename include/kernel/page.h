@@ -21,3 +21,6 @@ u32   page_get_phy_pde(u32 vaddr, u32 pde);
 void  tpo2page(int *page, int t, int p);
 void  page_free_one(void *p);
 void *page_malloc_one_count_from_4gb();
+void *page_malloc(int size);
+void  page_free(void *p, int size);
+void  gc(unsigned tid);

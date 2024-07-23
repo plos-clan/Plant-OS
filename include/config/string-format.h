@@ -1,0 +1,1 @@
+#define HAS_SFORMAT 1

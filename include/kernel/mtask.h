@@ -67,3 +67,6 @@ void   task_next();
 void   task_exit(u32 status);
 mtask *get_task(unsigned tid);
 #define get_tid(n) ((n)->tid)
+
+void task_fall_blocked(enum STATE state);
+#define vfs_now current_task()->nfs

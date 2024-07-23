@@ -1,6 +1,5 @@
-#include <define.h>
-#include <osapi.h>
-#include <type.h>
+#pragma once
+#include <libc.h>
 
 dlimport void  fft_p(cf64 *x, cf64 *s, size_t l, size_t p, bool r);
 dlimport void  fft(cf64 *x, cf64 *s, size_t l, bool r);

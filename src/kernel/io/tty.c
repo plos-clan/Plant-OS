@@ -11,7 +11,7 @@
 // static void tty_print(struct tty *res, const char *string) {
 //   for (int i = 0; i < strlen(string); i++) {
 //     if (res->y == res->ysize && res->x >= res->xsize) { res->screen_ne(res); }
-//     t_putchar(res, ((unsigned char *)string)[i]);
+//     t_putchar(res, ((u8 *)string)[i]);
 //   }
 // }
 
@@ -66,7 +66,7 @@
 //                       void (*MoveCursor)(struct tty *res, int x, int y),
 //                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
 //                       void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1,
-//                                        unsigned char color),
+//                                        u8 color),
 //                       int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res)) {
 //   struct tty *res  = (struct tty *)page_malloc(sizeof(struct tty));
 //   res->is_using    = 1;
@@ -119,8 +119,8 @@
 //   }
 //   return NULL;
 // }
-// void tty_set_reserved(struct tty *res, unsigned int reserved1, unsigned int reserved2,
-//                       unsigned int reserved3, unsigned int reserved4) {
+// void tty_set_reserved(struct tty *res, u32 reserved1, u32 reserved2,
+//                       u32 reserved3, u32 reserved4) {
 //   res->reserved[0] = reserved1;
 //   res->reserved[1] = reserved2;
 //   res->reserved[2] = reserved3;

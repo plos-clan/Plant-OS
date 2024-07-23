@@ -6,6 +6,7 @@ extern "C" {
 #endif
 #include "config/debug.h"
 #include "config/plui.h"
+#include "config/string-format.h"
 #ifdef __cplusplus
 }
 #endif

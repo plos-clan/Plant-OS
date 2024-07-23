@@ -9,3 +9,5 @@ typedef struct {
 } lock_t;
 #define LOCK_UNLOCKED 0
 #define LOCK_LOCKED   1
+
+void lock_init(lock_t *l);

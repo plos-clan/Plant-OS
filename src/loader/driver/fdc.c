@@ -244,8 +244,8 @@ void hts2block(int track, int head, int sector, int *block) {
 }
 int fdc_rw(int block, u8 *blockbuff, int read, u32 nosectors) {
   int head, track, sector, tries, copycount = 0;
-  u8 *p_tbaddr = (char *)0x80000; // 512byte
-      // 缓冲区（大家可以放心，我们再page.c已经把这里设置为占用了）
+  u8 *p_tbaddr = (void *)0x80000; // 512byte
+      // 缓冲区（大家可以放心，我们在page.c已经把这里设置为占用了）
   u8 *p_blockbuff = blockbuff; // r/w的数据缓冲区
 
   /* 获取block对应的ths */
@@ -297,10 +297,11 @@ int fdc_rw(int block, u8 *blockbuff, int read, u32 nosectors) {
     sendbyte(2); /* 每个扇区是512字节 */
     sendbyte(geometry.spt);
 
-    if (geometry.spt == DG144_SPT)
+    if (geometry.spt == DG144_SPT) {
       sendbyte(DG144_GAP3RW);
-    else
+    } else {
       sendbyte(DG168_GAP3RW);
+    }
     sendbyte(0xff);
 
     /* 等待中断...... */
@@ -318,7 +319,7 @@ int fdc_rw(int block, u8 *blockbuff, int read, u32 nosectors) {
   if (read && blockbuff) {
     /* 复制数据 */
     p_blockbuff = blockbuff;
-    p_tbaddr    = (char *)0x80000;
+    p_tbaddr    = (void *)0x80000;
     for (copycount = 0; copycount < (nosectors * 512); copycount++) {
       *p_blockbuff = *p_tbaddr;
       p_blockbuff++;
@@ -331,7 +332,7 @@ int fdc_rw(int block, u8 *blockbuff, int read, u32 nosectors) {
 int fdc_rw_ths(int track, int head, int sector, u8 *blockbuff, int read, u32 nosectors) {
   // 跟上面的大同小异
   int tries, copycount = 0;
-  u8 *p_tbaddr    = (char *)0x80000;
+  u8 *p_tbaddr    = (void *)0x80000;
   u8 *p_blockbuff = blockbuff;
 
   motoron();
@@ -375,10 +376,11 @@ int fdc_rw_ths(int track, int head, int sector, u8 *blockbuff, int read, u32 nos
     sendbyte(2);
     sendbyte(geometry.spt);
 
-    if (geometry.spt == DG144_SPT)
+    if (geometry.spt == DG144_SPT) {
       sendbyte(DG144_GAP3RW);
-    else
+    } else {
       sendbyte(DG168_GAP3RW);
+    }
     sendbyte(0xff);
 
     wait_floppy_interrupt();
@@ -392,7 +394,7 @@ int fdc_rw_ths(int track, int head, int sector, u8 *blockbuff, int read, u32 nos
 
   if (read && blockbuff) {
     p_blockbuff = blockbuff;
-    p_tbaddr    = (char *)0x80000;
+    p_tbaddr    = (void *)0x80000;
     for (copycount = 0; copycount < (nosectors * 512); copycount++) {
       *p_blockbuff = *p_tbaddr;
       p_blockbuff++;
@@ -420,5 +422,5 @@ int write_block(int block, u8 *blockbuff, u32 nosectors) {
   return fdc_rw(block, blockbuff, 0, nosectors);
 }
 int write_floppy_for_ths(int track, int head, int sec, u8 *blockbuff, u32 nosec) {
-  int res = fdc_rw_ths(track, head, sec, blockbuff, 0, nosec);
+  return fdc_rw_ths(track, head, sec, blockbuff, 0, nosec);
 }

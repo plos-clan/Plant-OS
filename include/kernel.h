@@ -16,6 +16,7 @@ extern "C" {
 #include "kernel/page.h"
 #include "kernel/screen.h"
 #include "kernel/tty.h"
+#include "kernel/vfs.h"
 #ifdef __cplusplus
 }
 #endif

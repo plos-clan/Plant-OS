@@ -12,10 +12,12 @@ extern "C" {
 #include "libc/data-structure/list.h"
 #include "libc/data-structure/queue-mt.h"
 #include "libc/data-structure/queue.h"
+#include "libc/data-structure/rbtree.h"
+#include "libc/data-structure/slist.h"
+#include "libc/data-structure/trie.h"
 #include "libc/math/base.h"
 #include "libc/math/bits.h"
-#include "libc/math/complex/base.h"
-#include "libc/math/complex/fft.h"
+#include "libc/math/complex.h"
 #include "libc/math/exp-log.h"
 #include "libc/math/float.h"
 #include "libc/math/math.h"
@@ -30,4 +32,14 @@ extern "C" {
 #include "libc/syscall/linux-x64.h"
 #ifdef __cplusplus
 }
+#endif
+#ifdef __cplusplus
+#include "libc/math/base.hpp"
+#include "libc/math/bits.hpp"
+#include "libc/math/complex.hpp"
+#include "libc/math/exp-log.hpp"
+#include "libc/math/math.hpp"
+#include "libc/math/sin.hpp"
+#include "libc/math/sqrt.hpp"
+#include "libc/math/sum.hpp"
 #endif

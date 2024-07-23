@@ -6,12 +6,21 @@ extern "C" {
 #endif
 #include "math/base.h"
 #include "math/bits.h"
-#include "math/complex/base.h"
-#include "math/complex/fft.h"
+#include "math/complex.h"
 #include "math/exp-log.h"
 #include "math/float.h"
 #include "math/math.h"
 #include "math/sqrt.h"
 #ifdef __cplusplus
 }
+#endif
+#ifdef __cplusplus
+#include "math/base.hpp"
+#include "math/bits.hpp"
+#include "math/complex.hpp"
+#include "math/exp-log.hpp"
+#include "math/math.hpp"
+#include "math/sin.hpp"
+#include "math/sqrt.hpp"
+#include "math/sum.hpp"
 #endif

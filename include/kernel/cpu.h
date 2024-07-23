@@ -56,7 +56,19 @@ void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 int  load_cr0(void);
 void store_cr0(int cr0);
-void set_cr3(int cr3);
+u32  get_cr0();
+void set_cr0(u32 cr0);
+#define SA_RPL_MASK      0xFFFC
+#define SA_TI_MASK       0xFFFB
+#define SA_TIL           4 // 设置此项，将从LDT中寻找
+#define SA_RPL0          0
+#define SA_RPL1          1
+#define SA_RPL2          2
+#define SA_RPL3          3
+#define GET_SEL(cs, rpl) ((cs & SA_RPL_MASK & SA_TI_MASK) | (rpl))
+finline void set_cr3(u32 pde) {
+  asm volatile("movl %%eax, %%cr3\n" ::"a"(pde));
+}
 
 struct TSS32 {
   int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;

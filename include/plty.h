@@ -4,12 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "libplos/include-libc.h"
-#include "libplos/math/fft.h"
-#include "libplos/stdio/print.h"
+#include "plty/fb.h"
 #ifdef __cplusplus
 }
-#endif
-#ifdef __cplusplus
-#include "libplos/math/fft.hpp"
 #endif

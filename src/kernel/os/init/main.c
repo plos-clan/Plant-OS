@@ -20,8 +20,8 @@ int logk(cstr _rest fmt, ...) {
   return rets;
 }
 
-void kernel_main() {
-  sysinit();
+void format_test() {
+  logi("开始格式化测试");
 
   logk("字符测试: %c\n", 'A');
   logk("数字测试: %d\n", 114514);
@@ -34,6 +34,14 @@ void kernel_main() {
 
   logk("浮点测试: %lf\n", 123.45);
   logk("浮点测试: %lf\n", 1145141919810.);
+
+  logi("格式化测试结束");
+}
+
+void kernel_main() {
+  sysinit();
+
+  format_test();
 
   logd("一条测试 debug 消息");
   logi("一条测试 info 消息");

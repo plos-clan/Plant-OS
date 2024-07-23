@@ -73,6 +73,9 @@ _CONST_(bool);
 #define INTMAX_MAX  __INTMAX_MAX__
 #define UINTMAX_MAX __UINTMAX_MAX__
 
+#undef SIZE_MAX
+#define SIZE_MAX __SIZE_MAX__
+
 #define I8_MIN  (-__INT8_MAX__ - 1)
 #define I8_MAX  __INT8_MAX__
 #define U8_MAX  __UINT8_MAX__
