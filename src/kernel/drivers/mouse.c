@@ -10,13 +10,13 @@ void       mouse_wait(byte a_type) // u8
   if (a_type == 0) {
     while (_time_out--) // Data
     {
-      if ((io_in8(0x64) & 1) == 1) { return; }
+      if ((asm_in8(0x64) & 1) == 1) { return; }
     }
     return;
   } else {
     while (_time_out--) // Signal
     {
-      if ((io_in8(0x64) & 2) == 0) { return; }
+      if ((asm_in8(0x64) & 2) == 0) { return; }
     }
     return;
   }
@@ -27,17 +27,17 @@ void mouse_write(byte a_write) // u8
   // Wait to be able to send a command
   mouse_wait(1);
   // Tell the mouse we are sending a command
-  io_out8(0x64, 0xD4);
+  asm_out8(0x64, 0xD4);
   // Wait for the final part
   mouse_wait(1);
   // Finally write
-  io_out8(0x60, a_write);
+  asm_out8(0x60, a_write);
 }
 
 byte mouse_read() {
   // Get's response from mouse
   mouse_wait(0);
-  return io_in8(0x60);
+  return asm_in8(0x60);
 }
 lock_t mouse_l;
 void   mouse_reset() {
@@ -47,9 +47,9 @@ void enable_mouse(struct MOUSE_DEC *mdec) {
   lock_init(&mouse_l);
   /* 激活鼠标 */
   wait_KBC_sendready();
-  io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+  asm_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
   wait_KBC_sendready();
-  io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
+  asm_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
   mdec->phase = 1;
   mouse_write(0xf3);
   mouse_write(200);
@@ -117,9 +117,9 @@ unsigned times = 0;
 void     inthandler2c(int *esp) {
   // logk("2c\n");
   u8 data;
-  io_out8(PIC1_OCW2, 0x64);
-  io_out8(PIC0_OCW2, 0x62);
-  data = io_in8(PORT_KEYDAT);
+  asm_out8(PIC1_OCW2, 0x64);
+  asm_out8(PIC0_OCW2, 0x62);
+  data = asm_in8(PORT_KEYDAT);
   times++;
   if (times == 4) {
     times = 0;

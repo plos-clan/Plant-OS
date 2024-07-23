@@ -20,16 +20,16 @@ char       keytable1[0x54] = { // 未按下Shift
 // 等待键盘控制电路准备完毕
 void wait_KBC_sendready() {
   while (true) {
-    if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) { break; }
+    if ((asm_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) { break; }
   }
 }
 
 // 初始化键盘控制电路
 void init_keyboard() {
   wait_KBC_sendready();
-  io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
+  asm_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
   wait_KBC_sendready();
-  io_out8(PORT_KEYDAT, KBC_MODE);
+  asm_out8(PORT_KEYDAT, KBC_MODE);
 }
 int getch() {
   u8 ch;
@@ -125,8 +125,8 @@ mtask *keyboard_use_task = NULL;
 void   inthandler21(int *esp) {
   // 键盘中断处理函数
   u8 data, s[4];
-  io_out8(PIC0_OCW2, 0x61);
-  data = io_in8(PORT_KEYDAT); // 从键盘IO口读取扫描码
+  asm_out8(PIC0_OCW2, 0x61);
+  data = asm_in8(PORT_KEYDAT); // 从键盘IO口读取扫描码
   //  特殊键处理
   if (data == 0xe0) {
     e0_flag = 1;

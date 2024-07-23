@@ -4,7 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "libc/asm.h"
+#include "libc/asm/asm.h"
+#include "libc/asm/io.h"
 #include "libc/color.h"
 #include "libc/crypto/hash.h"
 #include "libc/data-structure/avltree.h"

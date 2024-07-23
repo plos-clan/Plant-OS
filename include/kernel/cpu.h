@@ -42,14 +42,6 @@ typedef struct fpu_t {
   u8  regs[80];
 } __PACKED__ fpu_t;
 
-void io_hlt();
-void io_stihlt();
-int  io_in8(int port);
-int  io_in16(int port);
-int  io_in32(int port);
-void io_out8(int port, int data);
-void io_out16(int port, int data);
-void io_out32(int port, int data);
 int  io_load_eflags();
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
