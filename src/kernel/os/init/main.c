@@ -1,13 +1,20 @@
 #include <define.h>
 #include <kernel.h>
+#include <plty.h>
 #include <type.h>
 
 void write_serial(char a);
 
+plty_fb tty;
+
 void logk_raw(cstr s) {
+  // static spin_t spin = false;
+  // spin_lock(spin);
   for (size_t i = 0; s[i] != '\0'; i++) {
     write_serial(s[i]);
   }
+  // spin_unlock(spin);
+  // task_next();
 }
 
 int logk(cstr _rest fmt, ...) {
@@ -39,9 +46,14 @@ void format_test() {
 }
 
 void kernel_main() {
-  sysinit();
+  tty.buf    = (void *)0xb8000;
+  tty.width  = 80;
+  tty.height = 25;
+  plty_fb_clear(&tty);
 
   format_test();
+
+  plty_fb_puts(&tty, "123456\n");
 
   logd("一条测试 debug 消息");
   logi("一条测试 info 消息");
@@ -49,8 +61,6 @@ void kernel_main() {
   loge("一条测试 error 消息");
   logf("一条测试 fatal 消息");
 
-  // *(u8 *)(0xb8000) = 'K';
-  // *(u8 *)(0xb8001) = 0x0c;
-
+  sysinit();
   while (true) {}
 }

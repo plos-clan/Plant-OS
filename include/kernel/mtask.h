@@ -4,6 +4,9 @@
 #include <kernel/ipc.h>
 #include <kernel/mem.h>
 #include <type.h>
+#define SIGINT     0
+#define SIGKIL     1
+#define SIGMASK(n) 1 << n
 enum STATE {
   EMPTY,
   RUNNING,
@@ -61,6 +64,7 @@ struct mtask {
 } __PACKED__;
 mtask *current_task();
 void   task_switch(mtask *next);
+void   task_start(mtask *next);
 void   mtask_run_now(mtask *obj);
 void   task_run(mtask *task);
 void   task_next();
@@ -69,4 +73,9 @@ mtask *get_task(unsigned tid);
 #define get_tid(n) ((n)->tid)
 
 void task_fall_blocked(enum STATE state);
+void idle();
+void init();
 #define vfs_now current_task()->nfs
+struct FIFO8 *task_get_key_fifo(mtask *task);
+struct FIFO8 *task_get_mouse_fifo(mtask *task);
+void          into_mtask();

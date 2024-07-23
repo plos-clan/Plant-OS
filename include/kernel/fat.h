@@ -1,4 +1,5 @@
 #pragma once
+
 #define BS_jmpBoot       0
 #define BS_OEMName       3
 #define BPB_BytsPerSec   11

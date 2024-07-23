@@ -1,3 +1,4 @@
+#include "type.h"
 #include <kernel.h>
 #define STACK_SIZE 1024 * 1024
 void         free_pde(u32 addr);
@@ -8,9 +9,16 @@ struct TSS32 tss;
 mtask       *idle_task;
 mtask       *current         = NULL;
 char         mtask_stop_flag = 0;
-u32          get_cr3() {
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+
+u32 get_cr3() {
   asm volatile("movl %cr3, %eax\n");
 }
+
+#pragma clang diagnostic pop
+
 mtask *next_set = NULL;
 mtask  null_task;
 
@@ -68,12 +76,13 @@ static void init_tasks() {
 fpu_t public_fpu;
 bool  task_check_train(mtask *task) {
   if (!task) { return false; }
-  if (task->train == 1 && timerctl.count - task->jiffies >= 5) { return true; }
+  if (task->train == 1 && timerctl.count - task->jiffies >= 5) return true;
   return false;
 }
+
 extern mtask *mouse_use_task;
-void          task_next() {
-  // asm_cli;
+
+void task_next() {
   if (current->running < current->timeout - 1 && current->state == RUNNING && next_set == NULL) {
     current->running++;
     return; // 不需要调度，当前时间片仍然属于你
@@ -147,7 +156,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   }
   if (!t) { return NULL; }
   u32 esp_alloced = (u32)page_malloc(STACK_SIZE) + STACK_SIZE;
-  change_page_task_id(t->tid, esp_alloced - STACK_SIZE, STACK_SIZE);
+  change_page_task_id(t->tid, (void *)(esp_alloced - STACK_SIZE), STACK_SIZE);
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
   t->esp->eip  = eip;                                                // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
@@ -317,7 +326,7 @@ mtask *current_task() {
   }
   return current;
 }
-int into_mtask() {
+void into_mtask() {
   init_tasks();
   set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
   asm volatile("fninit");
@@ -326,10 +335,10 @@ int into_mtask() {
   struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
   memset(&tss, 0, sizeof(tss));
   tss.ss0 = 1 * 8;
-  set_segmdesc(gdt + 103, 103, &tss, AR_TSS32);
+  set_segmdesc(gdt + 103, 103, (int)&tss, AR_TSS32);
   load_tr(103 * 8);
-  idle_task = create_task(idle, 0, 1, 3);
-  create_task(init, 0, 5, 1);
+  idle_task = create_task((u32)idle, 0, 1, 3);
+  create_task((u32)init, 0, 5, 1);
   set_cr0(get_cr0() | CR0_EM | CR0_TS | CR0_NE);
   task_start(&(m[0]));
 }
@@ -482,8 +491,8 @@ void                     task_exit(u32 status) {
 }
 int waittid(u32 tid) {
   mtask *t = get_task(tid);
-  if (!t) return;
-  if (t->ptid != current_task()->tid) return;
+  if (!t) return -1;
+  if (t->ptid != current_task()->tid) return -1;
   current_task()->waittid = tid;
   while (t->state != DIED && t->ptid == current_task()->tid) {
     task_fall_blocked(WAITING);
@@ -504,11 +513,9 @@ void mtask_run_now(mtask *obj) {
 }
 void copy_vfs(mtask *src, mtask *dest) {
   vfs_change_disk_for_task(src->nfs->drive, dest);
-  List *l;
   char *path;
-  for (int i = 1; FindForCount(i, src->nfs->path) != NULL; i++) {
-    l    = FindForCount(i, src->nfs->path);
-    path = (char *)l->val;
+  list_foreach(src->nfs->path, l) {
+    path = (char *)l->data;
     dest->nfs->cd(dest->nfs, path);
   }
 }
@@ -543,7 +550,7 @@ static void build_fork_stack(mtask *task) {
   sframe->ebx          = 0x114514;
   sframe->ecx          = 0x114514;
   sframe->edx          = 0x114514;
-  sframe->eip          = interrput_exit;
+  sframe->eip          = (size_t)interrput_exit;
 
   task->esp = sframe;
 }
@@ -556,14 +563,14 @@ int task_fork() {
   int  tid   = 0;
   tid        = m->tid;
   memcpy(m, current_task(), sizeof(mtask));
-  u32 stack = page_malloc(STACK_SIZE);
-  change_page_task_id(tid, stack, STACK_SIZE);
+  u32 stack = (u32)page_malloc(STACK_SIZE);
+  change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;
-  memcpy(stack, m->top - STACK_SIZE, STACK_SIZE);
+  memcpy((void *)stack, (void *)(m->top - STACK_SIZE), STACK_SIZE);
   logk("s = %08x \n", m->top - STACK_SIZE);
   m->top = stack += STACK_SIZE;
   stack          += STACK_SIZE;
-  m->esp          = stack;
+  m->esp          = (stack_frame *)stack;
   m->nfs          = NULL;
   if (current_task()->Pkeyfifo) {
     m->Pkeyfifo = malloc(sizeof(struct FIFO8));
@@ -578,15 +585,15 @@ int task_fork() {
     memcpy(m->Ukeyfifo->buf, current_task()->Ukeyfifo->buf, 4096);
   }
   if (current_task()->keyfifo) {
-    m->keyfifo = (char *)page_malloc_one();
+    m->keyfifo = page_malloc_one();
     memcpy(m->keyfifo, current_task()->keyfifo, sizeof(struct FIFO8));
-    m->keyfifo->buf = (char *)page_malloc_one();
+    m->keyfifo->buf = page_malloc_one();
     memcpy(m->keyfifo->buf, current_task()->keyfifo->buf, 4096);
   }
   if (current_task()->mousefifo) {
-    m->mousefifo = (char *)page_malloc_one();
+    m->mousefifo = page_malloc_one();
     memcpy(m->mousefifo, current_task()->mousefifo, sizeof(struct FIFO8));
-    m->mousefifo->buf = (char *)page_malloc_one();
+    m->mousefifo->buf = page_malloc_one();
     memcpy(m->mousefifo->buf, current_task()->mousefifo->buf, 4096);
   }
   logk("copy vfs\n");

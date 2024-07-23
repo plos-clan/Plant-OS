@@ -1,7 +1,10 @@
 #pragma once
 #include "../stdio/print.h"
 #include "../stdlib/alloc.h"
-#define QUEUE_IMPLEMENTATION
+
+#ifdef ALL_IMPLEMENTATION
+#  define QUEUE_IMPLEMENTATION
+#endif
 
 /**
  *\struct Node

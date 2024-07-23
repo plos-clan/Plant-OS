@@ -1,7 +1,7 @@
-#include <kernel.h>
+// #include <kernel.h>
 
-void *malloc(size_t size) {
-  return null;
-}
+// void *malloc(size_t size) {
+//   return null;
+// }
 
-void free(void *ptr) {}
+// void free(void *ptr) {}

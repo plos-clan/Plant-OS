@@ -1,7 +1,10 @@
 #pragma once
 #include "../stdio/print.h"
 #include "../stdlib/alloc.h"
-#define LIST_IMPLEMENTATION
+
+#ifdef ALL_IMPLEMENTATION
+#  define LIST_IMPLEMENTATION
+#endif
 
 /**
  *\struct ListNode

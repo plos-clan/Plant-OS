@@ -1,11 +1,14 @@
 #include <dosldr.h>
 
-int   getReadyDisk(); // init.c
+int getReadyDisk(); // init.c
+
 vdisk vdisk_ctl[10];
-int   init_vdisk() {
+
+int init_vdisk() {
   for (int i = 0; i < 10; i++) {
     vdisk_ctl[i].flag = 0; // 设置为未使用
   }
+  return 0;
 }
 
 int register_vdisk(vdisk vd) {

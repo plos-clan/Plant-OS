@@ -1,8 +1,11 @@
 #include <kernel.h>
-void        mtask_stop();
-void        mtask_start();
+
+void mtask_stop();
+void mtask_start();
+
 extern char mtask_stop_flag;
-bool        cas(int *ptr, int old, int New) {
+
+bool cas(int *ptr, int old, int New) {
   int old_value = *ptr;
   if (old_value == old) {
     *ptr = New;
@@ -10,13 +13,16 @@ bool        cas(int *ptr, int old, int New) {
   }
   return false;
 }
-// FIXME:!!!!
+
 void lock_init(lock_t *l) {
   l->owner  = NULL;
   l->value  = LOCK_UNLOCKED;
   l->waiter = NULL;
 }
-// FUXK!!!!!!!!!!
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+
 bool interrupt_disable() {
   asm volatile("pushfl\n"        // 将当前 eflags 压入栈中
                "cli\n"           // 清除 IF 位，此时外中断已被屏蔽
@@ -35,12 +41,15 @@ bool get_interrupt_state() {
   );
 }
 
+#pragma clang diagnostic pop
+
 // 设置 IF 位
 void set_interrupt_state(bool state) {
-  if (state)
-    asm volatile("sti\n");
-  else
-    asm volatile("cli\n");
+  if (state) {
+    asm_sti;
+  } else {
+    asm_cli;
+  }
 }
 void lock(lock_t *key) {
   int state = interrupt_disable();

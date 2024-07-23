@@ -20,5 +20,7 @@ typedef struct {
   int       memerrno;
 } memory;
 
+extern u32 memsize;
+
 int  mem_free_finf(memory *mem, freeinfo *finf, void *p, u32 size);
 void mem_delete(int pos, freeinfo *finf);

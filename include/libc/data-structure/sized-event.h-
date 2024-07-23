@@ -4,20 +4,12 @@
 #include "../stdlib/alloc.h"
 
 #ifdef ALL_IMPLEMENTATION
-#  define EVENT_IMPLEMENTATION
+#  define SIZED_EVENT_IMPLEMENTATION
 #endif
 
-/**
- *\struct Node
- *\brief 队列节点结构
- */
-typedef struct event_node *event_node_t;
-struct event_node {
-  void        *data; /**< 节点数据 */
-  event_node_t next; /**< 下一个节点指针 */
-};
+#define SIZED_EVENT_IMPLEMENTATION
 
-#ifdef EVENT_IMPLEMENTATION
+#ifdef SIZED_EVENT_IMPLEMENTATION
 #  define extern static
 #endif
 
@@ -26,10 +18,11 @@ struct event_node {
  *\brief 队列结构
  */
 typedef struct event {
-  spin_t       spin;
-  event_node_t head; /**< 队列前端指针 */
-  event_node_t tail; /**< 队列后端指针 */
-  size_t       size; /**< 队列长度 */
+  spin_t spin;
+  void **buffer;
+  size_t head; /**< 队列前端指针 */
+  size_t tail; /**< 队列后端指针 */
+  size_t size; /**< 队列最大长度 */
 } *event_t;
 
 /**
@@ -78,11 +71,11 @@ extern size_t event_size(event_t event);
  */
 extern void event_print(event_t event);
 
-#ifdef EVENT_IMPLEMENTATION
+#ifdef SIZED_EVENT_IMPLEMENTATION
 #  undef extern
 #endif
 
-#ifdef EVENT_IMPLEMENTATION
+#ifdef SIZED_EVENT_IMPLEMENTATION
 
 static event_t event_alloc() {
   event_t event = malloc(sizeof(*event));
@@ -164,5 +157,5 @@ static void event_print(event_t event) {
   spin_unlock(event->spin);
 }
 
-#  undef EVENT_IMPLEMENTATION
+#  undef SIZED_EVENT_IMPLEMENTATION
 #endif

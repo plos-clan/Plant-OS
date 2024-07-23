@@ -1,7 +1,10 @@
 #pragma once
 #include "../stdio/print.h"
 #include "../stdlib/alloc.h"
-#define RBTREE_IMPLEMENTATION
+
+#ifdef ALL_IMPLEMENTATION
+#  define RBTREE_IMPLEMENTATION
+#endif
 
 #ifndef __RBTREE
 #  define __RBTREE

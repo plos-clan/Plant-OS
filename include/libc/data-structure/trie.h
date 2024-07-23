@@ -2,7 +2,10 @@
 #include "../stdio/print.h"
 #include "../stdlib/alloc.h"
 #include "../string/mem.h"
-#define TRIE_IMPLEMENTATION
+
+#ifdef ALL_IMPLEMENTATION
+#  define TRIE_IMPLEMENTATION
+#endif
 
 /**
  *\struct trie

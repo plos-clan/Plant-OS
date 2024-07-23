@@ -56,7 +56,7 @@ void DOSLDR_MAIN() {
   init_vfs();
   init_floppy();
   Register_fat_fileSys();
-  reg_pfs();
+  // reg_pfs();
   vdisk vd;
   vd.flag  = 1;
   vd.Read  = NULL;
@@ -107,7 +107,7 @@ void DOSLDR_MAIN() {
       ;
   }
   // printf("fp = %08x\n%d\n",fp, fp->size);
-  u8 *s = page_malloc(sz);
+  char *s = page_malloc(sz);
   logf("Will load in %08x size = %08x\n", s, sz);
   vfs_readfile(path, s);
   logf("Loading...\n");

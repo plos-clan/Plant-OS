@@ -10,10 +10,12 @@ enum fmtalign {
 };
 
 typedef struct fmtarg {
-  int  align; // 对齐方式
-  bool fill_zero;
-
   int n; // 当前已格式化的字符数
+
+  int  align; // 对齐方式
+  bool fill_zero : 1;
+
+  bool print_ptr : 1;
 
   // 背景颜色s
   bool setfg : 1, setbg : 1;
@@ -40,6 +42,7 @@ typedef struct fmtarg {
 finline void fmtarg_clear(fmtarg *arg) {
   arg->align     = align_left;
   arg->fill_zero = false;
+  arg->print_ptr = false;
   arg->setfg     = false;
   arg->setfg     = false;
   arg->decimal   = 0;
@@ -192,6 +195,25 @@ next_char:
     }
     goto end;
 
+  case 'p':
+    if (_size != 3) goto err;
+    arg->print_ptr = true;
+#ifdef __x86_64__
+    arg->text = u64tostrb16(__tostr_arg(u64));
+#else
+    arg->text = u32tostrb16(__tostr_arg(u32));
+#endif
+    goto end;
+  case 'P':
+    if (_size != 3) goto err;
+    arg->print_ptr = true;
+#ifdef __x86_64__
+    arg->text = u64tostrB16(__tostr_arg(u64));
+#else
+    arg->text = u32tostrB16(__tostr_arg(u32));
+#endif
+    goto end;
+
   case 'f':
   case 'F':
     switch (_size) {
@@ -243,6 +265,8 @@ static char *vsprintf_align(char *s, fmtarg *arg) {
   if (!arg->text) return s; // 无输出
   ssize_t arg_len = strlen(arg->text);
 
+  if (arg->print_ptr) arg_len += 2;
+
   if (arg->maxlen > 0 && arg_len > arg->maxlen) { // 放不下就进行截断 假如 maxlen 为 25
     if (arg->maxlen <= 3) {                       // This is a long long long long line.
       for (size_t i = 0; i < arg->maxlen; i++)    // This is a long long lo...
@@ -278,6 +302,10 @@ static char *vsprintf_align(char *s, fmtarg *arg) {
   }
   for (size_t i = 0; i < blank_left; i++)
     *s++ = arg->fill_zero ? '0' : ' ';
+  if (arg->print_ptr) {
+    *s++ = '0';
+    *s++ = 'x';
+  }
   while (*arg->text != '\0')
     *s++ = *arg->text++;
   for (size_t i = 0; i < blank_right; i++)
@@ -328,6 +356,7 @@ dlexport ssize_t sformat(char *_rest s, cstr _rest fmt, ...) {
   va_start(va, fmt);
   ssize_t rets = vsformat(s, fmt, va);
   va_end(va);
+  return rets;
 }
 
 int vsnprintf(char *_rest s, size_t maxlen, const char *_rest fmt, va_list va) {

@@ -10,6 +10,7 @@
 #define PTE_ADDRESS   (PDE_ADDRESS + 0x1000)
 #define PAGE_END      (PTE_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
+#define NULL_TID      11459810
 struct PAGE_INFO {
   u8 task_id;
   u8 count;
@@ -24,3 +25,6 @@ void *page_malloc_one_count_from_4gb();
 void *page_malloc(int size);
 void  page_free(void *p, int size);
 void  gc(unsigned tid);
+void  change_page_task_id(int task_id, void *p, u32 size);
+u32   pde_clone(u32 addr);
+void *page_malloc_one();

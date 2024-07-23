@@ -2,7 +2,10 @@
 #include "../spin.h"
 #include "../stdio/print.h"
 #include "../stdlib/alloc.h"
-#define QUEUE_MT_IMPLEMENTATION
+
+#ifdef ALL_IMPLEMENTATION
+#  define QUEUE_MT_IMPLEMENTATION
+#endif
 
 /**
  *\struct Node

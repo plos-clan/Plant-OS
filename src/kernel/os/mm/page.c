@@ -2,7 +2,7 @@
 #include <kernel.h>
 #include <libc.h>
 #include <type.h>
-extern u32 memsize;
+
 #define IDX(addr)  ((u32)addr >> 12)           // 获取 addr 的页索引
 #define DIDX(addr) (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
 #define TIDX(addr) (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
@@ -13,6 +13,9 @@ void              flush_tlb(u32 vaddr);
 u32               div_round_up(u32 num, u32 size);
 struct PAGE_INFO *pages = (struct PAGE_INFO *)PAGE_MANNAGER;
 
+unsigned div_round_up(unsigned num, unsigned size) {
+  return (num + size - 1) / size;
+}
 void init_pdepte(u32 pde_addr, u32 pte_addr, u32 page_end) {
   memset((void *)pde_addr, 0, page_end - pde_addr);
   // 这是初始化PDE 页目录
@@ -65,6 +68,7 @@ u32 pde_clone(u32 addr) {
 
   return result;
 }
+
 void pde_reset(u32 addr) {
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry  = (u32 *)(addr + i);
@@ -88,13 +92,13 @@ void free_pde(u32 addr) {
   flush_tlb(addr);
   page_free_one((void *)addr);
 }
+
 // 刷新虚拟地址 vaddr 的 块表 TLB
 void flush_tlb(u32 vaddr) {
   asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
 }
 
 void page_link_pde(u32 addr, u32 pde) {
-
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
   set_cr3(PDE_ADDRESS);
@@ -124,8 +128,8 @@ void page_link_pde(u32 addr, u32 pde) {
   current_task()->pde = pde_backup;
   set_cr3(pde_backup);
 }
-void page_link_pde_share(u32 addr, u32 pde) {
 
+void page_link_pde_share(u32 addr, u32 pde) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
   set_cr3(PDE_ADDRESS);
@@ -161,6 +165,7 @@ void page_link_pde_share(u32 addr, u32 pde) {
   current_task()->pde = pde_backup;
   set_cr3(pde_backup);
 }
+
 void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
@@ -196,6 +201,7 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   current_task()->pde = pde_backup;
   set_cr3(pde_backup);
 }
+
 void page_links_pde(u32 start, u32 numbers, u32 pde) {
   int i     = 0;
   int times = 0;
@@ -218,15 +224,19 @@ void page_links_pde(u32 start, u32 numbers, u32 pde) {
   }
   if (j) { page_free_one((void *)a[j - 1]); }
 }
+
 void page_links(u32 start, u32 numbers) {
   page_links_pde(start, numbers, current_task()->pde);
 }
+
 void page_link(u32 addr) {
   page_link_pde(addr, current_task()->pde);
 }
+
 void page_link_share(u32 addr) {
   page_link_pde_share(addr, current_task()->pde);
 }
+
 void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
   u32 pg = div_round_up(size, 0x1000);
   for (int i = 0; i < pg; i++) {
@@ -236,6 +246,7 @@ void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
     phy  += 0x1000;
   }
 }
+
 void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
   u32 pg = div_round_up(size, 0x1000);
   for (int i = 0; i < pg; i++) {
@@ -244,19 +255,23 @@ void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
     line += 0x1000;
   }
 }
+
 void page_unlink(u32 addr) {}
+
 void C_init_page() {
   init_pdepte(PDE_ADDRESS, PTE_ADDRESS, PAGE_END);
   init_page_manager(pages);
   page_set_alloced(pages, 0, 0xa01000);
   page_set_alloced(pages, 0xc0000000, 0xffffffff);
 }
+
 void pf_set(u32 memsize) {
   u32 *pte = (u32 *)PTE_ADDRESS;
   for (int i = 0; pte != (u32 *)PAGE_END; pte++, i++) {
     if (i >= memsize / 4096 && i <= 0xc0000000 / 4096) { *pte = 0; }
   }
 }
+
 int get_line_address(int t, int p, int o) {
   // 获取线性地址
   //  t:页目录地址
@@ -264,6 +279,7 @@ int get_line_address(int t, int p, int o) {
   //  o:页内偏移地址
   return (t << 22) + (p << 12) + o;
 }
+
 int get_page_from_line_address(int line_address) {
   int t, p, page;
   t = line_address >> 22;
@@ -271,13 +287,16 @@ int get_page_from_line_address(int line_address) {
   tpo2page(&page, t, p);
   return page;
 }
+
 void page2tpo(int page, int *t, int *p) {
   *t = page / 1024;
   *p = page % 1024;
 }
+
 void tpo2page(int *page, int t, int p) {
   *page = (t * 1024) + p;
 }
+
 void *page_malloc_one_no_mark() {
   int i;
   for (i = 0; i != 1024 * 1024; i++) {
@@ -292,6 +311,7 @@ void *page_malloc_one_no_mark() {
   }
   return NULL;
 }
+
 void *page_malloc_one() {
   int i;
   for (i = 0; i != 1024 * 1024; i++) {
@@ -307,6 +327,7 @@ void *page_malloc_one() {
 
   return NULL;
 }
+
 void *page_malloc_one_mark(u32 tid) {
   int i;
   for (i = 0; i != 1024 * 1024; i++) {
@@ -322,6 +343,7 @@ void *page_malloc_one_mark(u32 tid) {
 
   return NULL;
 }
+
 void *page_malloc_one_count_from_4gb() {
   int i = 0;
   for (i = IDX(memsize) - 1; i >= 0; i--) {
@@ -334,6 +356,7 @@ void *page_malloc_one_count_from_4gb() {
   }
   return NULL;
 }
+
 void gc(u32 tid) {
   int i;
   for (i = 0; i < 1024 * 1024; i++) {
@@ -343,11 +366,13 @@ void gc(u32 tid) {
     }
   }
 }
+
 int get_pageinpte_address(int t, int p) {
   int page;
   tpo2page(&page, t, p);
   return (PTE_ADDRESS + page * 4);
 }
+
 void page_free_one(void *p) {
   if (IDX(p) >= 1024 * 1024) // 超过最大页
     return;
@@ -359,6 +384,7 @@ void page_free_one(void *p) {
   pages[IDX(p)].task_id = 0;
   pages[IDX(p)].count   = 0;
 }
+
 u32 get_shell_tid(struct TASK *task) {
   // if (task->app == 0) {
   //   return get_tid(task);
@@ -368,6 +394,7 @@ u32 get_shell_tid(struct TASK *task) {
   // }
   return 0;
 }
+
 int find_kpage(int line, int n) {
   int free = 0;
   // 找一个连续的线性地址空间
@@ -388,6 +415,7 @@ int find_kpage(int line, int n) {
   }
   return line;
 }
+
 void *page_malloc(int size) {
   int n = ((size - 1) / (4 * 1024)) + 1;
   int i = find_kpage(0, n);
@@ -397,6 +425,7 @@ void *page_malloc(int size) {
   u32 addr = get_line_address(t, p, 0);
   return (void *)addr;
 }
+
 void page_free(void *p, int size) {
   int n = ((size - 1) / (4 * 1024)) + 1;
   p     = (void *)((u32)p & 0xfffff000);
@@ -405,16 +434,19 @@ void page_free(void *p, int size) {
     p += 0x1000;
   }
 }
+
 void *get_phy_address_for_line_address(void *line) {
   int t, p;
   page2tpo(get_page_from_line_address((int)line), &t, &p);
   return (void *)(*(int *)get_pageinpte_address(t, p));
 }
+
 void set_phy_address_for_line_address(void *line, void *phy) {
   int t, p;
   page2tpo(get_page_from_line_address((int)line), &t, &p);
   *(int *)get_pageinpte_address(t, p) = (int)phy;
 }
+
 // 映射地址
 void page_map(void *target, void *start, void *end) {
   target  = (void *)((int)target & 0xfffff000);
@@ -430,12 +462,14 @@ void page_map(void *target, void *start, void *end) {
     set_phy_address_for_line_address((void *)((u32)start + i * 4 * 1024), (void *)tmp);
   }
 }
+
 void change_page_task_id(int task_id, void *p, u32 size) {
   int page = get_page_from_line_address((int)p);
   for (int i = 0; i != ((size - 1) / (4 * 1024)) + 1; i++) {
     pages[page + i].task_id = task_id;
   }
 }
+
 void showPage() {
   // u32 *pte = (u32 *)PTE_ADDRESS;
   // printk("size = %d", sizeof(struct PTE_page_table));
@@ -448,17 +482,20 @@ void showPage() {
   //*pte &= 0xffffffff-1;
   //}
 }
+
 u32 get_cr2() {
   u32 r;
   asm volatile("mov %%cr2,%0" : "=r"(r));
   return r;
 }
+
 u32 page_get_attr_pde(u32 vaddr, u32 pde) {
   pde       += (u32)(DIDX(vaddr) * 4);
   void *pte  = (void *)(*(u32 *)pde & 0xfffff000);
   pte       += (u32)(TIDX(vaddr) * 4);
   return (*(u32 *)pte) & 0x00000fff;
 }
+
 u32 page_get_attr(u32 vaddr) {
   return page_get_attr_pde(vaddr, current_task()->pde);
 }
@@ -469,9 +506,11 @@ u32 page_get_phy_pde(u32 vaddr, u32 pde) {
   pte       += (u32)(TIDX(vaddr) * 4);
   return (*(u32 *)pte) & 0xfffff000;
 }
+
 u32 page_get_phy(u32 vaddr) {
   return page_get_phy_pde(vaddr, current_task()->pde);
 }
+
 void copy_on_write(u32 vaddr) {
   void *pd      = (void *)current_task()->pde;                // PDE页目录地址
   void *pde     = (void *)((u32)pd + (u32)(DIDX(vaddr) * 4)); // PTE地址
@@ -535,6 +574,7 @@ void copy_on_write(u32 vaddr) {
   }
   flush_tlb((u32)vaddr);
 }
+
 // 设置页属性和物理地址
 void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
   u32 pde_backup      = current_task()->pde;
@@ -564,6 +604,7 @@ void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
   current_task()->pde = pde_backup;
   set_cr3(pde_backup);
 }
+
 void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 pde_backup) {
   u32 t, p;
   t        = DIDX(vaddr);
@@ -589,7 +630,9 @@ void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 pde_backup)
   flush_tlb((u32)pte);
   flush_tlb(vaddr);
 }
+
 extern struct TSS32 tss;
+
 void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, u32 gs, u32 fs,
         u32 es, u32 ds, u32 error, u32 eip, u32 cs, u32 eflags) {
   u32 pde = current_task()->pde;

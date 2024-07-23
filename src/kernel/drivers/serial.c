@@ -17,7 +17,7 @@ int init_serial() {
   return 0;                 // (非环回，启用IRQ，启用OUT#1和OUT#2位)
 }
 
-bool serial_received() {
+static bool serial_received() {
   return asm_in8(PORT + 5) & 1;
 }
 
@@ -26,7 +26,7 @@ char read_serial() {
   return asm_in8(PORT);
 }
 
-bool is_transmit_empty() {
+static bool is_transmit_empty() {
   return asm_in8(PORT + 5) & 0x20;
 }
 

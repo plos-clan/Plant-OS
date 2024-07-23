@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "kernel/8295a.h"
 #include "kernel/cpu.h"
 #include "kernel/fat.h"
 #include "kernel/include-libc.h"
@@ -11,10 +12,13 @@ extern "C" {
 #include "kernel/lock.h"
 #include "kernel/log.h"
 #include "kernel/mem.h"
+#include "kernel/mouse_n_kbd.h"
 #include "kernel/mtask.h"
 #include "kernel/os.h"
 #include "kernel/page.h"
 #include "kernel/screen.h"
+#include "kernel/timer.h"
+#include "kernel/todo_fifo8.h"
 #include "kernel/tty.h"
 #include "kernel/vfs.h"
 #ifdef __cplusplus

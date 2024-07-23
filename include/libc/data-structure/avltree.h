@@ -1,7 +1,10 @@
 #pragma once
 #include "../stdio/print.h"
 #include "../stdlib/alloc.h"
-#define AVL_IMPLEMENTATION
+
+#ifdef ALL_IMPLEMENTATION
+#  define AVL_IMPLEMENTATION
+#endif
 
 typedef struct avltree *avltree_t;
 struct avltree {
@@ -99,21 +102,21 @@ extern avltree_t avltree_delete(avltree_t root, int32_t key) __THROW __wur;
  *\param[in] root 树的根节点
  *\param[in] depth 递归深度（用于缩进打印）
  */
-extern void avltree_print_inorder(avltree_t root, int depth) __THROW __wur;
+extern void avltree_print_inorder(avltree_t root, int depth) __THROW;
 
 /**
  *\brief 按照前序遍历顺序打印AVL树节点
  *\param[in] root 树的根节点
  *\param[in] depth 递归深度（用于缩进打印）
  */
-extern void avltree_print_preorder(avltree_t root, int depth) __THROW __wur;
+extern void avltree_print_preorder(avltree_t root, int depth) __THROW;
 
 /**
  *\brief 按照后序遍历顺序打印AVL树节点
  *\param[in] root 树的根节点
  *\param[in] depth 递归深度（用于缩进打印）
  */
-extern void avltree_print_postorder(avltree_t root, int depth) __THROW __wur;
+extern void avltree_print_postorder(avltree_t root, int depth) __THROW;
 
 #ifdef AVL_IMPLEMENTATION
 #  undef extern
