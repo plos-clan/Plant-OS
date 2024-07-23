@@ -98,8 +98,6 @@ typedef __UINTPTR_TYPE__ uintptr_t;
 typedef __INTPTR_TYPE__  ssize_t;
 typedef __UINTPTR_TYPE__ size_t;
 typedef __INTPTR_TYPE__  ptrdiff_t;
-typedef ssize_t          isize;
-typedef size_t           usize;
 
 _CONST_(intptr_t);
 _CONST_(uintptr_t);
