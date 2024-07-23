@@ -1,4 +1,3 @@
-#include "kernel/log.h"
 #include <kernel.h>
 
 void idle() {

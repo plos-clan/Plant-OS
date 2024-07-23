@@ -20,28 +20,28 @@ void lock_init(lock_t *l) {
   l->waiter = NULL;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wall"
-
 bool interrupt_disable() {
-  asm volatile("pushfl\n"        // 将当前 eflags 压入栈中
-               "cli\n"           // 清除 IF 位，此时外中断已被屏蔽
-               "popl %eax\n"     // 将刚才压入的 eflags 弹出到 eax
-               "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
-               "andl $1, %eax\n" // 只需要 IF 位
-  );
+  size_t flags;
+  asm volatile("pushfl\n"
+               "cli\n"
+               "popl %%eax\n"
+               : "=a"(flags)
+               :
+               :);
+  return (flags >> 9) & 1;
 }
 
 // 获得 IF 位
 bool get_interrupt_state() {
-  asm volatile("pushfl\n"        // 将当前 eflags 压入栈中
-               "popl %eax\n"     // 将压入的 eflags 弹出到 eax
-               "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
-               "andl $1, %eax\n" // 只需要 IF 位
-  );
+  size_t flags;
+  asm volatile("pushfl\n\t"
+               "popl %%eax\n\t"
+               : "=a"(flags)
+               :
+               :);
+  // 将 eax 右移 9 位，得到 IF 位
+  return (flags >> 9) & 1;
 }
-
-#pragma clang diagnostic pop
 
 // 设置 IF 位
 void set_interrupt_state(bool state) {

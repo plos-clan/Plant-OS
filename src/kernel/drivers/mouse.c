@@ -2,28 +2,28 @@
 
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE     0xf4
+
 typedef u8 byte;
-mtask     *mouse_use_task = NULL;
-void       mouse_wait(byte a_type) // u8
-{
-  u32 _time_out = 100000; // u32
+
+mtask *mouse_use_task = NULL;
+
+void mouse_wait(byte a_type) {
+  u32 _time_out = 100000;
   if (a_type == 0) {
-    while (_time_out--) // Data
-    {
-      if ((asm_in8(0x64) & 1) == 1) { return; }
+    while (_time_out--) { // Data
+      if ((asm_in8(0x64) & 1) == 1) return;
     }
     return;
   } else {
     while (_time_out--) // Signal
     {
-      if ((asm_in8(0x64) & 2) == 0) { return; }
+      if ((asm_in8(0x64) & 2) == 0) return;
     }
     return;
   }
 }
 
-void mouse_write(byte a_write) // u8
-{
+void mouse_write(byte a_write) {
   // Wait to be able to send a command
   mouse_wait(1);
   // Tell the mouse we are sending a command
@@ -59,20 +59,19 @@ void enable_mouse(struct MOUSE_DEC *mdec) {
   mouse_write(80);
   mouse_write(0xf2);
   logk("mouseId=%d\n", mouse_read());
-  return; /* 顺利的话，键盘控制器会返回ACK(0xfa) */
+  /* 顺利的话，键盘控制器会返回ACK(0xfa) */
 }
 
 void mouse_sleep(struct MOUSE_DEC *mdec) {
   mouse_use_task = NULL;
   mdec->sleep    = 1;
-  return;
 }
 
 void mouse_ready(struct MOUSE_DEC *mdec) {
   mouse_use_task = current_task();
   mdec->sleep    = 0;
-  return;
 }
+
 int mouse_decode(struct MOUSE_DEC *mdec, u8 dat) {
   if (mdec->phase == 1) {
     if (dat == 0xfa) { // ACK
@@ -110,11 +109,13 @@ int mouse_decode(struct MOUSE_DEC *mdec, u8 dat) {
   }
   return -1;
 }
+
 // int a = 1;
 unsigned m_cr3 = 0;
 unsigned m_eip = 0;
 unsigned times = 0;
-void     inthandler2c(int *esp) {
+
+void inthandler2c(int *esp) {
   // logk("2c\n");
   u8 data;
   asm_out8(PIC1_OCW2, 0x64);
@@ -145,5 +146,4 @@ void     inthandler2c(int *esp) {
       fifo8_put(task_get_mouse_fifo(mouse_use_task), data);
     }
   }
-  return;
 }

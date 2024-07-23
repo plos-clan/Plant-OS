@@ -17,6 +17,7 @@ void init_pic(void) {
   asm_out8(PIC1_IMR, 0xff); /* 禁止所有中断 */
   return;
 }
+
 void send_eoi(int irq) {
   if (irq >= 8) {
     asm_out8(PIC1_OCW2, 0x60 | (irq - 8));
@@ -25,6 +26,7 @@ void send_eoi(int irq) {
     asm_out8(PIC0_OCW2, 0x60 | irq);
   }
 }
+
 void irq_mask_clear(u8 irq) {
   u16 port;
   u8  value;
@@ -38,6 +40,7 @@ void irq_mask_clear(u8 irq) {
   value = asm_in8(port) & ~(1 << irq);
   asm_out8(port, value);
 }
+
 void irq_mask_set(u8 irq) {
   u16 port;
   u8  value;
