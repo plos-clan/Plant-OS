@@ -5,11 +5,11 @@
 #define MAX_TIMER 500
 
 struct TIMER {
-  struct TIMER *next;
-  u32           timeout, flags;
-  struct FIFO8 *fifo;
-  u8            data;
-  mtask        *waiter;
+  struct TIMER    *next;
+  u32              timeout, flags;
+  circular_queue_t queue;
+  u8               data;
+  mtask           *waiter;
 };
 struct TIMERCTL {
   u32           count, next;

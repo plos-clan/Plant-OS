@@ -179,6 +179,7 @@ static void *trie_longest_match(trie_t root, const char *text) {
   return match;
 }
 
+#  ifdef __libplos__
 static void _trie_print(char *buf, int p, trie_t root) {
   if (root->value != null) printf("%s\t%p\n", buf, root->value);
 
@@ -201,5 +202,6 @@ static void trie_print(trie_t root) {
   char buf[256] = {};
   _trie_print(buf, 0, root);
 }
+#  endif
 
 #endif

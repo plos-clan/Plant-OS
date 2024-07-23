@@ -191,15 +191,9 @@ static list_t list_delete_node(list_t list, list_t node) {
     return list;
   }
 
-  for (list_t current = list->next; current; current = current->next) {
-    if (current == node) {
-      current->prev->next = current->next;
-      if (current->next != null) current->next->prev = current->prev;
-      free(current);
-      break;
-    }
-  }
-
+  node->prev->next = node->next;
+  if (node->next != null) node->next->prev = node->prev;
+  free(node);
   return list;
 }
 
@@ -213,6 +207,7 @@ static size_t list_length(list_t list) {
   return count;
 }
 
+#  ifdef __libplos__
 static void list_print(list_t list) {
   list_t current = list;
   while (current != null) {
@@ -221,6 +216,7 @@ static void list_print(list_t list) {
   }
   printf("null\n");
 }
+#  endif
 
 #  undef LIST_IMPLEMENTATION
 #endif

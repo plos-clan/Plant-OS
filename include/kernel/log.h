@@ -5,6 +5,7 @@ dlimport void logk_raw(cstr s);
 
 dlimport int logk(cstr _rest fmt, ...);
 
+#undef __LOG
 #define __LOG(type, fmt, ...)                                                                      \
   logk(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n", ARG_LOGINFO, ##__VA_ARGS__)
 

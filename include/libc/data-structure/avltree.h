@@ -304,6 +304,7 @@ static avltree_t avltree_delete(avltree_t root, int32_t key) {
   return avltree_balance(root);
 }
 
+#  ifdef __libplos__
 static void avltree_print_inorder(avltree_t root, int depth) {
   if (depth == 0) printf("In-order traversal of the AVL Tree: \n");
   if (root == NULL) return;
@@ -333,6 +334,7 @@ static void avltree_print_postorder(avltree_t root, int depth) {
     printf("| ");
   printf("%d %p\n", root->key, root->value);
 }
+#  endif
 
 #  undef AVL_IMPLEMENTATION
 #endif

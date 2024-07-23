@@ -28,7 +28,6 @@ void init_pit() {
   t->next     = 0;            /* 末尾 */
   timerctl.t0 = t;            /* 因为现在只有哨兵，所以他就在最前面*/
   timerctl.next = 0xffffffff; /* 因为只有哨兵，所以下一个超时时刻就是哨兵的时刻 */
-  return;
 }
 
 struct TIMER *timer_alloc() {
@@ -49,10 +48,9 @@ void timer_free(struct TIMER *timer) {
   return;
 }
 
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, u8 data) {
-  timer->fifo = fifo;
-  timer->data = data;
-  return;
+void timer_init(struct TIMER *timer, circular_queue_t queue, u8 data) {
+  timer->queue = queue;
+  timer->data  = data;
 }
 
 void timer_settime(struct TIMER *timer, u32 timeout) {
@@ -131,7 +129,7 @@ void       inthandler20(int cs, int *esp) {
     /* 超时 */
     timer->flags = TIMER_FLAGS_ALLOC;
     task_run(timer->waiter);
-    fifo8_put(timer->fifo, timer->data);
+    circular_queue_put(timer->queue, timer->data);
     timer = timer->next; /* 将下一个定时器的地址赋给timer*/
   }
   timerctl.t0   = timer;

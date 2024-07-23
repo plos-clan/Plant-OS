@@ -1,10 +1,9 @@
 #pragma once
-
 #include <type.h>
+
 // 	MOV EDX, [ESP + 4]            ; port
 // 	MOV EAX, 0
 // 	IN AL, DX
-// 	RET
 #define asm_in8(port)                                                                              \
   ({                                                                                               \
     ssize_t          data;                                                                         \
@@ -17,7 +16,6 @@
 // 	MOV EDX, [ESP + 4]            ; port
 // 	MOV EAX, 0
 // 	IN AX, DX
-// 	RET
 #define asm_in16(port)                                                                             \
   ({                                                                                               \
     ssize_t          data;                                                                         \
@@ -29,7 +27,6 @@
 
 // 	MOV EDX, [ESP + 4]            ; port
 // 	IN EAX, DX
-// 	RET
 #define asm_in32(port)                                                                             \
   ({                                                                                               \
     ssize_t          data;                                                                         \
@@ -42,7 +39,6 @@
 // 	MOV EDX, [ESP + 4]            ; port
 // 	MOV AL, [ESP + 8]             ; data
 // 	OUT DX, AL
-// 	RET
 #define asm_out8(port, data)                                                                       \
   ({                                                                                               \
     ssize_t          __arg1         = (ssize_t)(data);                                             \
@@ -56,7 +52,6 @@
 // 	MOV EDX, [ESP + 4]            ; port
 // 	MOV EAX, [ESP + 8]            ; data
 // 	OUT DX, AX
-// 	RET
 #define asm_out16(port, data)                                                                      \
   ({                                                                                               \
     ssize_t          __arg1         = (ssize_t)(data);                                             \
@@ -70,7 +65,6 @@
 // 	MOV EDX, [ESP + 4]            ; port
 // 	MOV EAX, [ESP + 8]            ; data
 // 	OUT DX, EAX
-// 	RET
 #define asm_out32(port, data)                                                                      \
   ({                                                                                               \
     ssize_t          __arg1         = (ssize_t)(data);                                             \

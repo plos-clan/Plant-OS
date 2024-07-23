@@ -198,6 +198,7 @@ static size_t slist_length(slist_t slist) {
   return count;
 }
 
+#  ifdef __libplos__
 static void slist_print(slist_t slist) {
   slist_t current = slist;
   while (current != null) {
@@ -206,6 +207,7 @@ static void slist_print(slist_t slist) {
   }
   printf("null\n");
 }
+#  endif
 
 #  undef SLIST_IMPLEMENTATION
 #endif

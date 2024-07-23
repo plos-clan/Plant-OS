@@ -126,7 +126,7 @@ void inthandler2c(int *esp) {
     times = 0;
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
       //   logk("put %08x\n",task_get_mouse_fifo(mouse_use_task));
-      fifo8_put(task_get_mouse_fifo(mouse_use_task), data);
+      circular_queue_put(task_get_mouse_fifo(mouse_use_task), data);
 
       if (current_task() != mouse_use_task) {
         //   logk("SET 1\n");
@@ -143,7 +143,7 @@ void inthandler2c(int *esp) {
   } else {
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
       //   logk("put %08x\n",task_get_mouse_fifo(mouse_use_task));
-      fifo8_put(task_get_mouse_fifo(mouse_use_task), data);
+      circular_queue_put(task_get_mouse_fifo(mouse_use_task), data);
     }
   }
 }

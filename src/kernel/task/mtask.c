@@ -342,11 +342,11 @@ void into_mtask() {
   set_cr0(get_cr0() | CR0_EM | CR0_TS | CR0_NE);
   task_start(&(m[0]));
 }
-void task_set_fifo(mtask *task, struct FIFO8 *kfifo, struct FIFO8 *mfifo) {
+void task_set_fifo(mtask *task, circular_queue_t kfifo, circular_queue_t mfifo) {
   task->keyfifo   = kfifo;
   task->mousefifo = mfifo;
 }
-struct FIFO8 *task_get_key_fifo(mtask *task) {
+circular_queue_t task_get_key_queue(mtask *task) {
   return task->keyfifo;
 }
 void task_sleep(mtask *task) {
@@ -366,7 +366,7 @@ void task_run(mtask *task) {
 void task_fifo_sleep(mtask *task) {
   task->fifosleep = 1;
 }
-struct FIFO8 *task_get_mouse_fifo(mtask *task) {
+circular_queue_t task_get_mouse_fifo(mtask *task) {
   return task->mousefifo;
 }
 void task_lock() {
@@ -573,26 +573,26 @@ int task_fork() {
   m->esp          = (stack_frame *)stack;
   m->nfs          = NULL;
   if (current_task()->Pkeyfifo) {
-    m->Pkeyfifo = malloc(sizeof(struct FIFO8));
-    memcpy(m->Pkeyfifo, current_task()->Pkeyfifo, sizeof(struct FIFO8));
+    m->Pkeyfifo = malloc(sizeof(struct event));
+    memcpy(m->Pkeyfifo, current_task()->Pkeyfifo, sizeof(struct event));
     m->Pkeyfifo->buf = page_malloc(4096);
     memcpy(m->Pkeyfifo->buf, current_task()->Pkeyfifo->buf, 4096);
   }
   if (current_task()->Ukeyfifo) {
-    m->Ukeyfifo = malloc(sizeof(struct FIFO8));
-    memcpy(m->Ukeyfifo, current_task()->Ukeyfifo, sizeof(struct FIFO8));
+    m->Ukeyfifo = malloc(sizeof(struct event));
+    memcpy(m->Ukeyfifo, current_task()->Ukeyfifo, sizeof(struct event));
     m->Ukeyfifo->buf = page_malloc(4096);
     memcpy(m->Ukeyfifo->buf, current_task()->Ukeyfifo->buf, 4096);
   }
   if (current_task()->keyfifo) {
     m->keyfifo = page_malloc_one();
-    memcpy(m->keyfifo, current_task()->keyfifo, sizeof(struct FIFO8));
+    memcpy(m->keyfifo, current_task()->keyfifo, sizeof(struct event));
     m->keyfifo->buf = page_malloc_one();
     memcpy(m->keyfifo->buf, current_task()->keyfifo->buf, 4096);
   }
   if (current_task()->mousefifo) {
     m->mousefifo = page_malloc_one();
-    memcpy(m->mousefifo, current_task()->mousefifo, sizeof(struct FIFO8));
+    memcpy(m->mousefifo, current_task()->mousefifo, sizeof(struct event));
     m->mousefifo->buf = page_malloc_one();
     memcpy(m->mousefifo->buf, current_task()->mousefifo->buf, 4096);
   }
