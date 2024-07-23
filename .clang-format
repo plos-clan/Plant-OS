@@ -1,6 +1,4 @@
 ---
-IndentWidth: 2
-
 # 基于 LLVM 样式
 #
 #
@@ -333,6 +331,9 @@ IndentExternBlock: AfterExternBlock
 #^
 ##
 IndentRequires: false
+#^
+##
+IndentWidth: 2
 #^
 ##
 IndentWrappedFunctionNames: false

@@ -1,4 +1,5 @@
 #include <kernel.h>
+
 void INT(u8 intnum, regs16_t *regs) {
   extern u8                 *IVT;
   struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;

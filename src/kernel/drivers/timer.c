@@ -12,9 +12,9 @@ extern int          cg_flag0;
 extern struct TASK *c_task;
 
 void init_pit() {
-  io_out8(0x43, 0x34);
-  io_out8(0x40, 0x9c);
-  io_out8(0x40, 0x2e);
+  asm_out8(0x43, 0x34);
+  asm_out8(0x40, 0x9c);
+  asm_out8(0x40, 0x2e);
 
   int           i;
   struct TIMER *t;
@@ -106,7 +106,7 @@ static u32 count       = 0;
 uint64_t   global_time = 0;
 void       inthandler20(int cs, int *esp) {
   // printk("CS:EIP=%04x:%08x\n",current_task()->tss.cs,esp[-10]);
-  io_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
+  asm_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
   extern mtask *current;
   if (global_time + 1 == 0) {
     logk("reset\n");
