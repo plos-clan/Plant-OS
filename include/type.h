@@ -98,16 +98,14 @@ typedef __UINTPTR_TYPE__ uintptr_t;
 typedef __INTPTR_TYPE__  ssize_t;
 typedef __UINTPTR_TYPE__ size_t;
 typedef __INTPTR_TYPE__  ptrdiff_t;
+typedef ssize_t          isize;
 typedef size_t           usize;
-typedef ssize_t          ssize;
 
 _CONST_(intptr_t);
 _CONST_(uintptr_t);
 _CONST_(ssize_t);
 _CONST_(size_t);
 _CONST_(ptrdiff_t);
-_CONST_(usize);
-_CONST_(ssize);
 
 // 在大多数环境下 schar 就是 char
 typedef signed char        schar;
@@ -560,14 +558,14 @@ typedef _Atomic unsigned long      atomic_ulong;
 typedef _Atomic long long          atomic_llong;
 typedef _Atomic unsigned long long atomic_ullong;
 
-typedef _Atomic int8_t    atomic_int8_t;
-typedef _Atomic uint8_t   atomic_uint8_t;
-typedef _Atomic int16_t   atomic_int16_t;
-typedef _Atomic uint16_t  atomic_uint16_t;
-typedef _Atomic int32_t   atomic_int32_t;
-typedef _Atomic uint32_t  atomic_uint32_t;
-typedef _Atomic int64_t   atomic_int64_t;
-typedef _Atomic uint64_t  atomic_uint64_t;
+typedef _Atomic int8_t   atomic_int8_t;
+typedef _Atomic uint8_t  atomic_uint8_t;
+typedef _Atomic int16_t  atomic_int16_t;
+typedef _Atomic uint16_t atomic_uint16_t;
+typedef _Atomic int32_t  atomic_int32_t;
+typedef _Atomic uint32_t atomic_uint32_t;
+typedef _Atomic int64_t  atomic_int64_t;
+typedef _Atomic uint64_t atomic_uint64_t;
 #  if defined(__x86_64__)
 typedef _Atomic int128_t  atomic_int128_t;
 typedef _Atomic uint128_t atomic_uint128_t;

@@ -28,14 +28,14 @@ if args.cc == 'clang':
 -nostdinc -nostdlib \
 -ffreestanding -fno-stack-protector -Qn \
 -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer \
--Oz \
+-Og \
 -finput-charset=UTF-8 -fexec-charset=UTF-8 -mno-mmx -mno-sse"
 elif args.cc == 'gcc':
         cc = f"gcc -m32 -I{os.path.realpath('include')} -c \
 -nostdinc -nolibc -nostdlib \
 -ffreestanding -fno-stack-protector -Qn \
 -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer \
--O0 \
+-Ofast \
 -finput-charset=UTF-8 -fexec-charset=UTF-8 -mno-mmx -mno-sse"
 else:
         cc = args.cc
@@ -152,7 +152,8 @@ def build_lsp_hints():
                 if os.path.exists('include/' + subprojectname):
                         content.append({
                                 "directory": os.path.realpath('build'),
-                                "command": f"{cc} -o {filebasename}.o {realpathfilename} -I{os.path.realpath('include/' + subprojectname)}",
+                                "command": f"\
+{cc} -o {filebasename}.o {realpathfilename} -I{os.path.realpath('include/' + subprojectname)}",
                                 "file": realpathfilename,
                                 "output": filebasename + ".o"
                         })
@@ -167,7 +168,10 @@ def build_lsp_hints():
                 file.write(json.dumps(content, indent=8))
 
 def run():
-        os.system(f"{args.qemu} -net nic,model=pcnet -net user -serial stdio -device sb16 -device floppy -fda build/PlantOS.img -boot a -m 256")
+        os.system(f"\
+{args.qemu} \
+-net nic,model=pcnet -net user \
+-serial stdio -device sb16 -device floppy -fda build/PlantOS.img -boot a -m 256")
 
 if args.branch_arg == 'build':
         build()

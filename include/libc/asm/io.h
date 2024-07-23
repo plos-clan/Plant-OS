@@ -1,5 +1,9 @@
 #pragma once
 
+// 	MOV EDX, [ESP + 4]            ; port
+// 	MOV EAX, 0
+// 	IN AL, DX
+// 	RET
 #define asm_in8(port)                                                                              \
   ({                                                                                               \
     __INTPTR_TYPE__          data;                                                                 \
@@ -9,6 +13,10 @@
     data;                                                                                          \
   })
 
+// 	MOV EDX, [ESP + 4]            ; port
+// 	MOV EAX, 0
+// 	IN AX, DX
+// 	RET
 #define asm_in16(port)                                                                             \
   ({                                                                                               \
     __INTPTR_TYPE__          data;                                                                 \
@@ -18,6 +26,9 @@
     data;                                                                                          \
   })
 
+// 	MOV EDX, [ESP + 4]            ; port
+// 	IN EAX, DX
+// 	RET
 #define asm_in32(port)                                                                             \
   ({                                                                                               \
     __INTPTR_TYPE__          data;                                                                 \
@@ -27,6 +38,10 @@
     data;                                                                                          \
   })
 
+// 	MOV EDX, [ESP + 4]            ; port
+// 	MOV AL, [ESP + 8]             ; data
+// 	OUT DX, AL
+// 	RET
 #define asm_out8(port, data)                                                                       \
   ({                                                                                               \
     __INTPTR_TYPE__          __arg1         = (__INTPTR_TYPE__)(data);                             \
@@ -37,6 +52,10 @@
     (void)0;                                                                                       \
   })
 
+// 	MOV EDX, [ESP + 4]            ; port
+// 	MOV EAX, [ESP + 8]            ; data
+// 	OUT DX, AX
+// 	RET
 #define asm_out16(port, data)                                                                      \
   ({                                                                                               \
     __INTPTR_TYPE__          __arg1         = (__INTPTR_TYPE__)(data);                             \
@@ -47,6 +66,10 @@
     (void)0;                                                                                       \
   })
 
+// 	MOV EDX, [ESP + 4]            ; port
+// 	MOV EAX, [ESP + 8]            ; data
+// 	OUT DX, EAX
+// 	RET
 #define asm_out32(port, data)                                                                      \
   ({                                                                                               \
     __INTPTR_TYPE__          __arg1         = (__INTPTR_TYPE__)(data);                             \
@@ -56,38 +79,3 @@
     asm volatile("outl %%eax, %%dx\n\t" : : "r"(_a1), "r"(_a2) : "memory");                        \
     (void)0;                                                                                       \
   })
-
-// asm_in8:                       ; int asm_in8(int port);
-// 	MOV EDX, [ESP + 4]           ; port
-// 	MOV EAX, 0
-// 	IN AL, DX
-// 	RET
-//
-// asm_in16:                      ; int asm_in16(int port);
-// 	MOV EDX, [ESP + 4]           ; port
-// 	MOV EAX, 0
-// 	IN AX, DX
-// 	RET
-//
-// asm_in32:                      ; int asm_in32(int port);
-// 	MOV EDX, [ESP + 4]           ; port
-// 	IN EAX, DX
-// 	RET
-//
-// asm_out8:                      ; void asm_out8(int port, int data);
-// 	MOV EDX, [ESP + 4]           ; port
-// 	MOV AL, [ESP + 8]            ; data
-// 	OUT DX, AL
-// 	RET
-//
-// asm_out16:                     ; void asm_out16(int port, int data);
-// 	MOV EDX, [ESP + 4]           ; port
-// 	MOV EAX, [ESP + 8]           ; data
-// 	OUT DX, AX
-// 	RET
-//
-// asm_out32:                     ; void asm_out32(int port, int data);
-// 	MOV EDX, [ESP + 4]           ; port
-// 	MOV EAX, [ESP + 8]           ; data
-// 	OUT DX, EAX
-// 	RET
