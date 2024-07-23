@@ -1,6 +1,5 @@
 ---
 IndentWidth: 2
-# 请保持上面那行在第二行，因为 tools/change_indent.py 要用
 
 # 基于 LLVM 样式
 #

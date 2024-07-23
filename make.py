@@ -171,16 +171,6 @@ def build_lsp_hints():
 def run():
         os.system(f"{args.qemu} -net nic,model=pcnet -net user -serial stdio -device sb16 -device floppy -fda build/PlantOS.img -boot a -m 256")
 
-def precommit():
-        import tools.change_indent
-        change_indent.change_to(2)
-        for filename in scan_files('src'):
-                filebasename, fileext = os.path.splitext(filename)
-                if fileext != '.c' and fileext != '.cpp':
-                        continue
-                else:
-                        os.system(f'clang-format -i {filename}')
-
 if args.branch_arg == 'build':
         build()
 elif args.branch_arg == 'build-doc':
@@ -198,8 +188,6 @@ elif args.branch_arg == 'build-lsp-hints':
 elif args.branch_arg == 'run':
         build()
         run()
-elif args.branch_arg == 'precommit':
-        precommit()
 else:
         print('Wrong parameter!\n')
         parser.print_help()
