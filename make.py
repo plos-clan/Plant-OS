@@ -245,6 +245,9 @@ elif args.branch_arg == 'run':
         run()
 elif args.branch_arg == 'test':
         test()
+elif args.branch_arg == 'fc':
+        clean()
+        init()
 else:
         print('Wrong parameter!\n')
         parser.print_help()
