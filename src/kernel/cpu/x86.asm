@@ -1,6 +1,6 @@
 [BITS 32]
 section .data
-		GLOBAL	io_load_eflags, io_store_eflags
+		GLOBAL	asm_get_flags, asm_set_flags
 		GLOBAL	load_gdtr, load_idtr
 		GLOBAL move_cursor_by_idx
 		GLOBAL	load_cr0, store_cr0,memtest_sub,farjmp,farcall,start_app
@@ -85,17 +85,6 @@ mts_nomore:
 		POP		EBX
 		POP		ESI
 		POP		EDI
-		RET
-
-io_load_eflags:	; int io_load_eflags(void);
-		PUSHFD		; PUSH EFLAGS 
-		POP		EAX
-		RET
-
-io_store_eflags:	; void io_store_eflags(int eflags);
-		MOV		EAX,[ESP+4]
-		PUSH	EAX
-		POPFD		; POP EFLAGS 
 		RET
 
 load_gdtr:		; void load_gdtr(int limit, int addr);

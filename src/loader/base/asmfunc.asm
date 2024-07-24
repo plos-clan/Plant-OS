@@ -2,7 +2,7 @@
 ; GLOBAL asm_hlt, asm_cli, asm_sti, asm_stihlt
 ; GLOBAL asm_in8, asm_in16, asm_in32
 ; GLOBAL asm_out8, asm_out16, asm_out32
-GLOBAL io_load_eflags, io_store_eflags
+GLOBAL asm_get_flags, asm_set_flags
 GLOBAL load_gdtr, load_idtr, loader_main
 EXTERN DOSLDR_MAIN                                              ; 在 loader.c 那里定义
 EXTERN flint                                                    ; 在 fdc.c 中定义
@@ -11,21 +11,6 @@ GLOBAL move_cursor_by_idx
 GLOBAL floppy_int
 [SECTION .text]
 %define ADR_BOTPAK 0x100000
-
-;; definition of
-;;      int io_load_eflags(void);
-io_load_eflags:
-	PUSHFD                  ; PUSH EFLAGS
-	POP    EAX
-	RET
-
-;; definition of
-;;      void io_store_eflags(int eflags);
-io_store_eflags:
-	MOV   EAX, [ESP + 4]
-	PUSH  EAX
-	POPFD                   ; POP EFLAGS
-	RET
 
 ;; definition of
 ;;       void load_gdtr(int limit, int addr);

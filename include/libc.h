@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 #include "libc/asm/asm.h"
+#include "libc/asm/flag.h"
 #include "libc/asm/io.h"
+#include "libc/asm/syscall-linux-x64.h"
 #include "libc/color.h"
 #include "libc/crypto/hash.h"
 #include "libc/data-structure/avltree.h"
@@ -33,7 +35,6 @@ extern "C" {
 #include "libc/stdlib/xtoa.h"
 #include "libc/string/mem.h"
 #include "libc/string/str.h"
-#include "libc/syscall/linux-x64.h"
 #include "libc/thread/spin.h"
 #ifdef __cplusplus
 }

@@ -86,11 +86,12 @@ void fpu_enable(mtask *task) {
   set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
   if (!task->fpu_flag) {
     asm volatile("fnclex \n"
-                 "fninit \n");
+                 "fninit \n" ::
+                     : "memory");
     memset(&task->fpu, 0, sizeof(fpu_t));
     logk("FPU create state for task 0x%08x\n", task);
   } else {
-    asm volatile("frstor (%%eax) \n" ::"a"(&(task->fpu)));
+    asm volatile("frstor (%%eax) \n" ::"a"(&(task->fpu)) : "memory");
   }
   task->fpu_flag = 1;
 }

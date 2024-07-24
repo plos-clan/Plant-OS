@@ -485,7 +485,7 @@ void showPage() {
 
 u32 get_cr2() {
   u32 r;
-  asm volatile("mov %%cr2,%0" : "=r"(r));
+  asm volatile("mov %%cr2,%0" : "=r"(r)::"memory");
   return r;
 }
 

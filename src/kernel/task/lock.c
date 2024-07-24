@@ -27,7 +27,7 @@ bool interrupt_disable() {
                "popl %%eax\n"
                : "=a"(flags)
                :
-               :);
+               : "memory");
   return (flags >> 9) & 1;
 }
 
@@ -38,7 +38,7 @@ bool get_interrupt_state() {
                "popl %%eax\n\t"
                : "=a"(flags)
                :
-               :);
+               : "memory");
   // 将 eax 右移 9 位，得到 IF 位
   return (flags >> 9) & 1;
 }
