@@ -47,7 +47,8 @@ char *GetSVGACharOEMString() {
   VESAControllerInfo *info = (VESAControllerInfo *)VBEINFO_ADDRESS;
   return rmfarptr2ptr(info->oemString);
 }
-VESAModeInfo *GetVESAModeInfo(int mode) {
+
+VESAModeInfo *GetVESAModeInfo(volatile int mode) {
   regs16_t r;
   r.ax = 0x4f01;
   r.cx = mode + 0x4000;
@@ -72,7 +73,7 @@ void _get_all_mode() {
     if (mode[c] == 0xffff) break;
     logd("Mode: %04x ", mode[c]);
     VESAModeInfo *info = GetVESAModeInfo(mode[c]);
-    logd("%d x %d x %d\n", info->width, info->height, info->bitsPerPixel);
+    logd("%d x %d x %d", info->width, info->height, info->bitsPerPixel);
     // sleep(500);
   }
 }
@@ -83,24 +84,23 @@ void get_all_mode() {
   _get_all_mode();
   //
 }
-unsigned set_mode(int width, int height, int bpp) {
+
+u32 set_mode(int width, int height, int bpp) {
   regs16_t regs;
   regs.ax = 0x4f00;
   regs.es = 0x07e0;
   regs.di = 0x0000;
   INT(0x10, &regs);
   VESAControllerInfo *vbe  = (struct VESAControllerInfo *)VBEINFO_ADDRESS;
-  u16                *mode = (u16 *)rmfarptr2ptr(vbe->videoModes);
-  // int i = 0;
+  volatile u16       *mode = (u16 *)rmfarptr2ptr(vbe->videoModes);
   for (int c = 0;; c++) {
     if (mode[c] == 0xffff) break;
-    VESAModeInfo *info = GetVESAModeInfo(mode[c]);
+    volatile VESAModeInfo *info = GetVESAModeInfo(mode[c]);
+    logd("%04x:%dx%dx%d", mode[c], info->width, info->height, info->bitsPerPixel);
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
       SwitchVBEMode(mode[c]);
-      struct VBEINFO *v = (struct VBEINFO *)VBEINFO_ADDRESS;
+      volatile struct VBEINFO *v = (struct VBEINFO *)VBEINFO_ADDRESS;
       return v->vram;
-    } else {
-      //   printk("%dx%dx%d\n",info->width,info->height,info->bitsPerPixel);
     }
   }
   return -1;

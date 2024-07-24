@@ -28,7 +28,8 @@ typedef struct intr_frame_t {
   unsigned esp;
   unsigned ss;
 } intr_frame_t;
-typedef struct fpu_t {
+
+typedef struct __PACKED__ fpu {
   u16 control;
   u16 RESERVED1;
   u16 status;
@@ -40,10 +41,8 @@ typedef struct fpu_t {
   u32 fdp0;
   u32 fdp1;
   u8  regs[80];
-} __PACKED__ fpu_t;
+} fpu_t;
 
-int  io_load_eflags();
-void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 int  load_cr0(void);
@@ -51,6 +50,7 @@ void store_cr0(int cr0);
 u32  get_cr0();
 void set_cr0(u32 cr0);
 void load_tr(int tr);
+
 #define SA_RPL_MASK      0xFFFC
 #define SA_TI_MASK       0xFFFB
 #define SA_TIL           4 // 设置此项，将从LDT中寻找
@@ -59,8 +59,9 @@ void load_tr(int tr);
 #define SA_RPL2          2
 #define SA_RPL3          3
 #define GET_SEL(cs, rpl) ((cs & SA_RPL_MASK & SA_TI_MASK) | (rpl))
+
 finline void set_cr3(u32 pde) {
-  asm volatile("movl %%eax, %%cr3\n" ::"a"(pde));
+  asm volatile("movl %%eax, %%cr3\n" ::"a"(pde) : "memory");
 }
 
 struct TSS32 {

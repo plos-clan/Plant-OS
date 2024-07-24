@@ -4,8 +4,6 @@
 
 #include <libc.h>
 
-int  io_load_eflags();
-void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 int  load_cr0(void);

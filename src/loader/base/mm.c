@@ -11,17 +11,17 @@ u32 memtest(u32 start, u32 end) {
   u32  eflg, cr0, i;
 
   /* 确认CPU是386还是486以上的 */
-  eflg  = io_load_eflags();
+  eflg  = asm_get_flags();
   eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
-  io_store_eflags(eflg);
-  eflg = io_load_eflags();
+  asm_set_flags(eflg);
+  eflg = asm_get_flags();
   if ((eflg & EFLAGS_AC_BIT) != 0) {
     /* 如果是386，即使设定AC=1，AC的值还会自动回到0 */
     flg486 = 1;
   }
 
   eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
-  io_store_eflags(eflg);
+  asm_set_flags(eflg);
 
   if (flg486 != 0) {
     cr0  = load_cr0();

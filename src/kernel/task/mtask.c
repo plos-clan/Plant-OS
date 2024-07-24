@@ -14,7 +14,7 @@ char         mtask_stop_flag = 0;
 #pragma clang diagnostic ignored "-Wall"
 
 u32 get_cr3() {
-  asm volatile("movl %cr3, %eax\n");
+  asm volatile("movl %%cr3, %%eax\n\t" ::: "memory");
 }
 
 #pragma clang diagnostic pop
@@ -138,7 +138,8 @@ H:
   int    current_fpu_flag = current->fpu_flag;
   fpu_t *current_fpu      = &(current->fpu);
   set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
-  if (current_fpu && current_fpu_flag) asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu));
+  if (current_fpu && current_fpu_flag)
+    asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
   next->jiffies = global_time;
   fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
   if (current_task()->state == WILL_EMPTY) { current_task()->state = READY; }
@@ -248,7 +249,8 @@ void task_to_user_mode(u32 eip, u32 esp) {
                "pop %%fs\n"
                "pop %%es\n"
                "pop %%ds\n"
-               "iret" ::"m"(iframe));
+               "iret" ::"m"(iframe)
+               : "memory");
   while (true)
     ;
 }
