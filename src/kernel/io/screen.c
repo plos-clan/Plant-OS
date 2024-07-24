@@ -232,7 +232,7 @@ static int parse_vt100(struct tty *res, char *string) {
     return 1;
   }
   case MODE_m: {
-    logd("MODE_m");
+    // logd("MODE_m");
     int  k = 0;
     char dig_string[2][81];
     memset(dig_string, 0, sizeof(dig_string)); // 全部设置为0
@@ -255,7 +255,7 @@ static int parse_vt100(struct tty *res, char *string) {
     }
 
     int delta[2] = {0};
-    logd("start for %d", k);
+    // logd("start for %d", k);
     for (int i = 0; i <= k; i++) {
       delta[i] = atol(dig_string[i]);
     }
@@ -268,7 +268,7 @@ static int parse_vt100(struct tty *res, char *string) {
       loge("unsupport");
       return 0;
     }
-    logd("switch k");
+    // logd("switch k");
     switch (k) {
     case 0: {
       if (delta[0] >= 30 && delta[0] <= 37) { // foreground color
@@ -316,8 +316,7 @@ static int parse_vt100(struct tty *res, char *string) {
 
 void t_putchar(struct tty *res, char ch) {
   if (ch == '\033' && res->vt100 == 0) {
-
-    logd("vt100");
+    // logd("vt100");
     memset(res->buffer, 0, 81);
     res->buf_p                = 0;
     res->buffer[res->buf_p++] = '\033';
@@ -427,13 +426,39 @@ int get_ysize() {
   }
 }
 
-void print(const char *str) {
+void print(cstr str) {
   mtask *task = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->print(tty_default, str);
   } else {
     task->TTY->print(task->TTY, str);
   }
+}
+
+static char print_buf[4096];
+
+int log_printf(cstr _rest fmt, ...) {
+  va_list va;
+  va_start(va, fmt);
+  int rets = vsprintf(print_buf, fmt, va);
+  va_end(va);
+  print(print_buf);
+  return rets;
+}
+
+int printf(cstr _rest fmt, ...) {
+  va_list va;
+  va_start(va, fmt);
+  int rets = vsprintf(print_buf, fmt, va);
+  va_end(va);
+  print(print_buf);
+  size_t len = strlen(print_buf);
+  while (len > 0 && print_buf[len - 1] == '\n') {
+    print_buf[len - 1] = '\0';
+    len--;
+  }
+  logi("print: %s", print_buf);
+  return rets;
 }
 
 void GotoXy_No_Safe(int x1, int y1) {

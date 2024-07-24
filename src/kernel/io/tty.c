@@ -5,10 +5,11 @@ struct tty *tty_default;
 
 void t_putchar(struct tty *res, char ch);
 
-static void tty_print(struct tty *res, const char *string) {
-  for (int i = 0; i < strlen(string); i++) {
+static void tty_print(struct tty *res, cstr string) {
+  size_t len = strlen(string);
+  for (int i = 0; i < len; i++) {
     if (res->y == res->ysize && res->x >= res->xsize) { res->screen_ne(res); }
-    t_putchar(res, ((u8 *)string)[i]);
+    t_putchar(res, string[i]);
   }
 }
 

@@ -205,6 +205,7 @@ finline void plty_fb_puts(plty_fb *fb, cstr s) {
 //- main
 
 plty_fb tty;
+bool    inited = false;
 
 void logk_raw(cstr s) {
   // static spin_t spin = false;
@@ -214,6 +215,14 @@ void logk_raw(cstr s) {
   }
   // spin_unlock(spin);
   // task_next();
+
+  // cstr _s = s;
+  // s       = strchr(s, ']');
+  // if (s == null) return;
+  // s = strchr(s, 'm');
+  // if (s == null) return;
+  // if (strncmp(s + 1, "screen.c", 8) == 0 || strncmp(s + 1, "tty.c", 5) == 0) return;
+  // if (inited) print(_s);
 }
 
 int logk(cstr _rest fmt, ...) {

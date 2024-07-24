@@ -6,6 +6,8 @@ struct MOUSE_DEC mdec;
 memory          *public_heap;
 u32              memsize;
 
+extern bool inited;
+
 void sysinit() {
   do_init_seg_register();
   init_page();
@@ -18,7 +20,7 @@ void sysinit() {
   public_heap = memory_init((u32)heap, 128 * 1024 * 1024);
   init_pit();
   init_tty();
-  print("\e[1;32mcount of mines:\e[m\n");
+  inited = true;
   into_mtask();
 
   while (true) {}

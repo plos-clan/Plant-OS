@@ -5,6 +5,10 @@ void idle() {
 }
 void init() {
   logd("init function has been called successfully!");
-  logd("%p", malloc(200));
+  printf("Hello Plant-OS!\n");
+  // logd("%p", malloc(200));
+  for (int i = 0; i < 20; i++) {
+    printi("I=%d", i);
+  }
   for (;;) {}
 }

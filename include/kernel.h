@@ -20,6 +20,7 @@ extern "C" {
 #include "kernel/timer.h"
 #include "kernel/todo_fifo8.h"
 #include "kernel/tty.h"
+#include "kernel/vbe.h"
 #include "kernel/vfs.h"
 #ifdef __cplusplus
 }
