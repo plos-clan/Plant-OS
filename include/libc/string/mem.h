@@ -4,11 +4,6 @@
 
 #if NO_STD
 
-// 由于 Clang 自身的设计缺陷（无法关闭的在代码里自动插入非内联 memcpy 的“优化”）
-// 只能使用可能相对慢的版本
-#if __clang__
-void *memcpy(void *_rest _d, const void *_rest _s, size_t _n);
-#else
 finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) {
 #  if __has(memcpy)
   return __builtin_memcpy(_d, _s, _n);
@@ -26,7 +21,6 @@ finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) {
   return _d;
 #  endif
 }
-#endif
 
 finline void *memmove(void *_d, const void *_s, size_t _n) {
 #  if __has(memmove)

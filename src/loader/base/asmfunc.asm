@@ -119,14 +119,6 @@ move_cursor_by_idx: ;移动光标
 	ret
 null_inthandler:
 	iretd
-memcpy:
-	mov eax,   [esi]
-	mov [edi], eax
-	add esi,   4
-	add edi,   4
-	dec ecx
-	jnz memcpy
-	ret
 
 	global _IN
 _IN:

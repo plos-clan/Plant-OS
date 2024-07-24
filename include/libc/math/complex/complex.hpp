@@ -1,12 +1,10 @@
 #pragma once
-#include "exp-log.hpp"
-#include "sin.hpp"
+#include "../exp-log.hpp"
+#include "../sin.hpp"
 #include <define.h>
 #include <type.hpp>
 
 namespace cpp {
-
-inline constexpr cf64 I = 1.i;
 
 #if __has(cexp)
 static auto cexp(cf32 z) -> cf32 {

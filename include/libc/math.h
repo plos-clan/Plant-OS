@@ -6,9 +6,10 @@ extern "C" {
 #endif
 #include "math/base.h"
 #include "math/bits.h"
-#include "math/complex.h"
+#include "math/complex/base.h"
 #include "math/exp-log.h"
 #include "math/float.h"
+#include "math/i64-div.h"
 #include "math/math.h"
 #include "math/sqrt.h"
 #ifdef __cplusplus
@@ -17,7 +18,8 @@ extern "C" {
 #ifdef __cplusplus
 #include "math/base.hpp"
 #include "math/bits.hpp"
-#include "math/complex.hpp"
+#include "math/complex/base.hpp"
+#include "math/complex/complex.hpp"
 #include "math/exp-log.hpp"
 #include "math/math.hpp"
 #include "math/sin.hpp"
