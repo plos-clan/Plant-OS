@@ -40,11 +40,23 @@ elif args.cc == 'gcc':
 else:
         cc = args.cc
 
-def print_success():
+def print_build_success():
         print("\033[32;1mBUILD SUCCESS\033[0m")
 
-def print_error():
+def print_build_failed():
         print("\033[31;1mBUILD FAILED\033[0m")
+
+def print_success():
+        print("\033[32;1mSUCCESS\033[0m")
+
+def print_failed():
+        print("\033[31;1mFAILED\033[0m")
+
+def print_little_success():
+        print("\033[32;1msuccess\033[0m")
+
+def print_little_failed():
+        print("\033[31;1mfailed\033[0m")
 
 def build_boot():
         import src.boot.make
@@ -54,7 +66,7 @@ def build_boot():
                         nasm=args.nasm_path,
                         debug=args.debug)
         except Exception as e:
-                print_error()
+                print_build_failed()
                 print(e)
                 exit()
 
@@ -67,7 +79,7 @@ def build_libc():
                         ar=args.ar,
                         debug=args.debug)
         except Exception as e:
-                print_error()
+                print_build_failed()
                 print(e)
                 exit()
 
@@ -80,7 +92,7 @@ def build_loader():
                                       ld=args.ld,
                                       debug=args.debug)
         except Exception as e:
-                print_error()
+                print_build_failed()
                 print(e)
                 exit()
 
@@ -93,7 +105,7 @@ def build_kernel():
                                       ld=args.ld,
                                       debug=args.debug)
         except Exception as e:
-                print_error()
+                print_build_failed()
                 print(e)
                 exit()
 
@@ -113,7 +125,7 @@ def build():
         os.system(f"{args.mcopy_path} -i build/PlantOS.img.tmp build/src/kernel/kernel.bin ::")
         os.rename("build/PlantOS.img.tmp", "build/PlantOS.img")
 
-        print_success()
+        print_build_success()
 
 def clean():
         shutil.rmtree("build")
@@ -173,6 +185,47 @@ def run():
 -net nic,model=pcnet -net user \
 -serial stdio -device sb16 -device floppy -fda build/PlantOS.img -boot a -m 256")
 
+def test():
+        import tools.unitest
+        files = tools.unitest.build_all_files()
+        fail_list = []
+        for file in files:
+                splitted_path = file.split('/')
+                origin_filename = ('/'.join(splitted_path[2:-1])
+                      + '/'
+                      + '-'.join(splitted_path[-1].split('-')[:-1])
+                      + '.c')
+                nth = str(int(splitted_path[-1].split('-')[-1].split('.')[0]) + 1) + 'st'
+                print('Testing '
+                      + origin_filename
+                      + ' '
+                      + nth
+                      + ' ... ',
+                      end="")
+                os.system(f'{cc.split()[0]} -I{os.path.realpath('.')} {file} -o {os.path.splitext(file)[0]}')
+                originretcode = os.system(f'./{os.path.splitext(file)[0]}')      # 高8位是返回值 低8位是非正常退出时的状态码
+                retcode = originretcode >> 8
+                if retcode == 0 and originretcode == 0:
+                        print_little_success()
+                elif retcode == 0 and originretcode != 0:
+                        # 非正常退出
+                        print_little_failed()
+                        fail_list.append((1, 0, origin_filename, nth))
+                else:
+                        # 正常退出但返回值不正常
+                        print_little_failed()
+                        fail_list.append((0, retcode, origin_filename, nth))
+        if fail_list == []:
+                print_success()
+        else:
+                print_failed()
+                for type_, retcode, origin_filename, nth in fail_list:
+                        if type_ == 0:
+                                print(f"{origin_filename} {nth} returned code: {str(retcode)}")
+                        else:
+                                print(f"{origin_filename} {nth} abnormal exit")
+
+
 if args.branch_arg == 'build':
         build()
 elif args.branch_arg == 'build-doc':
@@ -190,6 +243,8 @@ elif args.branch_arg == 'build-lsp-hints':
 elif args.branch_arg == 'run':
         build()
         run()
+elif args.branch_arg == 'test':
+        test()
 else:
         print('Wrong parameter!\n')
         parser.print_help()

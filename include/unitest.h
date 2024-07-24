@@ -1,1 +1,1 @@
-#define UNITEST(code)
+#define unitest(code)
