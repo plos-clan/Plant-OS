@@ -127,90 +127,54 @@ next_char:
     arg->fill_zero = false; // 字符不应该使用 0 填充
     goto end;
 
-#define __tostr_arg(type)     arg->buf, arg->bufsize, va_arg(va, type)
-#define __tostr_arg2(t, type) arg->buf, arg->bufsize, (t)va_arg(va, type)
+#define tostr_arg(type)     arg->buf, arg->bufsize, va_arg(va, type)
+#define tostr_arg2(t, type) arg->buf, arg->bufsize, (t)va_arg(va, type)
+
+#define format_in_bn(_n_, _u_)                                                                     \
+  switch (_size) {                                                                                 \
+  case 1: arg->text = _u_##hhtostr##_n_(tostr_arg2(_u_##char, _u_##int)); break;                   \
+  case 2: arg->text = _u_##htostr##_n_(tostr_arg2(_u_##short, _u_##int)); break;                   \
+  case 3: arg->text = _u_##itostr##_n_(tostr_arg(_u_##int)); break;                                \
+  case 4: arg->text = _u_##ltostr##_n_(tostr_arg(_u_##long)); break;                               \
+  case 5: arg->text = _u_##lltostr##_n_(tostr_arg(_u_##llong)); break;                             \
+  }                                                                                                \
+  goto end;
 
   case 'b':
-  case 'B':
-    switch (_size) {
-    case 1: arg->text = uhhtostrb2(__tostr_arg2(char, int)); break;
-    case 2: arg->text = uhtostrb2(__tostr_arg2(short, int)); break;
-    case 3: arg->text = uitostrb2(__tostr_arg(int)); break;
-    case 4: arg->text = ultostrb2(__tostr_arg(long int)); break;
-    case 5: arg->text = ulltostrb2(__tostr_arg(long long int)); break;
-    }
-    goto end;
+  case 'B': format_in_bn(b2, u);
 
   case 'o':
-  case 'O':
-    switch (_size) {
-    case 1: arg->text = uhhtostrb8(__tostr_arg2(char, int)); break;
-    case 2: arg->text = uhtostrb8(__tostr_arg2(short, int)); break;
-    case 3: arg->text = uitostrb8(__tostr_arg(int)); break;
-    case 4: arg->text = ultostrb8(__tostr_arg(long int)); break;
-    case 5: arg->text = ulltostrb8(__tostr_arg(long long int)); break;
-    }
-    goto end;
+  case 'O': format_in_bn(b8, u);
 
   case 'i':
   case 'I':
   case 'd':
-  case 'D':
-    switch (_size) {
-    case 1: arg->text = hhtostrb10(__tostr_arg2(char, int)); break;
-    case 2: arg->text = htostrb10(__tostr_arg2(short, int)); break;
-    case 3: arg->text = itostrb10(__tostr_arg(int)); break;
-    case 4: arg->text = ltostrb10(__tostr_arg(long int)); break;
-    case 5: arg->text = lltostrb10(__tostr_arg(long long int)); break;
-    }
-    goto end;
+  case 'D': format_in_bn(b10, );
 
   case 'u':
-  case 'U':
-    switch (_size) {
-    case 1: arg->text = uhhtostrb10(__tostr_arg2(unsigned char, int)); break;
-    case 2: arg->text = uhtostrb10(__tostr_arg2(unsigned short, int)); break;
-    case 3: arg->text = uitostrb10(__tostr_arg(unsigned int)); break;
-    case 4: arg->text = ultostrb10(__tostr_arg(unsigned long int)); break;
-    case 5: arg->text = ulltostrb10(__tostr_arg(unsigned long long int)); break;
-    }
-    goto end;
+  case 'U': format_in_bn(b10, u);
 
-  case 'x':
-    switch (_size) {
-    case 1: arg->text = uhhtostrb16(__tostr_arg2(char, int)); break;
-    case 2: arg->text = uhtostrb16(__tostr_arg2(short, int)); break;
-    case 3: arg->text = uitostrb16(__tostr_arg(int)); break;
-    case 4: arg->text = ultostrb16(__tostr_arg(long int)); break;
-    case 5: arg->text = ulltostrb16(__tostr_arg(long long int)); break;
-    }
-    goto end;
-  case 'X':
-    switch (_size) {
-    case 1: arg->text = uhhtostrB16(__tostr_arg2(char, int)); break;
-    case 2: arg->text = uhtostrB16(__tostr_arg2(short, int)); break;
-    case 3: arg->text = uitostrB16(__tostr_arg(int)); break;
-    case 4: arg->text = ultostrB16(__tostr_arg(long int)); break;
-    case 5: arg->text = ulltostrB16(__tostr_arg(long long int)); break;
-    }
-    goto end;
+  case 'x': format_in_bn(b16, u);
+  case 'X': format_in_bn(B16, u);
+
+#undef format_in_bn
 
   case 'p':
     if (_size != 3) goto err;
     arg->print_ptr = true;
 #ifdef __x86_64__
-    arg->text = u64tostrb16(__tostr_arg(u64));
+    arg->text = u64tostrb16(tostr_arg(u64));
 #else
-    arg->text = u32tostrb16(__tostr_arg(u32));
+    arg->text = u32tostrb16(tostr_arg(u32));
 #endif
     goto end;
   case 'P':
     if (_size != 3) goto err;
     arg->print_ptr = true;
 #ifdef __x86_64__
-    arg->text = u64tostrB16(__tostr_arg(u64));
+    arg->text = u64tostrB16(tostr_arg(u64));
 #else
-    arg->text = u32tostrB16(__tostr_arg(u32));
+    arg->text = u32tostrB16(tostr_arg(u32));
 #endif
     goto end;
 
@@ -219,14 +183,14 @@ next_char:
     switch (_size) {
     case 1: goto err;
     case 2: goto err;
-    case 3: arg->text = fftostr(__tostr_arg2(float, double)); break;
-    case 4: arg->text = ftostr(__tostr_arg(double)); break;
-    case 5: arg->text = fltostr(__tostr_arg(long double)); break;
+    case 3: arg->text = fftostr(tostr_arg2(float, double)); break;
+    case 4: arg->text = ftostr(tostr_arg(double)); break;
+    case 5: arg->text = fltostr(tostr_arg(long double)); break;
     }
     goto end;
 
-#undef __tostr_arg
-#undef __tostr_arg2
+#undef tostr_arg
+#undef tostr_arg2
 
   case 'n':
   case 'N':
