@@ -28,14 +28,14 @@ if args.cc == 'clang':
 -nostdinc -nostdlib \
 -ffreestanding -fno-stack-protector -Qn \
 -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer \
--Og \
+-O1 \
 -finput-charset=UTF-8 -fexec-charset=UTF-8 -mno-mmx -mno-sse"
 elif args.cc == 'gcc':
         cc = f"gcc -m32 -I{os.path.realpath('include')} -c \
 -nostdinc -nolibc -nostdlib \
 -ffreestanding -fno-stack-protector -Qn \
 -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer \
--Ofast \
+-O1 \
 -finput-charset=UTF-8 -fexec-charset=UTF-8 -mno-mmx -mno-sse"
 else:
         cc = args.cc
@@ -202,7 +202,7 @@ def test():
                       + nth
                       + ' ... ',
                       end="")
-                os.system(f'{cc.split()[0]} -I{os.path.realpath('.')} {file} -o {os.path.splitext(file)[0]}')
+                os.system(f"{cc.split()[0]} -I{os.path.realpath('.')} {file} -o {os.path.splitext(file)[0]}")
                 originretcode = os.system(f'./{os.path.splitext(file)[0]}')      # 高8位是返回值 低8位是非正常退出时的状态码
                 retcode = originretcode >> 8
                 if retcode == 0 and originretcode == 0:
