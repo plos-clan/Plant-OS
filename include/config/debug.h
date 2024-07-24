@@ -1,2 +1,0 @@
-#define DEBUG 1
-#define NO_MALLOC_MESSAGE
