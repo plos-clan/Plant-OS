@@ -11,16 +11,16 @@ void clear() {
   int j;
   for (i = 0; i < 160; i += 2) {
     for (j = 0; j < 25; j++) {
-      *(char *)(0xb8000 + j * 160 + i) = ' ';
+      *(u8 *)(0xb8000 + j * 160 + i) = ' ';
     }
   }
-  x      = 0;
-  y      = 0;
-  cons_x = 0;
-  cons_y = 0;
-  Move_Cursor(cons_x, cons_y);
+//   x      = 0;
+//   y      = 0;
+//   cons_x = 0;
+//   cons_y = 0;
+//   Move_Cursor(cons_x, cons_y);
+// }
 }
-
 int getlength(const char *str) {
   for (int i = 0;; ++i) {
     if (str[i] == '\0') return i;

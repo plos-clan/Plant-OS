@@ -83,6 +83,9 @@ void get_all_mode() {
   _get_all_mode();
   //
 }
+#    ifdef __clang__
+#      pragma clang optimize off
+#    endif
 unsigned set_mode(int width, int height, int bpp) {
   regs16_t regs;
   regs.ax = 0x4f00;
@@ -94,14 +97,18 @@ unsigned set_mode(int width, int height, int bpp) {
   // int i = 0;
   for (int c = 0;; c++) {
     if (mode[c] == 0xffff) break;
-    VESAModeInfo *info = GetVESAModeInfo(mode[c]);
+     register VESAModeInfo *info = GetVESAModeInfo(mode[c]);
+    
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
       SwitchVBEMode(mode[c]);
       struct VBEINFO *v = (struct VBEINFO *)VBEINFO_ADDRESS;
       return v->vram;
     } else {
-      //   printk("%dx%dx%d\n",info->width,info->height,info->bitsPerPixel);
+       logd("%x:%dx%dx%d",mode[c],info->width,info->height,info->bitsPerPixel);
     }
   }
   return -1;
 }
+#    ifdef __clang__
+#      pragma clang optimize on
+#    endif

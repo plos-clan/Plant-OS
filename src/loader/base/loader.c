@@ -8,7 +8,7 @@ bool elf32Validate(Elf32_Ehdr *hdr) {
          hdr->e_ident[EI_MAG2] == ELFMAG2 && hdr->e_ident[EI_MAG3] == ELFMAG3;
 }
 void load_segment(Elf32_Phdr *phdr, void *elf) {
-  logf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
+  printf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
   memcpy((void *)phdr->p_vaddr, elf + phdr->p_offset, phdr->p_filesz);
   if (phdr->p_memsz > phdr->p_filesz) { // 这个是bss段
     memset((void *)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
@@ -42,13 +42,13 @@ int is_ide_device(u8 bus, u8 device, u8 function) {
 }
 int  get_vdisk_type(char drive);
 void DOSLDR_MAIN() {
-  struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
-  u32            memtotal;
+   struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
+   u32            memtotal;
   memtotal = 128 * 1024 * 1024;
   memman_init(memman);
   memman_free(memman, 0x00600000, memtotal - 0x00600000);
-  // asm("mov $0x00650000,%esp");
-  clear();
+  // // asm("mov $0x00650000,%esp");
+   clear();
   init_gdtidt();
   init_pic();
   asm_sti; /* IDT/PIC的初始化已经完成，于是开放CPU的中断 */
@@ -94,23 +94,23 @@ void DOSLDR_MAIN() {
   NowTask()->drive_number = default_drive_number;
   vfs_mount_disk(NowTask()->drive, NowTask()->drive);
   vfs_change_disk(NowTask()->drive);
-  logf("DOSLDR 386 v0.2\n");
-  logf("Copyright zhouzhihao & min0911 2022\n");
-  logf("memtotal=%dMB\n", memtotal / 1024 / 1024);
+  printf("DOSLDR 386 v0.2\n");
+  printf("Copyright zhouzhihao & min0911 2022\n");
+  printf("memtotal=%dMB\n", memtotal / 1024 / 1024);
   char path[15] = " :\\kernel.bin";
   path[0]       = NowTask()->drive;
-  logf("Load file:%s\n", path);
+  printf("Load file:%s\n", path);
   int sz = vfs_filesize(path);
   if (sz == -1) {
-    logf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
+    printf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
     while (true)
       ;
   }
   // printf("fp = %08x\n%d\n",fp, fp->size);
   char *s = page_malloc(sz);
-  logf("Will load in %08x size = %08x\n", s, sz);
+  printf("Will load in %08x size = %08x\n", s, sz);
   vfs_readfile(path, s);
-  logf("Loading...\n");
+  printf("Loading...\n");
   u32 entry = load_elf((Elf32_Ehdr *)s);
 
   // printf("ESP:%08x\n", *(u32 *)(0x00280000 + 12));

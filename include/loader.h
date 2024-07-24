@@ -21,7 +21,6 @@ extern "C" {
 #include "loader/dosldr/fs/pfs.h"
 #include "loader/dosldr/fs/vfs.h"
 #include "loader/dosldr/ide.h"
-#include "loader/dosldr/include-libc.h"
 #include "loader/dosldr/kbd.h"
 #include "loader/dosldr/list.h"
 #include "loader/dosldr/mem.h"

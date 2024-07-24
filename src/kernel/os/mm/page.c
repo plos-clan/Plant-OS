@@ -415,17 +415,19 @@ int find_kpage(int line, int n) {
   }
   return line;
 }
-
 void *page_malloc(int size) {
+  
   int n = ((size - 1) / (4 * 1024)) + 1;
   int i = find_kpage(0, n);
   int t, p;
+  
   page2tpo(i, &t, &p);
-  bzero((char *)get_line_address(t, p, 0), n * 4 * 1024);
   u32 addr = get_line_address(t, p, 0);
+ for(int i = 0;i<size;i++){
+  *(u8 *)(addr + i) = 0;
+ }
   return (void *)addr;
 }
-
 void page_free(void *p, int size) {
   int n = ((size - 1) / (4 * 1024)) + 1;
   p     = (void *)((u32)p & 0xfffff000);

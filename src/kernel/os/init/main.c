@@ -175,6 +175,7 @@ err:
 end:
   fb->len = -1; // 退出转义模式
 again:
+  return;
 }
 
 finline void plty_fb_putc(plty_fb *fb, int c) {
