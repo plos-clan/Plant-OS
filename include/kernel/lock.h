@@ -4,9 +4,9 @@
 
 typedef struct mtask mtask;
 typedef struct {
-  mtask   *owner;
-  unsigned value;
-  mtask   *waiter;
+  mtask *owner;
+  u32    value;
+  mtask *waiter;
 } lock_t;
 
 #define LOCK_UNLOCKED 0

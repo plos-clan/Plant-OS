@@ -137,7 +137,7 @@ H:
   if (next->ready) { next->ready = 0; }
   int    current_fpu_flag = current->fpu_flag;
   fpu_t *current_fpu      = &(current->fpu);
-  set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
+  asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
   if (current_fpu && current_fpu_flag)
     asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
   next->jiffies = global_time;
@@ -211,8 +211,8 @@ mtask *get_task(u32 tid) {
   if (m[tid].state == EMPTY || m[tid].state == WILL_EMPTY || m[tid].state == READY) { return NULL; }
   return &(m[tid]);
 }
-void task_to_user_mode(u32 eip, u32 esp) {
 
+void task_to_user_mode(u32 eip, u32 esp) {
   u32 addr = (u32)current->top;
 
   addr                 -= sizeof(intr_frame_t);
@@ -238,7 +238,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->esp        = esp; // 设置用户态堆栈
   current->user_mode = 1;
   tss.esp0           = current->top;
-  logk("TTT %d\n", current_task()->tid);
+  logd("TTT %d\n", current_task()->tid);
   // task_exit(0);
   // change_page_task_id(current_task()->tid, iframe->esp - 64 * 1024, 64 *
   // 1024);
@@ -328,9 +328,10 @@ mtask *current_task() {
   }
   return current;
 }
+
 void into_mtask() {
   init_tasks();
-  set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
+  asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
   asm volatile("fninit");
   asm volatile("fnsave (%%eax) \n" ::"a"(&public_fpu));
   fpu_disable();
@@ -341,36 +342,44 @@ void into_mtask() {
   load_tr(103 * 8);
   idle_task = create_task((u32)idle, 0, 1, 3);
   create_task((u32)init, 0, 5, 1);
-  set_cr0(get_cr0() | CR0_EM | CR0_TS | CR0_NE);
+  asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
   task_start(&(m[0]));
 }
+
 void task_set_fifo(mtask *task, circular_queue_t kfifo, circular_queue_t mfifo) {
   task->keyfifo   = kfifo;
   task->mousefifo = mfifo;
 }
+
 circular_queue_t task_get_key_queue(mtask *task) {
   return task->keyfifo;
 }
+
 void task_sleep(mtask *task) {
   task->state     = SLEEPING;
   task->fifosleep = 1;
 }
+
 void task_wake_up(mtask *task) {
   task->state     = RUNNING;
   task->fifosleep = 0;
 }
+
 void task_run(mtask *task) {
   // 加急一下
   task->urgent  = 1;
   task->ready   = 1;
   task->running = 0;
 }
+
 void task_fifo_sleep(mtask *task) {
   task->fifosleep = 1;
 }
+
 circular_queue_t task_get_mouse_fifo(mtask *task) {
   return task->mousefifo;
 }
+
 void task_lock() {
   if (current_task()->ptid == -1) {
     for (int i = 0; i < 255; i++) {
@@ -391,6 +400,7 @@ void task_lock() {
     }
   }
 }
+
 void task_unlock() {
   if (current_task()->ptid == -1) {
     for (int i = 0; i < 255; i++) {
@@ -411,10 +421,12 @@ void task_unlock() {
     }
   }
 }
+
 u32 get_father_tid(mtask *t) {
   if (t->ptid == -1) { return get_tid(t); }
   return get_father_tid(get_task(t->ptid));
 }
+
 void task_fall_blocked(enum STATE state) {
   if (current_task()->ready == 1) {
     current_task()->ready = 0;
@@ -425,8 +437,10 @@ void task_fall_blocked(enum STATE state) {
   asm_cli;
   task_next();
 }
+
 extern struct PAGE_INFO *pages;
-void                     task_exit(u32 status) {
+
+void task_exit(u32 status) {
   if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
   u32 tid = current_task()->tid;
   for (int i = 0; i < 255; i++) {
@@ -491,6 +505,7 @@ void                     task_exit(u32 status) {
   while (true)
     ;
 }
+
 int waittid(u32 tid) {
   mtask *t = get_task(tid);
   if (!t) return -1;
@@ -500,19 +515,23 @@ int waittid(u32 tid) {
     task_fall_blocked(WAITING);
   }
   u32 status = t->status;
-  logk("task exit with code %d\n", status);
+  logd("task exit with code %d\n", status);
   t->state = EMPTY;
   return status;
 }
+
 void mtask_stop() {
   mtask_stop_flag = 1;
 }
+
 void mtask_start() {
   mtask_stop_flag = 0;
 }
+
 void mtask_run_now(mtask *obj) {
   next_set = obj;
 }
+
 void copy_vfs(mtask *src, mtask *dest) {
   vfs_change_disk_for_task(src->nfs->drive, dest);
   char *path;
@@ -521,31 +540,34 @@ void copy_vfs(mtask *src, mtask *dest) {
     dest->nfs->cd(dest->nfs, path);
   }
 }
+
 mtask *mtask_get_free() {
   mtask *t = NULL;
   for (int i = 1; i < 255; i++) {
     if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) {
-      logk("f:%d\n", i);
+      logd("f:%d\n", i);
       t = &(m[i]);
-      logk("%d\n", t->tid);
+      logd("%d\n", t->tid);
       break;
     }
   }
   return t;
 }
+
 // THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!
 void interrput_exit();
 void roc() {
-  logk("ROCT\n");
+  logd("ROCT\n");
   while (true)
     ;
 }
+
 static void build_fork_stack(mtask *task) {
   u32 addr              = task->top;
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)addr;
   iframe->eax           = 0;
-  logk("iframe = %08x\n", iframe->eip);
+  logd("iframe = %08x\n", iframe->eip);
   addr                -= sizeof(stack_frame);
   stack_frame *sframe  = (stack_frame *)addr;
   sframe->ebp          = 0x114514;
@@ -556,11 +578,12 @@ static void build_fork_stack(mtask *task) {
 
   task->esp = sframe;
 }
+
 int task_fork() {
   mtask *m = mtask_get_free();
   if (!m) { return -1; }
-  logk("get free %08x\n", m);
-  logk("current = %08x\n", get_tid(current_task()));
+  logd("get free %08x\n", m);
+  logd("current = %08x\n", get_tid(current_task()));
   bool state = interrupt_disable();
   int  tid   = 0;
   tid        = m->tid;
@@ -569,7 +592,7 @@ int task_fork() {
   change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;
   memcpy((void *)stack, (void *)(m->top - STACK_SIZE), STACK_SIZE);
-  logk("s = %08x \n", m->top - STACK_SIZE);
+  logd("s = %08x \n", m->top - STACK_SIZE);
   m->top = stack += STACK_SIZE;
   stack          += STACK_SIZE;
   m->esp          = (stack_frame *)stack;
@@ -598,7 +621,7 @@ int task_fork() {
     m->mousefifo->buf = page_malloc_one();
     memcpy(m->mousefifo->buf, current_task()->mousefifo->buf, 4096);
   }
-  logk("copy vfs\n");
+  logd("copy vfs\n");
   copy_vfs(current_task(), m);
   m->pde     = pde_clone(current_task()->pde);
   m->running = 0;
@@ -607,9 +630,9 @@ int task_fork() {
   m->state   = RUNNING;
   m->ptid    = get_tid(current_task());
   m->tid     = tid;
-  logk("m->tid = %d\n", m->tid);
+  logd("m->tid = %d\n", m->tid);
   tid = m->tid;
-  logk("BUILD FORK STACK\n");
+  logd("BUILD FORK STACK\n");
   build_fork_stack(m);
   set_interrupt_state(state);
   return tid;

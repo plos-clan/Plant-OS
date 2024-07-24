@@ -111,7 +111,7 @@ bool vfs_unmount_disk(u8 drive) {
   return false;
 }
 bool vfs_readfile(char *path, char *buffer) {
-  logk("Readfile %s to %08x\n", path, buffer);
+  logd("Readfile %s to %08x\n", path, buffer);
   char *new_path = malloc(strlen(path) + 1);
   strcpy(new_path, path);
   vfs_t *vfs = ParsePath(new_path);
@@ -122,7 +122,7 @@ bool vfs_readfile(char *path, char *buffer) {
   }
   int result = vfs->ReadFile(vfs, new_path, buffer);
   free(new_path);
-  logk("OK\n");
+  logd("OK\n");
   return result;
 }
 bool vfs_writefile(char *path, char *buffer, int size) {

@@ -106,7 +106,7 @@ void inthandler20(int cs, int *esp) {
   asm_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
   extern mtask *current;
   if (global_time + 1 == 0) {
-    logk("reset\n");
+    logd("reset\n");
     extern mtask m[255];
     for (int i = 0; i < 255; i++) {
       m[i].jiffies = 0;

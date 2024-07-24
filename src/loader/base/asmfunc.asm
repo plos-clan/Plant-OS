@@ -6,7 +6,7 @@ GLOBAL asm_get_flags, asm_set_flags
 GLOBAL load_gdtr, load_idtr, loader_main
 EXTERN DOSLDR_MAIN                                              ; 在 loader.c 那里定义
 EXTERN flint                                                    ; 在 fdc.c 中定义
-GLOBAL load_cr0, store_cr0, memtest_sub, null_inthandler
+GLOBAL memtest_sub, null_inthandler
 GLOBAL move_cursor_by_idx
 GLOBAL floppy_int
 [SECTION .text]
@@ -26,19 +26,6 @@ load_idtr:
 	MOV  AX,        [ESP + 4] ; limit
 	MOV  [ESP + 6], AX
 	LIDT [ESP + 6]
-	RET
-
-;; definition of
-;;      int load_cr0(void)
-load_cr0:
-	MOV EAX, CR0
-	RET
-
-;; definition of
-;;      void store_cr0(int cr0);
-store_cr0:
-	MOV EAX, [ESP + 4]
-	MOV CR0, EAX
 	RET
 
 ;; definition of

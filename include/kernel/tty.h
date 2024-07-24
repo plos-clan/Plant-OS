@@ -36,8 +36,7 @@ struct tty {
 struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct tty *res, int c),
                       void (*MoveCursor)(struct tty *res, int x, int y),
                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
-                      void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1,
-                                       unsigned char color),
+                      void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1, byte color),
                       int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res));
 void        init_tty();
 

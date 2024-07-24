@@ -23,17 +23,17 @@ u32         memtest(u32 start, u32 end) {
   asm_set_flags(eflg);
 
   if (flg486 != 0) {
-    cr0  = load_cr0();
+    cr0  = asm_get_cr0();
     cr0 |= CR0_CACHE_DISABLE; /* 禁止缓存 */
-    store_cr0(cr0);
+    asm_set_cr0(cr0);
   }
 
   i = memtest_sub(start, end);
 
   if (flg486 != 0) {
-    cr0  = load_cr0();
+    cr0  = asm_get_cr0();
     cr0 &= ~CR0_CACHE_DISABLE; /* 允许缓存 */
-    store_cr0(cr0);
+    asm_set_cr0(cr0);
   }
   return i;
 }

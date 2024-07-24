@@ -6,22 +6,6 @@ char flagOfexp      = 0;
 char public_catch   = 0;
 int  st_task        = 0;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wall"
-
-// 得到 cr0 寄存器
-u32 get_cr0() {
-  // 直接将 mov eax, cr0，返回值在 eax 中
-  asm volatile("movl %cr0, %eax\n");
-}
-
-#pragma clang diagnostic pop
-
-// 设置 cr0 寄存器，参数是页目录的地址
-void set_cr0(u32 cr0) {
-  asm volatile("movl %%eax, %%cr0\n" ::"a"(cr0));
-}
-
 void SwitchPublic() {
   public_catch = 1;
 }
@@ -90,17 +74,17 @@ void delete_char(char *str, int pos) {
 
 mtask *last_fpu_task = NULL;
 void   fpu_disable() {
-  set_cr0(get_cr0() | (CR0_EM | CR0_TS));
+  asm_set_cr0(asm_get_cr0() | (CR0_EM | CR0_TS));
 }
 
 void fpu_enable(mtask *task) {
-  set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
+  asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
   if (!task->fpu_flag) {
     asm volatile("fnclex \n"
                  "fninit \n" ::
                      : "memory");
     memset(&task->fpu, 0, sizeof(fpu_t));
-    logk("FPU create state for task 0x%08x\n", task);
+    logd("FPU create state for task 0x%08x\n", task);
   } else {
     asm volatile("frstor (%%eax) \n" ::"a"(&(task->fpu)) : "memory");
   }
@@ -153,7 +137,7 @@ bool has_fpu_error() {
 
 void ERROR7(u32 eip) {
   if (current_task()->fpu_flag > 1 || current_task()->fpu_flag < 0) {
-    set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
+    asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
     return;
   }
   fpu_enable(current_task());

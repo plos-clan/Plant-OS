@@ -161,11 +161,11 @@ static void plty_fb_parse(plty_fb *fb) {
     s = _s;
     if (*s++ != ';') goto err;
     if (n == 38) { // 设置前景
-      int n = strb10toi(s, s);
+      int n = strb10toi(s, &s);
       if (n == 2) {}
     }
     if (n == 48) { // 设置背景
-      int n = strb10toi(s, s);
+      int n = strb10toi(s, &s);
     }
   }
 
@@ -175,6 +175,7 @@ err:
 end:
   fb->len = -1; // 退出转义模式
 again:
+  return;
 }
 
 finline void plty_fb_putc(plty_fb *fb, int c) {

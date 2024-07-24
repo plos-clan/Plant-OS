@@ -58,7 +58,7 @@ void enable_mouse(struct MOUSE_DEC *mdec) {
   mouse_write(0xf3);
   mouse_write(80);
   mouse_write(0xf2);
-  logk("mouseId=%d\n", mouse_read());
+  logd("mouseId=%d\n", mouse_read());
   /* 顺利的话，键盘控制器会返回ACK(0xfa) */
 }
 
@@ -111,12 +111,12 @@ int mouse_decode(struct MOUSE_DEC *mdec, u8 dat) {
 }
 
 // int a = 1;
-unsigned m_cr3 = 0;
-unsigned m_eip = 0;
-unsigned times = 0;
+u32 m_cr3 = 0;
+u32 m_eip = 0;
+u32 times = 0;
 
 void inthandler2c(int *esp) {
-  // logk("2c\n");
+  // logd("2c\n");
   u8 data;
   asm_out8(PIC1_OCW2, 0x64);
   asm_out8(PIC0_OCW2, 0x62);
@@ -125,11 +125,11 @@ void inthandler2c(int *esp) {
   if (times == 4) {
     times = 0;
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
-      //   logk("put %08x\n",task_get_mouse_fifo(mouse_use_task));
+      //   logd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
       circular_queue_put(task_get_mouse_fifo(mouse_use_task), data);
 
       if (current_task() != mouse_use_task) {
-        //   logk("SET 1\n");
+        //   logd("SET 1\n");
         mouse_use_task->timeout = 5;
         mouse_use_task->ready   = 1;
         mouse_use_task->urgent  = 1;
@@ -142,7 +142,7 @@ void inthandler2c(int *esp) {
     }
   } else {
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
-      //   logk("put %08x\n",task_get_mouse_fifo(mouse_use_task));
+      //   logd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
       circular_queue_put(task_get_mouse_fifo(mouse_use_task), data);
     }
   }

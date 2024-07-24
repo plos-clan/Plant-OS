@@ -11,6 +11,7 @@ struct TIMER {
   u8               data;
   mtask           *waiter;
 };
+
 struct TIMERCTL {
   u32           count, next;
   struct TIMER *t0;

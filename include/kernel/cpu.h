@@ -8,27 +8,27 @@ typedef struct {
 } stack_frame;
 
 typedef struct intr_frame_t {
-  unsigned edi;
-  unsigned esi;
-  unsigned ebp;
+  u32 edi;
+  u32 esi;
+  u32 ebp;
   // 虽然 pushad 把 esp 也压入，但 esp 是不断变化的，所以会被 popad 忽略
-  unsigned esp_dummy;
+  u32 esp_dummy;
 
-  unsigned ebx;
-  unsigned edx;
-  unsigned ecx;
-  unsigned eax;
+  u32 ebx;
+  u32 edx;
+  u32 ecx;
+  u32 eax;
 
-  unsigned gs;
-  unsigned fs;
-  unsigned es;
-  unsigned ds;
+  u32 gs;
+  u32 fs;
+  u32 es;
+  u32 ds;
 
-  unsigned eip;
-  unsigned cs;
-  unsigned eflags;
-  unsigned esp;
-  unsigned ss;
+  u32 eip;
+  u32 cs;
+  u32 eflags;
+  u32 esp;
+  u32 ss;
 } intr_frame_t;
 
 typedef struct __PACKED__ fpu {
@@ -47,10 +47,6 @@ typedef struct __PACKED__ fpu {
 
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
-int  load_cr0(void);
-void store_cr0(int cr0);
-u32  get_cr0();
-void set_cr0(u32 cr0);
 void load_tr(int tr);
 
 #define SA_RPL_MASK      0xFFFC
@@ -112,7 +108,7 @@ enum {
   CR0_PG = 1 << 31, // Paging 启用分页
 };
 
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 
 void asm_error0();

@@ -3,7 +3,7 @@
 void null_inthandler();
 void ide_irq();
 
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar) {
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
     limit /= 0x1000;
@@ -14,7 +14,6 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, i
   sd->access_right = ar & 0xff;
   sd->limit_high   = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
   sd->base_high    = (base >> 24) & 0xff;
-  return;
 }
 
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) {
@@ -23,7 +22,6 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) 
   gd->dw_count     = (ar >> 8) & 0xff;
   gd->access_right = ar & 0xff;
   gd->offset_high  = (offset >> 16) & 0xffff;
-  return;
 }
 
 void init_gdtidt() {

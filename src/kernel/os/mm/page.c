@@ -13,7 +13,7 @@ void              flush_tlb(u32 vaddr);
 u32               div_round_up(u32 num, u32 size);
 struct PAGE_INFO *pages = (struct PAGE_INFO *)PAGE_MANNAGER;
 
-unsigned div_round_up(unsigned num, unsigned size) {
+u32 div_round_up(u32 num, u32 size) {
   return (num + size - 1) / size;
 }
 void init_pdepte(u32 pde_addr, u32 pte_addr, u32 page_end) {
@@ -154,7 +154,7 @@ void page_link_pde_share(u32 addr, u32 pde) {
   if (pages[IDX(*physics)].count > 1) { pages[IDX(*physics)].count--; }
   int flag = 0;
   if (*physics & PG_SHARED) {
-    logk("THIS\n");
+    logd("THIS\n");
     flag = 1;
   }
   *physics  = (u32)page_malloc_one_count_from_4gb();
@@ -174,7 +174,7 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   t        = DIDX(addr);
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
-  // logk("*pte = %08x\n",*pte);
+  // logd("*pte = %08x\n",*pte);
   if (pages[IDX(*pte)].count > 1 && !(*pte & PG_SHARED)) {
     int flag;
     if (*pte & PG_SHARED) flag = 1;
@@ -550,7 +550,7 @@ void copy_on_write(u32 vaddr) {
     void *phy     = (void *)(old_pte & 0xfffff000);
 
     // 分配一个页
-    //  logk("UPDATE %08x\n", vaddr);
+    //  logd("UPDATE %08x\n", vaddr);
     void *new_page = page_malloc_one_count_from_4gb();
     memcpy(new_page, phy, 0x1000);
 

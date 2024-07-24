@@ -15,7 +15,7 @@ void sysinit() {
   init_pic();
   asm_sti;
   irq_mask_clear(0);
-  set_cr0(get_cr0() | CR0_EM | CR0_TS | CR0_NE);
+  asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
   void *heap  = page_malloc(128 * 1024 * 1024);
   public_heap = memory_init((u32)heap, 128 * 1024 * 1024);
   init_pit();

@@ -1,16 +1,16 @@
 #pragma once
 #include <libc.h>
 typedef struct {
-  unsigned setWindow;
-  unsigned setDisplayStart;
-  unsigned setPalette;
-  unsigned IOPrivlnfo;
-  long     extensionSig;
-  long     setWindowLen;
+  u32  setWindow;
+  u32  setDisplayStart;
+  u32  setPalette;
+  u32  IOPrivlnfo;
+  long extensionSig;
+  long setWindowLen;
   // 展信息标志，恒为 0FBADFBADh
   // 以下信息于缓冲区
-  long     setDisplayStartLen;
-  long     setPaletteLen;
+  long setDisplayStartLen;
+  long setPaletteLen;
   // 以下是代码和表格
 } VBEProtectedModeInfo;
 typedef struct {
@@ -69,4 +69,4 @@ struct VBEINFO {
 };
 #define VBEINFO_ADDRESS 0x7e00
 
-unsigned set_mode(int width, int height, int bpp);
+u32 set_mode(int width, int height, int bpp);

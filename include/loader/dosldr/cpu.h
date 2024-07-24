@@ -6,8 +6,6 @@
 
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
-int  load_cr0(void);
-void store_cr0(int cr0);
 
 #define ADR_IDT      0x0026f800
 #define LIMIT_IDT    0x000007ff

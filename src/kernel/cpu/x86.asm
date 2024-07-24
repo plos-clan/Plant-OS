@@ -3,7 +3,7 @@ section .data
 		GLOBAL	asm_get_flags, asm_set_flags
 		GLOBAL	load_gdtr, load_idtr
 		GLOBAL move_cursor_by_idx
-		GLOBAL	load_cr0, store_cr0,memtest_sub,farjmp,farcall,start_app
+		GLOBAL	memtest_sub,farjmp,farcall,start_app
 		GLOBAL load_tr
 		GLOBAL get_eip,return_to_app,do_init_seg_register,entering_v86
 str: db 'Yun Xing Ni Ma De Kernel Xiang Si Shi Bu Shi',0
@@ -25,14 +25,6 @@ farcall:		; void farjmp(int eip, int cs);
 load_tr:
 	ltr [esp+4]
 	ret
-load_cr0:		; int load_cr0(void);
-		MOV		EAX,CR0
-		RET
-
-store_cr0:		; void store_cr0(int cr0);
-		MOV		EAX,[ESP+4]
-		MOV		CR0,EAX
-		RET
 EXTERN clear
 EXTERN Print_Hex
 EXTERN Clear_A_Line

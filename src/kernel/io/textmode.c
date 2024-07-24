@@ -22,12 +22,12 @@ void putchar_TextMode(struct tty *res, int c) {
   } else if (c == '\b') {
     if (res->x == 0) {
       res->MoveCursor(res, res->xsize - 1, res->y - 1);
-      *(unsigned char *)(res->vram + res->y * res->xsize * 2 + res->x * 2)         = ' ';
-      *(unsigned char *)(res->vram + res->y * res->xsize * 2 + res->x * 2 - 2 + 1) = res->color;
+      *(byte *)(res->vram + res->y * res->xsize * 2 + res->x * 2)         = ' ';
+      *(byte *)(res->vram + res->y * res->xsize * 2 + res->x * 2 - 2 + 1) = res->color;
       return;
     }
-    *(unsigned char *)(res->vram + res->y * res->xsize * 2 + res->x * 2 - 2)     = ' ';
-    *(unsigned char *)(res->vram + res->y * res->xsize * 2 + res->x * 2 - 2 + 1) = res->color;
+    *(byte *)(res->vram + res->y * res->xsize * 2 + res->x * 2 - 2)     = ' ';
+    *(byte *)(res->vram + res->y * res->xsize * 2 + res->x * 2 - 2 + 1) = res->color;
     res->MoveCursor(res, res->x - 1, res->y);
     return;
   } else if (c == '\t') {
@@ -37,23 +37,23 @@ void putchar_TextMode(struct tty *res, int c) {
   } else if (c == '\r') {
     return;
   }
-  *(unsigned char *)(res->vram + res->y * res->xsize * 2 + res->x * 2)     = c;
-  *(unsigned char *)(res->vram + res->y * res->xsize * 2 + res->x * 2 + 1) = res->color;
+  *(byte *)(res->vram + res->y * res->xsize * 2 + res->x * 2)     = c;
+  *(byte *)(res->vram + res->y * res->xsize * 2 + res->x * 2 + 1) = res->color;
   res->MoveCursor(res, res->x + 1, res->y);
 }
 
 void screen_ne_TextMode(struct tty *res) {
   for (int i = 0; i < res->xsize * 2; i += 2) {
     for (int j = 0; j < res->ysize; j++) {
-      *(unsigned char *)(res->vram + j * res->xsize * 2 + i) =
-          *(unsigned char *)(res->vram + (j + 1) * res->xsize * 2 + i);
-      *(unsigned char *)(res->vram + j * res->xsize * 2 + i + 1) =
-          *(unsigned char *)(res->vram + (j + 1) * res->xsize * 2 + i + 1);
+      *(byte *)(res->vram + j * res->xsize * 2 + i) =
+          *(byte *)(res->vram + (j + 1) * res->xsize * 2 + i);
+      *(byte *)(res->vram + j * res->xsize * 2 + i + 1) =
+          *(byte *)(res->vram + (j + 1) * res->xsize * 2 + i + 1);
     }
   }
   for (int i = 0; i < res->xsize * 2; i += 2) {
-    *(unsigned char *)(res->vram + (res->ysize - 1) * res->xsize * 2 + i)     = ' ';
-    *(unsigned char *)(res->vram + (res->ysize - 1) * res->xsize * 2 + i + 1) = res->color;
+    *(byte *)(res->vram + (res->ysize - 1) * res->xsize * 2 + i)     = ' ';
+    *(byte *)(res->vram + (res->ysize - 1) * res->xsize * 2 + i + 1) = res->color;
   }
   res->gotoxy(res, 0, res->ysize - 1);
   res->Raw_y++;
@@ -62,17 +62,17 @@ void screen_ne_TextMode(struct tty *res) {
 void clear_TextMode(struct tty *res) {
   for (int i = 0; i < res->xsize * 2; i += 2) {
     for (int j = 0; j < res->ysize; j++) {
-      *(unsigned char *)(res->vram + j * res->xsize * 2 + i)     = ' ';
-      *(unsigned char *)(res->vram + j * res->xsize * 2 + i + 1) = res->color;
+      *(byte *)(res->vram + j * res->xsize * 2 + i)     = ' ';
+      *(byte *)(res->vram + j * res->xsize * 2 + i + 1) = res->color;
     }
   }
   res->gotoxy(res, 0, 0);
   res->Raw_y = 0;
 }
-void Draw_Box_TextMode(struct tty *res, int x, int y, int x1, int y1, unsigned char color) {
+void Draw_Box_TextMode(struct tty *res, int x, int y, int x1, int y1, byte color) {
   for (int i = y; i < y1; i++) {
     for (int j = x; j < x1; j++) {
-      *(unsigned char *)(res->vram + i * 160 + j * 2 + 1) = color;
+      *(byte *)(res->vram + i * 160 + j * 2 + 1) = color;
     }
   }
 }
