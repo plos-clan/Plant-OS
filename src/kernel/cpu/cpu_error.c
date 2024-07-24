@@ -1,4 +1,5 @@
 #include <kernel.h>
+
 int  DisableExpFlag = 0;
 u32  CatchEIP       = 0;
 char flagOfexp      = 0;
@@ -20,12 +21,15 @@ u32 get_cr0() {
 void set_cr0(u32 cr0) {
   asm volatile("movl %%eax, %%cr0\n" ::"a"(cr0));
 }
+
 void SwitchPublic() {
   public_catch = 1;
 }
+
 void SwitchPrivate() {
   public_catch = 0;
 }
+
 void disableExp() {
   if (public_catch) {
     DisableExpFlag = 1;
@@ -33,6 +37,7 @@ void disableExp() {
     current_task()->DisableExpFlag = 1;
   }
 }
+
 void EnableExp() {
   if (public_catch) {
     DisableExpFlag = 0;
@@ -40,6 +45,7 @@ void EnableExp() {
     current_task()->DisableExpFlag = 0;
   }
 }
+
 char GetExpFlag() {
   // printk("Get.\n");
   if (public_catch) {
@@ -48,6 +54,7 @@ char GetExpFlag() {
     return current_task()->flagOfexp;
   }
 }
+
 void ClearExpFlag() {
   if (public_catch) {
     flagOfexp = 0;
@@ -55,6 +62,7 @@ void ClearExpFlag() {
     current_task()->flagOfexp = 0;
   }
 }
+
 void SetCatchEip(u32 eip) {
   // printk("eip = %08x\n",eip);
   if (public_catch) {
@@ -63,6 +71,7 @@ void SetCatchEip(u32 eip) {
     current_task()->CatchEIP = eip;
   }
 }
+
 void print_32bits_ascil(u32 n);
 
 void insert_char(char *str, int pos, char ch) {
@@ -78,10 +87,12 @@ void delete_char(char *str, int pos) {
     str[i] = str[i + 1];
   }
 }
+
 mtask *last_fpu_task = NULL;
 void   fpu_disable() {
   set_cr0(get_cr0() | (CR0_EM | CR0_TS));
 }
+
 void fpu_enable(mtask *task) {
   set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
   if (!task->fpu_flag) {
@@ -95,10 +106,12 @@ void fpu_enable(mtask *task) {
   }
   task->fpu_flag = 1;
 }
+
 void ERROR(int CODE, char *TIPS) {
   asm_cli;
   while (true) {}
 }
+
 #define _ERROR(_code_, _tips_)                                                                     \
   void ERROR##_code_(u32 eip) {                                                                    \
     u32 *esp = &eip;                                                                               \
@@ -128,7 +141,8 @@ _ERROR(19, "#XF");
 
 #undef _ERROR
 
-int  dflag = 0;
+int dflag = 0;
+
 bool has_fpu_error() {
   dflag = 0;
   u16 status_word;
@@ -136,6 +150,7 @@ bool has_fpu_error() {
   dflag = 1;
   return (status_word & 0x1F) != 0;
 }
+
 void ERROR7(u32 eip) {
   if (current_task()->fpu_flag > 1 || current_task()->fpu_flag < 0) {
     set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
@@ -154,6 +169,7 @@ void KILLAPP(int eip, int ec) {
   while (true)
     ;
 }
+
 void KILLAPP0(int ec, int tn) {
   return;
 }

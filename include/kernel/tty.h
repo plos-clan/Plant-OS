@@ -2,6 +2,7 @@
 #include <define.h>
 #include <kernel/screen.h>
 #include <type.h>
+
 struct tty {
   int   is_using;                                     // 使用标志
   void *vram;                                         // 显存（也可以当做图层）
@@ -31,6 +32,7 @@ struct tty {
   vt100_mode_t mode;        // 控制模式
   int          color_saved; // 保存的颜色
 };
+
 struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct tty *res, int c),
                       void (*MoveCursor)(struct tty *res, int x, int y),
                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
@@ -38,12 +40,13 @@ struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct t
                                        unsigned char color),
                       int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res));
 void        init_tty();
+
 // textmode
-void        MoveCursor_TextMode(struct tty *res, int x, int y);
-void        putchar_TextMode(struct tty *res, int c);
-void        screen_ne_TextMode(struct tty *res);
-void        clear_TextMode(struct tty *res);
-void        Draw_Box_TextMode(struct tty *res, int x, int y, int x1, int y1, u8 color);
-void        AddShell_TextMode();
-void        SwitchShell_TextMode(int i);
-bool        now_tty_TextMode(struct tty *res);
+void MoveCursor_TextMode(struct tty *res, int x, int y);
+void putchar_TextMode(struct tty *res, int c);
+void screen_ne_TextMode(struct tty *res);
+void clear_TextMode(struct tty *res);
+void Draw_Box_TextMode(struct tty *res, int x, int y, int x1, int y1, u8 color);
+void AddShell_TextMode();
+void SwitchShell_TextMode(int i);
+bool now_tty_TextMode(struct tty *res);

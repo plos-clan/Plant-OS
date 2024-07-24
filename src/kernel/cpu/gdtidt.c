@@ -1,6 +1,8 @@
 #include <kernel.h>
+
 void null_inthandler();
 void ide_irq();
+
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
@@ -24,7 +26,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) 
   return;
 }
 
-void init_gdtidt(void) {
+void init_gdtidt() {
   struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
   struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
   int                        i;
@@ -93,8 +95,8 @@ void init_gdtidt(void) {
                AR_INTGATE32); // IDE中断
   set_gatedesc(idt + 0x30, (int)asm_net_api, 2 * 8,
                AR_INTGATE32 | 3 << 5); // NET API
-  return;
 }
+
 // 注册中断处理函数
 void register_intr_handler(int num, int addr) {
   struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;

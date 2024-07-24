@@ -1,10 +1,12 @@
 #pragma once
 #include <define.h>
 #include <type.h>
+
 typedef struct {
   u32 eax, ebx, ecx, edx, esi, edi, ebp;
   u32 eip;
 } stack_frame;
+
 typedef struct intr_frame_t {
   unsigned edi;
   unsigned esi;
@@ -70,6 +72,7 @@ struct TSS32 {
   int es, cs, ss, ds, fs, gs;
   int ldtr, iomap;
 };
+
 #define ADR_IDT      0x0026f800
 #define LIMIT_IDT    0x000007ff
 #define ADR_GDT      0x00270000
@@ -88,11 +91,13 @@ struct SEGMENT_DESCRIPTOR {
   char base_mid, access_right;
   char limit_high, base_high;
 };
+
 struct GATE_DESCRIPTOR {
   i16  offset_low, selector;
   char dw_count, access_right;
   i16  offset_high;
 };
+
 enum {
   CR0_PE = 1 << 0, // Protection Enable 启用保护模式
   CR0_MP = 1 << 1, // Monitor Coprocessor
@@ -106,8 +111,10 @@ enum {
   CR0_CD = 1 << 30, // Cache Disable 禁用内存缓冲
   CR0_PG = 1 << 31, // Paging 启用分页
 };
+
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
+
 void asm_error0();
 void asm_error1();
 void asm_error3();
@@ -125,18 +132,24 @@ void asm_error14();
 void asm_error16();
 void asm_error17();
 void asm_error18();
+
 void asm_inthandler36();
 void asm_inthandler72();
+
 void asm_gui_api();
 void asm_net_api();
+
 void asm_inthandler2c();
 void asm_inthandler20();
 void asm_inthandler21();
+
 void asm_ide_irq();
+
 typedef struct {
   u16 di, si, bp, sp, bx, dx, cx, ax;
   u16 gs, fs, es, ds, eflags;
 } regs16_t;
+
 void int32(u8 intnum, regs16_t *regs);
 void INT(u8 intnum, regs16_t *regs);
 void do_init_seg_register();

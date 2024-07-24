@@ -1,9 +1,9 @@
 #include <kernel.h>
+
 #define PIT_CTRL 0x0043
 #define PIT_CNT0 0x0040
 
 struct TIMERCTL timerctl;
-void            fpu_disable();
 
 #define TIMER_FLAGS_ALLOC 1 /* 已配置状态 */
 #define TIMER_FLAGS_USING 2 /* 定时器运行中 */
@@ -15,7 +15,6 @@ void init_pit() {
   asm_out8(0x43, 0x34);
   asm_out8(0x40, 0x9c);
   asm_out8(0x40, 0x2e);
-
   int           i;
   struct TIMER *t;
   timerctl.count = 0;
@@ -39,13 +38,12 @@ struct TIMER *timer_alloc() {
       return &timerctl.timers0[i];
     }
   }
-  return 0; /* 没找到 */
+  return null; /* 没找到 */
 }
 
 void timer_free(struct TIMER *timer) {
   timer->flags  = 0; /* 未使用 */
   timer->waiter = NULL;
-  return;
 }
 
 void timer_init(struct TIMER *timer, circular_queue_t queue, u8 data) {
@@ -102,7 +100,8 @@ u32        mt2flag     = 0;
 int        g           = 0;
 static u32 count       = 0;
 uint64_t   global_time = 0;
-void       inthandler20(int cs, int *esp) {
+
+void inthandler20(int cs, int *esp) {
   // printk("CS:EIP=%04x:%08x\n",current_task()->tss.cs,esp[-10]);
   asm_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
   extern mtask *current;

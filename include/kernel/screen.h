@@ -1,4 +1,5 @@
 #pragma once
+
 typedef enum {
   MODE_A = 'A',
   MODE_B = 'B',

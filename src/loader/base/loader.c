@@ -7,6 +7,7 @@ bool elf32Validate(Elf32_Ehdr *hdr) {
   return hdr->e_ident[EI_MAG0] == ELFMAG0 && hdr->e_ident[EI_MAG1] == ELFMAG1 &&
          hdr->e_ident[EI_MAG2] == ELFMAG2 && hdr->e_ident[EI_MAG3] == ELFMAG3;
 }
+
 void load_segment(Elf32_Phdr *phdr, void *elf) {
   logf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
   memcpy((void *)phdr->p_vaddr, elf + phdr->p_offset, phdr->p_filesz);
@@ -14,6 +15,7 @@ void load_segment(Elf32_Phdr *phdr, void *elf) {
     memset((void *)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
   }
 }
+
 u32 load_elf(Elf32_Ehdr *hdr) {
   Elf32_Phdr *phdr = (Elf32_Phdr *)((u32)hdr + hdr->e_phoff);
   for (int i = 0; i < hdr->e_phnum; i++) {
@@ -22,6 +24,7 @@ u32 load_elf(Elf32_Ehdr *hdr) {
   }
   return hdr->e_entry;
 }
+
 void read_pci_class(u8 bus, u8 device, u8 function, u8 *class_code, u8 *subclass_code) {
   // 读取设备类别和子类别寄存器的值
   u32 class_register = read_pci(bus, device, function, 0x08);
@@ -29,6 +32,7 @@ void read_pci_class(u8 bus, u8 device, u8 function, u8 *class_code, u8 *subclass
   *class_code    = (class_register >> 24) & 0xFF;
   *subclass_code = (class_register >> 16) & 0xFF;
 }
+
 int is_ide_device(u8 bus, u8 device, u8 function) {
   u8 class_code, subclass_code;
   // 读取设备类别和子类别
@@ -40,7 +44,9 @@ int is_ide_device(u8 bus, u8 device, u8 function) {
     return 0; // 不是IDE设备
   }
 }
-int  get_vdisk_type(char drive);
+
+int get_vdisk_type(char drive);
+
 void DOSLDR_MAIN() {
   struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
   u32            memtotal;
@@ -116,6 +122,7 @@ void DOSLDR_MAIN() {
   // printf("ESP:%08x\n", *(u32 *)(0x00280000 + 12));
   _IN(2 * 8, entry);
 }
+
 struct TASK *NowTask() {
   return &MainTask;
 }

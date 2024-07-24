@@ -1,6 +1,7 @@
 #pragma once
 #include <define.h>
 #include <type.h>
+
 #define PG_P          1
 #define PG_USU        4
 #define PG_RWW        2
@@ -11,10 +12,12 @@
 #define PAGE_END      (PTE_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
 #define NULL_TID      11459810
+
 struct PAGE_INFO {
   u8 task_id;
   u8 count;
 } __PACKED__;
+
 int   get_line_address(int t, int p, int o);
 u32   page_get_attr(unsigned vaddr);
 u32   page_get_attr_pde(u32 vaddr, u32 pde);

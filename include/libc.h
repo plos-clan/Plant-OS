@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #include "libc/asm/asm.h"
+#include "libc/asm/cr0.h"
 #include "libc/asm/flag.h"
 #include "libc/asm/io.h"
 #include "libc/asm/syscall-linux-x64.h"

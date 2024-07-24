@@ -7,6 +7,16 @@ typedef void *(*cb_reqmem_t)(size_t size);
 // 将内存交还给系统
 typedef void (*cb_delmem_t)(void *ptr, size_t size);
 
+// 内存分配区的块结构
+
+finline size_t blk_getsize(void *ptr) {
+  return ((size_t *)ptr)[-1] & ~(size_t)1;
+}
+finline void blk_setsize(void *ptr, size_t size) {
+  ((size_t *)ptr)[-1]          = size;
+  ((size_t *)(ptr + size))[-1] = size;
+}
+
 typedef struct alloc_area {
   void  *ptr;  // 指向分配区的指针
   size_t size; // 分配区的大小
@@ -25,7 +35,7 @@ void alloc_area_init(alloc_area_t area) {
 }
 
 size_t alloc_area_msize(alloc_area_t area, void *ptr) {
-  return *((size_t *)ptr - 1);
+  return blk_getsize(ptr);
 }
 
 void *alloc_area_alloc(alloc_area_t area, size_t size) {}

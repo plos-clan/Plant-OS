@@ -40,4 +40,4 @@
 #  endif
 #endif
 
-dlimport u32 color_from_name(cstr name);
+// dlimport u32 color_from_name(cstr name);

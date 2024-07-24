@@ -58,9 +58,7 @@ u32 memman_total(struct MEMMAN *man)
   return t;
 }
 
-u32 memman_alloc(struct MEMMAN *man, u32 size)
-/* 分配 */
-{
+u32 memman_alloc(struct MEMMAN *man, u32 size) { // 分配
   u32 i, a;
   for (i = 0; i < man->frees; i++) {
     if (man->free[i].size >= size) {
@@ -83,9 +81,7 @@ u32 memman_alloc(struct MEMMAN *man, u32 size)
   return 0; /* 没有可用空间 */
 }
 
-int memman_free(struct MEMMAN *man, u32 addr, u32 size)
-/* 释放 */
-{
+int memman_free(struct MEMMAN *man, u32 addr, u32 size) { // 释放
   int i, j;
   /* 为便于归纳内存，将free[]按照addr的顺序排列 */
   /* 所以，先决定应该放在哪里 */
@@ -155,22 +151,26 @@ int memman_free_4k(struct MEMMAN *man, u32 addr, u32 size) {
   i    = memman_free(man, addr, size);
   return i;
 }
+
 void *page_malloc(int size) {
   struct MEMMAN *man = (struct MEMMAN *)MEMMAN_ADDR;
   int            p   = (int)memman_alloc_4k(man, size);
   clean((char *)p, size);
   return (void *)p;
 }
+
 void page_free(void *p, int size) {
   struct MEMMAN *man = (struct MEMMAN *)MEMMAN_ADDR;
   memman_free_4k(man, (u32)p, size);
 }
+
 void *malloc(size_t size) {
   void *p = page_malloc(size + sizeof(int));
   if (p == 0) return 0;
   *(int *)p = size;
   return p + sizeof(int);
 }
+
 void free(void *p) {
   if (p == 0) return;
   int size = *(int *)((char *)p - sizeof(int));

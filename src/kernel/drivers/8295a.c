@@ -30,7 +30,6 @@ void send_eoi(int irq) {
 void irq_mask_clear(u8 irq) {
   u16 port;
   u8  value;
-
   if (irq < 8) {
     port = PIC0_IMR;
   } else {
@@ -44,7 +43,6 @@ void irq_mask_clear(u8 irq) {
 void irq_mask_set(u8 irq) {
   u16 port;
   u8  value;
-
   if (irq < 8) {
     port = PIC0_IMR;
   } else {
