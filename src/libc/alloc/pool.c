@@ -24,7 +24,7 @@ dlexport bool mpool_init(mpool_t pool, void *ptr, size_t size) {
 }
 dlexport void *mpool_alloc(mpool_t pool, size_t size) {
   size = PADDING(size);
-  void *freelists_match(pool->freed, size);
+  // void *freelists_match(pool->freed, size);
 }
 dlexport void   mpool_free(mpool_t pool, void *ptr) {}
 dlexport size_t mpool_msize(mpool_t pool, void *ptr) {}
