@@ -5,7 +5,6 @@
 
 int              init_ok_flag = 0;
 struct MOUSE_DEC mdec;
-memory          *public_heap;
 u32              memsize;
 u8              *IVT;
 
@@ -43,8 +42,8 @@ void sysinit() {
   irq_mask_clear(0);
   irq_mask_clear(1);
   asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
-  void *heap  = page_malloc(128 * 1024 * 1024);
-  public_heap = memory_init((u32)heap, 128 * 1024 * 1024);
+  void *heap = page_malloc(128 * 1024 * 1024);
+  memory_init(heap, 128 * 1024 * 1024);
 
   // size_t old_count = timerctl.count;
   // logw("%d", old_count);

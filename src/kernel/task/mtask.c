@@ -40,7 +40,6 @@ static void init_task(mtask *t, int id) {
   t->line             = NULL;
   t->timer            = NULL;
   t->nfs              = NULL;
-  t->mm               = NULL;
   t->waittid          = -1;
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
@@ -284,7 +283,6 @@ void task_kill(u32 tid) {
   m[tid].jiffies    = 0;
   m[tid].timer      = NULL;
   m[tid].nfs        = NULL;
-  m[tid].mm         = NULL;
   m[tid].waittid    = -1;
   m[tid].state      = WILL_EMPTY;
   m[tid].alloc_addr = 0;
@@ -469,7 +467,6 @@ void task_exit(u32 status) {
   m[tid].jiffies    = 0;
   m[tid].timer      = NULL;
   m[tid].nfs        = NULL;
-  m[tid].mm         = NULL;
   m[tid].waittid    = -1;
   m[tid].state      = DIED;
   m[tid].alloc_addr = 0;

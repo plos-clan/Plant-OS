@@ -35,7 +35,6 @@ struct __PACKED__ mtask {
   uint64_t         jiffies;
   struct vfs_t    *nfs;
   uint64_t         tid, ptid;
-  memory          *mm;
   u32              alloc_addr;
   u32             *alloc_size;
   u32              alloced;
