@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <cpu.h>
 
 void init_pic(void) {
   asm_out8(PIC0_IMR, 0xff); /* 初始化，所有中断均被屏蔽 */

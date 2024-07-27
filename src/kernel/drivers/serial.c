@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <cpu.h>
 
 #define PORT 0x3f8 // COM1
 

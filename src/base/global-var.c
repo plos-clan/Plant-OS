@@ -1,4 +1,5 @@
-#include <libc.h>
+#include <define.h>
+#include <stdlib/xtoa.h>
 
 dlexport char _plos_c_xtoa_buf[_plos_c_xtoa_buf_len];
 

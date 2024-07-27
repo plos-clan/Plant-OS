@@ -6,8 +6,8 @@ def run(command, debug = False):
         else:
                 subprocess.Popen(command.split(" "))
 def build(cc, nasm = "nasm", ar = "ar", debug = False):
-        cc += ' -Iinclude/libc'
-        for root, dirs, files in os.walk('src/libc', topdown=False):
+        cc += ' -Iinclude/base'
+        for root, dirs, files in os.walk('src/base', topdown=False):
                 for filename in files:
                         filebasename, fileext = os.path.splitext(filename)
                         if fileext == '.c':
@@ -51,13 +51,13 @@ def build(cc, nasm = "nasm", ar = "ar", debug = False):
                                                 bakfile.write(srcfile.read())
 
         objfile_list = []
-        for root, dirs, files in os.walk('build/src/libc'):
+        for root, dirs, files in os.walk('build/src/base'):
                 for filename in files:
                         filebasename, fileext = os.path.splitext(filename)
                         if fileext == '.o':
                                 objfile_list.append(root + '/' + filename)
         retcode = os.system(
-                f"{ar} rv build/src/libc/libc.a {' '.join(objfile_list)}"
+                f"{ar} rv build/src/base/base.a {' '.join(objfile_list)}"
         )
         if retcode > 0:
                 raise "Linker Error"

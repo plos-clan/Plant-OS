@@ -1,5 +1,6 @@
 #include "kernel/tty.h"
 #include <kernel.h>
+#include <cpu.h>
 
 int              init_ok_flag = 0;
 struct MOUSE_DEC mdec;

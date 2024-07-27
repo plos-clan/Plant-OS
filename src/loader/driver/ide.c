@@ -1,4 +1,6 @@
 #include <dosldr.h>
+#include <cpu.h>
+
 static inline void nul(char *f, ...) {}
 #define printk nul
 u8 ide_read(u8 channel, u8 reg);

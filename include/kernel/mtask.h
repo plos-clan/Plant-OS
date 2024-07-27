@@ -1,9 +1,9 @@
 #pragma once
+#include <base/data-structure/circular-queue.h>
 #include <define.h>
-#include <kernel/cpu.h>
+#include <cpu.h>
 #include <kernel/ipc.h>
 #include <kernel/mem.h>
-#include <libc.h>
 #include <type.h>
 
 #define SIGINT     0

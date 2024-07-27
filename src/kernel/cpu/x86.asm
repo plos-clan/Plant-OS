@@ -67,7 +67,7 @@ mts_loop:
 		MOV		[EBX],EDX				; *p = old;
 		ADD		EAX,[testsize]			; i += testsize;
 		CMP		EAX,[ESP+12+8]			; if (i <= end) goto mts_loop;
-		
+
 		JBE		mts_loop
 		STI
 		POP		EBX
@@ -106,24 +106,24 @@ out dx,al
 inc dx;03d5h是数据端口用于读写数据
 in al,dx;读取光标的高八位并且放入bh
 mov bh,al
- 
+
 dec dx;这儿开始读取光标位置的低八位放入bl
 mov al,0fh;0fh位置存放着光标位置的低八位
 out  dx,al
 inc dx
 in al,dx
 mov bl,al
- 
- 
+
+
 mov word bx,[esp+4]   ;获取参数中的光标位置
- 
+
 mov  dx,03d4h;这段代码将改变后的光标位置写入端口内相应的地方以便下次访问
 mov al,0eh;写入光标位置高八位
 out dx,al
 inc dx
 mov al,bh
 out dx,al
- 
+
 dec dx
 mov al,0fh    ;写入光标位置低八位
 out dx,al
@@ -169,7 +169,7 @@ delay1:
      pop cx
      pop bx
      pop ax
-     ret 
+     ret
 ;--------------------------
 waitf:
       push ax
@@ -292,7 +292,7 @@ task_switch:
 	mov eax,[current]
 	mov [eax],esp ; 保存esp
 	mov eax,[ebp + 8] ; next
-	mov [current],eax 
+	mov [current],eax
 	mov esp,[eax]
 	mov eax,[eax+4]
 	mov cr3,eax
@@ -306,7 +306,7 @@ task_switch:
 	ret
 task_start:
 	mov eax,[esp + 4 ] ; next
-	mov [current],eax 
+	mov [current],eax
 	mov esp,[eax]
 	mov eax,[eax+4]
 	mov cr3,eax

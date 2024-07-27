@@ -7,7 +7,6 @@ extern "C" {
 #include "dosldr/8295a.h"
 #include "dosldr/ahci.h"
 #include "dosldr/cmos.h"
-#include "dosldr/cpu.h"
 #include "dosldr/debug.h"
 #include "dosldr/dma.h"
 #include "dosldr/fdc.h"

@@ -1,5 +1,5 @@
 #pragma once
-#include <libc.h>
+#include <base.h>
 
 // 终端颜色序号
 enum {

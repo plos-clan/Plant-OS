@@ -1,7 +1,8 @@
 #include <define.h>
 #include <kernel.h>
-#include <libc.h>
+#include <base.h>
 #include <type.h>
+#include <cpu.h>
 
 #define IDX(addr)  ((u32)addr >> 12)           // 获取 addr 的页索引
 #define DIDX(addr) (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引

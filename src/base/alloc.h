@@ -1,5 +1,7 @@
 #pragma once
-#include <libc.h>
+#include <base/thread/spin.h>
+#include <define.h>
+#include <type.h>
 
 // 向系统请求内存
 // 每次请求时 size 均为 page_size 的整数倍

@@ -1,5 +1,7 @@
 #include <ELF.h>
 #include <dosldr.h>
+#include <cpu.h>
+
 void        _IN(int cs, int eip);
 struct TASK MainTask;
 

@@ -70,11 +70,11 @@ def build_boot():
                 print(e)
                 exit()
 
-def build_libc():
-        import src.libc.make
-        print("Building libc...")
+def build_base():
+        import src.base.make
+        print("Building libbase...")
         try:
-                src.libc.make.build(cc,
+                src.base.make.build(cc,
                         nasm=args.nasm_path,
                         ar=args.ar,
                         debug=args.debug)
@@ -114,7 +114,7 @@ def build():
         if not os.path.exists("build"):
                 os.mkdir("build")
         build_boot()
-        build_libc()
+        build_base()
         build_loader()
         build_kernel()
 

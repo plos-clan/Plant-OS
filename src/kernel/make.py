@@ -56,7 +56,7 @@ def build(cc, nasm = "nasm", ld = "ld", debug = False):
                         if fileext == '.o':
                                 objfile_list.append(root + '/' + filename)
         retcode = os.system(
-                f"{ld} -m elf_i386 -Ttext 0x280000 -e kernel_main {' '.join(objfile_list)} build/src/libc/libc.a -o build/src/kernel/kernel.bin"
+                f"{ld} -m elf_i386 -Ttext 0x280000 -e kernel_main {' '.join(objfile_list)} build/src/base/base.a -o build/src/kernel/kernel.bin"
         )
         if retcode > 0:
                 raise "Linker Error"

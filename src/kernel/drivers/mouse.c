@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <cpu.h>
 
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE     0xf4

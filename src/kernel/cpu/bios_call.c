@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <cpu.h>
 
 void INT(u8 intnum, regs16_t *regs) {
   extern u8                 *IVT;

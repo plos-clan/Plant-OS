@@ -58,7 +58,7 @@ def build(cc, nasm = "nasm", ld = "ld", debug = False):
                                 objfile_list.append(root + '/' + filename)
 
         retcode = os.system(
-                f"{ld} -Ttext 0x100000 -m elf_i386 -e loader_main {' '.join(objfile_list)} build/src/libc/libc.a -o build/src/loader/dosldr.bin"
+                f"{ld} -Ttext 0x100000 -m elf_i386 -e loader_main {' '.join(objfile_list)} build/src/base/base.a -o build/src/loader/dosldr.bin"
         )
         if retcode > 0:
                 raise "Linker Error"

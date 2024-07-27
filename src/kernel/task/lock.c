@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <cpu.h>
 
 void mtask_stop();
 void mtask_start();

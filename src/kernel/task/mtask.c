@@ -1,5 +1,6 @@
 #include "type.h"
 #include <kernel.h>
+#include <cpu.h>
 #define STACK_SIZE 1024 * 1024
 void         free_pde(u32 addr);
 char         default_drive, default_drive_number;

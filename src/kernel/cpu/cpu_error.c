@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <cpu.h>
 
 int  DisableExpFlag = 0;
 u32  CatchEIP       = 0;

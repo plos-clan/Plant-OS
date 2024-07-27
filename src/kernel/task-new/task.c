@@ -1,4 +1,6 @@
-#include <libc.h>
+#include <base.h>
+#include <type.h>
+#include <define.h>
 
 rbtree_t threads;
 rbtree_t processes;
