@@ -381,6 +381,22 @@ void free(void *p) {
   mem_free(public_heap, (char *)p - sizeof(int), size + sizeof(int));
 }
 
+// struct mpool pool;
+
+// memory *memory_init(u32 start, u32 size) {
+//   mpool_init(&pool, (void *)start, size);
+//   logd("%p %d %p", pool.ptr, pool.size, pool.large_blk);
+//   return null;
+// }
+
+// void *malloc(size_t size) {
+//   return mpool_alloc(&pool, size);
+// }
+
+// void free(void *ptr) {
+//   mpool_free(&pool, ptr);
+// }
+
 void *realloc(void *ptr, u32 size) {
   void *new = malloc(size);
   if (ptr) {

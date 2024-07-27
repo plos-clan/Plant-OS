@@ -16,6 +16,19 @@ void abort() {
   }
 }
 
+static unsigned int rand_seed = 1;
+
+int rand() {
+  rand_seed ^= rand_seed << 13;
+  rand_seed ^= rand_seed >> 17;
+  rand_seed ^= rand_seed << 5;
+  return rand_seed & INT32_MAX;
+}
+
+void srand(unsigned int seed) {
+  rand_seed = seed;
+}
+
 #ifdef __clang__
 #  pragma clang optimize off
 #endif
@@ -32,6 +45,36 @@ void sysinit() {
   asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
   void *heap  = page_malloc(128 * 1024 * 1024);
   public_heap = memory_init((u32)heap, 128 * 1024 * 1024);
+
+  // size_t old_count = timerctl.count;
+  // logw("%d", old_count);
+
+  // #define M 2048
+  // #define N (32 * 1024 * 1024)
+  //   srand(114514);
+  //   static void *ptr_list[M];
+  //   for (size_t i = 0; i < M; i++) {
+  //     ptr_list[i] = malloc(rand() % 256);
+  //     // logd("step 1: %d alloced: %p", i, ptr_list[i]);
+  //   }
+  //   for (size_t i = 0; i < N; i++) {
+  //     size_t n = rand() % M;
+  //     free(ptr_list[n]);
+  //     // logd("step 2: %d:%d freed: %p", i, n, ptr_list[n]);
+  //     ptr_list[n] = malloc(rand() % 256);
+  //     // logd("step 2: %d:%d alloced: %p", i, n, ptr_list[n]);
+  //     if (ptr_list[n] != null && ptr_list[n] < heap || ptr_list[n] > heap + 128 * 1024 * 1024) {
+  //       fatal();
+  //     }
+  //   }
+  //   for (size_t i = 0; i < M; i++) {
+  //     free(ptr_list[i]);
+  //     // logd("step 3: %d freed: %p", i, ptr_list[i]);
+  //   }
+
+  // size_t new_count = timerctl.count;
+  // logw("%d", new_count);
+  // fatal("%d", new_count - old_count);
 
   init_pit();
   init_tty();

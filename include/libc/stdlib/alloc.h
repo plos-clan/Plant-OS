@@ -19,11 +19,17 @@ dlimport void  *valloc(size_t size);
 
 // 向系统请求内存
 // 每次请求时 size 均为 page_size 的整数倍
-typedef void *(*cb_reqmem_t)(size_t size);
+typedef void *(*cb_reqmem_t)(void *ptr, size_t size);
 // 将内存交还给系统
 typedef void (*cb_delmem_t)(void *ptr, size_t size);
 
 // freelist
+
+#define FREELISTS_NUM 8
+
+typedef struct freelist *freelist_t;
+
+typedef freelist_t freelists_t[FREELISTS_NUM];
 
 //
 
@@ -75,9 +81,19 @@ dlexport void sized_mpool_free(sized_mpool_t pool, void *ptr);
  */
 dlexport bool sized_mpool_inpool(sized_mpool_t pool, void *ptr);
 
-typedef struct mpool *mpool_t;
+typedef struct mpool {
+  void       *ptr;          // 指向内存区的指针
+  size_t      size;         // 内存区总大小
+  size_t      alloced_size; //
+  cb_reqmem_t cb_reqmem;    //
+  cb_delmem_t cb_delmem;    //
+  freelist_t  large_blk;    //
+  freelists_t freed;        //
+} *mpool_t;
 
-dlimport void  *mpool_setcb(mpool_t pool, cb_reqmem_t reqmem, cb_delmem_t delmem);
+dlimport bool   mpool_init(mpool_t pool, void *ptr, size_t size);
+dlimport size_t mpool_alloced_size(mpool_t pool);
+dlimport void   mpool_setcb(mpool_t pool, cb_reqmem_t reqmem, cb_delmem_t delmem);
 dlimport void  *mpool_alloc(mpool_t pool, size_t size);
 dlimport void   mpool_free(mpool_t pool, void *ptr);
 dlimport size_t mpool_msize(mpool_t pool, void *ptr); // 获取分配的内存的大小

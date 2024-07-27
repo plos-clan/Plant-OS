@@ -3,17 +3,12 @@
 
 #include "block.h"
 
-#define FREELISTS_NUM 8
-
 #define FREELIST_MAXBLKSIZE 16384
 
-typedef struct freelist *freelist_t;
 struct freelist {
   freelist_t next;
   freelist_t prev;
 };
-
-typedef freelist_t freelists_t[FREELISTS_NUM];
 
 //; 获取该大小属于freelists中的哪个list
 finline int freelists_size2id(size_t size) {
@@ -21,6 +16,13 @@ finline int freelists_size2id(size_t size) {
   if (size < 256) return 1;
   if (size >= 16384) return -1;
   return (32 - 9) - clz((u32)size) + 2;
+}
+
+finline freelist_t freelist_detach(freelist_t list, freelist_t ptr) {
+  if (list == ptr) return ptr->next;
+  if (ptr->next) ptr->next->prev = ptr->prev;
+  if (ptr->prev) ptr->prev->next = ptr->next;
+  return list;
 }
 
 /**
@@ -31,7 +33,7 @@ finline int freelists_size2id(size_t size) {
  *\param ptr      param
  *\return value
  */
-finline void *freelist_detach(freelists_t lists, int id, freelist_t ptr) {
+finline void *freelists_detach(freelists_t lists, int id, freelist_t ptr) {
   if (lists[id] == ptr) {
     lists[id] = ptr->next;
     return ptr;
@@ -40,6 +42,17 @@ finline void *freelist_detach(freelists_t lists, int id, freelist_t ptr) {
   if (ptr->next) ptr->next->prev = ptr->prev;
   if (ptr->prev) ptr->prev->next = ptr->next;
   return ptr;
+}
+
+finline void *freelist_match(freelist_t *list_p, size_t size) {
+  for (freelist_t list = *list_p; list != null; list = list->next) {
+    size_t tgt_size = blk_size(list);
+    if (tgt_size >= size) {
+      *list_p = freelist_detach(*list_p, list);
+      return list;
+    }
+  }
+  return null;
 }
 
 /**
@@ -55,10 +68,18 @@ finline void *freelists_match(freelists_t lists, size_t size) {
   for (; id < FREELISTS_NUM; id++) {
     for (freelist_t list = lists[id]; list != null; list = list->next) {
       size_t tgt_size = blk_size(list);
-      if (tgt_size >= size) return freelist_detach(lists, id, list);
+      if (tgt_size >= size) return freelists_detach(lists, id, list);
     }
   }
   return null;
+}
+
+finline freelist_t freelist_put(freelist_t list, freelist_t ptr) {
+  ptr->next = list;
+  ptr->prev = null;
+  list      = ptr;
+  if (ptr->next) ptr->next->prev = ptr;
+  return list;
 }
 
 /**

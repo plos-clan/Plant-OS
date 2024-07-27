@@ -7,7 +7,8 @@
 #define SIZE_FLAG ((size_t)4)
 #define FLAG_BITS ((size_t)7) // 所有标志位
 
-#define PADDING(size) (((size) + sizeof(size_t) - 1) & ~sizeof(size_t))
+#define PADDING(size)     (((size) + 2 * sizeof(size_t) - 1) & ~(2 * sizeof(size_t) - 1))
+#define PADDING_16k(size) (((size) + 16384 - 1) & ~(size_t)(16384 - 1))
 
 #define blk_prevtail(ptr)       (((size_t *)ptr)[-2])
 #define blk_head(ptr)           (((size_t *)ptr)[-1])
@@ -71,23 +72,35 @@ finline void *blk_next(void *ptr) {
   return ptr + size + 2 * sizeof(size_t);
 }
 
-finline void *blk_mergeprev(void *ptr) {
+finline void *blk_mergeprev(void *ptr, void (*detach)(void *pool, void *ptr), void *pool) {
   void  *prev = blk_prev(ptr);
   size_t size = blk_size(ptr) + blk_size(prev) + 2 * sizeof(size_t);
-  // TODO 从空闲链表删除
+  if (detach) detach(pool, prev);
   blk_setsize(prev, size);
   return prev;
 }
-finline void *blk_mergenext(void *ptr) {
+finline void *blk_mergenext(void *ptr, void (*detach)(void *pool, void *ptr), void *pool) {
   void  *next = blk_next(ptr);
   size_t size = blk_size(ptr) + blk_size(next) + 2 * sizeof(size_t);
-  // TODO 从空闲链表删除
+  if (detach) detach(pool, next);
   blk_setsize(ptr, size);
   return ptr;
 }
-finline void *blk_trymerge(void *ptr) {
+finline void *blk_trymerge(void *ptr, void (*detach)(void *pool, void *ptr), void *pool) {
   size_t size = blk_size(ptr);
-  if (!blk_nonext(ptr, size) && blk_nexthead(ptr, size) & FREE_FLAG) ptr = blk_mergenext(ptr);
-  if (!blk_noprev(ptr) && blk_prevtail(ptr) & FREE_FLAG) ptr = blk_mergeprev(ptr);
+  if (!blk_nonext(ptr, size) && (blk_nexthead(ptr, size) & FREE_FLAG)) { //
+    ptr = blk_mergenext(ptr, detach, pool);
+  }
+  if (!blk_noprev(ptr) && (blk_prevtail(ptr) & FREE_FLAG)) { //
+    ptr = blk_mergeprev(ptr, detach, pool);
+  }
   return ptr;
+}
+
+finline void *blk_split(void *ptr, size_t size) {
+  size_t oldsize = blk_size(ptr);
+  blk_setsize(ptr, size);
+  size_t offset = size + 2 * sizeof(size_t);
+  blk_setsize(ptr + offset, oldsize - offset);
+  return ptr + offset;
 }

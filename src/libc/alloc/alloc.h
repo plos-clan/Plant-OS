@@ -46,19 +46,6 @@ void alloc_area_free(alloc_area_t area, void *ptr) {
 
 void *mpool_single_alloc() {}
 
-typedef struct {
-  spin_t       spin;
-  size_t       page_size;
-  alloc_area_t main_area;
-  cb_reqmem_t  cb_reqmem;
-  cb_delmem_t  cb_delmem;
-} *mpool_t;
-
-static void *sys_reqqmem(mpool_single_t pool, size_t size) {
-  if (pool->cb_reqmem == null) return null;
-  return pool->cb_reqmem((size + pool->page_size - 1) & ~(pool->page_size - 1));
-}
-
 typedef struct mman {
 } mman_t;
 
@@ -71,12 +58,6 @@ typedef struct afarray {
   } data[afrray_len];
   struct afarray *next; // 下一项
 } *afarray_t;
-
-dlimport void  *mpool_alloc(mpool_t *pool, size_t size);
-dlimport void   mpool_free(mpool_t *pool, void *ptr);
-dlimport size_t mpool_msize(mpool_t *pool, void *ptr); // 获取分配的内存的大小
-dlimport size_t mpool_total_size(mpool_t *pool);       // 占用的内存总大小
-dlimport size_t mpool_alloced_size(mpool_t *pool);     // 分配的内存总大小
 
 dlexport void *malloc(size_t size) {
   return null;
