@@ -3,9 +3,9 @@
 
 dlimport void logk_raw(cstr s);
 
-dlimport int logk(cstr _rest fmt, ...);
+dlimport void logk(cstr _rest fmt, ...);
 
-dlimport int log_printf(cstr _rest fmt, ...);
+dlimport void log_printf(cstr _rest fmt1, cstr _rest fmt2, ...);
 
 #undef __LOG
 #define __LOG(type, fmt, ...)                                                                      \
@@ -21,7 +21,7 @@ dlimport int log_printf(cstr _rest fmt, ...);
 #define _COLOR_INFO  "\033[1;32m"
 #define _COLOR_WARN  "\033[1;33m"
 #define _COLOR_ERROR "\033[1;31m"
-#define _COLOR_FATAL "\033[31m"
+#define _COLOR_FATAL "\033[1;31m"
 
 #define _STR_DEBUG "[" _COLOR_DEBUG "Debug" CEND "] "
 #define _STR_INFO  "[" _COLOR_INFO "Info " CEND "] "
@@ -35,9 +35,6 @@ dlimport int log_printf(cstr _rest fmt, ...);
 
 #undef _LOG
 #define _LOG(type, fmt, ...)                                                                       \
-  ({                                                                                               \
-    logk(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n", ARG_LOGINFO,             \
-         ##__VA_ARGS__);                                                                           \
-    log_printf(CONCAT(_STR, type) _STR_LOGINFO CONCAT(_COLOR, type) fmt CEND "\n", ARG_LOGINFO,    \
-               ##__VA_ARGS__);                                                                     \
-  })
+  log_printf(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n",                      \
+             CONCAT(_STR, type) _STR_LOGINFO CONCAT(_COLOR, type) fmt CEND "\n", ARG_LOGINFO,      \
+             ##__VA_ARGS__)

@@ -1,6 +1,25 @@
 #pragma once
+#include "libc/asm/asm.h"
 #include <define.h>
 #include <type.h>
+
+// 声明
+
+finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n);
+finline void *memmove(void *_d, const void *_s, size_t _n);
+finline void *memset(void *_s, int _c, size_t _n);
+finline int   memcmp(const void *_s1, const void *_s2, size_t _n);
+finline void *memchr(const void *_s, int _c, size_t _n);
+finline void *memccpy(void *_rest _d, const void *_rest _s, int _c, size_t _n);
+finline void *rawmemchr(const void *_s, int _c);
+finline void *memrchr(const void *_s, int _c, size_t _n);
+finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn);
+finline void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n);
+finline void  bzero(void *_s, size_t _n);
+finline void  explicit_bzero(void *_s, size_t _n);
+finline void *memfrob(void *_s, size_t _n);
+
+// 定义
 
 #if NO_STD
 
@@ -8,9 +27,9 @@ finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) {
 #  if __has(memcpy)
   return __builtin_memcpy(_d, _s, _n);
 #  else
-  byte       *d = _d;
-  const byte *s = _s;
-  const byte *e = _s + _n;
+  volatile byte       *d = _d;
+  volatile const byte *s = _s;
+  volatile const byte *e = _s + _n;
   __std_safe__({
     if (!d || !s) return null;
     if (d + _n < d || e < s) return null;
@@ -26,9 +45,9 @@ finline void *memmove(void *_d, const void *_s, size_t _n) {
 #  if __has(memmove)
   return __builtin_memmove(_d, _s, _n);
 #  else
-  byte       *d = _d;
-  const byte *s = _s;
-  const byte *e = _s + _n;
+  volatile byte       *d = _d;
+  volatile const byte *s = _s;
+  volatile const byte *e = _s + _n;
   __std_safe__({
     if (!d || !s) return null;
     if (d + _n < d || e < s) return null;
@@ -50,9 +69,9 @@ finline void *memset(void *_s, int _c, size_t _n) {
 #  if __has(memset)
   return __builtin_memset(_s, _c, _n);
 #  else
-  byte      *s = _s;
-  byte      *e = _s + _n;
-  const byte c = _c;
+  volatile byte *s = _s;
+  volatile byte *e = _s + _n;
+  const byte     c = _c;
   __std_safe__({
     if (!s) return null;
     if (e < s) return null;

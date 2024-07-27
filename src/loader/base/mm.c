@@ -176,3 +176,18 @@ void free(void *p) {
   int size = *(int *)((char *)p - sizeof(int));
   page_free((char *)p - sizeof(int), size + sizeof(int));
 }
+
+// 暂时放这里
+dlexport char *strdup(cstr _s) {
+  size_t len = strlen(_s);
+  char  *ptr = malloc(len + 1);
+  memcpy(ptr, _s, len + 1);
+  return _s;
+}
+// 暂时放这里
+dlexport char *strndup(cstr _s, size_t _n) {
+  char *ptr = malloc(_n + 1);
+  memcpy(ptr, _s, _n);
+  ptr[_n] = '\0';
+  return ptr;
+}

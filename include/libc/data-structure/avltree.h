@@ -25,7 +25,7 @@ struct avltree {
  *\param[in] value 节点值指针
  *\return 新的AVL树节点指针
  */
-extern avltree_t avltree_alloc(int32_t key, void *value) __THROW __wur __attr_malloc;
+extern avltree_t avltree_alloc(int32_t key, void *value) __THROW __attr_malloc;
 
 /**
  *\brief 释放AVL树

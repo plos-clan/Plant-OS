@@ -1,4 +1,5 @@
 #include <kernel.h>
+
 extern struct tty *tty_default;
 
 void clear() {
@@ -433,32 +434,6 @@ void print(cstr str) {
   } else {
     task->TTY->print(task->TTY, str);
   }
-}
-
-static char print_buf[4096];
-
-int log_printf(cstr _rest fmt, ...) {
-  va_list va;
-  va_start(va, fmt);
-  int rets = vsprintf(print_buf, fmt, va);
-  va_end(va);
-  print(print_buf);
-  return rets;
-}
-
-int printf(cstr _rest fmt, ...) {
-  va_list va;
-  va_start(va, fmt);
-  int rets = vsprintf(print_buf, fmt, va);
-  va_end(va);
-  print(print_buf);
-  size_t len = strlen(print_buf);
-  while (len > 0 && print_buf[len - 1] == '\n') {
-    print_buf[len - 1] = '\0';
-    len--;
-  }
-  logi("print: %s", print_buf);
-  return rets;
 }
 
 void GotoXy_No_Safe(int x1, int y1) {

@@ -75,7 +75,7 @@ floppy_int:
 	MOV		AX,SS
 	MOV		DS,AX
 	MOV		ES,AX
-	;CALL	flint
+	CALL	flint
 	POP		EAX
 	;call signal_deal
 	POPAD

@@ -6,7 +6,9 @@ extern "C" {
 #endif
 #include "kernel/8295a.h"
 #include "kernel/cpu.h"
+#include "kernel/dma.h"
 #include "kernel/fat.h"
+#include "kernel/fdc.h"
 #include "kernel/include-libc.h"
 #include "kernel/ipc.h"
 #include "kernel/lock.h"
@@ -20,6 +22,7 @@ extern "C" {
 #include "kernel/timer.h"
 #include "kernel/tty.h"
 #include "kernel/vbe.h"
+#include "kernel/vdisk.h"
 #include "kernel/vfs.h"
 #ifdef __cplusplus
 }

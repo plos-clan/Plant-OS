@@ -100,8 +100,9 @@ void DOSLDR_MAIN() {
   NowTask()->drive_number = default_drive_number;
   vfs_mount_disk(NowTask()->drive, NowTask()->drive);
   vfs_change_disk(NowTask()->drive);
-  logf("DOSLDR 386 v0.2\n");
-  logf("Copyright zhouzhihao & min0911 2022\n");
+  logf("Plant-OS loader (Refactored)\n");
+  logf("MIT License\n");
+  logf("Copyright (c) 2024 plos-clan\n");
   logf("memtotal=%dMB\n", memtotal / 1024 / 1024);
   char path[15] = " :\\kernel.bin";
   path[0]       = NowTask()->drive;

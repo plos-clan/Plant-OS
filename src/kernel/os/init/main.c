@@ -206,35 +206,6 @@ finline void plty_fb_puts(plty_fb *fb, cstr s) {
 //- main
 
 plty_fb tty;
-bool    inited = false;
-
-void logk_raw(cstr s) {
-  // static spin_t spin = false;
-  // spin_lock(spin);
-  for (size_t i = 0; s[i] != '\0'; i++) {
-    write_serial(s[i]);
-  }
-  // spin_unlock(spin);
-  // task_next();
-
-  // cstr _s = s;
-  // s       = strchr(s, ']');
-  // if (s == null) return;
-  // s = strchr(s, 'm');
-  // if (s == null) return;
-  // if (strncmp(s + 1, "screen.c", 8) == 0 || strncmp(s + 1, "tty.c", 5) == 0) return;
-  // if (inited) print(_s);
-}
-
-int logk(cstr _rest fmt, ...) {
-  static char buf[4096];
-  va_list     va;
-  va_start(va, fmt);
-  int rets = vsprintf(buf, fmt, va);
-  va_end(va);
-  logk_raw(buf);
-  return rets;
-}
 
 void format_test() {
   logi("开始格式化测试");
@@ -255,24 +226,24 @@ void format_test() {
 }
 
 void kernel_main() {
-  tty.vbuf   = (void *)0xb8000;
-  tty.width  = 80;
-  tty.height = 25;
-  plty_fb_clear(&tty);
+  // tty.vbuf   = (void *)0xb8000;
+  // tty.width  = 80;
+  // tty.height = 25;
+  // plty_fb_clear(&tty);
 
   format_test();
 
-  tty.fg = (struct color24){64, 192, 128};
-  tty.bg = (struct color24){0, 0, 0};
-  plty_fb_applyrgb(&tty);
-  plty_fb_puts(&tty, "123456\n");
-  plty_fb_puts(&tty, "test-end\n");
+  // tty.fg = (struct color24){64, 192, 128};
+  // tty.bg = (struct color24){0, 0, 0};
+  // plty_fb_applyrgb(&tty);
+  // plty_fb_puts(&tty, "123456\n");
+  // plty_fb_puts(&tty, "test-end\n");
 
-  logd("一条测试 debug 消息");
-  logi("一条测试 info 消息");
-  logw("一条测试 warning 消息");
-  loge("一条测试 error 消息");
-  logf("一条测试 fatal 消息");
+  // logd("一条测试 debug 消息");
+  // logi("一条测试 info 消息");
+  // logw("一条测试 warning 消息");
+  // loge("一条测试 error 消息");
+  // logf("一条测试 fatal 消息");
 
   sysinit();
   while (true) {}

@@ -53,6 +53,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O1")
 set(CMAKE_EXE_LINKER_FLAGS "-nolibc -Qn")
 set(CMAKE_SHARED_LINKER_FLAGS "-nolibc -Qn")
 
+# add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查
+add_compile_flag("-fno-strict-aliasing") # 禁用严格别名规则
 add_compile_flag("-m32 -mfpmath=387 -fno-builtin -mno-mmx -mno-sse -nostdlib -nostdinc")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

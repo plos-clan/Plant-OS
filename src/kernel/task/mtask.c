@@ -47,8 +47,8 @@ static void init_task(mtask *t, int id) {
   t->alloced          = 0;
   t->ready            = 0;
   t->pde              = 0;
-  t->Pkeyfifo         = NULL;
-  t->Ukeyfifo         = NULL;
+  t->press_key_fifo   = NULL;
+  t->release_keyfifo  = NULL;
   t->sigint_up        = 0;
   t->train            = 0;
   t->signal_disable   = 0;
@@ -266,13 +266,13 @@ void task_kill(u32 tid) {
   if (get_task(tid) == current_task()) { set_cr3(PDE_ADDRESS); }
   free_pde(m[tid].pde);
   gc(tid); // 释放内存
-  if (m[tid].Pkeyfifo) {
-    page_free(m[tid].Pkeyfifo->buf, 4096);
-    free(m[tid].Pkeyfifo);
+  if (m[tid].press_key_fifo) {
+    page_free(m[tid].press_key_fifo->buf, 4096);
+    free(m[tid].press_key_fifo);
   }
-  if (m[tid].Ukeyfifo) {
-    page_free(m[tid].Ukeyfifo->buf, 4096);
-    free(m[tid].Ukeyfifo);
+  if (m[tid].release_keyfifo) {
+    page_free(m[tid].release_keyfifo->buf, 4096);
+    free(m[tid].release_keyfifo);
   }
 
   m[tid].urgent     = 0;
@@ -452,13 +452,13 @@ void task_exit(u32 status) {
   set_cr3(PDE_ADDRESS);
   free_pde(m[tid].pde);
   gc(tid); // 释放内存
-  if (m[tid].Pkeyfifo) {
-    page_free(m[tid].Pkeyfifo->buf, 4096);
-    free(m[tid].Pkeyfifo);
+  if (m[tid].press_key_fifo) {
+    page_free(m[tid].press_key_fifo->buf, 4096);
+    free(m[tid].press_key_fifo);
   }
-  if (m[tid].Ukeyfifo) {
-    page_free(m[tid].Ukeyfifo->buf, 4096);
-    free(m[tid].Ukeyfifo);
+  if (m[tid].release_keyfifo) {
+    page_free(m[tid].release_keyfifo->buf, 4096);
+    free(m[tid].release_keyfifo);
   }
   m[tid].urgent     = 0;
   m[tid].fpu_flag   = 0;
@@ -597,17 +597,17 @@ int task_fork() {
   stack          += STACK_SIZE;
   m->esp          = (stack_frame *)stack;
   m->nfs          = NULL;
-  if (current_task()->Pkeyfifo) {
-    m->Pkeyfifo = malloc(sizeof(struct event));
-    memcpy(m->Pkeyfifo, current_task()->Pkeyfifo, sizeof(struct event));
-    m->Pkeyfifo->buf = page_malloc(4096);
-    memcpy(m->Pkeyfifo->buf, current_task()->Pkeyfifo->buf, 4096);
+  if (current_task()->press_key_fifo) {
+    m->press_key_fifo = malloc(sizeof(struct event));
+    memcpy(m->press_key_fifo, current_task()->press_key_fifo, sizeof(struct event));
+    m->press_key_fifo->buf = page_malloc(4096);
+    memcpy(m->press_key_fifo->buf, current_task()->press_key_fifo->buf, 4096);
   }
-  if (current_task()->Ukeyfifo) {
-    m->Ukeyfifo = malloc(sizeof(struct event));
-    memcpy(m->Ukeyfifo, current_task()->Ukeyfifo, sizeof(struct event));
-    m->Ukeyfifo->buf = page_malloc(4096);
-    memcpy(m->Ukeyfifo->buf, current_task()->Ukeyfifo->buf, 4096);
+  if (current_task()->release_keyfifo) {
+    m->release_keyfifo = malloc(sizeof(struct event));
+    memcpy(m->release_keyfifo, current_task()->release_keyfifo, sizeof(struct event));
+    m->release_keyfifo->buf = page_malloc(4096);
+    memcpy(m->release_keyfifo->buf, current_task()->release_keyfifo->buf, 4096);
   }
   if (current_task()->keyfifo) {
     m->keyfifo = page_malloc_one();

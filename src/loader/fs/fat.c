@@ -1,5 +1,8 @@
 // fat.c : fat文件系统的实现
 #include <dosldr.h>
+
+#pragma GCC optimize("O0")
+
 bool Fat_WriteFile(struct vfs_t *vfs, char *path, char *buffer, int size);
 
 static inline int get_fat_date(u16 year, u16 month, u16 day) {
@@ -66,10 +69,10 @@ void read_fat(u8 *img, int *fat, u8 *ff, int max, int type) {
 }
 int get_directory_max(struct FAT_FILEINFO *directory, vfs_t *vfs) {
   if (directory == get_dm(vfs).root_directory) { return get_dm(vfs).RootMaxFiles; }
-  for (int i = 1; FindForCount(i, (List*)get_dm(vfs).directory_list) != NULL; i++) {
-    struct List *l = FindForCount(i, (List*)get_dm(vfs).directory_list);
+  for (int i = 1; FindForCount(i, (List *)get_dm(vfs).directory_list) != NULL; i++) {
+    struct List *l = FindForCount(i, (List *)get_dm(vfs).directory_list);
     if ((struct FAT_FILEINFO *)l->val == directory) {
-      return (int)FindForCount(i, (List*)get_dm(vfs).directory_max_list)->val;
+      return (int)FindForCount(i, (List *)get_dm(vfs).directory_max_list)->val;
     }
   }
 }
@@ -155,11 +158,11 @@ void file_saveinfo(struct FAT_FILEINFO *directory, vfs_t *vfs) {
                get_dm(vfs).RootMaxFiles * 32 / get_dm(vfs).SectorBytes, (void *)directory,
                vfs->disk_number);
   } else {
-    for (int i = 1; FindForCount(i, (List*)get_dm(vfs).directory_list) != NULL; i++) {
-      struct List *list = FindForCount(i, (List*)get_dm(vfs).directory_list);
+    for (int i = 1; FindForCount(i, (List *)get_dm(vfs).directory_list) != NULL; i++) {
+      struct List *list = FindForCount(i, (List *)get_dm(vfs).directory_list);
       if ((void *)list->val == (void *)directory) {
-        list  = FindForCount(i, (List*)get_dm(vfs).directory_clustno_list);
-        int k = (int)FindForCount(i, (List*)get_dm(vfs).directory_max_list)->val * 32 /
+        list  = FindForCount(i, (List *)get_dm(vfs).directory_clustno_list);
+        int k = (int)FindForCount(i, (List *)get_dm(vfs).directory_max_list)->val * 32 /
                 get_dm(vfs).ClustnoBytes;
         for (int j = list->val, l = 0; l != k; l++) {
           Disk_Write((get_dm(vfs).FileDataAddress + (j - 2) * get_dm(vfs).ClustnoBytes) /
@@ -329,11 +332,11 @@ struct FAT_FILEINFO *Get_File_Address(char *path1, vfs_t *vfs) {
       }
     } else {
       if (get_clustno(finfo->clustno_high, finfo->clustno_low) != 0) {
-        for (int count = 1; FindForCount(count, (List*)get_dm(vfs).directory_clustno_list) != NULL;
+        for (int count = 1; FindForCount(count, (List *)get_dm(vfs).directory_clustno_list) != NULL;
              count++) {
-          struct List *list = FindForCount(count, (List*)get_dm(vfs).directory_clustno_list);
+          struct List *list = FindForCount(count, (List *)get_dm(vfs).directory_clustno_list);
           if (get_clustno(finfo->clustno_high, finfo->clustno_low) == list->val) {
-            list    = FindForCount(count, (List*)get_dm(vfs).directory_list);
+            list    = FindForCount(count, (List *)get_dm(vfs).directory_list);
             bmpDict = (struct FAT_FILEINFO *)list->val;
             break;
           }
@@ -388,11 +391,11 @@ struct FAT_FILEINFO *Get_dictaddr(char *path1, vfs_t *vfs) {
       goto END;
     } else {
       if (get_clustno(finfo->clustno_high, finfo->clustno_low) != 0) {
-        for (int count = 1; FindForCount(count, (List*)get_dm(vfs).directory_clustno_list) != NULL;
+        for (int count = 1; FindForCount(count, (List *)get_dm(vfs).directory_clustno_list) != NULL;
              count++) {
-          struct List *list = FindForCount(count, (List*)get_dm(vfs).directory_clustno_list);
+          struct List *list = FindForCount(count, (List *)get_dm(vfs).directory_clustno_list);
           if (get_clustno(finfo->clustno_high, finfo->clustno_low) == list->val) {
-            list    = FindForCount(count, (List*)get_dm(vfs).directory_list);
+            list    = FindForCount(count, (List *)get_dm(vfs).directory_list);
             bmpDict = (struct FAT_FILEINFO *)list->val;
             break;
           }
@@ -470,14 +473,15 @@ void mkdir(char *dictname, int last_clust, vfs_t *vfs) {
   finfo->type                = 0x10; // 是目录（文件夹的type属性是0x10）
   finfo->size                = 0;
   int drive_number           = vfs->disk_number;
-  AddVal(get_clustno(finfo->clustno_high, finfo->clustno_low), (List*)get_dm(vfs).directory_clustno_list);
+  AddVal(get_clustno(finfo->clustno_high, finfo->clustno_low),
+         (List *)get_dm(vfs).directory_clustno_list);
   if (last_clust == 0) {
     file_saveinfo(get_dm(vfs).root_directory, vfs);
   } else {
-    for (int i = 1; FindForCount(i, (List*)get_dm(vfs).directory_clustno_list) != NULL; i++) {
-      struct List *list = FindForCount(i, (List*)get_dm(vfs).directory_clustno_list);
+    for (int i = 1; FindForCount(i, (List *)get_dm(vfs).directory_clustno_list) != NULL; i++) {
+      struct List *list = FindForCount(i, (List *)get_dm(vfs).directory_clustno_list);
       if (list->val == last_clust) {
-        list                         = FindForCount(i, (List*)get_dm(vfs).directory_list);
+        list                         = FindForCount(i, (List *)get_dm(vfs).directory_list);
         struct FAT_FILEINFO *d_finfo = (struct FAT_FILEINFO *)list->val;
         file_saveinfo(d_finfo, vfs);
       }
@@ -491,8 +495,8 @@ void mkdir(char *dictname, int last_clust, vfs_t *vfs) {
        (get_clustno(finfo->clustno_high, finfo->clustno_low) - 2) * get_dm(vfs).ClustnoBytes) /
           get_dm(vfs).SectorBytes,
       get_dm(vfs).ClustnoBytes / get_dm(vfs).SectorBytes, directory_alloc, vfs->disk_number);
-  AddVal((u32)directory_alloc, (List*)get_dm(vfs).directory_list);
-  AddVal(get_dm(vfs).ClustnoBytes / 32, (List*)get_dm(vfs).directory_max_list);
+  AddVal((u32)directory_alloc, (List *)get_dm(vfs).directory_list);
+  AddVal(get_dm(vfs).ClustnoBytes / 32, (List *)get_dm(vfs).directory_max_list);
   return;
 }
 
@@ -563,9 +567,11 @@ int deldir(char *path, vfs_t *vfs) {
   if (finfo[1].clustno_low == 0) {
     root_finfo = get_dm(vfs).root_directory;
   } else {
-    for (int i = 1; FindForCount(i, (List*)get_dm(vfs).directory_clustno_list) != NULL; i++) {
-      if (FindForCount(i, (List*)get_dm(vfs).directory_clustno_list)->val == finfo[1].clustno_low) {
-        root_finfo = (struct FAT_FILEINFO *)FindForCount(i, (List*)get_dm(vfs).directory_list)->val;
+    for (int i = 1; FindForCount(i, (List *)get_dm(vfs).directory_clustno_list) != NULL; i++) {
+      if (FindForCount(i, (List *)get_dm(vfs).directory_clustno_list)->val ==
+          finfo[1].clustno_low) {
+        root_finfo =
+            (struct FAT_FILEINFO *)FindForCount(i, (List *)get_dm(vfs).directory_list)->val;
         // printf("FIND ROOT %08x\n", root_finfo);
       }
     }
@@ -617,11 +623,11 @@ void mkfile(char *name, vfs_t *vfs) {
       break;
     }
     if (i >= max && finfo != get_dm(vfs).root_directory) {
-      for (int j = 1; FindForCount(j, (List*)get_dm(vfs).directory_list) != NULL; j++) {
-        struct List *l = FindForCount(j, (List*)get_dm(vfs).directory_list);
+      for (int j = 1; FindForCount(j, (List *)get_dm(vfs).directory_list) != NULL; j++) {
+        struct List *l = FindForCount(j, (List *)get_dm(vfs).directory_list);
         if ((struct FAT_FILEINFO *)l->val == finfo) {
-          max                                                  += get_dm(vfs).ClustnoBytes / 32;
-          FindForCount(j, (List*)get_dm(vfs).directory_max_list)->val  = max;
+          max += get_dm(vfs).ClustnoBytes / 32;
+          FindForCount(j, (List *)get_dm(vfs).directory_max_list)->val = max;
           struct FAT_FILEINFO *finfo_ = (struct FAT_FILEINFO *)realloc((void *)finfo, max * 32);
           if (get_now_dir(vfs) == finfo) { get_now_dir(vfs) = finfo_; }
           finfo  = finfo_;
@@ -713,10 +719,11 @@ int changedict(char *dictname, vfs_t *vfs) {
     page_free((void *)FindForCount(vfs->path->ctl->all, vfs->path)->val, 255);
     DeleteVal(vfs->path->ctl->all, vfs->path);
   }
-  for (int count = 1; FindForCount(count, (List*)get_dm(vfs).directory_clustno_list) != NULL; count++) {
-    struct List *list = FindForCount(count, (List*)get_dm(vfs).directory_clustno_list);
+  for (int count = 1; FindForCount(count, (List *)get_dm(vfs).directory_clustno_list) != NULL;
+       count++) {
+    struct List *list = FindForCount(count, (List *)get_dm(vfs).directory_clustno_list);
     if (get_clustno(finfo->clustno_high, finfo->clustno_low) == list->val) {
-      list             = FindForCount(count, (List*)get_dm(vfs).directory_list);
+      list             = FindForCount(count, (List *)get_dm(vfs).directory_list);
       get_now_dir(vfs) = (struct FAT_FILEINFO *)list->val;
       break;
     }

@@ -12,7 +12,11 @@
  */
 typedef struct list *list_t;
 struct list {
-  void  *data;
+  union {
+    void *data;
+    isize idata;
+    usize udata;
+  };
   list_t prev;
   list_t next;
 };
@@ -31,10 +35,17 @@ extern list_t list_alloc(void *data);
 /**
  *\brief 删除整个链表
  *\param[in] list 链表头指针
+ *\return 恒为 null
  */
-extern void list_free(list_t list);
+extern list_t list_free(list_t list);
 
-extern void list_free_with(list_t list, void (*free_data)(void *));
+/**
+ *\brief 删除整个链表
+ *\param[in] list 链表头指针
+ *\param[in] free_data 释放数据的 callback
+ *\return 恒为 null
+ */
+extern list_t list_free_with(list_t list, void (*free_data)(void *));
 
 /**
  *\brief 在链表末尾插入节点
@@ -43,6 +54,36 @@ extern void list_free_with(list_t list, void (*free_data)(void *));
  *\return 更新后的链表头指针
  */
 extern list_t list_append(list_t list, void *data);
+
+/**
+ *\brief 获取链表头
+ *\param[in] list 链表指针
+ *\return 存在则为指向链表头的指针，否则为 null
+ */
+extern list_t list_head(list_t list);
+
+/**
+ *\brief 获取链表尾
+ *\param[in] list 链表指针
+ *\return 存在则为指向链表尾的指针，否则为 null
+ */
+extern list_t list_tail(list_t list);
+
+/**
+ *\brief 获取链表的第 n 项
+ *\param[in] list 链表指针 (最好是头指针)
+ *\param[in] n 序号 (从 0 开始)
+ *\return 存在则为指向该项的指针，否则为 null
+ */
+extern list_t list_nth(list_t list, size_t n);
+
+/**
+ *\brief 获取链表的倒数第 n 项
+ *\param[in] list 链表指针 (最好是尾指针)
+ *\param[in] n 序号 (从 0 开始倒数)
+ *\return 存在则为指向该项的指针，否则为 null
+ */
+extern list_t list_nth_last(list_t list, size_t n);
 
 /**
  *\brief 在链表开头插入节点
@@ -104,21 +145,23 @@ static list_t list_alloc(void *data) {
   return node;
 }
 
-static void list_free(list_t list) {
+static list_t list_free(list_t list) {
   while (list != null) {
     list_t next = list->next;
     free(list);
     list = next;
   }
+  return null;
 }
 
-static void list_free_with(list_t list, void (*free_data)(void *)) {
+static list_t list_free_with(list_t list, void (*free_data)(void *)) {
   while (list != null) {
     list_t next = list->next;
     free_data(list->data);
     free(list);
     list = next;
   }
+  return null;
 }
 
 static list_t list_append(list_t list, void *data) {
@@ -147,6 +190,48 @@ static list_t list_prepend(list_t list, void *data) {
   if (list != null) list->prev = node;
   list = node;
 
+  return list;
+}
+
+static void *list_pop(list_t *list_p) {
+  if (list_p == null || *list_p == null) return null;
+  auto list = list_tail(*list_p);
+  if (*list_p == list) *list_p = list->prev;
+  if (list->prev) list->prev->next = null;
+  auto data = list->data;
+  free(list);
+  return data;
+}
+
+static list_t list_head(list_t list) {
+  if (list == null) return null;
+  for (; list->prev; list = list->prev) {}
+  return list;
+}
+
+static list_t list_tail(list_t list) {
+  if (list == null) return null;
+  for (; list->next; list = list->next) {}
+  return list;
+}
+
+static list_t list_nth(list_t list, size_t n) {
+  if (list == null) return null;
+  list = list_head(list);
+  for (size_t i = 0; i < n; i++) {
+    list = list->next;
+    if (list == null) return null;
+  }
+  return list;
+}
+
+static list_t list_nth_last(list_t list, size_t n) {
+  if (list == null) return null;
+  list = list_tail(list);
+  for (size_t i = 0; i < n; i++) {
+    list = list->prev;
+    if (list == null) return null;
+  }
   return list;
 }
 
@@ -181,6 +266,30 @@ static list_t list_delete(list_t list, void *data) {
   return list;
 }
 
+static list_t list_delete_with(list_t list, void *data, void (*callback)(void *)) {
+  if (list == null) return null;
+
+  if (list->data == data) {
+    list_t temp = list;
+    list        = list->next;
+    if (callback) callback(temp->data);
+    free(temp);
+    return list;
+  }
+
+  for (list_t current = list->next; current; current = current->next) {
+    if (current->data == data) {
+      current->prev->next = current->next;
+      if (current->next != null) current->next->prev = current->prev;
+      if (callback) callback(current->data);
+      free(current);
+      break;
+    }
+  }
+
+  return list;
+}
+
 static list_t list_delete_node(list_t list, list_t node) {
   if (list == null || node == null) return list;
 
@@ -193,6 +302,24 @@ static list_t list_delete_node(list_t list, list_t node) {
 
   node->prev->next = node->next;
   if (node->next != null) node->next->prev = node->prev;
+  free(node);
+  return list;
+}
+
+static list_t list_delete_node_with(list_t list, list_t node, void (*callback)(void *)) {
+  if (list == null || node == null) return list;
+
+  if (list == node) {
+    list_t temp = list;
+    list        = list->next;
+    if (callback) callback(temp->data);
+    free(temp);
+    return list;
+  }
+
+  node->prev->next = node->next;
+  if (node->next != null) node->next->prev = node->prev;
+  if (callback) callback(node->data);
   free(node);
   return list;
 }
@@ -226,14 +353,21 @@ static void list_print(list_t list) {
  *\param[in,out] list 链表头指针
  *\param[in] data 节点数据
  */
-#define list_append(list, data) ((list) = list_append(list, data))
+#define list_append(list, data) ((list) = list_append(list, (void *)(data)))
 
 /**
  *\brief 在链表开头插入节点
  *\param[in,out] list 链表头指针
  *\param[in] data 节点数据
  */
-#define list_prepend(list, data) ((list) = list_prepend(list, data))
+#define list_prepend(list, data) ((list) = list_prepend(list, (void *)(data)))
+
+#define list_push(list, data) list_append(list, data)
+
+#define list_pop(list) list_pop(&(list))
+
+#define list_popi(list) ((usize)list_pop(list))
+#define list_popu(list) ((isize)list_pop(list))
 
 /**
  *\brief 删除链表中的节点
@@ -242,6 +376,8 @@ static void list_print(list_t list) {
  */
 #define list_delete(list, data) ((list) = list_delete(list, data))
 
+#define list_delete_with(list, data, callback) ((list) = list_delete_with(list, data, callback))
+
 /**
  *\brief 删除链表中的节点
  *\param[in,out] list 链表头指针
@@ -249,9 +385,24 @@ static void list_print(list_t list) {
  */
 #define list_delete_node(slist, node) ((slist) = list_delete_node(slist, node))
 
+#define list_delete_node_with(list, node, callback)                                                \
+  ((list) = list_delete_node_with(list, node, callback))
+
 /**
  *\brief 遍历链表中的节点并执行操作
  *\param[in] list 链表头指针
  *\param[in] node 用于迭代的节点指针变量
  */
 #define list_foreach(list, node) for (list_t node = (list); node; node = node->next)
+
+/**
+ *\brief 遍历链表中的节点并执行操作
+ *\param[in] list 链表头指针
+ *\param[in] node 用于迭代的节点指针变量
+ */
+#define list_foreach_cnt(list, i, node, code)                                                      \
+  ({                                                                                               \
+    size_t i = 0;                                                                                  \
+    for (list_t node = (list); node; (node) = (node)->next, (i)++)                                 \
+      (code);                                                                                      \
+  })

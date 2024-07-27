@@ -7,8 +7,8 @@
   ({                                                                                               \
     size_t flags;                                                                                  \
     asm volatile("pushfl\n\t"                                                                      \
-                 "pop %%eax\n\t"                                                                   \
-                 : "=a"(flags)                                                                     \
+                 "pop %0\n\t"                                                                      \
+                 : "=r"(flags)                                                                     \
                  :                                                                                 \
                  : "memory");                                                                      \
     flags;                                                                                         \
@@ -18,12 +18,10 @@
 // POPFD
 #define asm_set_flags(flags)                                                                       \
   ({                                                                                               \
-    size_t          __arg1         = (size_t)(flags);                                              \
-    register size_t _a1 asm("eax") = __arg1;                                                       \
-    asm volatile("push %%eax\n\t"                                                                  \
+    asm volatile("push %0\n\t"                                                                     \
                  "popfl\n\t"                                                                       \
                  :                                                                                 \
-                 : "r"(_a1)                                                                        \
+                 : "r"((size_t)(flags))                                                            \
                  : "memory");                                                                      \
     (void)0;                                                                                       \
   })

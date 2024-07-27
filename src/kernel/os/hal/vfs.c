@@ -1,11 +1,10 @@
-#include "kernel/log.h"
-#include "libc/data-structure/list.h"
-#include "type.h"
 #include <kernel.h>
-#define vfs(task)  ((task)->nfs)
-#define toupper(c) ((c) >= 'a' && (c) <= 'z' ? c - 32 : c)
-vfs_t         vfsstl[26];
-vfs_t         vfsMount_Stl[26];
+
+#define vfs(task) ((task)->nfs)
+
+vfs_t vfsstl[26];
+vfs_t vfsMount_Stl[26];
+
 static vfs_t *drive2fs(u8 drive) {
   for (int i = 0; i < 26; i++) {
     if (vfsMount_Stl[i].drive == toupper(drive) && vfsMount_Stl[i].flag == 1) {
@@ -14,19 +13,21 @@ static vfs_t *drive2fs(u8 drive) {
   }
   return NULL;
 }
-static void insert_char(char *str, int pos, char ch) {
-  int i;
-  for (i = strlen(str); i >= pos; i--) {
+
+static void insert_char(char *str, size_t pos, char ch) {
+  for (size_t i = strlen(str); i >= pos; i--) {
     str[i + 1] = str[i];
   }
   str[pos] = ch;
 }
-static void delete_char(char *str, int pos) {
-  int i;
-  for (i = pos; i < strlen(str); i++) {
+
+static void delete_char(char *str, size_t pos) {
+  size_t len = strlen(str);
+  for (size_t i = pos; i < len; i++) {
     str[i] = str[i + 1];
   }
 }
+
 static vfs_t *ParsePath(char *result) {
   logd("Parse Path: %s", result);
   vfs_t *vfs_result = vfs_now;
@@ -49,12 +50,14 @@ static vfs_t *ParsePath(char *result) {
   logd("Parse Path OK: %s", result);
   return vfs_result;
 }
+
 static vfs_t *findSeat(vfs_t *vstl) {
   for (int i = 0; i < 26; i++) {
     if (vstl[i].flag == 0) { return &vstl[i]; }
   }
   return NULL;
 }
+
 static vfs_t *check_disk_fs(u8 disk_number) {
   for (int i = 0; i < 26; i++) {
     if (vfsstl[i].flag == 1) {
@@ -63,11 +66,13 @@ static vfs_t *check_disk_fs(u8 disk_number) {
   }
   return NULL;
 }
+
 static void insert_str(char *str, char *insert_str, int pos) {
   for (int i = 0; i < strlen(insert_str); i++) {
     insert_char(str, pos + i, insert_str[i]);
   }
 }
+
 bool vfs_mount_disk(u8 disk_number, u8 drive) {
   logd("Mount DISK ---- %02x", disk_number);
   for (int i = 0; i < 26; i++) {
@@ -97,6 +102,7 @@ bool vfs_mount_disk(u8 disk_number, u8 drive) {
   logd("success");
   return true;
 }
+
 bool vfs_unmount_disk(u8 drive) {
   logd("Unmount disk ---- %c", drive);
   for (int i = 0; i < 26; i++) {
@@ -110,6 +116,7 @@ bool vfs_unmount_disk(u8 drive) {
   loge("Not found the drive.");
   return false;
 }
+
 bool vfs_readfile(char *path, char *buffer) {
   logd("Readfile %s to %08x\n", path, buffer);
   char *new_path = malloc(strlen(path) + 1);
@@ -125,6 +132,7 @@ bool vfs_readfile(char *path, char *buffer) {
   logd("OK\n");
   return result;
 }
+
 bool vfs_writefile(char *path, char *buffer, int size) {
   char *new_path = malloc(strlen(path) + 1);
   strcpy(new_path, path);
@@ -138,6 +146,7 @@ bool vfs_writefile(char *path, char *buffer, int size) {
   free(new_path);
   return result;
 }
+
 u32 vfs_filesize(char *filename) {
   char *new_path = malloc(strlen(filename) + 1);
   strcpy(new_path, filename);
@@ -151,6 +160,7 @@ u32 vfs_filesize(char *filename) {
   free(new_path);
   return result;
 }
+
 list_t vfs_listfile(char *dictpath) { // dictpath == "" 则表示当前路径
   if (strcmp(dictpath, "") == 0) {
     return vfs_now->ListFile(vfs_now, dictpath);
@@ -168,6 +178,7 @@ list_t vfs_listfile(char *dictpath) { // dictpath == "" 则表示当前路径
     return result;
   }
 }
+
 bool vfs_delfile(char *filename) {
   logd("Delete file %s.\n", filename);
   char *new_path = malloc(strlen(filename) + 1);
@@ -182,6 +193,7 @@ bool vfs_delfile(char *filename) {
   free(new_path);
   return result;
 }
+
 bool vfs_deldir(char *dictname) {
   char *new_path = malloc(strlen(dictname) + 1);
   strcpy(new_path, dictname);
@@ -195,6 +207,7 @@ bool vfs_deldir(char *dictname) {
   free(new_path);
   return result;
 }
+
 bool vfs_createfile(char *filename) {
   char *new_path = malloc(strlen(filename) + 1);
   strcpy(new_path, filename);
@@ -208,6 +221,7 @@ bool vfs_createfile(char *filename) {
   free(new_path);
   return result;
 }
+
 bool vfs_createdict(char *filename) {
   char *new_path = malloc(strlen(filename) + 1);
   strcpy(new_path, filename);
@@ -221,6 +235,7 @@ bool vfs_createdict(char *filename) {
   free(new_path);
   return result;
 }
+
 bool vfs_renamefile(char *filename, char *filename_of_new) {
   char *new_path = malloc(strlen(filename) + 1);
   strcpy(new_path, filename);
@@ -234,6 +249,7 @@ bool vfs_renamefile(char *filename, char *filename_of_new) {
   free(new_path);
   return result;
 }
+
 bool vfs_attrib(char *filename, ftype type) {
   char *new_path = malloc(strlen(filename) + 1);
   strcpy(new_path, filename);
@@ -247,6 +263,7 @@ bool vfs_attrib(char *filename, ftype type) {
   free(new_path);
   return result;
 }
+
 bool vfs_format(u8 disk_number, char *FSName) {
   for (int i = 0; i < 255; i++) {
     if (strcmp(vfsstl[i].FSName, FSName) == 0 && vfsstl[i].flag == 1) {
@@ -255,6 +272,7 @@ bool vfs_format(u8 disk_number, char *FSName) {
   }
   return false;
 }
+
 vfs_file *vfs_fileinfo(char *filename) {
   char *new_path = malloc(strlen(filename) + 1);
   strcpy(new_path, filename);
@@ -268,6 +286,7 @@ vfs_file *vfs_fileinfo(char *filename) {
   free(new_path);
   return result;
 }
+
 bool vfs_change_disk(u8 drive) {
   logd("will change to %c", drive);
   if (vfs_now != NULL) {
@@ -290,6 +309,7 @@ bool vfs_change_disk(u8 drive) {
   logd("OK.");
   return true;
 }
+
 bool vfs_change_disk_for_task(u8 drive, mtask *task) {
   logd("will change to %c", drive);
   if (vfs(task) != NULL) {
@@ -312,6 +332,7 @@ bool vfs_change_disk_for_task(u8 drive, mtask *task) {
   logd("OK.");
   return true;
 }
+
 bool vfs_change_path(char *dictName) {
   char *buf = malloc(strlen(dictName) + 1);
   char *r   = buf;
@@ -346,6 +367,7 @@ bool vfs_change_path(char *dictName) {
   free(r);
   return true;
 }
+
 void vfs_getPath(char *buffer) {
   char  *path;
   list_t l;
@@ -363,6 +385,7 @@ void vfs_getPath(char *buffer) {
   }
   delete_char(buffer, pos - 1);
 }
+
 void vfs_getPath_no_drive(char *buffer) {
   char  *path;
   list_t l;
@@ -378,11 +401,13 @@ void vfs_getPath_no_drive(char *buffer) {
   }
   if (i == 1) { insert_char(buffer, 0, '/'); }
 }
+
 bool vfs_check_mount(u8 drive) {
   return drive2fs(drive) ? true : false;
 }
+
 void init_vfs() {
-  logd("init vfs..........");
+  printi("init vfs..........");
   for (int i = 0; i < 26; i++) {
     vfsstl[i].flag              = 0;
     vfsstl[i].disk_number       = 0;
@@ -392,9 +417,10 @@ void init_vfs() {
     vfsMount_Stl[i].drive       = 0;
     // logd("Set vfsstl[%d] & vfsMount_Stl[%d] OK.", i, i);
   }
-  logd("vfs ok.");
+  printi("vfs ok.");
   vfs_now = NULL;
 }
+
 bool vfs_register_fs(vfs_t vfs) {
   logd("Register file system: %s", vfs.FSName);
   logd("looking for a seat of vfsstl.........");
@@ -406,6 +432,6 @@ bool vfs_register_fs(vfs_t vfs) {
     return false;
   }
   *seat = vfs;
-  logd("success");
+  printi("succeed in registering a fs");
   return true;
 }

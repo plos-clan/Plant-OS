@@ -18,8 +18,8 @@
 #define LOOP_REORDER 1
 
 // 忽略非法的参数
-#define STD_SAFE_API 1 // 调用标准库函数时检查参数
-#define SAFE_API     1 // 调用本库的函数时检查参数
+#define STD_SAFE_API 0 // 调用标准库函数时检查参数
+#define SAFE_API     0 // 调用本库的函数时检查参数
 
 // 使用16进制写颜色值的时候使用 0xRRGGBBAA 的顺序
 // 而不是使用内存中的顺序，比如 RGBA 小端序 中的 0xAABBGGRR

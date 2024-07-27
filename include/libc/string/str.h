@@ -40,6 +40,8 @@ finline int    strverscmp(cstr __s1, cstr __s2);
 finline char  *strfry(char *__string);
 finline char  *basename(cstr __filename);
 
+#define streq(s1, s2) (((s1) && (s2)) ? strcmp(s1, s2) == 0 : (s1) == (s2))
+
 // 定义
 
 #if NO_STD

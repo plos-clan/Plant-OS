@@ -47,7 +47,7 @@ struct __PACKED__ mtask {
   int              fpu_flag;
   char             drive_number;
   char             drive;
-  circular_queue_t Pkeyfifo, Ukeyfifo;
+  circular_queue_t press_key_fifo, release_keyfifo;
   circular_queue_t keyfifo, mousefifo; // 基本输入设备的缓冲区
   char             urgent;
   cb_keyboard_t    keyboard_press;
@@ -87,3 +87,4 @@ void init();
 circular_queue_t task_get_key_queue(mtask *task);
 circular_queue_t task_get_mouse_fifo(mtask *task);
 void             into_mtask();
+mtask           *create_task(u32 eip, u32 esp, u32 ticks, u32 floor);

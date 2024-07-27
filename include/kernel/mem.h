@@ -29,3 +29,4 @@ extern u32 memsize;
 int     mem_free_finf(memory *mem, freeinfo *finf, void *p, u32 size);
 void    mem_delete(int pos, freeinfo *finf);
 memory *memory_init(u32 start, u32 size);
+u32     memtest(u32 start, u32 end);

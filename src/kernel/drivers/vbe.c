@@ -85,6 +85,8 @@ void get_all_mode() {
   //
 }
 
+#pragma GCC optimize("O0")
+
 u32 set_mode(int width, int height, int bpp) {
   regs16_t regs;
   regs.ax = 0x4f00;

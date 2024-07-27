@@ -1,8 +1,7 @@
 #pragma once
-#include "libc/data-structure/list.h"
-#include <define.h>
+#include <kernel/mtask.h>
 #include <libc.h>
-#include <type.h>
+
 typedef enum {
   FLE,
   DIR,
@@ -10,6 +9,7 @@ typedef enum {
   HID,
   SYS
 } ftype;
+
 typedef struct {
   char  name[255];
   ftype type;
@@ -17,6 +17,7 @@ typedef struct {
   u16   year, month, day;
   u16   hour, minute;
 } vfs_file;
+
 typedef struct vfs_t {
   list_t path;
   void  *cache;
@@ -42,4 +43,12 @@ typedef struct vfs_t {
   void (*CopyCache)(struct vfs_t *dest, struct vfs_t *src);
   int flag;
 } vfs_t;
-bool vfs_change_disk_for_task(u8 drive, mtask *task);
+
+bool   vfs_change_disk_for_task(u8 drive, mtask *task);
+void   init_vfs();
+bool   vfs_readfile(char *path, char *buffer);
+bool   vfs_register_fs(vfs_t vfs);
+bool   vfs_mount_disk(u8 disk_number, u8 drive);
+bool   vfs_change_disk(u8 drive);
+list_t vfs_listfile(char *dictpath);
+void   register_fat();

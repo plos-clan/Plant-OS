@@ -31,3 +31,4 @@ void  gc(u32 tid);
 void  change_page_task_id(int task_id, void *p, u32 size);
 u32   pde_clone(u32 addr);
 void *page_malloc_one();
+void *page_malloc_one_no_mark();

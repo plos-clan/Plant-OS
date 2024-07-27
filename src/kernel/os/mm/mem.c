@@ -3,9 +3,9 @@
 #define EFLAGS_AC_BIT     0x00040000
 #define CR0_CACHE_DISABLE 0x60000000
 
-typedef u32 uintptr_t;
-u32         memtest_sub(u32, u32);
-u32         memtest(u32 start, u32 end) {
+u32 memtest_sub(u32, u32);
+
+u32 memtest(u32 start, u32 end) {
   char flg486 = 0;
   u32  eflg, cr0, i;
 
@@ -68,6 +68,7 @@ void quicksort(free_member *arr, int low, int high) {
     quicksort(arr, pi + 1, high);
   }
 }
+
 freeinfo *make_next_freeinfo(memory *mem) {
   const int size = FREE_MAX_NUM * sizeof(free_member) + sizeof(freeinfo);
   freeinfo *fi   = NULL;
@@ -112,6 +113,7 @@ freeinfo *make_next_freeinfo(memory *mem) {
 
   return fi;
 }
+
 free_member *mem_insert(int pos, freeinfo *finf) {
   int j = 0;
   for (int i = 0; i < FREE_MAX_NUM; i++) {
@@ -364,18 +366,21 @@ memory *memory_init(u32 start, u32 size) {
   return mem;
 }
 extern memory *public_heap;
-void          *malloc(size_t size) {
+
+void *malloc(size_t size) {
   void *p;
   p = mem_alloc(public_heap, size + sizeof(int));
   if (p == NULL) return NULL;
   *(int *)p = size;
   return (char *)p + sizeof(int);
 }
+
 void free(void *p) {
   if (p == NULL) return;
   int size = *(int *)(p - sizeof(int));
   mem_free(public_heap, (char *)p - sizeof(int), size + sizeof(int));
 }
+
 void *realloc(void *ptr, u32 size) {
   void *new = malloc(size);
   if (ptr) {
@@ -383,6 +388,21 @@ void *realloc(void *ptr, u32 size) {
     free(ptr);
   }
   return new;
+}
+
+// 暂时放这里
+dlexport char *strdup(cstr _s) {
+  size_t len = strlen(_s);
+  char  *ptr = malloc(len + 1);
+  memcpy(ptr, _s, len + 1);
+  return _s;
+}
+// 暂时放这里
+dlexport char *strndup(cstr _s, size_t _n) {
+  char *ptr = malloc(_n + 1);
+  memcpy(ptr, _s, _n);
+  ptr[_n] = '\0';
+  return ptr;
 }
 
 void *kmalloc(int size) {

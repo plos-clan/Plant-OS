@@ -38,7 +38,7 @@ struct rbtree {
  *\param[in] value 节点值指针
  *\return 新的红黑树节点指针
  */
-extern rbtree_t rbtree_alloc(int32_t key, void *value) __THROW __wur __attr_malloc;
+extern rbtree_t rbtree_alloc(int32_t key, void *value) __THROW __attr_malloc;
 
 /**
  *\brief 释放红黑树

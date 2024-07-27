@@ -66,6 +66,7 @@ void signal_deal() {
     return;
   }
 }
+
 void set_signal_handler(u32 sig, u32 handler) {
   current_task()->handler[sig] = handler;
 }
