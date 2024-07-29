@@ -18,3 +18,4 @@
 void irq_mask_clear(u8 irq);
 void irq_mask_set(u8 irq);
 void init_pic(void);
+void send_eoi(int irq);

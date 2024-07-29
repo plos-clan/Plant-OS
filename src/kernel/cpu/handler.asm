@@ -162,7 +162,7 @@ asm_sb16_handler:
 	MOV		AX,SS
 	MOV		DS,AX
 	MOV		ES,AX
-	;CALL	sb16_handler
+	CALL	sb16_handler
 	POP		EAX
 	;call signal_deal
 	POPAD

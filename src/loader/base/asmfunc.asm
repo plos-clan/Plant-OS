@@ -99,11 +99,12 @@ _IN:
 	push ebx
 	push edx
 	jmp  far [esp]
-loader_main: ; 程序的起点
-	mov esp, stack_top
-	jmp DOSLDR_MAIN
+; loader_main: ; 程序的起点
+; 	mov esp, stack_top
+; 	jmp DOSLDR_MAIN
 	[SECTION .data]
 testsize: dd 0
 	[SECTION .bss]
-stack: resb 40 * 1024
-stack_top:
+; stack: resb 40 * 1024
+; GLOBAL stack_top
+; stack_top:

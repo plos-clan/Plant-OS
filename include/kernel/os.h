@@ -3,3 +3,5 @@
 #include <type.h>
 
 void sysinit();
+
+void abort();

@@ -131,8 +131,10 @@ static const char *_log_basename_(const char *path) {
 #define error(fmt, ...) printe(fmt, ##__VA_ARGS__)
 #define fatal(fmt, ...)                                                                            \
   ({                                                                                               \
+    logi("): Oops! Something is wrong with your Computer:");                                       \
     _LOG(_FATAL, fmt, ##__VA_ARGS__);                                                              \
     abort();                                                                                       \
+    __builtin_unreachable();                                                                       \
   })
 
 #if defined(DEBUG) && !defined(NO_MALLOC_MESSAGE)

@@ -1,10 +1,13 @@
 #include <kernel.h>
 
+void sound_test();
+
 void idle() {
   for (;;) {
-    asm_hlt;
+    task_next();
   }
 }
+
 void shell() {
   printi("shell has been started");
   char *kfifo = page_malloc_one();
@@ -15,6 +18,7 @@ void shell() {
     printi("%c", getch());
   }
 }
+
 void init() {
   logd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
@@ -42,5 +46,8 @@ void init() {
   }
 
   create_task((u32)shell, 0, 1, 1);
-  for (;;) {}
+  create_task((u32)sound_test, 0, 1, 1);
+  for (;;) {
+    task_next();
+  }
 }

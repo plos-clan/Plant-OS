@@ -2,6 +2,8 @@
 #include <define.h>
 #include <type.h>
 
+#define MALLOC_PADDING(size) (((size) + 2 * sizeof(size_t) - 1) & ~(2 * sizeof(size_t) - 1))
+
 // 标准库内存分配函数
 
 dlimport void  *malloc(size_t size) __attr_malloc;

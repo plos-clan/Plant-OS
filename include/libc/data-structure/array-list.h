@@ -50,7 +50,7 @@ extern bool arraylist_search(arraylist_t list, void *data);
 
 extern void arraylist_delete(arraylist_t list, void *data);
 
-extern void arraylist_delete_node(arraylist_t list, arraylist_t node);
+extern void arraylist_delete_node(arraylist_t list, arraylist_node_t node);
 
 extern size_t arraylist_length(arraylist_t list);
 
@@ -150,43 +150,30 @@ static bool arraylist_search(arraylist_t list, void *data) {
   return false;
 }
 
-// static void arraylist_delete(arraylist_t list, void *data) {
-//   if (list == null) return null;
+static void arraylist_delete(arraylist_t list, void *data) {
+  if (list == null) return;
+  for (auto node = list->head; node; node = node->next) {
+    if (node->data == data) {
+      if (node->next) node->next->prev = node->prev;
+      if (node->prev) node->prev->next = node->next;
+      if (node == list->head) list->head = node->next;
+      if (node == list->tail) list->tail = node->prev;
+      node->next  = list->freed;
+      list->freed = node;
+      break;
+    }
+  }
+}
 
-//   if (list->data == data) {
-//     arraylist_t temp = list;
-//     list             = list->next;
-//     free(temp);
-//     return list;
-//   }
-
-//   for (arraylist_t current = list->next; current; current = current->next) {
-//     if (current->data == data) {
-//       current->prev->next = current->next;
-//       if (current->next != null) current->next->prev = current->prev;
-//       free(current);
-//       break;
-//     }
-//   }
-
-//   return list;
-// }
-
-// static arraylist_t arraylist_delete_node(arraylist_t list, arraylist_t node) {
-//   if (list == null || node == null) return list;
-
-//   if (list == node) {
-//     arraylist_t temp = list;
-//     list             = list->next;
-//     free(temp);
-//     return list;
-//   }
-
-//   node->prev->next = node->next;
-//   if (node->next != null) node->next->prev = node->prev;
-//   free(node);
-//   return list;
-// }
+static void arraylist_delete_node(arraylist_t list, arraylist_node_t node) {
+  if (list == null || node == null) return;
+  if (node->next) node->next->prev = node->prev;
+  if (node->prev) node->prev->next = node->next;
+  if (node == list->head) list->head = node->next;
+  if (node == list->tail) list->tail = node->prev;
+  node->next  = list->freed;
+  list->freed = node;
+}
 
 static size_t arraylist_length(arraylist_t list) {
   size_t count   = 0;

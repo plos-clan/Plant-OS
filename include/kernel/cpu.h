@@ -154,3 +154,4 @@ void init_gdtidt(void);
 void fpu_disable();
 bool interrupt_disable();
 void set_interrupt_state(bool state);
+void register_intr_handler(int num, int addr);

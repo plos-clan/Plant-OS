@@ -1,0 +1,7 @@
+#pragma once
+#include <define.h>
+#include <type.h>
+void sb16_open();
+void sb16_set_volume(u8 level);
+void sb16_close();
+int  sb16_write(char *data, size_t size);

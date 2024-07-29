@@ -1,8 +1,4 @@
 include_directories(${PROJECT_SOURCE_DIR}/include/loader)
-set(CMAKE_C_FLAGS_RELEASE "-Oz")
-set(CMAKE_CXX_FLAGS_RELEASE "-Oz")
-set(CMAKE_C_FLAGS_DEBUG "-Oz")
-set(CMAKE_CXX_FLAGS_DEBUG "-Oz")
 add_exe_link_flag("-static -Wl,-Ttext -Wl,0x100000 -e loader_main")
 add_binary(loader)
 target_link_libraries(loader c)

@@ -82,14 +82,19 @@ bool  task_check_train(mtask *task) {
 extern mtask *mouse_use_task;
 
 void task_next() {
+  if (!current) fatal("current is null"); // Your PC has been fucked by the programers
+
   if (current->running < current->timeout - 1 && current->state == RUNNING && next_set == NULL) {
     current->running++;
     return; // 不需要调度，当前时间片仍然属于你
   }
+
   if (!next_set) current->running = 0;
+
   mtask *next = NULL;
   int    i;
   mtask *j = NULL;
+
   if (next_set) {
     i        = next_set->tid;
     j        = next_set;
@@ -178,17 +183,17 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   // 获取default_drive_number
   if (!flags_once) {
     if (memcmp((void *)"FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) == 0 ||
-        memcmp((void *)"FAT16   ", (void *)0x7c00 + BS_FileSysType, 8) == 0) {
+        memcmp((void *)"FAT16   ", (void *)0x7c00 + BS_FileSysType, 8) == 0) { // FAT12 or FAT16
       if (*(u8 *)(0x7c00 + BS_DrvNum) >= 0x80) {
         default_drive_number = *(u8 *)(0x7c00 + BS_DrvNum) - 0x80 + 0x02;
       } else {
         default_drive_number = *(u8 *)(0x7c00 + BS_DrvNum);
       }
     } else if (memcmp((void *)"FAT32   ", (void *)0x7c00 + BPB_Fat32ExtByts + BS_FileSysType, 8) ==
-               0) {
-      if (*(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) >= 0x80) {
+               0) {                                                 // FAT32
+      if (*(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) >= 0x80) { // 0x80以上是硬盘
         default_drive_number = *(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) - 0x80 + 0x02;
-      } else {
+      } else { // 0x00 是软盘 所以不管他了
         default_drive_number = *(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum);
       }
     } else {
@@ -252,6 +257,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
                : "memory");
   while (true)
     ;
+  __builtin_unreachable();
 }
 
 void task_kill(u32 tid) {

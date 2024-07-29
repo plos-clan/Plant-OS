@@ -13,7 +13,7 @@ struct TIMER {
 };
 
 struct TIMERCTL {
-  u32           count, next;
+  volatile u32  count, next;
   struct TIMER *t0;
   struct TIMER  timers0[MAX_TIMER];
 };

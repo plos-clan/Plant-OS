@@ -30,11 +30,7 @@ int getlength(const char *str) {
 void putstr(const char *str, int length) {
   int i;
   for (i = 0; i < length; i++) {
-    if (y == 24 && x >= 160) {
-      /*暂时什么也不做*/
-      //TODO:屏幕滚动！！！！
-      screen_ne();
-    }
+    if (y == 24 && x >= 160) { screen_ne(); }
     if (str[i] == 0x0d) { continue; }
     putchar(str[i]);
   }
@@ -62,8 +58,6 @@ void putchar(char ch) {
 
   if (ch == '\n') {
     if (y == 24) {
-      /*暂时不做什么*/
-      //TODO:屏幕滚动！！！！
       screen_ne();
 
       return;

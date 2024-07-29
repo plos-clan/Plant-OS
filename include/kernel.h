@@ -18,6 +18,7 @@ extern "C" {
 #include "kernel/os.h"
 #include "kernel/page.h"
 #include "kernel/ps2.h"
+#include "kernel/sb16.h"
 #include "kernel/screen.h"
 #include "kernel/timer.h"
 #include "kernel/tty.h"
