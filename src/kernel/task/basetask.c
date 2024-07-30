@@ -39,9 +39,6 @@ void init() {
   }
   byte *buf = malloc(vfs_filesize("kernel.bin"));
   vfs_readfile("kernel.bin", buf);
-  for (int i = 0; i < 0x200; i++) {
-    printf("%c", buf[i]);
-  }
 
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);
@@ -50,7 +47,8 @@ void init() {
   init_ok_flag = 1;
   logd("set %d", init_ok_flag);
 
-  os_execute("TESTAPP.BIN", "");
+  int status = os_execute("TESTAPP.BIN", "");
+  printi("TESTAPP.BIN exit with code %d", status);
   for (;;) {
     task_next();
   }

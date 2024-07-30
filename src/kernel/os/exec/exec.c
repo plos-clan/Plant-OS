@@ -315,8 +315,6 @@ int os_execute(char *filename, char *line) {
   r[1]                      = (u32)p1;
   t->line                   = r;
 
-  for (;;)
-    ;
   logd();
 
   unsigned status           = waittid(t->tid);

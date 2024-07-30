@@ -75,6 +75,8 @@ typedef __builtin_va_list va_list;
 #  define __has(name) (__has_builtin(__builtin_##name))
 #endif
 
+#define MASK(n) ((u32)1 << (n))
+
 #define CONCAT_(a, b) a##b
 #define CONCAT(a, b)  CONCAT_(a, b)
 
@@ -105,9 +107,9 @@ static const char *_log_basename_(const char *path) {
 }
 
 #define ARG_LOGINFO_FILE _log_basename_(__FILE__)
-#define STR_LOGINFO_FILE "[" CRGB(192, 64, 255) "%s" CEND "] "
+#define STR_LOGINFO_FILE "[" CRGB(192, 128, 255) "%s" CEND "] "
 #define ARG_LOGINFO_FUNC __func__, __LINE__
-#define STR_LOGINFO_FUNC "[" CRGB(128, 192, 255) "%s" CEND ":" CRGB(192, 64, 192) "%d" CEND "] "
+#define STR_LOGINFO_FUNC "[" CRGB(0, 255, 255) "%s" CEND ":" CRGB(255, 128, 192) "%d" CEND "] "
 
 #define ARG_LOGINFO ARG_LOGINFO_FILE, ARG_LOGINFO_FUNC
 #define STR_LOGINFO STR_LOGINFO_FILE STR_LOGINFO_FUNC

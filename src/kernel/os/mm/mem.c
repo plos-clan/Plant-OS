@@ -46,40 +46,48 @@ void memory_init(void *ptr, u32 size) {
 
 void *malloc(size_t size) {
   void *ptr = mpool_alloc(&pool, size);
-  bzero(ptr, size);
-  logw("alloc %-10p %d -> %d", ptr, size, mpool_msize(&pool, ptr));
+  logd("alloc %-10p %d -> %d", ptr, size, mpool_msize(&pool, ptr));
   return ptr;
 }
 
 void free(void *ptr) {
-  logw("free %-10p %d", ptr, mpool_msize(&pool, ptr));
+  logd("free  %-10p %d", ptr, mpool_msize(&pool, ptr));
   mpool_free(&pool, ptr);
 }
 
 void *realloc(void *ptr, u32 size) {
   void *new = malloc(size);
+  if (new == null || ptr == null) return new;
   memcpy(new, ptr, mpool_msize(&pool, ptr));
   free(ptr);
   return new;
 }
 
 void *kmalloc(int size) {
-  void *p;
-  p = page_malloc(size + sizeof(int));
-  if (p == NULL) return NULL;
-  *(int *)p = size;
-  return (char *)p + sizeof(int);
+  return malloc(size);
+  // void *p;
+  // p = page_malloc(size + sizeof(int));
+  // if (p == NULL) return NULL;
+  // *(int *)p = size;
+  // return (char *)p + sizeof(int);
 }
+
 void kfree(void *p) {
-  if (p == NULL) return;
-  int size = *(int *)(p - sizeof(int));
-  page_free((char *)p - sizeof(int), size + sizeof(int));
+  free(p);
+  // if (p == NULL) return;
+  // int size = *(int *)(p - sizeof(int));
+  // page_free((char *)p - sizeof(int), size + sizeof(int));
 }
+
 void *krealloc(void *ptr, u32 size) {
   void *new = kmalloc(size);
-  if (ptr) {
-    memcpy(new, ptr, *(int *)((int)ptr - 4));
-    kfree(ptr);
-  }
+  if (new == null || ptr == null) return new;
+  memcpy(new, ptr, mpool_msize(&pool, ptr));
+  kfree(ptr);
+  // void *new = kmalloc(size);
+  // if (ptr) {
+  //   memcpy(new, ptr, *(int *)((int)ptr - 4));
+  //   kfree(ptr);
+  // }
   return new;
 }

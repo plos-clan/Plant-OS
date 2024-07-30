@@ -69,6 +69,7 @@ dlexport void *mpool_alloc(mpool_t pool, size_t size) {
 }
 
 // mpool_free 中使用的临时函数
+// 用于将内存块从空闲链表中分离
 dlexport void _detach(mpool_t pool, freelist_t ptr) {
   int id = freelists_size2id(blk_size(ptr));
   freelists_detach(pool->freed, id, ptr);

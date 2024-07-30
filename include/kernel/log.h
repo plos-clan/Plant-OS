@@ -7,7 +7,11 @@ dlimport void logk(cstr _rest fmt, ...);
 
 dlimport void log_printf(cstr _rest fmt1, cstr _rest fmt2, ...);
 
-#undef __LOG
+#undef STR_LOGINFO_FILE
+#undef STR_LOGINFO_FUNC
+#define STR_LOGINFO_FILE "[" CRGB(192, 128, 255) "%!8s" CEND "] "
+#define STR_LOGINFO_FUNC "[" CRGB(0, 255, 255) "%!8s" CEND ":" CRGB(255, 128, 192) "%-5d" CEND "] "
+
 #define __LOG(type, fmt, ...)                                                                      \
   logk(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n", ARG_LOGINFO, ##__VA_ARGS__)
 
@@ -29,8 +33,8 @@ dlimport void log_printf(cstr _rest fmt1, cstr _rest fmt2, ...);
 #define _STR_ERROR "[" _COLOR_ERROR "Error" CEND "] "
 #define _STR_FATAL "[" _COLOR_FATAL "Fatal" CEND "] "
 
-#define _STR_LOGINFO_FILE "[\033[1;35m%s" CEND "] "
-#define _STR_LOGINFO_FUNC "[\033[1;36m%s" CEND ":\033[1;35m%d" CEND "] "
+#define _STR_LOGINFO_FILE "[\033[1;35m%!8s" CEND "] "
+#define _STR_LOGINFO_FUNC "[\033[1;36m%!8s" CEND ":\033[1;35m%-5d" CEND "] "
 #define _STR_LOGINFO      _STR_LOGINFO_FILE _STR_LOGINFO_FUNC
 
 #undef _LOG
@@ -42,7 +46,7 @@ dlimport void log_printf(cstr _rest fmt1, cstr _rest fmt2, ...);
 #undef fatal
 #define fatal(fmt, ...)                                                                            \
   ({                                                                                               \
-    logi("): Oops! Something is wrong with your Computer:");                                       \
+    _LOG(_INFO, "): Oops! Something is wrong with your Computer:");                                \
     _LOG(_FATAL, fmt, ##__VA_ARGS__);                                                              \
     abort();                                                                                       \
     __builtin_unreachable();                                                                       \

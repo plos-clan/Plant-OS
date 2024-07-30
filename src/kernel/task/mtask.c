@@ -511,7 +511,8 @@ void task_exit(u32 status) {
   if (m[tid].ptid != -1 && m[m[tid].ptid].waittid == tid) { task_run(&(m[m[tid].ptid])); }
 
   m[tid].ptid = -1;
-  asm_cli;
+  asm_sti;
+  task_next();
   while (true)
     ;
 }
@@ -522,8 +523,10 @@ int waittid(u32 tid) {
   if (t->ptid != current_task()->tid) return -1;
   current_task()->waittid = tid;
   while (t->state != DIED && t->ptid == current_task()->tid) {
+    //  logd("waiting for the fucking task");
     task_fall_blocked(WAITING);
   }
+  logd("here");
   u32 status = t->status;
   logd("task exit with code %d\n", status);
   t->state = EMPTY;

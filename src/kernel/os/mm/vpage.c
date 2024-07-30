@@ -655,13 +655,15 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
     //        "%08x. System "
     //        "halt \n   --- at PF()",
     //        line_address, eip);
-    logf("Attempt to read/write a non-existent/kernel memory "
-         "%08x at "
-         "%08x. System "
-         "halt \n   --- at PF()",
-         line_address, eip);
+    error("Attempt to read/write a non-existent/kernel memory "
+          "%08x at "
+          "%08x. System "
+          "halt \n   --- at PF()",
+          line_address, eip);
     if (current_task()->user_mode) { // 用户级FAULT
       task_exit(-1);                 // 强制退出
+      for (;;)
+        ;
     }
     asm_cli;
     // 系统级FAULT

@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #include "asm/asm.h"
+#include "asm/cpuid.h"
 #include "asm/flag.h"
 #include "asm/io.h"
 #include "asm/reg.h"

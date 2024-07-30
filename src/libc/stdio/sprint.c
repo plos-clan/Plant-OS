@@ -25,8 +25,9 @@ typedef struct fmtarg {
 
   int decimal; // 小数部分的长度
 
-  ssize_t maxlen; // 输出字符串的最大长度
-  ssize_t minlen; // 输出字符串的最小长度
+  ssize_t padding; // 输出字符串的对齐长度
+  ssize_t maxlen;  // 输出字符串的最大长度
+  ssize_t minlen;  // 输出字符串的最小长度
 
   // 格式化时的缓冲区
   char  *buf;
@@ -46,6 +47,7 @@ finline void fmtarg_clear(fmtarg *arg) {
   arg->setfg     = false;
   arg->setfg     = false;
   arg->decimal   = 0;
+  arg->padding   = 0;
   arg->maxlen    = 0;
   arg->minlen    = 0;
   arg->text      = null;
@@ -70,19 +72,32 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
     fmt++;
   }
 
-parse_length: {
-  char *f;
-  arg->minlen = strb10toi(fmt, &f); // 解析 %15d 这样的写法
-  if (fmt == f && *f == '*') {      // 解析 %*d 这样的写法
-    arg->minlen = va_arg(va, int);
-    f++;
+  if (*fmt == '!') { // 解析自定义 padding 语法，如 !8d !-8d
+    fmt++;
+    char *f;
+    arg->padding = strb10toi(fmt, &f);
+    if (fmt == f && *f == '*') {
+      arg->padding = va_arg(va, int);
+      f++;
+    }
+    if (arg->padding < 0) {
+      arg->padding = -arg->padding;
+      arg->align   = align_right;
+    }
+    fmt = f;
+  } else { // 解析标准的写法
+    char *f;
+    arg->minlen = strb10toi(fmt, &f); // 解析 %15d 这样的写法
+    if (fmt == f && *f == '*') {      // 解析 %*d 这样的写法
+      arg->minlen = va_arg(va, int);
+      f++;
+    }
+    if (arg->minlen < 0) { // 小于 0 的靠右对齐
+      arg->minlen = -arg->minlen;
+      arg->align  = align_right;
+    }
+    fmt = f;
   }
-  if (arg->minlen < 0) { // 小于 0 的靠右对齐
-    arg->minlen = -arg->minlen;
-    arg->align  = align_right;
-  }
-  fmt = f;
-}
 
   if (arg->fill_zero && arg->align != align_left) goto err;
   if (arg->fill_zero) arg->align = align_right;
@@ -243,6 +258,8 @@ static char *vsprintf_align(char *s, fmtarg *arg) {
     }
     return s;
   }
+
+  if (arg->padding) arg->minlen = (arg_len + arg->padding - 1) / arg->padding * arg->padding;
 
   ssize_t blank      = arg->minlen - arg_len;
   size_t  blank_left = 0, blank_right = 0;

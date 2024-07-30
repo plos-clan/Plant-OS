@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #include "libc/asm/asm.h"
+#include "libc/asm/cpuid.h"
 #include "libc/asm/flag.h"
 #include "libc/asm/io.h"
 #include "libc/asm/reg.h"

@@ -24,10 +24,20 @@ dlimport void  *valloc(size_t size);
 
 // 自定义内存分配
 
-// 向系统请求内存
-// 每次请求时 size 均为 page_size 的整数倍
+/**
+ *\brief 请求内存的回调函数
+ *
+ *\param ptr      上一次返回的内存尾地址
+ *\param size     请求的内存大小
+ *\return 分配的内存地址
+ */
 typedef void *(*cb_reqmem_t)(void *ptr, size_t size);
-// 将内存交还给系统
+/**
+ *\brief 释放内存的回调函数
+ *
+ *\param ptr      要释放的内存地址
+ *\param size     要释放的内存大小
+ */
 typedef void (*cb_delmem_t)(void *ptr, size_t size);
 
 // freelist
@@ -54,10 +64,10 @@ typedef struct sized_mpool {
 } *sized_mpool_t;
 
 /**
- *\brief 初始化一个内存池
+ *\brief 初始化一个内部元素大小固定的内存池
  *
- *\param pool     param
- *\param ptr      param
+ *\param pool     内存池
+ *\param ptr      内存区指针
  *\param bsize    池中元素的大小，必须大于等于 sizeof(size_t)
  *\param len      池中元素的个数
  */
@@ -66,7 +76,7 @@ dlexport void sized_mpool_init(sized_mpool_t pool, void *ptr, size_t bsize, size
 /**
  *\brief 从内存池中分配
  *
- *\param pool     param
+ *\param pool     内存池
  *\return value
  */
 dlexport void *sized_mpool_alloc(sized_mpool_t pool);
@@ -74,7 +84,7 @@ dlexport void *sized_mpool_alloc(sized_mpool_t pool);
 /**
  *\brief 
  *
- *\param pool     param
+ *\param pool     内存池
  *\param ptr      param
  */
 dlexport void sized_mpool_free(sized_mpool_t pool, void *ptr);
@@ -91,16 +101,65 @@ dlexport bool sized_mpool_inpool(sized_mpool_t pool, void *ptr);
 typedef struct mpool {
   void       *ptr;          // 指向内存区的指针
   size_t      size;         // 内存区总大小
-  size_t      alloced_size; //
-  cb_reqmem_t cb_reqmem;    //
-  cb_delmem_t cb_delmem;    //
-  freelist_t  large_blk;    //
-  freelists_t freed;        //
+  size_t      alloced_size; // 已分配的内存大小
+  cb_reqmem_t cb_reqmem;    // 请求内存的回调函数
+  cb_delmem_t cb_delmem;    // 释放内存的回调函数
+  freelist_t  large_blk;    // 大块内存的空闲链表
+  freelists_t freed;        // 小块内存的空闲链表
 } *mpool_t;
 
-dlimport bool   mpool_init(mpool_t pool, void *ptr, size_t size);
+/**
+ *\brief 初始化一个内存池
+ *
+ *\param pool     内存池
+ *\param ptr      内存区指针
+ *\param size     内存区总大小
+ *\return 初始化是否成功 (即输入参数是否合法)
+ */
+dlimport bool mpool_init(mpool_t pool, void *ptr, size_t size);
+
+// 未实现
+dlimport size_t mpool_total_size(mpool_t pool);
+
+/**
+ *\brief 返回已分配的内存总大小
+ *
+ *\param pool     内存池
+ *\return 已分配的内存总大小
+ */
 dlimport size_t mpool_alloced_size(mpool_t pool);
-dlimport void   mpool_setcb(mpool_t pool, cb_reqmem_t reqmem, cb_delmem_t delmem);
-dlimport void  *mpool_alloc(mpool_t pool, size_t size);
-dlimport void   mpool_free(mpool_t pool, void *ptr);
-dlimport size_t mpool_msize(mpool_t pool, void *ptr); // 获取分配的内存的大小
+
+/**
+ *\brief 设置内存池的回调函数
+ *
+ *\param pool     内存池
+ *\param reqmem   请求内存的回调函数
+ *\param delmem   释放内存的回调函数
+ */
+dlimport void mpool_setcb(mpool_t pool, cb_reqmem_t reqmem, cb_delmem_t delmem);
+
+/**
+ *\brief 从内存池中分配
+ *
+ *\param pool     内存池
+ *\param size     请求的内存大小
+ *\return 分配的内存地址
+ */
+dlimport void *mpool_alloc(mpool_t pool, size_t size);
+
+/**
+ *\brief 释放内存池中的内存
+ *
+ *\param pool     内存池
+ *\param ptr      要释放的内存地址
+ */
+dlimport void mpool_free(mpool_t pool, void *ptr);
+
+/**
+ *\brief 获取分配的内存的大小
+ *
+ *\param pool     内存池
+ *\param ptr      分配的内存地址
+ *\return 分配的内存的大小
+ */
+dlimport size_t mpool_msize(mpool_t pool, void *ptr);

@@ -17,11 +17,38 @@ enum {
 };
 
 enum {
-  SIGNAL_KILL,  // 终止信号 强制终止程序，不会通知程序
-  SIGNAL_STOP,  // 暂停信号
-  SIGNAL_CONT,  // 继续信号
-  SIGNAL_QUIT,  // 退出信号 告诉程序应该退出，不是强制
-  SIGNAL_ALARM, // 闹钟信号
+  SIGNAL_KILL  = MASK(0),  // 终止信号 强制终止程序，不会通知程序
+  SIGNAL_STOP  = MASK(1),  // 暂停信号
+  SIGNAL_CONT  = MASK(2),  // 继续信号
+  SIGNAL_QUIT  = MASK(3),  // 退出信号 告诉程序应该退出，不是强制
+  SIGNAL_ALARM = MASK(4),  // 闹钟信号
+  SIGNAL_5     = MASK(5),  //
+  SIGNAL_6     = MASK(6),  //
+  SIGNAL_7     = MASK(7),  //
+  SIGNAL_8     = MASK(8),  //
+  SIGNAL_9     = MASK(9),  //
+  SIGNAL_10    = MASK(10), //
+  SIGNAL_11    = MASK(11), //
+  SIGNAL_12    = MASK(12), //
+  SIGNAL_13    = MASK(13), //
+  SIGNAL_14    = MASK(14), //
+  SIGNAL_15    = MASK(15), //
+  SIGNAL_16    = MASK(16), //
+  SIGNAL_17    = MASK(17), //
+  SIGNAL_18    = MASK(18), //
+  SIGNAL_19    = MASK(19), //
+  SIGNAL_20    = MASK(20), //
+  SIGNAL_21    = MASK(21), //
+  SIGNAL_22    = MASK(22), //
+  SIGNAL_23    = MASK(23), //
+  SIGNAL_24    = MASK(24), //
+  SIGNAL_25    = MASK(25), //
+  SIGNAL_26    = MASK(26), //
+  SIGNAL_27    = MASK(27), //
+  SIGNAL_28    = MASK(28), //
+  SIGNAL_29    = MASK(29), //
+  SIGNAL_30    = MASK(30), //
+  SIGNAL_31    = MASK(31), //
 };
 
 struct thread {
@@ -29,7 +56,8 @@ struct thread {
   ssize_t   tid;
   ssize_t   uid;
   ssize_t   euid;
-  BITMAP(signal_mask, NUM_SIGNALS);
+  u8        stat; // 线程状态
+  u32       signal_mask;
 };
 
 struct process {
@@ -44,11 +72,27 @@ struct process {
 ssize_t next_tid; // 下一个线程号
 
 void thread_init(thread_t thread, process_t proc) {
-  thread->proc = proc;
-  bitmap_clearall(thread->signal_mask, NUM_SIGNALS);
+  thread->proc        = proc;
+  thread->signal_mask = 0;
 }
 
-void thread_start() {}
+static thread_t running_thread[32];
+
+finline thread_t thread_current() {
+  return running_thread[cpuid_coreid];
+}
+
+/**
+ *\brief 切换到指定线程
+ *
+ *\param thread   要切换到的线程
+ */
+void thread_switch(thread_t thread) {}
+
+void thread_start(thread_t thread) {
+  // thread->stat = THREAD_RUNNING;
+  // TODO 开始线程 (将状态从 IDLE 调整到 RUNNING)
+}
 
 void thread_create() {
 
