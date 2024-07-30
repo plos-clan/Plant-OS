@@ -9,7 +9,7 @@ extern "C" {
 #include "asm/flag.h"
 #include "asm/io.h"
 #include "asm/reg.h"
-#include "asm/syscall-linux-x64.h"
+#include "asm/syscall-plos.h"
 #ifdef __cplusplus
 }
 #endif

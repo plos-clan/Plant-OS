@@ -84,7 +84,7 @@ bool  task_check_train(mtask *task) {
 extern mtask *mouse_use_task;
 
 void task_next() {
-  if (!current) fatal("current is null"); // Your PC has been fucked by the programers
+  if (!current) fatal("current is null");
 
   if (current->running < current->timeout - 1 && current->state == RUNNING && next_set == NULL) {
     current->running++;

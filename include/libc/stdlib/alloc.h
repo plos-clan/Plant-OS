@@ -104,7 +104,7 @@ typedef struct mpool {
   size_t      alloced_size; // 已分配的内存大小
   cb_reqmem_t cb_reqmem;    // 请求内存的回调函数
   cb_delmem_t cb_delmem;    // 释放内存的回调函数
-  freelist_t  large_blk;    // 大块内存的空闲链表
+  freelist_t  large_blk;    // 大块内存的空闲链表 (组)
   freelists_t freed;        // 小块内存的空闲链表
 } *mpool_t;
 

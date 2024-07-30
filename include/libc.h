@@ -9,7 +9,7 @@ extern "C" {
 #include "libc/asm/flag.h"
 #include "libc/asm/io.h"
 #include "libc/asm/reg.h"
-#include "libc/asm/syscall-linux-x64.h"
+#include "libc/asm/syscall-plos.h"
 #include "libc/color.h"
 #include "libc/crypto/hash.h"
 #include "libc/data-structure/array-list.h"

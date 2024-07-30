@@ -51,13 +51,16 @@ enum {
   SIGNAL_31    = MASK(31), //
 };
 
+typedef void (*signal_t)(thread_t);
+
 struct thread {
-  process_t proc;
-  ssize_t   tid;
-  ssize_t   uid;
-  ssize_t   euid;
-  u8        stat; // 线程状态
-  u32       signal_mask;
+  process_t proc;                         // 进程
+  ssize_t   tid;                          // 线程号
+  ssize_t   uid;                          // 用户号
+  ssize_t   euid;                         // 有效用户号 (用于指定权限)
+  u8        stat;                         // 线程状态
+  u32       signal_mask;                  //
+  signal_t  signal_callback[NUM_SIGNALS]; //
 };
 
 struct process {
@@ -78,9 +81,8 @@ void thread_init(thread_t thread, process_t proc) {
 
 static thread_t running_thread[32];
 
-finline thread_t thread_current() {
-  return running_thread[cpuid_coreid];
-}
+#define current_thread  (running_thread[cpuid_coreid])
+#define current_process (running_thread[cpuid_coreid]->proc)
 
 /**
  *\brief 切换到指定线程
