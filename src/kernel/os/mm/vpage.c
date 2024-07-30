@@ -7,11 +7,10 @@
 
 void *page_malloc_one_no_mark();
 void  flush_tlb(u32 vaddr);
-u32   div_round_up(u32 num, u32 size);
 
 struct PAGE_INFO *pages = (struct PAGE_INFO *)PAGE_MANNAGER;
 
-u32 div_round_up(u32 num, u32 size) {
+static u32 div_round_up(u32 num, u32 size) {
   return (num + size - 1) / size;
 }
 

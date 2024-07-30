@@ -329,7 +329,7 @@ bool vfs_change_disk_for_task(u8 drive, mtask *task) {
   f->CopyCache(vfs(task), f);
   vfs(task)->path = NULL;
   vfs(task)->cd(vfs(task), "/");
-  logd("OK.");
+  logd("OK. %08x", vfs(task));
   return true;
 }
 

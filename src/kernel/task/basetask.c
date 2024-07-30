@@ -1,7 +1,7 @@
 #include <kernel.h>
-
+u8  *shell_data;
 void sound_test();
-
+int  os_execute(char *filename, char *line);
 void idle() {
   for (;;) {
     task_next();
@@ -12,8 +12,8 @@ void shell() {
   printi("shell has been started");
   char *kfifo = page_malloc_one();
   char *kbuf  = page_malloc_one();
-  circular_queue_init(kfifo, 0x1000, kbuf);
-  current_task()->keyfifo = (circular_queue_t)kfifo;
+  cir_queue_init(kfifo, 0x1000, kbuf);
+  current_task()->keyfifo = (cir_queue_t)kfifo;
   for (;;) {
     printi("%c", getch());
   }
@@ -33,13 +33,11 @@ void init() {
   vfs_change_disk(current_task()->drive);
   list_t l = vfs_listfile("");
   printf("List files:");
-  int d = 0;
   list_foreach(l, file_node) {
     vfs_file *file = file_node->data;
-    printf("%s ", file->name);
-    d = file->size;
+    printf("name: %s  size: %d", file->name, file->size);
   }
-  u8 *buf = malloc(d);
+  byte *buf = malloc(vfs_filesize("kernel.bin"));
   vfs_readfile("kernel.bin", buf);
   for (int i = 0; i < 0x200; i++) {
     printf("%c", buf[i]);
@@ -47,6 +45,12 @@ void init() {
 
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);
+
+  extern int init_ok_flag;
+  init_ok_flag = 1;
+  logd("set %d", init_ok_flag);
+
+  os_execute("TESTAPP.BIN", "");
   for (;;) {
     task_next();
   }

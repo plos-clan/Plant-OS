@@ -38,3 +38,12 @@ dlimport void log_printf(cstr _rest fmt1, cstr _rest fmt2, ...);
   log_printf(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n",                      \
              CONCAT(_STR, type) _STR_LOGINFO CONCAT(_COLOR, type) fmt CEND "\n", ARG_LOGINFO,      \
              ##__VA_ARGS__)
+
+#undef fatal
+#define fatal(fmt, ...)                                                                            \
+  ({                                                                                               \
+    logi("): Oops! Something is wrong with your Computer:");                                       \
+    _LOG(_FATAL, fmt, ##__VA_ARGS__);                                                              \
+    abort();                                                                                       \
+    __builtin_unreachable();                                                                       \
+  })

@@ -48,10 +48,10 @@ static void tty_gotoxy(struct tty *res, int x, int y) {
 }
 
 int default_tty_fifo_status(struct tty *res) {
-  return circular_queue_len(task_get_key_queue(current_task()));
+  return cir_queue_len(task_get_key_queue(current_task()));
 }
 int default_tty_fifo_get(struct tty *res) {
-  return circular_queue_get(task_get_key_queue(current_task()));
+  return cir_queue_get(task_get_key_queue(current_task()));
 }
 
 void init_tty() {

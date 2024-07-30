@@ -46,7 +46,7 @@ void timer_free(struct TIMER *timer) {
   timer->waiter = NULL;
 }
 
-void timer_init(struct TIMER *timer, circular_queue_t queue, u8 data) {
+void timer_init(struct TIMER *timer, cir_queue_t queue, u8 data) {
   timer->queue = queue;
   timer->data  = data;
 }
@@ -128,7 +128,7 @@ void inthandler20(int cs, int *esp) {
     /* 超时 */
     timer->flags = TIMER_FLAGS_ALLOC;
     task_run(timer->waiter);
-    circular_queue_put(timer->queue, timer->data);
+    cir_queue_put(timer->queue, timer->data);
     timer = timer->next; /* 将下一个定时器的地址赋给timer*/
   }
   timerctl.t0   = timer;

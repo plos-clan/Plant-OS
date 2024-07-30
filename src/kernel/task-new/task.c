@@ -8,6 +8,22 @@ typedef struct thread  *thread_t;
 
 #define NUM_SIGNALS 32
 
+enum {
+  THREAD_IDLE,    // 线程被创建但未运行
+  THREAD_RUNNING, // 线程正在运行
+  THREAD_WAITING, // 线程正在等待被调度
+  THREAD_STOPPED, // 线程已暂停
+  THREAD_DEAD,    // 线程已结束
+};
+
+enum {
+  SIGNAL_KILL,  // 终止信号 强制终止程序，不会通知程序
+  SIGNAL_STOP,  // 暂停信号
+  SIGNAL_CONT,  // 继续信号
+  SIGNAL_QUIT,  // 退出信号 告诉程序应该退出，不是强制
+  SIGNAL_ALARM, // 闹钟信号
+};
+
 struct thread {
   process_t proc;
   ssize_t   tid;

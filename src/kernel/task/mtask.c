@@ -1,6 +1,8 @@
 #include "type.h"
 #include <kernel.h>
+
 #define STACK_SIZE 1024 * 1024
+
 void         free_pde(u32 addr);
 char         default_drive, default_drive_number;
 static char  flags_once = false;
@@ -172,7 +174,8 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
     t->pde   = pde_clone(current_task()->pde); // 启用了就复制一个
     t->times = t->pde;
   }
-  t->top          = esp_alloced; // r0的esp
+  t->top = esp_alloced; // r0的esp
+  logd("%p", t->top);
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
@@ -207,7 +210,11 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
     flags_once    = true;
   }
   extern int init_ok_flag; // init_ok_flag 标记fs等是否初始化完成
-  if (init_ok_flag) { vfs_change_disk_for_task(t->drive, t); }
+  logd("init ok flag = %d", init_ok_flag);
+  if (init_ok_flag) {
+    logd("init ok flag set, so change for task");
+    vfs_change_disk_for_task(t->drive, t);
+  }
   return t;
 }
 mtask *get_task(u32 tid) {
@@ -350,12 +357,12 @@ void into_mtask() {
   task_start(&(m[0]));
 }
 
-void task_set_fifo(mtask *task, circular_queue_t kfifo, circular_queue_t mfifo) {
+void task_set_fifo(mtask *task, cir_queue_t kfifo, cir_queue_t mfifo) {
   task->keyfifo   = kfifo;
   task->mousefifo = mfifo;
 }
 
-circular_queue_t task_get_key_queue(mtask *task) {
+cir_queue_t task_get_key_queue(mtask *task) {
   return task->keyfifo;
 }
 
@@ -380,7 +387,7 @@ void task_fifo_sleep(mtask *task) {
   task->fifosleep = 1;
 }
 
-circular_queue_t task_get_mouse_fifo(mtask *task) {
+cir_queue_t task_get_mouse_fifo(mtask *task) {
   return task->mousefifo;
 }
 

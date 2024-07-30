@@ -37,6 +37,7 @@ extern "C" {
 #include "libc/stdlib/alloc.h"
 #include "libc/stdlib/atox.h"
 #include "libc/stdlib/xtoa.h"
+#include "libc/string/alloc.h"
 #include "libc/string/mem.h"
 #include "libc/string/str.h"
 #include "libc/thread/spin.h"

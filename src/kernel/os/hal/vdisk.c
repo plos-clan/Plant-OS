@@ -61,15 +61,15 @@ bool have_vdisk(char drive) {
 }
 // 基于vdisk的通用读写
 
-static u8                   *drive_name[16] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                                               NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static struct circular_queue drive_fifo[16];
-static u8                    drive_buf[16][256];
-bool                         set_drive(u8 *name) {
+static u8              *drive_name[16] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static struct cir_queue drive_fifo[16];
+static u8               drive_buf[16][256];
+bool                    set_drive(u8 *name) {
   for (int i = 0; i != 16; i++) {
     if (drive_name[i] == NULL) {
       drive_name[i] = name;
-      circular_queue_init(&drive_fifo[i], 256, drive_buf[i]);
+      cir_queue_init(&drive_fifo[i], 256, drive_buf[i]);
       return true;
     }
   }
@@ -84,7 +84,7 @@ u32 get_drive_code(u8 *name) {
 
 bool drive_semaphore_take(u32 drive_code) {
   if (drive_code >= 16) { return true; }
-  circular_queue_put(&drive_fifo[drive_code], get_tid(current_task()));
+  cir_queue_put(&drive_fifo[drive_code], get_tid(current_task()));
   // printk("FIFO: %d PUT: %d STATUS: %d\n", drive_code, Get_Tid(current_task()),
   //        fifo8_status(&drive_fifo[drive_code]));
   while (drive_buf[drive_code][drive_fifo[drive_code].head] != get_tid(current_task())) {
@@ -98,7 +98,7 @@ void drive_semaphore_give(u32 drive_code) {
     // 暂时先不做处理 一般不会出现这种情况
     return;
   }
-  circular_queue_get(&drive_fifo[drive_code]);
+  cir_queue_get(&drive_fifo[drive_code]);
 }
 
 #define SECTORS_ONCE 8

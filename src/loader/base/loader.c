@@ -48,11 +48,8 @@ int is_ide_device(u8 bus, u8 device, u8 function) {
 int get_vdisk_type(char drive);
 
 void DOSLDR_MAIN() {
-  struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
-  u32            memtotal;
-  memtotal = 128 * 1024 * 1024;
-  memman_init(memman);
-  memman_free(memman, 0x00600000, memtotal - 0x00600000);
+  u32 memtotal = 128 * 1024 * 1024;
+  memman_init((void *)0x00600000, memtotal - 0x00600000);
   // asm("mov $0x00650000,%esp");
   clear();
   init_gdtidt();

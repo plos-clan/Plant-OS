@@ -5,14 +5,14 @@
 #  define CIRCQUEUE_IMPLEMENTATION
 #endif
 
-typedef struct circular_queue {
+typedef struct cir_queue {
   u8    *buf;
   size_t tail;
   size_t head;
   size_t free;
   size_t size;
   size_t flags;
-} *circular_queue_t;
+} *cir_queue_t;
 
 #define FLAGS_OVERRUN 0x0001
 
@@ -20,10 +20,10 @@ typedef struct circular_queue {
 #  define extern static
 #endif
 
-extern void circular_queue_init(circular_queue_t queue, size_t size, u8 *buf);
-extern int  circular_queue_put(circular_queue_t queue, u8 data);
-extern int  circular_queue_get(circular_queue_t queue);
-extern int  circular_queue_len(circular_queue_t queue);
+extern void cir_queue_init(cir_queue_t queue, size_t size, u8 *buf);
+extern int  cir_queue_put(cir_queue_t queue, u8 data);
+extern int  cir_queue_get(cir_queue_t queue);
+extern int  cir_queue_len(cir_queue_t queue);
 
 #ifdef CIRCQUEUE_IMPLEMENTATION
 #  undef extern
@@ -31,7 +31,7 @@ extern int  circular_queue_len(circular_queue_t queue);
 
 #ifdef CIRCQUEUE_IMPLEMENTATION
 
-static void circular_queue_init(circular_queue_t queue, size_t size, u8 *buf) {
+static void cir_queue_init(cir_queue_t queue, size_t size, u8 *buf) {
   queue->size  = size;
   queue->buf   = buf;
   queue->free  = size;
@@ -40,7 +40,7 @@ static void circular_queue_init(circular_queue_t queue, size_t size, u8 *buf) {
   queue->head  = 0;
 }
 
-static int circular_queue_put(circular_queue_t queue, u8 data) {
+static int cir_queue_put(cir_queue_t queue, u8 data) {
   if (queue->free == 0) {
     queue->flags |= FLAGS_OVERRUN;
     return -1;
@@ -52,7 +52,7 @@ static int circular_queue_put(circular_queue_t queue, u8 data) {
   return 0;
 }
 
-static int circular_queue_get(circular_queue_t queue) {
+static int cir_queue_get(cir_queue_t queue) {
   int data;
   if (queue->free == queue->size) return -1; // 如果缓冲区为空则返回
   data = queue->buf[queue->head];
@@ -62,12 +62,12 @@ static int circular_queue_get(circular_queue_t queue) {
   return data;
 }
 
-static int circular_queue_len(circular_queue_t queue) {
+static int cir_queue_len(cir_queue_t queue) {
   if (queue == null) return 0;
   return queue->size - queue->free;
 }
 
-static void circular_queue_copyto(circular_queue_t src, circular_queue_t dst) {
+static void cir_queue_copyto(cir_queue_t src, cir_queue_t dst) {
   if (dst->size != src->size) return;
   dst->free  = src->free;
   dst->flags = src->flags;

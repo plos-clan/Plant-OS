@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-#define PAGE_SIZE ((size_t)4096)
+// 目前没用
 
 // 1024 x 1024 x 4096
 

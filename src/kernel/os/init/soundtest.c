@@ -66,7 +66,7 @@ void sound_test() {
   G               = g(T);
   const int total = T + ((128 - F) + (128 - G)) * K;
   sb16_open();
-  sb16_set_volume(0xff);
+  sb16_set_volume(128);
   byte *buffer = malloc(buffer_len);
   for (int offset = 0;; offset++) {
     if (offset * buffer_len >= total) break;

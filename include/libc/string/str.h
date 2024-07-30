@@ -12,8 +12,8 @@ finline int    strcmp(cstr _s1, cstr _s2);
 finline int    tolower(int c);
 finline int    toupper(int c);
 finline int    strncmp(cstr _s1, cstr _s2, size_t n);
-dlimport char *strdup(cstr _s);
-dlimport char *strndup(cstr _s, size_t _n);
+finline char  *strdup(cstr _s);
+finline char  *strndup(cstr _s, size_t _n);
 finline char  *strchr(cstr _s, int _c);
 finline char  *strrchr(cstr _s, int _c);
 finline char  *strchrnul(cstr _s, int _c);
@@ -68,9 +68,13 @@ finline char *strncpy(char *_rest d, cstr _rest s, size_t n) {
 }
 
 finline char *strcat(char *_rest _d, cstr _rest _s) {
+#  if __has(strcat)
+  return __builtin_strcat(_d, _s);
+#  else
   while (*_d++ != '\0') {}
   while ((*_d++ = *_s) != '\0') {}
   return _d;
+#  endif
 }
 
 finline char *strncat(char *_rest _d, cstr _rest _s, size_t _n) {
@@ -126,10 +130,6 @@ finline int strncmp(cstr _s1, cstr _s2, size_t n) {
   return 0;
 #  endif
 }
-
-dlimport char *strdup(cstr _s);
-
-dlimport char *strndup(cstr _s, size_t _n);
 
 finline char *strchr(cstr _s, int _c) {
 #  if __has(strchr)

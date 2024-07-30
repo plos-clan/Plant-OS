@@ -21,3 +21,4 @@ void                    mouse_sleep(struct MOUSE_DEC *mdec);
 void                    init_keyboard();
 int                     getch();
 extern struct MOUSE_DEC mdec;
+void                    mouse_ready(struct MOUSE_DEC *mdec);

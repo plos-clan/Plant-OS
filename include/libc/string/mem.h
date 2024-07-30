@@ -19,6 +19,9 @@ finline void  bzero(void *_s, size_t _n);
 finline void  explicit_bzero(void *_s, size_t _n);
 finline void *memfrob(void *_s, size_t _n);
 
+// 非标准库函数
+finline void *memdup(const void *_s, size_t _n);
+
 // 定义
 
 #if NO_STD

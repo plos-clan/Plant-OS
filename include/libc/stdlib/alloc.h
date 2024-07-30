@@ -2,7 +2,10 @@
 #include <define.h>
 #include <type.h>
 
+// 内存分配时大小和返回指针的对齐 (按照两倍字长)
 #define MALLOC_PADDING(size) (((size) + 2 * sizeof(size_t) - 1) & ~(2 * sizeof(size_t) - 1))
+
+#define PAGE_SIZE ((size_t)4096)
 
 // 标准库内存分配函数
 
@@ -18,6 +21,8 @@ dlimport void  *memalign(size_t align, size_t size);
 dlimport int    posix_memalign(void **memptr, size_t alignment, size_t size);
 dlimport void  *pvalloc(size_t size);
 dlimport void  *valloc(size_t size);
+
+// 自定义内存分配
 
 // 向系统请求内存
 // 每次请求时 size 均为 page_size 的整数倍

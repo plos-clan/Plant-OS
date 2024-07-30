@@ -1,5 +1,7 @@
 #include <kernel.h>
 
+// 一些用于日志记录和打印的函数。
+
 void write_serial(char a);
 
 void logk_raw(cstr s) {

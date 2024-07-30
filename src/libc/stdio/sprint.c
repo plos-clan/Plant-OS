@@ -12,8 +12,8 @@ enum fmtalign {
 typedef struct fmtarg {
   int n; // 当前已格式化的字符数
 
-  int  align; // 对齐方式
-  bool fill_zero : 1;
+  int  align;         // 对齐方式
+  bool fill_zero : 1; // 是否用 0 填充
 
   bool print_ptr : 1;
 
@@ -70,7 +70,7 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
     fmt++;
   }
 
-parse_length : {
+parse_length: {
   char *f;
   arg->minlen = strb10toi(fmt, &f); // 解析 %15d 这样的写法
   if (fmt == f && *f == '*') {      // 解析 %*d 这样的写法

@@ -52,3 +52,4 @@ bool   vfs_mount_disk(u8 disk_number, u8 drive);
 bool   vfs_change_disk(u8 drive);
 list_t vfs_listfile(char *dictpath);
 void   register_fat();
+u32    vfs_filesize(char *filename);

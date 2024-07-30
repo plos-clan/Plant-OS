@@ -45,10 +45,14 @@ void memory_init(void *ptr, u32 size) {
 }
 
 void *malloc(size_t size) {
-  return mpool_alloc(&pool, size);
+  void *ptr = mpool_alloc(&pool, size);
+  bzero(ptr, size);
+  logw("alloc %-10p %d -> %d", ptr, size, mpool_msize(&pool, ptr));
+  return ptr;
 }
 
 void free(void *ptr) {
+  logw("free %-10p %d", ptr, mpool_msize(&pool, ptr));
   mpool_free(&pool, ptr);
 }
 
@@ -57,21 +61,6 @@ void *realloc(void *ptr, u32 size) {
   memcpy(new, ptr, mpool_msize(&pool, ptr));
   free(ptr);
   return new;
-}
-
-// 暂时放这里
-dlexport char *strdup(cstr _s) {
-  size_t len = strlen(_s);
-  char  *ptr = malloc(len + 1);
-  memcpy(ptr, _s, len + 1);
-  return _s;
-}
-// 暂时放这里
-dlexport char *strndup(cstr _s, size_t _n) {
-  char *ptr = malloc(_n + 1);
-  memcpy(ptr, _s, _n);
-  ptr[_n] = '\0';
-  return ptr;
 }
 
 void *kmalloc(int size) {
