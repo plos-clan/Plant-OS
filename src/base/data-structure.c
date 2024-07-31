@@ -1,3 +1,3 @@
 #define static dlexport
 #define ALL_IMPLEMENTATION
-#include <libc.h>
+#include <base.h>

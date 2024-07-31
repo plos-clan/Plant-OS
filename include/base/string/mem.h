@@ -1,5 +1,5 @@
 #pragma once
-#include "libc/asm/asm.h"
+#include "base/asm/asm.h"
 #include <define.h>
 #include <type.h>
 

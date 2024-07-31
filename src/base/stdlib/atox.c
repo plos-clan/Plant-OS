@@ -1,4 +1,4 @@
-#include <libc.h>
+#include <base.h>
 
 #define isdigit2(c)  ((c) == '0' || (c) == '1')
 #define isdigit8(c)  ('0' <= (c) && (c) <= '7')

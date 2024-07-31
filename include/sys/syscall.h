@@ -1,5 +1,5 @@
 #pragma once
-#include <libc.h>
+#include <base.h>
 
 #define SYSCALL_EXIT 0
 #define SYSCALL_PUTC 1

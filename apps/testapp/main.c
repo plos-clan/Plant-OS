@@ -1,4 +1,4 @@
-#include <libc.h>
+#include <base.h>
 #include <sys/syscall.h>
 
 void print(char *s) {

@@ -1,6 +1,6 @@
 #pragma once
+#include <base.h>
 #include <kernel/mtask.h>
-#include <libc.h>
 
 typedef enum {
   FLE,

@@ -1,5 +1,8 @@
+add_subdirectory(base)
 add_subdirectory(libc)
+add_subdirectory(libc++)
 add_subdirectory(libplos)
 add_subdirectory(boot)
 add_subdirectory(loader)
 add_subdirectory(kernel)
+add_subdirectory(sys)

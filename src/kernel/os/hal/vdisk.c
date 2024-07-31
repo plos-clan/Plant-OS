@@ -1,5 +1,5 @@
+#include "base/data-structure/circular-queue.h"
 #include "define.h"
-#include "libc/data-structure/circular-queue.h"
 #include <kernel.h>
 int   getReadyDisk(); // init.c
 vdisk vdisk_ctl[26];

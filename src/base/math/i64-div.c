@@ -1,4 +1,4 @@
-#include <libc.h>
+#include <base.h>
 
 dlexport void u64_div(u64 a, u64 b, u64 *_c, u64 *_d) {
   u64 c    = 0;

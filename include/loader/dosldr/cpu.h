@@ -2,7 +2,7 @@
 #include <define.h>
 #include <type.h>
 
-#include <libc.h>
+#include <base.h>
 
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
