@@ -1,9 +1,9 @@
 #pragma once
-#include <base.h>
 #include <define.h>
 #include <kernel/cpu.h>
 #include <kernel/ipc.h>
 #include <kernel/mem.h>
+#include <libc-base.h>
 #include <type.h>
 
 #define SIGINT     0

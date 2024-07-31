@@ -1,8 +1,9 @@
 #pragma once
+#include "../list.h"
+#include "../tsk.h"
 #include <define.h>
-#include <dosldr/list.h>
-#include <dosldr/tsk.h>
 #include <type.h>
+
 typedef enum {
   FLE,
   DIR,

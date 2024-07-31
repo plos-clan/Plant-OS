@@ -1,5 +1,5 @@
 #pragma once
-#include <base.h>
+#include <libc-base.h>
 
 dlimport void logk_raw(cstr s);
 

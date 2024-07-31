@@ -1,4 +1,4 @@
-#include <dosldr.h>
+#include <loader.h>
 
 int getReadyDisk(); // init.c
 

@@ -2,7 +2,7 @@
 	* Copyright by gaz os
 	* min0911 & zhouzhihao 对其移植并略微修改
 */
-#include <dosldr.h>
+#include <loader.h>
 
 /* 定义用于访问一个整数的上位和下位字节。 */
 #define LOW_BYTE(x) (x & 0x00FF)

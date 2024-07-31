@@ -10,7 +10,7 @@ extern "C" {
 #include "kernel/elf.h"
 #include "kernel/fat.h"
 #include "kernel/fdc.h"
-#include "kernel/include-libc.h"
+#include "kernel/include.h"
 #include "kernel/ipc.h"
 #include "kernel/lock.h"
 #include "kernel/log.h"

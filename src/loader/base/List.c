@@ -1,6 +1,5 @@
 // 链表
-#include <dosldr.h>
-#include <stddef.h>
+#include <loader.h>
 void AddVal(uintptr_t val, struct List *Obj) {
   while (Obj->next != NULL)
     Obj = Obj->next;

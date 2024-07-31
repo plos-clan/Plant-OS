@@ -1,4 +1,4 @@
-#include <base.h>
+#include <libc-base.h>
 
 #define vsprintf_bufsize 1024
 static char vsprintf_buf[vsprintf_bufsize];

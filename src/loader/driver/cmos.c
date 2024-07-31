@@ -1,4 +1,4 @@
-#include <dosldr.h>
+#include <loader.h>
 u8 read_cmos(u8 p) {
   u8 data;
   asm_out8(cmos_index, p);

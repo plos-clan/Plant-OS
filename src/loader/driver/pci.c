@@ -1,4 +1,4 @@
-#include <dosldr.h>
+#include <loader.h>
 #define PCI_COMMAND_PORT 0xCF8
 #define PCI_DATA_PORT    0xCFC
 #define mem_mapping      0

@@ -1,4 +1,4 @@
-#include <dosldr.h>
+#include <loader.h>
 #define vfs(task)           ((task)->nfs)
 #define toupper(c)          ((c) >= 'a' && (c) <= 'z' ? c - 32 : c)
 #define PDEBUG(str, ...)    printf(str "\n", ##__VA_ARGS__)

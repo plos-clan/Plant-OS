@@ -53,7 +53,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O1")
 set(CMAKE_EXE_LINKER_FLAGS "-nolibc -Qn")
 set(CMAKE_SHARED_LINKER_FLAGS "-nolibc -Qn")
 
-# add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查
+add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查
 add_compile_flag("-fno-strict-aliasing") # 禁用严格别名规则
 add_compile_flag("-m32 -mfpmath=387 -fno-builtin -mno-mmx -mno-sse -nostdlib -nostdinc")
 
@@ -64,6 +64,9 @@ endif()
 add_compile_flag("-finput-charset=UTF-8 -fexec-charset=UTF-8")
 
 add_compile_flag("-ffreestanding -fno-stack-protector -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer -fno-exceptions")
+
+# 禁用部分 warning
+add_compile_flag("-Wno-compound-token-split-by-macro")
 
 message("PLOS 环境")
 include(cmake/show-flags)

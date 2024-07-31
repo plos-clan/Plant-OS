@@ -1,4 +1,4 @@
-#include <dosldr.h>
+#include <loader.h>
 #define LONG_MAX 0x7fffffff
 #define LONG_MIN (-LONG_MAX - 1)
 // strcmp

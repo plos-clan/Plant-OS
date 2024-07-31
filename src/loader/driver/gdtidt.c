@@ -2,7 +2,7 @@
 // GDTIDT的初始化
 //  Copyright (C) 2021-2022 zhouzhihao & min0911_
 //  ------------------------------------------------
-#include <dosldr.h>
+#include <loader.h>
 void null_inthandler();
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
   if (limit > 0xfffff) {

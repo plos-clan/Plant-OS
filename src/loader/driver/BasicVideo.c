@@ -1,5 +1,4 @@
-#include "dosldr/screen.h"
-#include <dosldr.h>
+#include <loader.h>
 
 static int x, y;
 static int cons_x, cons_y;

@@ -1,5 +1,5 @@
-#include <base.h>
-#include <sys/syscall.h>
+#include <libc-base.h>
+#include <sys.h>
 
 void print(char *s) {
   while (*s) {

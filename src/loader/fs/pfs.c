@@ -1,5 +1,5 @@
 // // libpfs
-// #include <dosldr.h>
+// #include <loader.h>
 // #include <mstr.h>
 // #include <pfs.h>
 

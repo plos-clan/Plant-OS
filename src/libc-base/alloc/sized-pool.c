@@ -1,4 +1,4 @@
-#include <base.h>
+#include <libc-base.h>
 
 dlexport void sized_mpool_init(sized_mpool_t pool, void *ptr, size_t bsize, size_t len) {
   pool->ptr      = ptr;

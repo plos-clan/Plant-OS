@@ -1,4 +1,3 @@
-#include "base/data-structure/circular-queue.h"
 #include <kernel.h>
 list_t      tty_list = null;
 struct tty *tty_default;

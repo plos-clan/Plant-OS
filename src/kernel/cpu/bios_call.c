@@ -1,4 +1,3 @@
-#include "base/string/mem.h"
 #include <kernel.h>
 
 extern u8 *IVT;

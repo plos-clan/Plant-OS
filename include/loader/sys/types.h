@@ -1,5 +1,5 @@
 #pragma once
-#include <stddef.h>
+#include "../stddef.h"
 
 #ifdef _USE_32BIT_TIME_T
 #  ifdef _WIN64
@@ -79,7 +79,7 @@ struct itimerspec {
 __MINGW_EXTENSION
 typedef u64 _sigset_t;
 #  else
-typedef u32     _sigset_t;
+typedef u32 _sigset_t;
 #  endif
 
 #  ifdef _POSIX

@@ -2,7 +2,7 @@
  * Copyright by GazOS
  * min0911 & zhouzhihao 对其进行略微修改并移植
  */
-#include <dosldr.h>
+#include <loader.h>
 volatile int floppy_int_count = 0;
 void         floppy_int(void);
 typedef struct DrvGeom {

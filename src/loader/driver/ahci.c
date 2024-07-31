@@ -1,6 +1,6 @@
 // AHCI Controller Driver Implement
 
-#include <dosldr.h>
+#include <loader.h>
 #define logk printf
 static u8 *cache;
 
@@ -366,7 +366,7 @@ void ahci_init() {
     for (j = 0; j < 32; j++) {
       for (k = 0; k < 8; k++) {
         u32  p     = read_pci(i, j, k, 0x8);
-        u16 *reg   = (u16*)&p;        // reg[0] ---> P & R, reg[1] ---> Sub Class Class Code
+        u16 *reg   = (u16 *)&p;       // reg[0] ---> P & R, reg[1] ---> Sub Class Class Code
         u8  *codes = (u8 *)&(reg[1]); // codes[0] --> Sub Class Code  codes[1] Class Code
         if (codes[1] == 0x1 && codes[0] == 0x6) {
           ahci_bus  = i;

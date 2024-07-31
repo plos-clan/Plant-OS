@@ -1,9 +1,10 @@
-#include "base/data-structure/circular-queue.h"
-#include "define.h"
 #include <kernel.h>
-int   getReadyDisk(); // init.c
+
+int getReadyDisk(); // init.c
+
 vdisk vdisk_ctl[26];
-int   init_vdisk() {
+
+int init_vdisk() {
   for (int i = 0; i < 26; i++) {
     vdisk_ctl[i].flag = 0; // 设置为未使用
   }

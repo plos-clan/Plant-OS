@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "libc/include.h"
+#include "sys/syscall.h"
 #ifdef __cplusplus
 }
 #endif
