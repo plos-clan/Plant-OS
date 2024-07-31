@@ -1,8 +1,6 @@
 #pragma once
-#include <define.h>
-#include <type.h>
-
-#define SYSCALL_EXIT 0
-#define MAX_SYSCALLS 256
+#include <sys/syscall.h>
 
 void syscall_exit(int status);
+void syscall_putchar(int ch);
+int  syscall_fork();

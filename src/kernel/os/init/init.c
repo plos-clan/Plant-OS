@@ -97,7 +97,7 @@ void sysinit() {
   asm_sti;
   irq_mask_clear(0);
   irq_mask_clear(1);
-  asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
+  asm_set_em, asm_set_ts, asm_set_ne;
   memory_init(page_malloc(128 * 1024 * 1024), 128 * 1024 * 1024);
   init_pit();
   init_tty();

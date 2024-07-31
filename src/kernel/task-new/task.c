@@ -17,38 +17,38 @@ enum {
 };
 
 enum {
-  SIGNAL_KILL  = MASK(0),  // 终止信号 强制终止程序，不会通知程序
-  SIGNAL_STOP  = MASK(1),  // 暂停信号
-  SIGNAL_CONT  = MASK(2),  // 继续信号
-  SIGNAL_QUIT  = MASK(3),  // 退出信号 告诉程序应该退出，不是强制
-  SIGNAL_ALARM = MASK(4),  // 闹钟信号
-  SIGNAL_5     = MASK(5),  //
-  SIGNAL_6     = MASK(6),  //
-  SIGNAL_7     = MASK(7),  //
-  SIGNAL_8     = MASK(8),  //
-  SIGNAL_9     = MASK(9),  //
-  SIGNAL_10    = MASK(10), //
-  SIGNAL_11    = MASK(11), //
-  SIGNAL_12    = MASK(12), //
-  SIGNAL_13    = MASK(13), //
-  SIGNAL_14    = MASK(14), //
-  SIGNAL_15    = MASK(15), //
-  SIGNAL_16    = MASK(16), //
-  SIGNAL_17    = MASK(17), //
-  SIGNAL_18    = MASK(18), //
-  SIGNAL_19    = MASK(19), //
-  SIGNAL_20    = MASK(20), //
-  SIGNAL_21    = MASK(21), //
-  SIGNAL_22    = MASK(22), //
-  SIGNAL_23    = MASK(23), //
-  SIGNAL_24    = MASK(24), //
-  SIGNAL_25    = MASK(25), //
-  SIGNAL_26    = MASK(26), //
-  SIGNAL_27    = MASK(27), //
-  SIGNAL_28    = MASK(28), //
-  SIGNAL_29    = MASK(29), //
-  SIGNAL_30    = MASK(30), //
-  SIGNAL_31    = MASK(31), //
+  SIGNAL_KILL  = MASK32(0),  // 终止信号 强制终止程序，不会通知程序
+  SIGNAL_STOP  = MASK32(1),  // 暂停信号
+  SIGNAL_CONT  = MASK32(2),  // 继续信号
+  SIGNAL_QUIT  = MASK32(3),  // 退出信号 告诉程序应该退出，不是强制
+  SIGNAL_ALARM = MASK32(4),  // 闹钟信号
+  SIGNAL_5     = MASK32(5),  //
+  SIGNAL_6     = MASK32(6),  //
+  SIGNAL_7     = MASK32(7),  //
+  SIGNAL_8     = MASK32(8),  //
+  SIGNAL_9     = MASK32(9),  //
+  SIGNAL_10    = MASK32(10), //
+  SIGNAL_11    = MASK32(11), //
+  SIGNAL_12    = MASK32(12), //
+  SIGNAL_13    = MASK32(13), //
+  SIGNAL_14    = MASK32(14), //
+  SIGNAL_15    = MASK32(15), //
+  SIGNAL_16    = MASK32(16), //
+  SIGNAL_17    = MASK32(17), //
+  SIGNAL_18    = MASK32(18), //
+  SIGNAL_19    = MASK32(19), //
+  SIGNAL_20    = MASK32(20), //
+  SIGNAL_21    = MASK32(21), //
+  SIGNAL_22    = MASK32(22), //
+  SIGNAL_23    = MASK32(23), //
+  SIGNAL_24    = MASK32(24), //
+  SIGNAL_25    = MASK32(25), //
+  SIGNAL_26    = MASK32(26), //
+  SIGNAL_27    = MASK32(27), //
+  SIGNAL_28    = MASK32(28), //
+  SIGNAL_29    = MASK32(29), //
+  SIGNAL_30    = MASK32(30), //
+  SIGNAL_31    = MASK32(31), //
 };
 
 typedef void (*signal_t)(thread_t);

@@ -1,7 +1,7 @@
 #include <kernel.h>
 
 void *sycall_handlers[MAX_SYSCALLS] = {
-    [SYSCALL_EXIT] = syscall_exit,
+    [SYSCALL_EXIT] = syscall_exit, [SYSCALL_PUTC] = syscall_putchar, [SYSCALL_FORK] = syscall_fork,
     // [SYSCALL_FORK] = syscall_fork,
     // [SYSCALL_READ] = syscall_read,
     // [SYSCALL_WRITE] = syscall_write,
@@ -49,16 +49,15 @@ void *sycall_handlers[MAX_SYSCALLS] = {
 typedef ssize_t (*syscall_t)(ssize_t, ssize_t, ssize_t, ssize_t, ssize_t);
 
 ssize_t syscall() {
-  ssize_t eax, ebx, ecx, edx, esi, edi;
-  asm volatile("mov %%eax, %0\n\t" : "=r"(eax));
-  asm volatile("mov %%ebx, %0\n\t" : "=r"(ebx));
-  asm volatile("mov %%ecx, %0\n\t" : "=r"(ecx));
-  asm volatile("mov %%edx, %0\n\t" : "=r"(edx));
-  asm volatile("mov %%esi, %0\n\t" : "=r"(esi));
-  asm volatile("mov %%edi, %0\n\t" : "=r"(edi));
-  logi("%d", cpuid_ncores);
+  volatile ssize_t eax, ebx, ecx, edx, esi, edi;
+  asm("mov %%eax, %0\n\t" : "=r"(eax));
+  asm("mov %%ebx, %0\n\t" : "=r"(ebx));
+  asm("mov %%ecx, %0\n\t" : "=r"(ecx));
+  asm("mov %%edx, %0\n\t" : "=r"(edx));
+  asm("mov %%esi, %0\n\t" : "=r"(esi));
+  asm("mov %%edi, %0\n\t" : "=r"(edi));
   logi("eax: %d, ebx: %d, ecx: %d, edx: %d, esi: %d, edi: %d", eax, ebx, ecx, edx, esi, edi);
-  if (sycall_handlers[eax] != null) {
+  if (0 <= eax && eax < MAX_SYSCALLS && sycall_handlers[eax] != null) {
     eax = ((syscall_t)sycall_handlers[eax])(ebx, ecx, edx, esi, edi);
   } else {
     eax = -1;
@@ -66,3 +65,30 @@ ssize_t syscall() {
   logi("ret: %d", eax);
   return eax;
 }
+
+// void asm_inthandler36() {
+//   asm volatile("push %ds\n\t");
+//   asm volatile("push %es\n\t");
+//   asm volatile("push %fs\n\t");
+//   asm volatile("push %gs\n\t");
+//   asm volatile("push %ebx\n\t");
+//   asm volatile("push %ecx\n\t");
+//   asm volatile("push %edx\n\t");
+//   asm volatile("push %esi\n\t");
+//   asm volatile("push %edi\n\t");
+//   asm volatile("push %ebp\n\t");
+//   asm volatile("push %esp\n\t");
+//   asm volatile("call syscall\n\t");
+//   asm volatile("pop %esp\n\t");
+//   asm volatile("pop %ebp\n\t");
+//   asm volatile("pop %edi\n\t");
+//   asm volatile("pop %esi\n\t");
+//   asm volatile("pop %edx\n\t");
+//   asm volatile("pop %ecx\n\t");
+//   asm volatile("pop %ebx\n\t");
+//   asm volatile("pop %gs\n\t");
+//   asm volatile("pop %fs\n\t");
+//   asm volatile("pop %es\n\t");
+//   asm volatile("pop %ds\n\t");
+//   asm volatile("iret\n\t");
+// }

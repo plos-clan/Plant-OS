@@ -90,3 +90,4 @@ mtask      *create_task(u32 eip, u32 esp, u32 ticks, u32 floor);
 void        task_exit(u32 status);
 int         waittid(u32 tid);
 void        task_set_fifo(mtask *task, cir_queue_t kfifo, cir_queue_t mfifo);
+int         task_fork();

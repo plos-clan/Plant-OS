@@ -58,10 +58,6 @@ void load_tr(int tr);
 #define SA_RPL3          3
 #define GET_SEL(cs, rpl) ((cs & SA_RPL_MASK & SA_TI_MASK) | (rpl))
 
-finline void set_cr3(u32 pde) {
-  asm volatile("movl %%eax, %%cr3\n" ::"a"(pde) : "memory");
-}
-
 struct TSS32 {
   int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
   int eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
@@ -95,17 +91,17 @@ struct GATE_DESCRIPTOR {
 };
 
 enum {
-  CR0_PE = 1 << 0, // Protection Enable 启用保护模式
-  CR0_MP = 1 << 1, // Monitor Coprocessor
-  CR0_EM = 1 << 2, // Emulation 启用模拟，表示没有 FPU
-  CR0_TS = 1 << 3, // Task Switch 任务切换，延迟保存浮点环境
-  CR0_ET = 1 << 3, // Extension Type 保留
-  CR0_NE = 1 << 5, // Numeric Error 启用内部浮点错误报告
-  CR0_WP = 1 << 16, // Write Protect 写保护（禁止超级用户写入只读页）帮助写时复制
-  CR0_AM = 1 << 18, // Alignment Mask 对齐掩码
-  CR0_NW = 1 << 29, // Not Write-Through 不是直写
-  CR0_CD = 1 << 30, // Cache Disable 禁用内存缓冲
-  CR0_PG = 1 << 31, // Paging 启用分页
+  CR0_PE = MASK(0), // Protection Enable 启用保护模式
+  CR0_MP = MASK(1), // Monitor Coprocessor
+  CR0_EM = MASK(2), // Emulation 启用模拟，表示没有 FPU
+  CR0_TS = MASK(3), // Task Switch 任务切换，延迟保存浮点环境
+  CR0_ET = MASK(4), // Extension Type 保留
+  CR0_NE = MASK(5), // Numeric Error 启用内部浮点错误报告
+  CR0_WP = MASK(16), // Write Protect 写保护（禁止超级用户写入只读页）帮助写时复制
+  CR0_AM = MASK(18), // Alignment Mask 对齐掩码
+  CR0_NW = MASK(29), // Not Write-Through 不是直写
+  CR0_CD = MASK(30), // Cache Disable 禁用内存缓冲
+  CR0_PG = MASK(31), // Paging 启用分页
 };
 
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar);
@@ -129,8 +125,8 @@ void asm_error16();
 void asm_error17();
 void asm_error18();
 
-void asm_inthandler36();
-void asm_inthandler72();
+void asm_inthandler36() __attribute__((naked));
+void asm_inthandler72() __attribute__((naked));
 
 void asm_gui_api();
 void asm_net_api();
@@ -149,8 +145,8 @@ typedef struct {
 void int32(u8 intnum, regs16_t *regs);
 void INT(u8 intnum, regs16_t *regs);
 void do_init_seg_register();
-void init_page(void);
-void init_gdtidt(void);
+void init_page();
+void init_gdtidt();
 void fpu_disable();
 bool interrupt_disable();
 void set_interrupt_state(bool state);

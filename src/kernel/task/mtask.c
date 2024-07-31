@@ -12,15 +12,6 @@ mtask       *idle_task;
 mtask       *current         = NULL;
 char         mtask_stop_flag = 0;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wall"
-
-u32 get_cr3() {
-  asm volatile("movl %%cr3, %%eax\n\t" ::: "memory");
-}
-
-#pragma clang diagnostic pop
-
 mtask *next_set = NULL;
 mtask  null_task;
 
@@ -183,6 +174,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   t->drive_number = default_drive_number;
   t->drive        = default_drive;
   t->jiffies      = 0;
+
   // 获取default_drive_number
   if (!flags_once) {
     if (memcmp((void *)"FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) == 0 ||
@@ -209,12 +201,14 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
     default_drive = default_drive_number + 0x41;
     flags_once    = true;
   }
+
   extern int init_ok_flag; // init_ok_flag 标记fs等是否初始化完成
   logd("init ok flag = %d", init_ok_flag);
   if (init_ok_flag) {
     logd("init ok flag set, so change for task");
     vfs_change_disk_for_task(t->drive, t);
   }
+
   return t;
 }
 mtask *get_task(u32 tid) {
@@ -275,7 +269,7 @@ void task_kill(u32 tid) {
     if (m[i].ptid == tid) { task_kill(m[i].tid); }
   }
   asm_cli;
-  if (get_task(tid) == current_task()) { set_cr3(PDE_ADDRESS); }
+  if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }
   free_pde(m[tid].pde);
   gc(tid); // 释放内存
   if (m[tid].press_key_fifo) {
@@ -460,7 +454,7 @@ void task_exit(u32 status) {
     if (m[i].ptid == tid) { task_kill(m[i].tid); }
   }
   asm_cli;
-  set_cr3(PDE_ADDRESS);
+  asm_set_cr3(PDE_ADDRESS);
   free_pde(m[tid].pde);
   gc(tid); // 释放内存
   if (m[tid].press_key_fifo) {

@@ -4,7 +4,7 @@ file(
   RELATIVE "${CMAKE_SOURCE_DIR}/apps"
   "${CMAKE_SOURCE_DIR}/apps/*")
 foreach(SUBDIR ${SUBDIRS})
-  if(IS_DIRECTORY ${SUBDIR})
+  if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/apps/${SUBDIR}")
     add_subdirectory(${SUBDIR})
     set(TARGETS ${TARGETS} ${SUBDIR})
   endif()

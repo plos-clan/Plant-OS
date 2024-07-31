@@ -74,11 +74,11 @@ void delete_char(char *str, int pos) {
 
 mtask *last_fpu_task = NULL;
 void   fpu_disable() {
-  asm_set_cr0(asm_get_cr0() | (CR0_EM | CR0_TS));
+  asm_set_ts, asm_set_em;
 }
 
 void fpu_enable(mtask *task) {
-  asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
+  asm_clr_ts, asm_clr_em;
   if (!task->fpu_flag) {
     asm volatile("fnclex \n"
                  "fninit \n" ::

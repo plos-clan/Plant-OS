@@ -16,7 +16,7 @@ asm_inthandler36:
   push gs
   pusha
 	call syscall
-	mov dword [esp+28],eax
+	mov dword [esp+28], eax
   popa
   pop gs
   pop fs

@@ -71,7 +71,7 @@ u32 pde_clone(u32 addr) {
   memcpy((void *)result, (void *)addr, 0x1000);
   flush_tlb(result);
   flush_tlb(addr);
-  set_cr3(addr);
+  asm_set_cr3(addr);
 
   return result;
 }
@@ -108,7 +108,7 @@ void flush_tlb(u32 vaddr) {
 void page_link_pde(u32 addr, u32 pde) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
-  set_cr3(PDE_ADDRESS);
+  asm_set_cr3(PDE_ADDRESS);
   u32 t, p;
   t        = DIDX(addr);
   p        = (addr >> 12) & 0x3ff;
@@ -133,13 +133,13 @@ void page_link_pde(u32 addr, u32 pde) {
   flush_tlb((u32)pte);
   flush_tlb(addr);
   current_task()->pde = pde_backup;
-  set_cr3(pde_backup);
+  asm_set_cr3(pde_backup);
 }
 
 void page_link_pde_share(u32 addr, u32 pde) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
-  set_cr3(PDE_ADDRESS);
+  asm_set_cr3(PDE_ADDRESS);
   u32 t, p;
   t        = DIDX(addr);
   p        = (addr >> 12) & 0x3ff;
@@ -170,13 +170,13 @@ void page_link_pde_share(u32 addr, u32 pde) {
   flush_tlb((u32)pte);
   flush_tlb(addr);
   current_task()->pde = pde_backup;
-  set_cr3(pde_backup);
+  asm_set_cr3(pde_backup);
 }
 
 void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
-  set_cr3(PDE_ADDRESS);
+  asm_set_cr3(PDE_ADDRESS);
   u32 t, p;
   t        = DIDX(addr);
   p        = (addr >> 12) & 0x3ff;
@@ -206,7 +206,7 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   flush_tlb((u32)pte);
   flush_tlb(addr);
   current_task()->pde = pde_backup;
-  set_cr3(pde_backup);
+  asm_set_cr3(pde_backup);
 }
 
 void page_links_pde(u32 start, u32 numbers, u32 pde) {
@@ -491,12 +491,6 @@ void showPage() {
   //}
 }
 
-u32 get_cr2() {
-  u32 r;
-  asm volatile("mov %%cr2,%0" : "=r"(r)::"memory");
-  return r;
-}
-
 u32 page_get_attr_pde(u32 vaddr, u32 pde) {
   pde       += (u32)(DIDX(vaddr) * 4);
   void *pte  = (void *)(*(u32 *)pde & 0xfffff000);
@@ -587,7 +581,7 @@ void copy_on_write(u32 vaddr) {
 void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
-  set_cr3(PDE_ADDRESS);
+  asm_set_cr3(PDE_ADDRESS);
   u32 t, p;
   t        = DIDX(vaddr);
   p        = (vaddr >> 12) & 0x3ff;
@@ -610,7 +604,7 @@ void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
   flush_tlb((u32)pte);
   flush_tlb(vaddr);
   current_task()->pde = pde_backup;
-  set_cr3(pde_backup);
+  asm_set_cr3(pde_backup);
 }
 
 void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 pde_backup) {
@@ -645,8 +639,8 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
         u32 es, u32 ds, u32 error, u32 eip, u32 cs, u32 eflags) {
   u32 pde = current_task()->pde;
   asm_cli;
-  set_cr3(PDE_ADDRESS); // 设置一个安全的页表
-  void *line_address = (void *)get_cr2();
+  asm_set_cr3(PDE_ADDRESS); // 设置一个安全的页表
+  void *line_address = (void *)asm_get_cr2();
   if (!(page_get_attr((u32)line_address) & PG_P) ||     // 不存在
       (!(page_get_attr((u32)line_address) & PG_USU))) { // 用户不可写
 
@@ -670,7 +664,7 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
     abort();
   }
   copy_on_write((u32)line_address);
-  set_cr3(pde);
+  asm_set_cr3(pde);
   asm_cli;
 }
 
@@ -682,5 +676,5 @@ void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
     u32 *pte_entry  = (u32 *)(p + TIDX(start + i * 0x1000) * 4);
     *pte_entry     |= attr;
   }
-  set_cr3(pde);
+  asm_set_cr3(pde);
 }

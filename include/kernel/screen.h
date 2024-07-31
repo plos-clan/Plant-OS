@@ -20,3 +20,4 @@ typedef enum {
 void move_cursor_by_idx(int idx);
 void print(const char *str);
 void clear();
+void putchar(char ch);

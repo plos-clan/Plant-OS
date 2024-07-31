@@ -45,7 +45,7 @@ void task_app() {
   *(current_task()->alloc_size) = 2 * 1024 * 1024;
   unsigned pde                  = current_task()->pde;
   asm_cli;
-  set_cr3(PDE_ADDRESS);
+  asm_set_cr3(PDE_ADDRESS);
   logd("P1 %08x", current_task()->pde);
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
@@ -77,7 +77,7 @@ void task_app() {
     }
   }
   asm_sti;
-  set_cr3(pde);
+  asm_set_cr3(pde);
   char tmp[100];
   task_to_user_mode_elf(filename);
   while (true)
@@ -99,7 +99,7 @@ void task_shell() {
 
   unsigned pde = current_task()->pde;
   asm_cli;
-  set_cr3(PDE_ADDRESS);
+  asm_set_cr3(PDE_ADDRESS);
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
     if ((*pde_entry & PG_SHARED) || pages[IDX(*pde_entry)].count > 1) {
@@ -127,7 +127,7 @@ void task_shell() {
     }
   }
   asm_sti;
-  set_cr3(pde);
+  asm_set_cr3(pde);
   char tmp[100];
   task_to_user_mode_shell();
   while (true)
