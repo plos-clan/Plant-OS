@@ -55,7 +55,9 @@ set(CMAKE_SHARED_LINKER_FLAGS "-nolibc -Qn")
 
 add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查
 add_compile_flag("-fno-strict-aliasing") # 禁用严格别名规则
-add_compile_flag("-m32 -mfpmath=387 -fno-builtin -mno-mmx -mno-sse -nostdlib -nostdinc")
+add_compile_flag("-m32 -mfpmath=387 -mno-mmx -mno-sse -nostdlib -nostdinc")
+
+# add_compile_flag("-fno-builtin")
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_flag("-emit-obj") # 不输出 llvm-ir

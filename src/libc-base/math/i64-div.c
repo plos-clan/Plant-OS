@@ -1,5 +1,8 @@
 #include <libc-base.h>
 
+// 在 32 位下支持 64 位整数除法
+#ifdef __i686__
+
 dlexport void u64_div(u64 a, u64 b, u64 *_c, u64 *_d) {
   u64 c    = 0;
   u64 mask = 1;
@@ -53,3 +56,5 @@ dlexport i64 __moddi3(i64 a, i64 b) {
   i64_div(a, b, null, &d);
   return d;
 }
+
+#endif

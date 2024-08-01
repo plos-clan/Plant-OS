@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "fs/include-libc.h"
+#include "fs/include.h"
 #include "fs/vfs.h"
 #ifdef __cplusplus
 }
