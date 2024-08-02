@@ -50,7 +50,7 @@ void task_app() {
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
 
-    if ((*pde_entry & PG_SHARED) || pages[IDX(*pde_entry)].count > 1) {
+    if ((*pde_entry & PAGE_SHARED) || pages[IDX(*pde_entry)].count > 1) {
       // if (pde_entry == 0x08e6b718) {
       //   while (true)
       //     ;
@@ -61,7 +61,7 @@ void task_app() {
         *pde_entry = (unsigned)page_malloc_one_count_from_4gb();
         memcpy((void *)(*pde_entry), (void *)old, 0x1000);
         pages[IDX(old)].count--;
-        *pde_entry |= PG_USU | PG_P | PG_RWW;
+        *pde_entry |= PAGE_USER | PAGE_P | PAGE_WRABLE;
       } else {
         *pde_entry &= 0xfffff;
         *pde_entry |= 7;
@@ -70,9 +70,9 @@ void task_app() {
     unsigned p = *pde_entry & (0xfffff000);
     for (int j = 0; j < 0x1000; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
-      if ((*pte_entry & PG_SHARED)) {
+      if ((*pte_entry & PAGE_SHARED)) {
         *pte_entry &= 0xfffff000;
-        *pte_entry |= PG_USU | PG_P;
+        *pte_entry |= PAGE_USER | PAGE_P;
       }
     }
   }
@@ -102,7 +102,7 @@ void task_shell() {
   asm_set_cr3(PDE_ADDRESS);
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
-    if ((*pde_entry & PG_SHARED) || pages[IDX(*pde_entry)].count > 1) {
+    if ((*pde_entry & PAGE_SHARED) || pages[IDX(*pde_entry)].count > 1) {
 
       if (pages[IDX(*pde_entry)].count > 1) {
         u32 old    = *pde_entry & 0xfffff000;
@@ -110,7 +110,7 @@ void task_shell() {
         *pde_entry = (unsigned)page_malloc_one_count_from_4gb();
         memcpy((void *)(*pde_entry), (void *)old, 0x1000);
         pages[IDX(old)].count--;
-        *pde_entry |= PG_USU | PG_P | PG_RWW;
+        *pde_entry |= PAGE_USER | PAGE_P | PAGE_WRABLE;
       } else {
         *pde_entry &= 0xfffff;
         *pde_entry |= 7;
@@ -120,9 +120,9 @@ void task_shell() {
     unsigned p = *pde_entry & (0xfffff000);
     for (int j = 0; j < 0x1000; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
-      if ((*pte_entry & PG_SHARED)) {
+      if ((*pte_entry & PAGE_SHARED)) {
         *pte_entry &= 0xfffff000;
-        *pte_entry |= PG_USU | PG_P;
+        *pte_entry |= PAGE_USER | PAGE_P;
       }
     }
   }

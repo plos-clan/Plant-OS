@@ -2,7 +2,8 @@
 #include "kernel/timer.h"
 #include "kernel/vdisk.h"
 #include <kernel.h>
-void             disable_sb16();
+
+void             sb16_init();
 int              init_ok_flag = 0;
 struct MOUSE_DEC mdec;
 size_t           memsize;
@@ -102,7 +103,7 @@ void sysinit() {
   init_pit();
   init_tty();
   clear();
-  disable_sb16();
+  sb16_init();
   init_vdisk();
   init_vfs();
   register_fat();

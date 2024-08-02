@@ -7,7 +7,11 @@
 
 #define PAGE_SIZE ((size_t)4096)
 
-// 标准库内存分配函数
+#define SIZE_4k ((size_t)4096)
+#define SIZE_2M ((size_t)(2 * 1024 * 1024))
+
+//* ----------------------------------------------------------------------------------------------------
+//& 标准库内存分配函数
 
 dlimport void  *malloc(size_t size) __attr_malloc;
 dlimport void  *xmalloc(size_t size);
@@ -22,10 +26,14 @@ dlimport int    posix_memalign(void **memptr, size_t alignment, size_t size);
 dlimport void  *pvalloc(size_t size);
 dlimport void  *valloc(size_t size);
 
-// 自定义内存分配
+//* ----------------------------------------------------------------------------------------------------
+//& 自定义内存分配
 
 /**
  *\brief 请求内存的回调函数
+ *
+ * 除非 ptr 为 null, 否则因分配从 ptr 开始的 size 大小的内存
+ * 除非 [ptr 处已被占用] 或 [ptr 为 null 时内存已满]，否则不应该返回 null
  *
  *\param ptr      上一次返回的内存尾地址
  *\param size     请求的内存大小
@@ -40,7 +48,8 @@ typedef void *(*cb_reqmem_t)(void *ptr, size_t size);
  */
 typedef void (*cb_delmem_t)(void *ptr, size_t size);
 
-// freelist
+//* ----------------------------------------------------------------------------------------------------
+//& 空闲链表
 
 #define FREELISTS_NUM 8
 
@@ -48,7 +57,8 @@ typedef struct freelist *freelist_t;
 
 typedef freelist_t freelists_t[FREELISTS_NUM];
 
-//
+//* ----------------------------------------------------------------------------------------------------
+//& 指定元素大小的内存池
 
 /**
  *\brief 指定元素大小的内存池
@@ -98,6 +108,13 @@ dlexport void sized_mpool_free(sized_mpool_t pool, void *ptr);
  */
 dlexport bool sized_mpool_inpool(sized_mpool_t pool, void *ptr);
 
+//* ----------------------------------------------------------------------------------------------------
+//& 内存池
+
+/**
+ *\brief 内存池
+ *
+ */
 typedef struct mpool {
   void       *ptr;          // 指向内存区的指针
   size_t      size;         // 内存区总大小
@@ -118,7 +135,7 @@ typedef struct mpool {
  */
 dlimport bool mpool_init(mpool_t pool, void *ptr, size_t size);
 
-// 未实现
+// 占用的内存总大小
 dlimport size_t mpool_total_size(mpool_t pool);
 
 /**
@@ -163,3 +180,45 @@ dlimport void mpool_free(mpool_t pool, void *ptr);
  *\return 分配的内存的大小
  */
 dlimport size_t mpool_msize(mpool_t pool, void *ptr);
+
+//* ----------------------------------------------------------------------------------------------------
+//& 内存管理器
+
+/**
+ *\brief 内存分配区的块结构
+ *
+ */
+typedef struct mman_pool *mman_pool_t;
+struct mman_pool {
+  void       *ptr;          // 指向内存区的指针
+  size_t      alloced_size; // 已分配的内存大小
+  mman_pool_t next;         // 下一个内存池
+};
+
+/**
+ *\brief 内存管理器
+ *
+ */
+typedef struct mman {
+  struct mman_pool main;         // 主分配区 (后接子分配区)
+  size_t           size;         // 内存区总大小
+  size_t           alloced_size; // 已分配的内存大小
+  cb_reqmem_t      cb_reqmem;    // 请求内存的回调函数
+  cb_delmem_t      cb_delmem;    // 释放内存的回调函数
+  freelist_t       large_blk;    // 大块内存的空闲链表 (组)
+  freelists_t      freed;        // 小块内存的空闲链表
+} *mman_t;
+
+dlimport bool mman_init(mman_t pool, void *ptr, size_t size);
+
+dlimport size_t mman_total_size(mman_t pool);
+
+dlimport size_t mman_alloced_size(mman_t pool);
+
+dlimport void mman_setcb(mman_t pool, cb_reqmem_t reqmem, cb_delmem_t delmem);
+
+dlimport void *mman_alloc(mman_t pool, size_t size);
+
+dlimport void mman_free(mman_t pool, void *ptr);
+
+dlimport size_t mman_msize(mman_t pool, void *ptr);

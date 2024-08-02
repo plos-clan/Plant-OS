@@ -72,6 +72,11 @@ struct sb16 {
   u8              channel; // DMA 通道
 };
 
+struct sound_settings {
+  u32 sample_rate; //
+  f32 volume;      //
+};
+
 static struct sb16 sb;
 
 void sb_exch_dmaaddr() {
@@ -84,8 +89,7 @@ void sb_exch_dmaaddr() {
 }
 
 static void sb_out(u8 cmd) {
-  while (asm_in8(SB_WRITE) & 128)
-    ;
+  while (asm_in8(SB_WRITE) & 128) {}
   asm_out8(SB_WRITE, cmd);
 }
 
@@ -135,7 +139,7 @@ void sb16_handler(int *esp) {
   task_run(sb.use_task);
 }
 
-void disable_sb16() {
+void sb16_init() {
   sb.addr1    = DMA_BUF_ADDR1;
   sb.addr2    = DMA_BUF_ADDR2;
   sb.mode     = MODE_STEREO16;
@@ -164,17 +168,6 @@ static void sb_intr_irq() {
     asm_out8(SB_MIXER, 0x80);
     asm_out8(SB_MIXER_DATA, 0x2);
   }
-}
-
-static void sb_turn(bool on) {
-  if (on)
-    sb_out(CMD_ON);
-  else
-    sb_out(CMD_OFF);
-}
-
-static u32 sb_time_constant(u8 channels, u16 sample) {
-  return 65536 - (256000000 / (channels * sample));
 }
 
 void sb16_set_volume(u8 level) {

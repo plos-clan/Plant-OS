@@ -15,7 +15,7 @@ finline int freelists_size2id(size_t size) {
   if (size < 64) return 0;
   if (size < 256) return 1;
   if (size >= 16384) return -1;
-  return (32 - 9) - clz((u32)size) + 2;
+  return (32 - 9) - __builtin_clz(size) + 2;
 }
 
 finline freelist_t freelist_detach(freelist_t list, freelist_t ptr) {

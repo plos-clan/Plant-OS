@@ -2,11 +2,13 @@
 #include <define.h>
 #include <type.h>
 
-#define PG_P          1
-#define PG_USU        4
-#define PG_RWW        2
-#define PG_PCD        16
-#define PG_SHARED     1024
+#define PAGE_P      MASK(0)
+#define PAGE_WRABLE MASK(1)
+#define PAGE_USER   MASK(2)
+#define PAGE_WT     MASK(3) // 使用直写而不是写回
+#define PAGE_CD     MASK(4) // 禁用缓存
+#define PAGE_SHARED 1024    // 自定义的
+
 #define PDE_ADDRESS   0x400000
 #define PTE_ADDRESS   (PDE_ADDRESS + 0x1000)
 #define PAGE_END      (PTE_ADDRESS + 0x400000)
@@ -33,3 +35,5 @@ u32   pde_clone(u32 addr);
 void *page_malloc_one();
 void *page_malloc_one_no_mark();
 void  page_link(u32 addr);
+void  page_link_share(u32 addr);
+void  page_unlink(u32 addr);

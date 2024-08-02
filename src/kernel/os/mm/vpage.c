@@ -17,12 +17,12 @@ static u32 div_round_up(u32 num, u32 size) {
 void init_pdepte(u32 pde_addr, u32 pte_addr, u32 page_end) {
   memset((void *)pde_addr, 0, page_end - pde_addr);
   // 这是初始化PDE 页目录
-  for (int addr = pde_addr, i = pte_addr | PG_P | PG_RWW; addr != pte_addr;
+  for (int addr = pde_addr, i = pte_addr | PAGE_P | PAGE_WRABLE; addr != pte_addr;
        addr += 4, i += 0x1000) {
     *(int *)(addr) = i;
   }
   // 这是初始化PTE 页表
-  for (int addr = PTE_ADDRESS, i = PG_P | PG_RWW; addr != PAGE_END; addr += 4, i += 0x1000) {
+  for (int addr = PTE_ADDRESS, i = PAGE_P | PAGE_WRABLE; addr != PAGE_END; addr += 4, i += 0x1000) {
     *(int *)(addr) = i;
   }
   return;
@@ -54,17 +54,17 @@ u32 pde_clone(u32 addr) {
     u32 *pde_entry = (u32 *)(addr + i);
     u32  p         = *pde_entry & (0xfffff000);
     pages[IDX(*pde_entry)].count++;
-    *pde_entry &= ~PG_RWW;
+    *pde_entry &= ~PAGE_WRABLE;
     for (int j = 0; j < 0x1000; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
-      if (!(*pde_entry & PG_USU) && !(*pde_entry & PG_P)) { continue; }
-      if ((page_get_attr(get_line_address(i / 4, j / 4, 0)) & PG_USU)) {
+      if ((page_get_attr(get_line_address(i / 4, j / 4, 0)) & PAGE_USER)) {
         pages[IDX(*pte_entry)].count++;
-        if (page_get_attr(get_line_address(i / 4, j / 4, 0)) & PG_SHARED) {
-          *pte_entry |= PG_RWW;
+        if (page_get_attr(get_line_address(i / 4, j / 4, 0)) & PAGE_SHARED) {
+          *pte_entry |= PAGE_WRABLE;
           continue;
         }
       }
+      *pte_entry &= ~PAGE_WRABLE;
     }
   }
   u32 result = (u32)page_malloc_one_no_mark();
@@ -79,7 +79,7 @@ u32 pde_clone(u32 addr) {
 void pde_reset(u32 addr) {
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry  = (u32 *)(addr + i);
-    *pde_entry     |= PG_RWW;
+    *pde_entry     |= PAGE_WRABLE;
   }
 }
 
@@ -88,10 +88,10 @@ void free_pde(u32 addr) {
   for (int i = DIDX(0x70000000) * 4; i < DIDX(0xf1000000) * 4; i += 4) {
     u32 *pde_entry = (u32 *)(addr + i);
     u32  p         = *pde_entry & (0xfffff000);
-    if (!(*pde_entry & PG_USU) && !(*pde_entry & PG_P)) { continue; }
+    if (!(*pde_entry & PAGE_USER) && !(*pde_entry & PAGE_P)) { continue; }
     for (int j = 0; j < 0x1000; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
-      if (*pte_entry & PG_USU && *pte_entry & PG_P) { pages[IDX(*pte_entry)].count--; }
+      if (*pte_entry & PAGE_USER && *pte_entry & PAGE_P) { pages[IDX(*pte_entry)].count--; }
     }
 
     pages[IDX(*pde_entry)].count--;
@@ -145,7 +145,7 @@ void page_link_pde_share(u32 addr, u32 pde) {
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
 
-  if (pages[IDX(*pte)].count > 1 && !(*pte & PG_SHARED)) {
+  if (pages[IDX(*pte)].count > 1 && !(*pte & PAGE_SHARED)) {
     // 这个页目录还有人引用，所以需要复制
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
@@ -160,13 +160,13 @@ void page_link_pde_share(u32 addr, u32 pde) {
   // COW
   if (pages[IDX(*physics)].count > 1) { pages[IDX(*physics)].count--; }
   int flag = 0;
-  if (*physics & PG_SHARED) {
+  if (*physics & PAGE_SHARED) {
     logd("THIS\n");
     flag = 1;
   }
   *physics  = (u32)page_malloc_one_count_from_4gb();
   *physics |= 7;
-  if (flag) { *physics |= PG_SHARED; }
+  if (flag) { *physics |= PAGE_SHARED; }
   flush_tlb((u32)pte);
   flush_tlb(addr);
   current_task()->pde = pde_backup;
@@ -182,16 +182,16 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
   // logd("*pte = %08x\n",*pte);
-  if (pages[IDX(*pte)].count > 1 && !(*pte & PG_SHARED)) {
+  if (pages[IDX(*pte)].count > 1 && !(*pte & PAGE_SHARED)) {
     int flag;
-    if (*pte & PG_SHARED) flag = 1;
+    if (*pte & PAGE_SHARED) flag = 1;
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = *paddr1;
     memcpy((void *)(*pte), (void *)old, 0x1000);
     *pte    |= 7;
     *paddr1  = 0;
-    if (flag) { *pte |= PG_SHARED; }
+    if (flag) { *pte |= PAGE_SHARED; }
   } else {
     *pte |= 7;
   }
@@ -199,10 +199,10 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   u32 *physics = (u32 *)((*pte & 0xfffff000) + p * 4);
   if (pages[IDX(*physics)].count > 1) { pages[IDX(*physics)].count--; }
   int flag = 0;
-  if (*physics & PG_SHARED) { flag = 1; }
+  if (*physics & PAGE_SHARED) { flag = 1; }
   *physics  = paddr2;
   *physics |= 7;
-  if (flag) { *physics |= PG_SHARED; }
+  if (flag) { *physics |= PAGE_SHARED; }
   flush_tlb((u32)pte);
   flush_tlb(addr);
   current_task()->pde = pde_backup;
@@ -263,8 +263,38 @@ void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
   }
 }
 
-void page_unlink(u32 addr) {}
+void page_unlink_pde(u32 addr, u32 pde) {
+  u32 pde_backup      = current_task()->pde;
+  current_task()->pde = PDE_ADDRESS;
+  asm_set_cr3(PDE_ADDRESS);
+  u32 t, p;
+  t        = DIDX(addr);
+  p        = (addr >> 12) & 0x3ff;
+  u32 *pte = (u32 *)((pde + t * 4));
 
+  if (pages[IDX(*pte)].count > 1 && !(*pte & PAGE_SHARED)) {
+    // 这个页目录还有人引用，所以需要复制
+    pages[IDX(*pte)].count--;
+    u32 old = *pte & 0xfffff000;
+    *pte    = (u32)page_malloc_one_count_from_4gb();
+    memcpy((void *)(*pte), (void *)old, 0x1000);
+    *pte |= 7;
+  } else {
+    *pte |= 7;
+  }
+
+  u32 *physics = (u32 *)((*pte & 0xfffff000) + p * 4); // PTE页表
+  // COW
+  if (pages[IDX(*physics)].count > 1) { pages[IDX(*physics)].count--; }
+  *physics = NULL;
+  flush_tlb((u32)pte);
+  flush_tlb(addr);
+  current_task()->pde = pde_backup;
+  asm_set_cr3(pde_backup);
+}
+void page_unlink(u32 addr) {
+  page_unlink_pde(addr, current_task()->pde);
+}
 void C_init_page() {
   init_pdepte(PDE_ADDRESS, PTE_ADDRESS, PAGE_END);
   init_page_manager(pages);
@@ -518,22 +548,23 @@ void copy_on_write(u32 vaddr) {
   void *pde     = (void *)((u32)pd + (u32)(DIDX(vaddr) * 4)); // PTE地址
   void *pde_phy = (void *)(*(u32 *)(pde) & 0xfffff000);       // 页
 
-  if (!(*(u32 *)pde & PG_RWW) || !(*(u32 *)pde & PG_USU)) { // PDE如果不可写
+  if (!(*(u32 *)pde & PAGE_WRABLE) || !(*(u32 *)pde & PAGE_USER)) { // PDE如果不可写
     // 不可写的话，就需要对PDE做COW操作
     u32 backup = *(u32 *)(pde); // 用于备份原有页的属性
-    if (pages[IDX(backup)].count < 2 || *(u32 *)pde & PG_SHARED) {
+    if (pages[IDX(backup)].count < 2 || *(u32 *)pde & PAGE_SHARED) {
       // 如果只有一个人引用，并且PDE属性是共享
       // 设置可写属性，然后进入下一步
-      *(u32 *)pde |= PG_RWW;
-      *(u32 *)pde |= PG_USU;
-      *(u32 *)pde |= PG_P;
+      *(u32 *)pde |= PAGE_WRABLE;
+      *(u32 *)pde |= PAGE_USER;
+      *(u32 *)pde |= PAGE_P;
       goto PDE_FLUSH;
     }
     // 进行COW
-    *(u32 *)(pde) = (u32)page_malloc_one_count_from_4gb();           // 分配一页
-    memcpy((void *)(*(u32 *)pde), pde_phy, 0x1000);                  // 复制内容
-    *(u32 *)(pde) |= (backup & 0x00000fff) | PG_RWW | PG_USU | PG_P; // 设置属性（并且可读）
-    pages[IDX(backup)].count--;                                      // 原有引用减少
+    *(u32 *)(pde) = (u32)page_malloc_one_count_from_4gb(); // 分配一页
+    memcpy((void *)(*(u32 *)pde), pde_phy, 0x1000);        // 复制内容
+    *(u32 *)(pde) |=
+        (backup & 0x00000fff) | PAGE_WRABLE | PAGE_USER | PAGE_P; // 设置属性（并且可读）
+    pages[IDX(backup)].count--;                                   // 原有引用减少
   PDE_FLUSH:
     // 刷新快表
     flush_tlb(*(u32 *)(pde));
@@ -541,10 +572,10 @@ void copy_on_write(u32 vaddr) {
   }
   void *pt  = (void *)(*(u32 *)pde & 0xfffff000);
   void *pte = pt + (u32)(TIDX(vaddr) * 4);
-  if (!(*(u32 *)pte & PG_RWW)) {
+  if (!(*(u32 *)pte & PAGE_WRABLE)) {
     if (pages[IDX(*(u32 *)pte)].count < 2 || // 只有一个人引用
-        *(u32 *)pte & PG_SHARED /*或   这是一个SHARED页*/) {
-      *(u32 *)pte |= PG_RWW; // 设置RWW
+        *(u32 *)pte & PAGE_SHARED /*或   这是一个SHARED页*/) {
+      *(u32 *)pte |= PAGE_WRABLE; // 设置RWW
       goto FLUSH;
     }
     // 获取旧页信息
@@ -560,7 +591,7 @@ void copy_on_write(u32 vaddr) {
     u32 attr = old_pte & 0x00000fff;
 
     // 设置PWU
-    attr = attr | PG_RWW;
+    attr = attr | PAGE_WRABLE;
 
     // 计算新PTE
     u32 new_pte  = 0;
@@ -586,7 +617,7 @@ void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
   t        = DIDX(vaddr);
   p        = (vaddr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde_backup + t * 4));
-  if (pages[IDX(*pte)].count > 1 && !(*pte & PG_SHARED)) { // 这里SHARED页就不进行COW操作
+  if (pages[IDX(*pte)].count > 1 && !(*pte & PAGE_SHARED)) { // 这里SHARED页就不进行COW操作
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = (u32)page_malloc_one_count_from_4gb();
@@ -641,8 +672,8 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
   asm_cli;
   asm_set_cr3(PDE_ADDRESS); // 设置一个安全的页表
   void *line_address = (void *)asm_get_cr2();
-  if (!(page_get_attr((u32)line_address) & PG_P) ||     // 不存在
-      (!(page_get_attr((u32)line_address) & PG_USU))) { // 用户不可写
+  if (!(page_get_attr((u32)line_address) & PAGE_P) ||      // 不存在
+      (!(page_get_attr((u32)line_address) & PAGE_USER))) { // 用户不可写
 
     // printk("Fatal error: Attempt to read/write a non-existent/kernel memory "
     //        "%08x at "
