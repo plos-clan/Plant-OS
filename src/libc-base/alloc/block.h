@@ -66,6 +66,10 @@ finline void *blk_areaptr(void *ptr) {
     return (void *)((size_t)ptr & ~(SIZE_4k - 1));
   }
 }
+// 获取分配区结构指针，仅对多分配区有效
+finline void *blk_poolptr(void *ptr) {
+  return (void *)(*(size_t *)blk_areaptr(ptr) & ~FLAG_BITS);
+}
 
 // 获取上一个块的指针
 finline void *blk_prev(void *ptr) {
@@ -105,13 +109,15 @@ finline void *blk_mergenext(void *ptr, blk_detach_t detach, void *pool) {
  *\return 新的块指针
  */
 finline void *blk_trymerge(void *ptr, blk_detach_t detach, void *pool) {
-  size_t size = blk_size(ptr);
+  bool   is_2M = blk_area_is_2M(ptr);
+  size_t size  = blk_size(ptr);
   if (!blk_nonext(ptr, size) && (blk_nexthead(ptr, size) & FREE_FLAG)) { //
     ptr = blk_mergenext(ptr, detach, pool);
   }
   if (!blk_noprev(ptr) && (blk_prevtail(ptr) & FREE_FLAG)) { //
     ptr = blk_mergeprev(ptr, detach, pool);
   }
+  if (is_2M) blk_set_area_2M(ptr, blk_size(ptr));
   return ptr;
 }
 
@@ -123,9 +129,12 @@ finline void *blk_trymerge(void *ptr, blk_detach_t detach, void *pool) {
  *\return value
  */
 finline void *blk_split(void *ptr, size_t size) {
+  bool   is_2M   = blk_area_is_2M(ptr);
   size_t oldsize = blk_size(ptr);
   blk_setsize(ptr, size);
+  if (is_2M) blk_set_area_2M(ptr, size);
   size_t offset = size + 2 * sizeof(size_t);
   blk_setsize(ptr + offset, oldsize - offset);
+  if (is_2M) blk_set_area_2M(ptr + offset, oldsize - offset);
   return ptr + offset;
 }

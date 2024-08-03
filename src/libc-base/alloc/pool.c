@@ -72,6 +72,14 @@ static bool mpool_reqmem(mpool_t pool, size_t size) {
   return true;
 }
 
+// 将块标记为已释放并加入空闲链表
+static void do_free(mpool_t pool, void *ptr) {
+  blk_setfreed(ptr, blk_size(ptr));
+  if (!freelists_put(pool->freed, ptr)) { //
+    pool->large_blk = freelist_put(pool->large_blk, ptr);
+  }
+}
+
 dlexport void *mpool_alloc(mpool_t pool, size_t size) {
   if (size == 0) size = 2 * sizeof(size_t);
   size = PADDING(size);
@@ -85,13 +93,9 @@ dlexport void *mpool_alloc(mpool_t pool, size_t size) {
     ptr = freelist_match(&pool->large_blk, size);
   }
 
-  size_t realsize = blk_size(ptr);
-  if (realsize >= size + 8 * sizeof(size_t)) {
+  if (blk_size(ptr) >= size + 8 * sizeof(size_t)) {
     void *new_ptr = blk_split(ptr, size);
-    blk_setfreed(new_ptr, blk_size(new_ptr));
-    if (!freelists_put(pool->freed, new_ptr)) {
-      pool->large_blk = freelist_put(pool->large_blk, new_ptr);
-    }
+    do_free(pool, new_ptr);
   }
 
   blk_setalloced(ptr, blk_size(ptr));
@@ -105,10 +109,7 @@ dlexport void mpool_free(mpool_t pool, void *ptr) {
   pool->alloced_size -= blk_size(ptr);
 
   ptr = blk_trymerge(ptr, (blk_detach_t)_detach, pool);
-  blk_setfreed(ptr, blk_size(ptr));
-  if (!freelists_put(pool->freed, ptr)) { //
-    pool->large_blk = freelist_put(pool->large_blk, ptr);
-  }
+  do_free(pool, ptr);
 }
 
 dlexport size_t mpool_msize(mpool_t pool, void *ptr) {
