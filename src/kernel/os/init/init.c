@@ -17,7 +17,7 @@ void abort() {
 }
 
 #if 1
-static unsigned int rand_seed = 1;
+static uint rand_seed = 1;
 
 int rand() {
   rand_seed ^= rand_seed << 13;
@@ -26,7 +26,7 @@ int rand() {
   return rand_seed & INT32_MAX;
 }
 
-void srand(unsigned int seed) {
+void srand(uint seed) {
   rand_seed = seed;
 }
 

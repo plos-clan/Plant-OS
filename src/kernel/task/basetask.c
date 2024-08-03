@@ -1,5 +1,6 @@
 #include <kernel.h>
 u8  *shell_data;
+void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
 int  os_execute(char *filename, char *line);
 void idle() {
@@ -29,16 +30,17 @@ void init() {
   //   printi("I=%d", i);
   // }
   init_floppy();
-  vfs_mount_disk(current_task()->drive, current_task()->drive);
-  vfs_change_disk(current_task()->drive);
+  ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
+  vfs_mount_disk('B', 'B');
+  vfs_change_disk('B');
   list_t l = vfs_listfile("");
   printf("List files:");
   list_foreach(l, file_node) {
     vfs_file *file = file_node->data;
     printf("name: %s  size: %d", file->name, file->size);
   }
-  byte *buf = malloc(vfs_filesize("kernel.bin"));
-  vfs_readfile("kernel.bin", buf);
+  // byte *buf = malloc(vfs_filesize("kernel.bin"));
+  // vfs_readfile("kernel.bin", buf);
 
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);
