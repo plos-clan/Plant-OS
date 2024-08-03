@@ -1,4 +1,5 @@
 #pragma once
+#include <data-structure.h>
 #include <define.h>
 #include <kernel/cpu.h>
 #include <kernel/ipc.h>

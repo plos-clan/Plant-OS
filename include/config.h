@@ -7,6 +7,7 @@ extern "C" {
 #include "config/data-structure.h"
 #include "config/plui.h"
 #include "config/string-format.h"
+#include "config/type-undef.h"
 #ifdef __cplusplus
 }
 #endif

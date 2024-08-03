@@ -1,3 +1,4 @@
+#include <data-structure.h>
 #include <libc-base.h>
 
 rbtree_t threads;

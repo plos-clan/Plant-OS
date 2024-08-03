@@ -1,15 +1,21 @@
 #pragma once
-#include "../spin.h"
-#include "../stdio/print.h"
-#include "../stdlib/alloc.h"
+#include "base.h"
 
 #ifdef ALL_IMPLEMENTATION
-#  define SIZED_EVENT_IMPLEMENTATION
+#  define EVENT_IMPLEMENTATION
 #endif
 
-#define SIZED_EVENT_IMPLEMENTATION
+/**
+ *\struct Node
+ *\brief 队列节点结构
+ */
+typedef struct event_node *event_node_t;
+struct event_node {
+  void        *data; /**< 节点数据 */
+  event_node_t next; /**< 下一个节点指针 */
+};
 
-#ifdef SIZED_EVENT_IMPLEMENTATION
+#ifdef EVENT_IMPLEMENTATION
 #  define extern static
 #endif
 
@@ -18,11 +24,10 @@
  *\brief 队列结构
  */
 typedef struct event {
-  spin_t spin;
-  void **buffer;
-  size_t head; /**< 队列前端指针 */
-  size_t tail; /**< 队列后端指针 */
-  size_t size; /**< 队列最大长度 */
+  spin_t       spin;
+  event_node_t head; /**< 队列前端指针 */
+  event_node_t tail; /**< 队列后端指针 */
+  size_t       size; /**< 队列长度 */
 } *event_t;
 
 /**
@@ -71,11 +76,11 @@ extern size_t event_size(event_t event);
  */
 extern void event_print(event_t event);
 
-#ifdef SIZED_EVENT_IMPLEMENTATION
+#ifdef EVENT_IMPLEMENTATION
 #  undef extern
 #endif
 
-#ifdef SIZED_EVENT_IMPLEMENTATION
+#ifdef EVENT_IMPLEMENTATION
 
 static event_t event_alloc() {
   event_t event = malloc(sizeof(*event));
@@ -146,6 +151,31 @@ static size_t event_size(event_t event) {
   return (event == null) ? 0 : event->size;
 }
 
+static void event_copyto_with(event_t src, event_t dst, void *(*callback)(void *)) {
+  for (event_node_t node = src->head; node != null; node = node->next) {
+    event_push(dst, callback(node->data));
+  }
+}
+
+static void event_copyto(event_t src, event_t dst) {
+  for (event_node_t node = src->head; node != null; node = node->next) {
+    event_push(dst, node->data);
+  }
+}
+
+static event_t event_copy_with(event_t event, void *(*callback)(void *)) {
+  event_t e_new = event_alloc();
+  event_copyto_with(event, e_new, callback);
+  return e_new;
+}
+
+static event_t event_copy(event_t event) {
+  event_t e_new = event_alloc();
+  event_copyto(event, e_new);
+  return e_new;
+}
+
+#  ifdef __libplos__
 static void event_print(event_t event) {
   spin_lock(event->spin);
   event_node_t current = event->head;
@@ -156,6 +186,7 @@ static void event_print(event_t event) {
   printf("null\n");
   spin_unlock(event->spin);
 }
+#  endif
 
-#  undef SIZED_EVENT_IMPLEMENTATION
+#  undef EVENT_IMPLEMENTATION
 #endif

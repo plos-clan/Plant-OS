@@ -1,19 +1,6 @@
 #include <libc-base.h>
 #include <sys.h>
 
-static unsigned int rand_seed = 1;
-
-int rand() {
-  rand_seed ^= rand_seed << 13;
-  rand_seed ^= rand_seed >> 17;
-  rand_seed ^= rand_seed << 5;
-  return rand_seed & INT32_MAX;
-}
-
-void srand(unsigned int seed) {
-  rand_seed = seed;
-}
-
 void malloc_test() {
 #define M 2048
 #define N (32 * 1024)

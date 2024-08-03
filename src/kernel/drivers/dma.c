@@ -13,11 +13,11 @@ byte PagePort[8]  = {0x87, 0x83, 0x81, 0x82, 0x8F, 0x8B, 0x89, 0x8A};
 byte AddrPort[8]  = {0x00, 0x02, 0x04, 0x06, 0xC0, 0xC4, 0xC8, 0xCC};
 byte CountPort[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
-void _dma_xfer(byte DMA_channel, byte page, unsigned int offset, unsigned int length, byte mode);
+void _dma_xfer(byte DMA_channel, byte page, uint offset, uint length, byte mode);
 
-void dma_xfer(byte channel, unsigned long address, unsigned int length, byte read) {
-  byte         page = 0, mode = 0;
-  unsigned int offset = 0;
+void dma_xfer(byte channel, unsigned long address, uint length, byte read) {
+  byte page = 0, mode = 0;
+  uint offset = 0;
 
   mode = (read ? 0x48 : 0x44) + channel;
 
@@ -28,7 +28,7 @@ void dma_xfer(byte channel, unsigned long address, unsigned int length, byte rea
   _dma_xfer(channel, page, offset, length, mode);
 }
 
-void _dma_xfer(byte DMA_channel, byte page, unsigned int offset, unsigned int length, byte mode) {
+void _dma_xfer(byte DMA_channel, byte page, uint offset, uint length, byte mode) {
   /* 我们不想别的事情来打扰 */
   asm("cli");
 

@@ -61,7 +61,7 @@ void                sendbyte(int byte);
 int                 getbyte();
 
 #define SECTORS_ONCE 4
-static void Read(char drive, byte *buffer, unsigned int number, unsigned int lba) {
+static void Read(char drive, byte *buffer, uint number, uint lba) {
   floppy_use = current_task();
   for (int i = 0; i < number; i += SECTORS_ONCE) {
     int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
@@ -69,7 +69,7 @@ static void Read(char drive, byte *buffer, unsigned int number, unsigned int lba
   }
   floppy_use = NULL;
 }
-static void Write(char drive, byte *buffer, unsigned int number, unsigned int lba) {
+static void Write(char drive, byte *buffer, uint number, uint lba) {
   floppy_use = current_task();
   for (int i = 0; i < number; i += SECTORS_ONCE) {
     int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);

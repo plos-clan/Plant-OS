@@ -1,5 +1,4 @@
-#pragma once
-#include "../math.h"
+#pragma oncev
 #include <define.h>
 #include <type.h>
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <data-structure.h>
 #include <libc-base.h>
 
 typedef void *(*vfs_openfs_t)();

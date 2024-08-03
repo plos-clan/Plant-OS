@@ -19,11 +19,15 @@
 #define __wur             __attribute__((warn_unused_result))
 #define __nonnull(params) __attribute__((nonnull params))
 
-#define __attr_malloc __attribute__((warn_unused_result, malloc))
+#define __attr(...)       __attribute__((__VA_ARGS__))
+#define __attr_nthrow     __attr(nothrow)
+#define __attr_leaf       __attr(leaf)
+#define __attr_nnull(...) __attr(nonnull(__VA_ARGS__))
+#define __attr_malloc     __attr(warn_unused_result, malloc)
 #ifdef __clang__
 #  define __attr_dealloc(func, nparam) __attr_malloc
 #else
-#  define __attr_dealloc(func, nparam) __attribute__((warn_unused_result, malloc(func, nparam)))
+#  define __attr_dealloc(func, nparam) __attr(warn_unused_result, malloc(func, nparam))
 #endif
 
 typedef __builtin_va_list va_list;

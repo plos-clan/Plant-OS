@@ -13,9 +13,7 @@ static const auto null = nullptr;
 #  define null 0
 #endif
 
-#if NO_STD
-#  define NULL 0
-#endif
+#define NULL 0
 
 #define $void const void
 
@@ -37,18 +35,9 @@ _CONST_(bool);
 
 #define $auto const auto
 
-#undef INT8_MIN
-#undef INT8_MAX
-#undef UINT8_MAX
-#undef INT16_MIN
-#undef INT16_MAX
-#undef UINT16_MAX
-#undef INT32_MIN
-#undef INT32_MAX
-#undef UINT32_MAX
-#undef INT64_MIN
-#undef INT64_MAX
-#undef UINT64_MAX
+#define INT_MIN  (-__INT_MAX__ - 1)
+#define INT_MAX  __INT_MAX__
+#define UINT_MAX (((unsigned int)__INT_MAX__ << 1) | 1)
 
 #define INT8_MIN   (-__INT8_MAX__ - 1)
 #define INT8_MAX   __INT8_MAX__
@@ -63,15 +52,10 @@ _CONST_(bool);
 #define INT64_MAX  __INT64_MAX__
 #define UINT64_MAX __UINT64_MAX__
 
-#undef INTMAX_MIN
-#undef INTMAX_MAX
-#undef UINTMAX_MAX
-
 #define INTMAX_MIN  (-__INTMAX_MAX__ - 1)
 #define INTMAX_MAX  __INTMAX_MAX__
 #define UINTMAX_MAX __UINTMAX_MAX__
 
-#undef SIZE_MAX
 #define SIZE_MAX __SIZE_MAX__
 
 #define I8_MIN  (-__INT8_MAX__ - 1)

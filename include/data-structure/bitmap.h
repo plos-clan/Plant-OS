@@ -1,6 +1,5 @@
 #pragma once
-#include <define.h>
-#include <type.h>
+#include "base.h"
 
 #define BITMAP(_name_, _nbits_)                                                                    \
   struct {                                                                                         \

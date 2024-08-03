@@ -1,7 +1,5 @@
 #pragma once
-#include "../stdio/print.h"
-#include "../stdlib/alloc.h"
-#include "../string/str.h"
+#include "base.h"
 
 #ifdef ALL_IMPLEMENTATION
 #  define SLIST_SP_IMPLEMENTATION

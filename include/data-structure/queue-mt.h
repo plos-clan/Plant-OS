@@ -1,7 +1,5 @@
 #pragma once
-#include "../stdio/print.h"
-#include "../stdlib/alloc.h"
-#include "../thread/spin.h"
+#include "base.h"
 
 #ifdef ALL_IMPLEMENTATION
 #  define QUEUE_MT_IMPLEMENTATION

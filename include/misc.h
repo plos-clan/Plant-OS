@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "misc/color.h"
 #include "misc/include.h"
 #include "misc/math/fft.h"
 #include "misc/stdio/print.h"

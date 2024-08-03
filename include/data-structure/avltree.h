@@ -1,6 +1,5 @@
 #pragma once
-#include "../stdio/print.h"
-#include "../stdlib/alloc.h"
+#include "base.h"
 
 #ifdef ALL_IMPLEMENTATION
 #  define AVL_IMPLEMENTATION

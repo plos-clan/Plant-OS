@@ -1,7 +1,5 @@
 #pragma once
-#include "../stdio/print.h"
-#include "../stdlib/alloc.h"
-#include "../string/mem.h"
+#include "base.h"
 
 #ifdef ALL_IMPLEMENTATION
 #  define TRIE_IMPLEMENTATION

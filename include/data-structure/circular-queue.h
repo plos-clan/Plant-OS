@@ -1,5 +1,5 @@
 #pragma once
-#include "../string/mem.h"
+#include "base.h"
 
 #ifdef ALL_IMPLEMENTATION
 #  define CIRCQUEUE_IMPLEMENTATION

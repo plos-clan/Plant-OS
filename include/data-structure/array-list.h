@@ -1,6 +1,5 @@
 #pragma once
-#include <define.h>
-#include <type.h>
+#include "base.h"
 
 #ifdef ALL_IMPLEMENTATION
 #  define ARRAYLIST_IMPLEMENTATION
