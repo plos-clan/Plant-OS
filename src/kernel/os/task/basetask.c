@@ -49,8 +49,11 @@ void init() {
   init_ok_flag = 1;
   logd("set %d", init_ok_flag);
 
+  printi("%d alloced pages", page_get_alloced());
   int status = os_execute("TESTAPP.BIN", "");
   printi("TESTAPP.BIN exit with code %d", status);
+  printi("%d alloced pages", page_get_alloced());
+
   for (;;) {
     task_next();
   }

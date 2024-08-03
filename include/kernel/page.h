@@ -37,3 +37,4 @@ void *page_malloc_one_no_mark();
 void  page_link(u32 addr);
 void  page_link_share(u32 addr);
 void  page_unlink(u32 addr);
+u32   page_get_alloced();

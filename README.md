@@ -38,7 +38,7 @@ boot、loader、kernel 是三个独立的部分，我们通常通过 boot 引导
 
 ## Dependencies
 
-你至少需要在系统范围内安装 Python 、在任何位置安装 mformat、mcopy、clang（作为默认值，建议你在系统范围内安装它）以构建本项目<br>
+你至少需要在系统范围内安装 Python 、在任何位置安装 mtools、mcopy、clang（作为默认值，建议你在系统范围内安装它）以构建本项目<br>
 为了在虚拟机中调试本操作系统，你应该在任何位置安装 QEMU 。（作为默认值，建议你在系统范围内安装它）<br>
 为了构建文档，你应该在系统范围内安装 Graphviz 。<br>
 同时可以使用 gcc 来编译。

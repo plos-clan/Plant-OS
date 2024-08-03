@@ -208,6 +208,13 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   current_task()->pde = pde_backup;
   asm_set_cr3(pde_backup);
 }
+u32 page_get_alloced() {
+  u32 r = 0;
+  for (int i = 0; i < div_round_up(memsize, 0x1000); i++) {
+    if (pages[i].count) { r++; }
+  }
+  return r;
+}
 
 void page_links_pde(u32 start, u32 numbers, u32 pde) {
   int i     = 0;
