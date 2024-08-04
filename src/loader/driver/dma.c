@@ -19,7 +19,7 @@ u8 CountPort[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
 void _dma_xfer(u8 DMA_channel, u8 page, u32 offset, u32 length, u8 mode);
 
-void dma_xfer(u8 channel, u32 address, u32 length, u8 read) {
+void dma_send(u8 channel, u32 address, u32 length, u8 read) {
   u8  page = 0, mode = 0;
   u32 offset = 0;
 
@@ -37,7 +37,7 @@ void dma_xfer(u8 channel, u32 address, u32 length, u8 read) {
 
 void _dma_xfer(u8 DMA_channel, u8 page, u32 offset, u32 length, u8 mode) {
   /* 我们不想别的事情来打扰 */
-  asm("cli");
+  asm_cli;
 
   /* 设置DMA通道，以便我们可以正确传输数据，这很简单，只要我们用I/O操作告诉DMA控制器就行了
    */
@@ -66,5 +66,5 @@ void _dma_xfer(u8 DMA_channel, u8 page, u32 offset, u32 length, u8 mode) {
   asm_out8(MaskReg[DMA_channel], DMA_channel);
 
   /* 重新让CPU能够接收到中断 */
-  asm("sti");
+  asm_sti;
 }

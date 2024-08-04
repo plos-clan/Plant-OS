@@ -25,11 +25,11 @@ static char eos[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'f', 'J', 'K', 'S',
 // end of string,
 // vt100控制字符中可能的结束符号
 
-static int t_isdigit(int c) {
+finline int t_isdigit(int c) {
   return (c >= '0' && c <= '9');
 }
 
-static int t_is_eos(char ch) {
+finline int t_is_eos(char ch) {
   for (int i = 0; i < sizeof(eos); i++) {
     if (ch == eos[i]) return 1;
   }

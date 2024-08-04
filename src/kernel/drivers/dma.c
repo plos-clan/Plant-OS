@@ -15,7 +15,7 @@ byte CountPort[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
 void _dma_xfer(byte DMA_channel, byte page, uint offset, uint length, byte mode);
 
-void dma_xfer(byte channel, unsigned long address, uint length, byte read) {
+void dma_send(byte channel, unsigned long address, uint length, byte read) {
   byte page = 0, mode = 0;
   uint offset = 0;
 

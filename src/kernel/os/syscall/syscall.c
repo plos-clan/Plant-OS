@@ -4,16 +4,21 @@
 #define DIDX(addr) (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
 #define TIDX(addr) (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx)  ((u32)idx << 12)            // 获取页索引 idx 对应的页开始的位置
+
 extern struct PAGE_INFO *pages;
-static u32               div_round_up(u32 num, u32 size) {
+
+static u32 div_round_up(u32 num, u32 size) {
   return (num + size - 1) / size;
 }
+
 void *syscall_getheap() {
   return (void *)current_task()->alloc_addr;
 }
+
 u32 syscall_heapsize() {
   return *(current_task()->alloc_size);
 }
+
 void *syscall_mmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
   u32 page_count = div_round_up(length, 0x1000);
@@ -40,23 +45,29 @@ _1:
   for (int i = 0; i < page_count; i++) {
     page_link_share(line_addr_start + i * 0x1000);
   }
-  logd("在 %p 映射了 %d 内存", line_addr_start, length);
   return (void *)line_addr_start;
 }
+
 void syscall_munmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
   u32 page_count = div_round_up(length, 0x1000);
+
+  if (start > 0xf0000000) {
+    error("Couldn't unmap memory from %p to %p.", start, start + page_count * 0x1000);
+    syscall_exit(-1);
+    return;
+  }
   for (int i = 0; i < page_count; i++) {
     page_unlink((u32)start + i * 0x1000);
   }
-  logd("在 %p 取消映射了 %d 内存", start, length);
 }
+
 void *sycall_handlers[MAX_SYSCALLS] = {
     [SYSCALL_EXIT] = syscall_exit,       [SYSCALL_PUTC] = putchar,
     [SYSCALL_FORK] = task_fork,          [SYSCALL_PRINT] = print,
     [SYSCALL_GETHEAP] = syscall_getheap, [SYSCALL_HEAPSZ] = syscall_heapsize,
     [SYSCALL_MMAP] = syscall_mmap,       [SYSCALL_MUNMAP] = syscall_munmap,
-    // [SYSCALL_FORK] = syscall_fork,
+
     // [SYSCALL_READ] = syscall_read,
     // [SYSCALL_WRITE] = syscall_write,
     // [SYSCALL_OPEN] = syscall_open,

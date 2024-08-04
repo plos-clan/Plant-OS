@@ -99,7 +99,7 @@ void sb16_do_dma() {
   sb_out((SAMPLE_RATE >> 8) & 0xFF); // 0xAC
   sb_out(SAMPLE_RATE & 0xFF);        // 0x44
 
-  dma_xfer(sb.channel, (u32)(sb.addr2), sb.size2, 0);
+  dma_send(sb.channel, (u32)(sb.addr2), sb.size2, 0);
   if (sb.mode == MODE_MONO8) {
     sb_out(CMD_SINGLE_OUT8);
     sb_out(MODE_MONO8);
@@ -118,7 +118,7 @@ void sb16_do_close() {
 }
 
 void sb16_handler(int *esp) {
-  send_eoi(5);
+  send_eoi(SB16_IRQ);
 
   asm_in8(SB_INTR16);
   u8 state = asm_in8(SB_STATE);
@@ -214,3 +214,43 @@ int sb16_write(char *data, size_t size) {
 
   return size;
 }
+
+// 未完成
+
+typedef struct vsound *vsound_t;
+
+typedef int (*vsound_open_t)(vsound_t vsound);
+typedef int (*vsound_close_t)(vsound_t vsound);
+typedef ssize_t (*vsound_read_t)(vsound_t vsound, void *addr, size_t size);
+typedef ssize_t (*vsound_write_t)(vsound_t vsound, const void *addr, size_t size);
+typedef ssize_t (*vsound_callback_t)(vsound_t vsound, const void *addr, size_t size);
+
+typedef struct vsound {
+  cstr              name;     //
+  vsound_open_t     open;     //
+  vsound_close_t    close;    //
+  vsound_read_t     read;     //
+  vsound_write_t    write;    //
+  vsound_callback_t played;   // 音频播放完毕(前)，请求下一段音频
+  void             *buf;      // 音频缓冲区
+  size_t            bufsize;  //
+  void             *userdata; // 可自定义
+} *vsound_t;
+
+// struct vsound vsound = {
+//     .name  = "sb16",
+//     .open  = sb16_open,
+//     .close = sb16_close,
+//     .write = sb16_write,
+// };
+
+rbtree_sp_t vsound_list;
+
+bool vsound_regist(vsound_t device) {
+  if (device == null) return false;
+  if (rbtree_sp_get(vsound_list, device->name)) return false;
+  rbtree_sp_insert(vsound_list, device->name, device);
+  return true;
+}
+
+bool vsound_open() {}
