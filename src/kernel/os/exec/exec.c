@@ -139,15 +139,14 @@ void task_to_user_mode_shell() {
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
-
-  iframe->edi       = 1;
-  iframe->esi       = 2;
-  iframe->ebp       = 3;
-  iframe->esp_dummy = 4;
-  iframe->ebx       = 5;
-  iframe->edx       = 6;
-  iframe->ecx       = 7;
-  iframe->eax       = 8;
+  iframe->edi           = 0;          // argc
+  iframe->esi           = 0xf0000001; // argv
+  iframe->ebp           = 3;
+  iframe->esp_dummy     = 4;
+  iframe->ebx           = 5;
+  iframe->edx           = NULL; // envp没有
+  iframe->ecx           = 7;
+  iframe->eax           = 8;
 
   iframe->gs     = GET_SEL(5 * 8, SA_RPL3);
   iframe->ds     = GET_SEL(3 * 8, SA_RPL3);
@@ -198,18 +197,26 @@ void task_to_user_mode_shell() {
     ;
 }
 void task_to_user_mode_elf(char *filename) {
-
+  page_link(0xf0000000); // 配置空间
   unsigned addr = (unsigned)current_task()->top;
+  // 配置空间放置在0xf0000000 用于记录一些启动信息
+
+  struct args args = {
+      .path    = filename,
+      .cmdline = current_task()->line,
+      .sp      = (void *)0xf0000001,
+  };
+  parse_args(&args);
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
-
-  iframe->edi       = 1;
-  iframe->esi       = 2;
+  // 这里可以改变跳转后各个寄存器的初始值
+  iframe->edi       = (size_t)args.argc; // argc
+  iframe->esi       = (size_t)args.argv; // argv
   iframe->ebp       = 3;
   iframe->esp_dummy = 4;
   iframe->ebx       = 5;
-  iframe->edx       = 6;
+  iframe->edx       = (size_t)args.envp; // envp
   iframe->ecx       = 7;
   iframe->eax       = 8;
 
@@ -252,10 +259,8 @@ void task_to_user_mode_elf(char *filename) {
   unsigned alloced_esp  = alloc_addr + 128 * 0x1000 * 4;
   alloc_addr           += 128 * 0x1000 * 4;
   iframe->esp           = alloced_esp;
-  if (current_task()->ptid != -1) {
-    page_link(0xf0000000);
-    *(u8 *)(0xf0000000) = 0;
-  }
+  if (current_task()->ptid != -1) { *(u8 *)(0xf0000000) = 0; }
+  //  strcpy((char *)0xf0000001, current_task()->line);
   // *(u32 *)(0xb5000000) = 2;
   // logk("value = %08x\n",*(u32 *)(0xb5000000));
   current_task()->alloc_addr = alloc_addr;

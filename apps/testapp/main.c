@@ -35,8 +35,12 @@ void malloc_test() {
   }
 }
 
-int main() {
-  malloc_test();
+int main(int argc, char **argv) {
+  printf("argc: %d\n", argc);
+  for (int i = 0; i < argc; i++) {
+    printf("argv[%d]: %s\n", i, argv[i]);
+  }
+  // malloc_test();
   // char s[50];
   // sprintf(s, "%p %08x\n", __syscall(SYSCALL_GETHEAP), __syscall(SYSCALL_HEAPSZ));
   // print(s);

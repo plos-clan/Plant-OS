@@ -55,6 +55,10 @@ void free(void *ptr) {
   mpool_free(&pool, ptr);
 }
 
+size_t malloc_usable_size(void *ptr) {
+  return mpool_msize(&pool, ptr);
+}
+
 void *realloc(void *ptr, u32 size) {
   void *new = malloc(size);
   if (new == null || ptr == null) return new;

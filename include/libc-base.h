@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "libc-base/arg.h"
 #include "libc-base/asm/asm.h"
 #include "libc-base/asm/cpuid.h"
 #include "libc-base/asm/cr.h"
