@@ -37,7 +37,7 @@ dlexport bool mman_init(mman_t man, void *ptr, size_t size) {
 dlexport void mman_deinit(mman_t man) {
   if (man == null) return;
   if (man->cb_delmem) {
-    for (mman_pool_t p = &man->main.next, n = p->next; p; p = n, n = p->next) {
+    for (mman_pool_t p = man->main.next, n = p->next; p; p = n, n = p->next) {
       man->cb_delmem(p->ptr, allocarea_size(p->ptr));
     }
     man->cb_delmem(man->main.ptr, allocarea_size(man->main.ptr));
