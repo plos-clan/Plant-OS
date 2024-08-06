@@ -81,7 +81,7 @@ dlexport void *parse_args(args_t args) {
   cstr  cmdline  = args->cmdline;
   cstr  argline  = args->argline;
   cstr  envline  = args->envline;
-  cstr  old_envp = args->old_envp;
+  cstr *old_envp = args->old_envp;
   void *sp       = args->sp;
 
   size_t argv_len = 15;

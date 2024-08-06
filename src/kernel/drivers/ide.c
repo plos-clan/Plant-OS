@@ -1,9 +1,12 @@
 #include <kernel.h>
 
 static inline void nul(...) {}
+
 #define logk  nul
 #define sleep nul
+
 u8 ide_read(u8 channel, u8 reg);
+
 #define inb                     io_in8
 #define outb                    io_out8
 #define ATA_SR_BSY              0x80 // Busy
@@ -105,8 +108,9 @@ void ide_write_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi);
 void ide_read_buffer(u8 channel, u8 reg, u32 buffer, u32 quads);
 
 static inline void insl(u32 port, u32 *addr, int cnt) {
-  asm volatile("cld;"
-               "repne; insl;"
+  asm volatile("cld\n\t"
+               "repne\n\t"
+               "insl\n\t"
                : "=D"(addr), "=c"(cnt)
                : "d"(port), "0"(addr), "1"(cnt)
                : "memory", "cc");

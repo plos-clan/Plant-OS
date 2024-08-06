@@ -71,10 +71,11 @@ def build_boot():
                 exit()
 
 def build_libc():
-        import src.libc.make
+        import importlib
+        make = importlib.import_module('src.libc-base.make')
         print("Building libc...")
         try:
-                src.libc.make.build(cc,
+                make.build(cc,
                         nasm=args.nasm_path,
                         ar=args.ar,
                         debug=args.debug)

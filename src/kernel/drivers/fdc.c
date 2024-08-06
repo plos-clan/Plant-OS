@@ -45,6 +45,7 @@ typedef struct DrvGeom {
 #define CMD_FORMAT  (0x4d) /* 格式化磁道 */
 #define CMD_SEEK    (0x0f) /* 寻找磁道 */
 #define CMD_VERSION (0x10) /* 获取软盘驱动器的版本 */
+
 /**globals*/
 static volatile int done      = 0;
 static int          dchange   = 0;
@@ -69,6 +70,7 @@ static void Read(char drive, byte *buffer, uint number, uint lba) {
   }
   floppy_use = NULL;
 }
+
 static void Write(char drive, byte *buffer, uint number, uint lba) {
   floppy_use = current_task();
   for (int i = 0; i < number; i += SECTORS_ONCE) {
@@ -77,6 +79,7 @@ static void Write(char drive, byte *buffer, uint number, uint lba) {
   }
   floppy_use = NULL;
 }
+
 void init_floppy() {
 #ifndef __NO_FLOPPY__
   sendbyte(CMD_VERSION); // 发送命令（获取软盘版本），如果收到回应，说明软盘正在工作
@@ -104,6 +107,7 @@ void init_floppy() {
   vd.flag  = 1;
   register_vdisk(vd);
 }
+
 void flint(int *esp) {
   /**
    * 软盘中断服务程序（C语言），这个中断的入口在nasmfunc.asm中
@@ -114,12 +118,14 @@ void flint(int *esp) {
   // task_run(waiter);
   //  task_next();
 }
+
 void set_waiter(mtask *t) {
   while (waiter)
     ; // wait
   waiter = t;
 }
-void reset(void) {
+
+void reset() {
   set_waiter(current_task());
   /* 停止软盘电机并禁用IRQ和DMA传输 */
   asm_out8(FDC_DOR, 0);
@@ -146,7 +152,8 @@ void reset(void) {
 
   dchange = 0; // 清除“磁盘更改”状态（将dchange设置为false，让别的函数知道磁盘更改状态已经被清楚了）
 }
-void motoron(void) {
+
+void motoron() {
   if (!motor) {
     mtick = -1; /* 停止电机计时 */
     asm_out8(FDC_DOR, 0x1c);
@@ -157,12 +164,12 @@ void motoron(void) {
 }
 
 /* 关闭电机 */
-void motoroff(void) {
+void motoroff() {
   if (motor) { mtick = 13500; /* 重新初始化电机计时器 */ }
 }
 
 /* 重新校准驱动器 */
-void recalibrate(void) {
+void recalibrate() {
   set_waiter(current_task());
   /* 先启用电机 */
   motoron();
@@ -176,6 +183,7 @@ void recalibrate(void) {
   /* 关闭电机 */
   motoroff();
 }
+
 int seek(int track) {
   if (fdc_track == track) /* 目前的磁道和需要seek的磁道一样吗 */
   {
@@ -202,6 +210,7 @@ int seek(int track) {
   else
     return 1; // 成功了
 }
+
 void sendbyte(int byte) // 向软盘控制器发送一个字节
 {
   volatile int msr; // 注意：这里是volatile，这样可以保证msr的值不会被优化掉
@@ -220,6 +229,7 @@ void sendbyte(int byte) // 向软盘控制器发送一个字节
     asm_in8(0x80); /* 等待 */
   }
 }
+
 int getbyte() {
   int msr; // 软盘驱动器状态寄存器
   int tmo; // 软盘驱动器状态寄存器的超时计数器
@@ -237,6 +247,7 @@ int getbyte() {
   }
   return -1; /* 没读取到 */
 }
+
 void wait_floppy_interrupt() {
   // task_fall_blocked(WAITING);
   asm_sti;
@@ -260,14 +271,17 @@ void wait_floppy_interrupt() {
   floppy_int_count = 0;
   waiter           = NULL;
 }
+
 void block2hts(int block, int *track, int *head, int *sector) {
   *track  = (block / 18) / 2;
   *head   = (block / 18) % 2;
   *sector = block % 18 + 1;
 }
+
 void hts2block(int track, int head, int sector, int *block) {
   *block = track * 18 * 2 + head * 18 + sector;
 }
+
 int fdc_rw(int block, byte *blockbuff, int read, unsigned long nosectors) {
   set_waiter(current_task());
   int   head, track, sector, tries, copycount = 0;
@@ -357,6 +371,7 @@ int fdc_rw(int block, byte *blockbuff, int read, unsigned long nosectors) {
 
   return (tries != 3);
 }
+
 int fdc_rw_ths(int track, int head, int sector, byte *blockbuff, int read,
                unsigned long nosectors) {
   // 跟上面的大同小异
@@ -432,6 +447,7 @@ int fdc_rw_ths(int track, int head, int sector, byte *blockbuff, int read,
 
   return (tries != 3);
 }
+
 int read_block(int block, byte *blockbuff, unsigned long nosectors) {
   int track = 0, sector = 0, head = 0, track2 = 0, result = 0, loop = 0;
   block2hts(block, &track, &head, &sector);
@@ -449,9 +465,11 @@ int read_block(int block, byte *blockbuff, unsigned long nosectors) {
 int write_block(int block, byte *blockbuff, unsigned long nosectors) {
   return fdc_rw(block, blockbuff, 0, nosectors);
 }
+
 int write_floppy_for_ths(int track, int head, int sec, byte *blockbuff, unsigned long nosec) {
   int res = fdc_rw_ths(track, head, sec, blockbuff, 0, nosec);
 }
+
 #define N(H, L) ((uint16_t)(H) << 8 | (uint16_t)(L))
 void bios_fdc_rw(int block, byte *blockbuff, int read, unsigned long nosectors) {
   int   head, track, sector, tries, copycount = 0;

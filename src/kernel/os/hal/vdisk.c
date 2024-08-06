@@ -10,6 +10,7 @@ int init_vdisk() {
   }
   printi("ok");
 }
+
 int register_vdisk(vdisk vd) {
   for (int i = 0; i < 26; i++) {
     if (!vdisk_ctl[i].flag) {
@@ -20,6 +21,7 @@ int register_vdisk(vdisk vd) {
   printe("not found\n");
   return 0; // 注册失败
 }
+
 int logout_vdisk(char drive) {
   int indx = drive - ('A');
   if (indx > 26) {
@@ -32,6 +34,7 @@ int logout_vdisk(char drive) {
     return 0; // 失败
   }
 }
+
 int rw_vdisk(char drive, u32 lba, u8 *buffer, u32 number, int read) {
   int indx = drive - ('A');
   if (indx > 26) {
@@ -48,6 +51,7 @@ int rw_vdisk(char drive, u32 lba, u8 *buffer, u32 number, int read) {
     return 0; // 失败
   }
 }
+
 bool have_vdisk(char drive) {
   int indx = drive - 'A';
   // printk("drive=%c\n",drive);
@@ -66,7 +70,8 @@ static u8              *drive_name[16] = {NULL, NULL, NULL, NULL, NULL, NULL, NU
                                           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static struct cir_queue drive_fifo[16];
 static u8               drive_buf[16][256];
-bool                    set_drive(u8 *name) {
+
+bool set_drive(u8 *name) {
   for (int i = 0; i != 16; i++) {
     if (drive_name[i] == NULL) {
       drive_name[i] = name;
@@ -76,6 +81,7 @@ bool                    set_drive(u8 *name) {
   }
   return false;
 }
+
 u32 get_drive_code(u8 *name) {
   for (int i = 0; i != 16; i++) {
     if (strcmp((char *)drive_name[i], (char *)name) == 0) { return i; }
@@ -93,6 +99,7 @@ bool drive_semaphore_take(u32 drive_code) {
   }
   return true;
 }
+
 void drive_semaphore_give(u32 drive_code) {
   if (drive_code >= 16) { return; }
   if (drive_buf[drive_code][drive_fifo[drive_code].head] != get_tid(current_task())) {
@@ -114,6 +121,7 @@ void Disk_Read(u32 lba, u32 number, void *buffer, char drive) {
     }
   }
 }
+
 u32 disk_Size(char drive) {
   u8 drive1 = drive;
   if (have_vdisk(drive1)) {
@@ -126,12 +134,15 @@ u32 disk_Size(char drive) {
 
   return 0;
 }
+
 bool DiskReady(char drive) {
   return have_vdisk(drive);
 }
+
 int getReadyDisk() {
   return 0;
 }
+
 void Disk_Write(u32 lba, u32 number, void *buffer, char drive) {
   //  printk("%d\n",lba);
   if (have_vdisk(drive)) {
@@ -145,6 +156,7 @@ void Disk_Write(u32 lba, u32 number, void *buffer, char drive) {
     }
   }
 }
+
 bool CDROM_Read(u32 lba, u32 number, void *buffer, char drive) {
   if (have_vdisk(drive)) {
     int indx = drive - ('A');

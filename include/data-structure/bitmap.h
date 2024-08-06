@@ -1,6 +1,8 @@
 #pragma once
 #include "base.h"
 
+#pragma GCC system_header
+
 #define BITMAP(_name_, _nbits_)                                                                    \
   struct {                                                                                         \
     const u32 length;                                                                              \

@@ -1,6 +1,8 @@
 #pragma once
 #include "base.h"
 
+#pragma GCC system_header
+
 #ifdef ALL_IMPLEMENTATION
 #  define SLIST_IMPLEMENTATION
 #endif

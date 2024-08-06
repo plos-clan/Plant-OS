@@ -36,6 +36,7 @@ void init_keyboard() {
   wait_KBC_sendready();
   asm_out8(PORT_KEYDAT, KBC_MODE);
 }
+
 int getch() {
   u8 ch;
   ch = input_char_inSM(); // 扫描码

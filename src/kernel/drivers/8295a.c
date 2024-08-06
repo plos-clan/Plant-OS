@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-void init_pic(void) {
+void init_pic() {
   asm_out8(PIC0_IMR, 0xff); /* 初始化，所有中断均被屏蔽 */
   asm_out8(PIC1_IMR, 0xff);
   asm_out8(PIC0_ICW1, 0x11);
@@ -15,7 +15,6 @@ void init_pic(void) {
 
   asm_out8(PIC0_IMR, 0xfb);
   asm_out8(PIC1_IMR, 0xff); /* 禁止所有中断 */
-  return;
 }
 
 void send_eoi(int irq) {

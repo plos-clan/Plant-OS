@@ -7,6 +7,7 @@ extern struct TSS32      tss;
 extern struct PAGE_INFO *pages;
 
 void task_to_user_mode_shell();
+
 #define IDX(addr)  ((unsigned)addr >> 12)           // 获取 addr 的页索引
 #define DIDX(addr) (((unsigned)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
 #define TIDX(addr) (((unsigned)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
@@ -80,12 +81,10 @@ void task_app() {
   asm_set_cr3(pde);
   char tmp[100];
   task_to_user_mode_elf(filename);
-  while (true)
-    ;
+  while (true) {}
 }
 void task_shell() {
-  while (!current_task()->line)
-    ;
+  while (!current_task()->line) {}
   char *kfifo = (char *)page_malloc_one();
   char *mfifo = (char *)page_malloc_one();
   char *kbuf  = (char *)page_malloc_one();
@@ -134,7 +133,6 @@ void task_shell() {
     ;
 }
 void task_to_user_mode_shell() {
-
   unsigned addr = (unsigned)current_task()->top;
 
   addr                 -= sizeof(intr_frame_t);
@@ -185,17 +183,17 @@ void task_to_user_mode_shell() {
   tss.esp0                  = current_task()->top;
   change_page_task_id(current_task()->tid, (void *)(iframe->esp - 512 * 1024), 512 * 1024);
 
-  asm volatile("movl %0, %%esp\n"
-               "xchg %%bx,%%bx\n"
-               "popa\n"
-               "pop %%gs\n"
-               "pop %%fs\n"
-               "pop %%es\n"
-               "pop %%ds\n"
+  asm volatile("movl %0, %%esp\n\t"
+               "xchg %%bx,%%bx\n\t"
+               "popa\n\t"
+               "pop %%gs\n\t"
+               "pop %%fs\n\t"
+               "pop %%es\n\t"
+               "pop %%ds\n\t"
                "iret" ::"m"(iframe));
-  while (true)
-    ;
+  while (true) {}
 }
+
 void task_to_user_mode_elf(char *filename) {
   page_link(0xf0000000); // 配置空间
   unsigned addr = (unsigned)current_task()->top;
@@ -207,6 +205,10 @@ void task_to_user_mode_elf(char *filename) {
       .sp      = (void *)0xf0000001,
   };
   parse_args(&args);
+  logd("argc: %d", args.argc);
+  for (int i = 0; i < args.argc; i++) {
+    logd("argv[%d]: %s", i, args.argv[i]);
+  }
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
@@ -278,9 +280,9 @@ void task_to_user_mode_elf(char *filename) {
                "pop %%es\n"
                "pop %%ds\n"
                "iret" ::"m"(iframe));
-  while (true)
-    ;
+  while (true) {}
 }
+
 int os_execute(char *filename, char *line) {
   extern mtask *mouse_use_task;
   mtask        *backup = mouse_use_task;
@@ -342,6 +344,7 @@ int os_execute(char *filename, char *line) {
 
   return status;
 }
+
 int os_execute_shell(char *line) {
   extern int init_ok_flag;
   init_ok_flag              = 0;
@@ -369,6 +372,7 @@ int os_execute_shell(char *line) {
   current_task()->sigint_up = old;
   return status;
 }
+
 void os_execute_no_ret(char *filename, char *line) {
   mtask      *t          = create_task((u32)task_app, 0, 1, 1);
   struct tty *tty_backup = current_task()->TTY;

@@ -21,17 +21,18 @@ u32 syscall_heapsize() {
 
 void *syscall_mmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
-  u32 page_count = div_round_up(length, 0x1000);
+  u32  page_count = div_round_up(length, PAGE_SIZE);
+  bool size_is_2M = page_count == 512;
 
   u32 addr            = current_task()->pde;
   u32 line_addr_start = null;
-  for (int i = DIDX(0x70000000) * 4, c = 0; i < 0x1000; i += 4) {
-    u32 *pde_entry = (u32 *)(addr + i);
+  for (int i = DIDX(0x70000000) * 4, c = 0; i < 1024; i++) {
+    u32 *pde_entry = (u32 *)addr + i;
     u32  p         = *pde_entry & (0xfffff000);
-    for (int j = 0; j < 0x1000; j += 4) {
-      u32 *pte_entry = (u32 *)(p + j);
-      if (!(page_get_attr(get_line_address(i / 4, j / 4, 0)) & PAGE_WRABLE)) {
-        line_addr_start = get_line_address(i / 4, j / 4, 0);
+    for (int j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
+      u32 *pte_entry = (u32 *)p + j;
+      if (!(page_get_attr(get_line_address(i, j, 0)) & PAGE_WRABLE)) {
+        line_addr_start = get_line_address(i, j, 0);
         c++;
       } else {
         c = 0;
@@ -60,6 +61,8 @@ void syscall_munmap(void *start, u32 length) {
   for (int i = 0; i < page_count; i++) {
     page_unlink((u32)start + i * 0x1000);
   }
+
+  logd("释放了地址%p-%p", start, start + length);
 }
 
 void *sycall_handlers[MAX_SYSCALLS] = {
