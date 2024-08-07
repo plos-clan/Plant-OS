@@ -20,6 +20,7 @@
 #define __nonnull(params) __attribute__((nonnull params))
 
 #define __attr(...)       __attribute__((__VA_ARGS__))
+#define __attr_deprecated __attr(deprecated)
 #define __attr_nthrow     __attr(nothrow)
 #define __attr_leaf       __attr(leaf)
 #define __attr_nnull(...) __attr(nonnull(__VA_ARGS__))
@@ -29,6 +30,8 @@
 #else
 #  define __attr_dealloc(func, nparam) __attr(warn_unused_result, malloc(func, nparam))
 #endif
+
+#define deprecated __attr_deprecated
 
 typedef __builtin_va_list va_list;
 #define va_start(ap, para) __builtin_va_start(ap, para)

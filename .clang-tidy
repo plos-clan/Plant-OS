@@ -6,4 +6,8 @@ Checks: >
   bugprone-*,
   modernize-*,
   -readability-braces-around-statements,
+  -readability-identifier-length,
+  -bugprone-reserved-identifier,
+  -bugprone-easily-swappable-parameters,
+  -readability-isolate-declaration,
 FormatStyle: none

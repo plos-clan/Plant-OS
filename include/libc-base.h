@@ -11,7 +11,7 @@ extern "C" {
 #include "libc-base/asm/flag.h"
 #include "libc-base/asm/io.h"
 #include "libc-base/asm/reg.h"
-#include "libc-base/asm/syscall-plos.h"
+#include "libc-base/asm/syscall.h"
 #include "libc-base/crypto/hash.h"
 #include "libc-base/math/base.h"
 #include "libc-base/math/bits.h"

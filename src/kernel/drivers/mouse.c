@@ -3,8 +3,6 @@
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE     0xf4
 
-typedef u8 byte;
-
 mtask *mouse_use_task = NULL;
 
 void mouse_wait(byte a_type) {
@@ -39,10 +37,12 @@ byte mouse_read() {
   mouse_wait(0);
   return asm_in8(0x60);
 }
+
 lock_t mouse_l;
 void   mouse_reset() {
   mouse_write(0xff);
 }
+
 void enable_mouse(struct MOUSE_DEC *mdec) {
   lock_init(&mouse_l);
   /* 激活鼠标 */

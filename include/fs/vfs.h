@@ -8,6 +8,10 @@ typedef void *(*vfs_open_t)(void *parent, cstr name);
 typedef void (*vfs_close_t)(void *current);
 typedef void (*vfs_resize_t)(void *current, u64 size);
 
+// 读写一个文件
+typedef int (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t size);
+typedef int (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size);
+
 typedef struct vfs_callback {
   vfs_open_t  opendir;
   vfs_open_t  openfile;
@@ -35,3 +39,6 @@ extern vfs_t rootdir;
 bool vfs_init();
 void vfs_deinit();
 void register_fat();
+
+#define PATH_MAX     4096
+#define FILENAME_MAX 256

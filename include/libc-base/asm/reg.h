@@ -1,8 +1,6 @@
 #pragma once
 #include <type.h>
 
-// PUSHFD
-// POP EAX
 #define asm_get_flags()                                                                            \
   ({                                                                                               \
     size_t flags;                                                                                  \
@@ -13,8 +11,6 @@
     flags;                                                                                         \
   })
 
-// POP EAX
-// POPFD
 #define asm_set_flags(flags)                                                                       \
   ({                                                                                               \
     asm volatile("push %0\n\t"                                                                     \

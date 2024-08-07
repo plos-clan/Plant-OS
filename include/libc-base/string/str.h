@@ -4,6 +4,13 @@
 
 // 声明
 
+/**
+ *\brief 复制字符串
+ * 
+ *\param d 目标字符串
+ *\param s 源字符串
+ *\return 目标字符串
+ */
 finline char  *strcpy(char *_rest d, cstr _rest s);
 finline char  *strncpy(char *_rest d, cstr _rest s, size_t n);
 finline char  *strcat(char *_rest _d, cstr _rest _s);
@@ -17,12 +24,12 @@ finline char  *strndup(cstr _s, size_t _n);
 finline char  *strchr(cstr _s, int _c);
 finline char  *strrchr(cstr _s, int _c);
 finline char  *strchrnul(cstr _s, int _c);
-finline size_t strcspn(cstr __s, cstr __reject);
+finline size_t strcspn(cstr s, cstr reject);
 finline size_t strspn(cstr s, cstr accept);
-finline char  *strpbrk(cstr __s, cstr __accept);
+finline char  *strpbrk(cstr _s, cstr accept);
 finline char  *strstr(cstr _s, cstr _t);
-finline char  *strtok(char *_rest __s, cstr _rest __delim);
-finline char  *strtok_r(char *_rest __s, cstr _rest __delim, char **_rest __save_ptr);
+finline char  *strtok(char *_rest _s, cstr _rest _delim);
+finline char  *strtok_r(char *_rest _s, cstr _rest _delim, char **_rest _save_ptr);
 finline char  *strcasestr(cstr _s, cstr _t);
 finline size_t strlen(cstr _s);
 finline size_t strnlen(cstr _s, size_t _l);
@@ -30,7 +37,7 @@ dlimport char *strerror(int e);
 dlimport char *strerror_r(int e, char *buf, size_t n);
 dlimport cstr  strerrordesc_np(int __err);
 dlimport cstr  strerrorname_np(int __err);
-dlimport char *strsep(char **_rest __stringp, cstr _rest __delim);
+dlimport char *strsep(char **_rest __stringp, cstr _rest _delim);
 dlimport char *strsignal(int __sig);
 finline cstr   sigabbrev_np(int __sig);
 finline cstr   sigdescr_np(int __sig);
@@ -40,7 +47,11 @@ finline int    strverscmp(cstr __s1, cstr __s2);
 finline char  *strfry(char *__string);
 finline char  *basename(cstr __filename);
 
-#define streq(s1, s2) (((s1) && (s2)) ? strcmp(s1, s2) == 0 : (s1) == (s2))
+#define streq(s1, s2)                                                                              \
+  ({                                                                                               \
+    cstr _s1 = (s1), _s2 = (s2);                                                                   \
+    (_s1 && _s2) ? strcmp(_s1, _s2) == 0 : _s1 == _s2;                                             \
+  })
 
 // 定义
 
@@ -93,7 +104,7 @@ finline int strcmp(cstr _s1, cstr _s2) {
   });
   const byte *s1 = (const void *)_s1;
   const byte *s2 = (const void *)_s2;
-  byte        c1, c2;
+  int         c1, c2;
   do {
     c1 = *s1++;
     c2 = *s2++;
@@ -111,7 +122,33 @@ finline int toupper(int c) {
   return ('a' <= c && c <= 'a') ? c - 'a' + 'A' : c;
 }
 
-int strcmp_ci(cstr _s1, cstr _s2); // case-insensitive
+// case-insensitive
+finline int strcmp_ci(cstr _s1, cstr _s2) {
+  const byte *s1 = (const byte *)_s1;
+  const byte *s2 = (const byte *)_s2;
+  int         c1, c2;
+  do {
+    c1 = tolower(*s1++);
+    c2 = tolower(*s2++);
+    if (!c1) return c1 - c2;
+  } while (c1 == c2);
+  return c1 - c2;
+}
+
+// case-insensitive
+finline int strncmp_ci(cstr _s1, cstr _s2, size_t n) {
+  const byte *s1 = (const byte *)_s1;
+  const byte *e1 = (const byte *)_s1 + n;
+  const byte *s2 = (const byte *)_s2;
+  int         c1, c2;
+  do {
+    if (s1 == e1) return 0;
+    c1 = tolower(*s1++);
+    c2 = tolower(*s2++);
+    if (!c1) return c1 - c2;
+  } while (c1 == c2);
+  return c1 - c2;
+}
 
 finline int strncmp(cstr _s1, cstr _s2, size_t n) {
 #  if __has(strncmp)
@@ -165,22 +202,45 @@ finline char *strchrnul(cstr _s, int _c) {
 #  endif
 }
 
-finline size_t strcspn(cstr __s, cstr __reject);
+finline size_t strcspn(cstr s, cstr reject) {
+#  if __has(strcspn)
+  return __builtin_strcspn(s, reject);
+#  else
+  cstr _s = s;
+  for (; *s != '\0' && strchr(reject, *s) == null; s++) {}
+  return s - _s;
+#  endif
+}
 
-finline size_t strspn(cstr s, cstr accept);
+finline size_t strspn(cstr s, cstr accept) {
+#  if __has(strspn)
+  return __builtin_strspn(s, accept);
+#  else
+  cstr _s = s;
+  for (; *s != '\0' && strchr(accept, *s) != null; s++) {}
+  return s - _s;
+#  endif
+}
 
-finline char *strpbrk(cstr __s, cstr __accept);
+finline char *strpbrk(cstr _s, cstr accept) {
+#  if __has(strpbrk)
+  return __builtin_strpbrk(_s, accept);
+#  else
+  for (; *_s != '\0'; _s++) {
+    if (strchr(accept, *_s) != null) return (char *)_s;
+  }
+  return null;
+#  endif
+}
 
 finline char *strstr(cstr _s, cstr _t) {
 #  if __has(strstr)
   return __builtin_strstr(_s, _t);
 #  else
-  size_t _sn = strlen(_s);
-  size_t _tn = strlen(_t);
+  size_t _sn = strlen(_s), _tn = strlen(_t);
   if (_tn == 0) return (char *)_s;
   if (_sn < _tn) return null;
-  cstr s = _s;
-  cstr t = _t;
+  cstr s = _s, t = _t;
   for (size_t i = 0; i <= _sn - _tn; i++) {
     if (strncmp(s + i, t, _tn) == 0) return (char *)(s + i);
   }
@@ -188,11 +248,54 @@ finline char *strstr(cstr _s, cstr _t) {
 #  endif
 }
 
-finline char *strtok(char *_rest __s, cstr _rest __delim);
+finline char *strtok(char *_rest _s, cstr _rest _delim) {
+#  if __has(strtok)
+  return __builtin_strtok(_s, _delim);
+#  else
+  static char *save_ptr;
+  return strtok_r(_s, _delim, &save_ptr);
+#  endif
+}
 
-finline char *strtok_r(char *_rest __s, cstr _rest __delim, char **_rest __save_ptr);
+finline char *strtok_r(char *_rest _s, cstr _rest _delim, char **_rest _save_ptr) {
+#  if __has(strtok_r)
+  return __builtin_strtok_r(_s, _delim, _save_ptr);
+#  else
+  char *sbegin, *send;
+  if (_s) {
+    sbegin = _s;
+  } else {
+    sbegin = *_save_ptr;
+  }
+  sbegin += strspn(sbegin, _delim);
+  if (*sbegin == '\0') {
+    *_save_ptr = sbegin;
+    return null;
+  }
+  send = sbegin + strcspn(sbegin, _delim);
+  if (*send != '\0') {
+    *send = '\0';
+    send++;
+  }
+  *_save_ptr = send;
+  return sbegin;
+#  endif
+}
 
-finline char *strcasestr(cstr _s, cstr _t);
+finline char *strcasestr(cstr _s, cstr _t) {
+#  if __has(strcasestr)
+  return __builtin_strcasestr(_s, _t);
+#  else
+  size_t _sn = strlen(_s), _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s, t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#  endif
+}
 
 finline size_t strlen(cstr _s) {
 #  if __has(strlen)
@@ -225,7 +328,7 @@ extern cstr strerrordesc_np(int __err);
 
 extern cstr strerrorname_np(int __err);
 
-extern char *strsep(char **_rest __stringp, cstr _rest __delim);
+extern char *strsep(char **_rest __stringp, cstr _rest _delim);
 
 extern char *strsignal(int __sig);
 

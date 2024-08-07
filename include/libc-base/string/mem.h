@@ -16,7 +16,7 @@ finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn);
 finline void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n);
 finline void  bzero(void *_s, size_t _n);
 finline void  explicit_bzero(void *_s, size_t _n);
-finline void *memfrob(void *_s, size_t _n);
+finline void *memfrob(void *_s, size_t _n) deprecated;
 
 // 非标准库函数
 finline void *memdup(const void *_s, size_t _n);

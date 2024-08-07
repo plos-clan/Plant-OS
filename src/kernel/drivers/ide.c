@@ -7,8 +7,6 @@ static inline void nul(...) {}
 
 u8 ide_read(u8 channel, u8 reg);
 
-#define inb                     io_in8
-#define outb                    io_out8
 #define ATA_SR_BSY              0x80 // Busy
 #define ATA_SR_DRDY             0x40 // Drive ready
 #define ATA_SR_DF               0x20 // Drive write fault

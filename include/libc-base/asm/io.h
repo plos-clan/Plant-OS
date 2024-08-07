@@ -1,9 +1,6 @@
 #pragma once
 #include <type.h>
 
-// 	MOV EDX, [ESP + 4]            ; port
-// 	MOV EAX, 0
-// 	IN AL, DX
 #define asm_in8(port)                                                                              \
   ({                                                                                               \
     size_t          data;                                                                          \
@@ -13,9 +10,6 @@
     data;                                                                                          \
   })
 
-// 	MOV EDX, [ESP + 4]            ; port
-// 	MOV EAX, 0
-// 	IN AX, DX
 #define asm_in16(port)                                                                             \
   ({                                                                                               \
     size_t          data;                                                                          \
@@ -25,8 +19,6 @@
     data;                                                                                          \
   })
 
-// 	MOV EDX, [ESP + 4]            ; port
-// 	IN EAX, DX
 #define asm_in32(port)                                                                             \
   ({                                                                                               \
     size_t          data;                                                                          \
@@ -36,9 +28,6 @@
     data;                                                                                          \
   })
 
-// 	MOV EDX, [ESP + 4]            ; port
-// 	MOV AL, [ESP + 8]             ; data
-// 	OUT DX, AL
 #define asm_out8(port, data)                                                                       \
   ({                                                                                               \
     size_t          __arg1         = (size_t)(data);                                               \
@@ -49,9 +38,6 @@
     (void)0;                                                                                       \
   })
 
-// 	MOV EDX, [ESP + 4]            ; port
-// 	MOV EAX, [ESP + 8]            ; data
-// 	OUT DX, AX
 #define asm_out16(port, data)                                                                      \
   ({                                                                                               \
     size_t          __arg1         = (size_t)(data);                                               \
@@ -62,9 +48,6 @@
     (void)0;                                                                                       \
   })
 
-// 	MOV EDX, [ESP + 4]            ; port
-// 	MOV EAX, [ESP + 8]            ; data
-// 	OUT DX, EAX
 #define asm_out32(port, data)                                                                      \
   ({                                                                                               \
     size_t          __arg1         = (size_t)(data);                                               \
