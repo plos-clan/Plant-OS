@@ -9,8 +9,9 @@
 #define SYSCALL_HEAPSZ  5
 #define SYSCALL_MMAP    6
 #define SYSCALL_MUNMAP  7
-
-#define MAX_SYSCALLS 256
+#define SYSCALL_READ    8
+#define SYSCALL_WRITE   9
+#define MAX_SYSCALLS    256
 
 #ifndef KERNEL
 dlimport ssize_t syscall(ssize_t id, ...);

@@ -254,3 +254,7 @@ bool vsound_regist(vsound_t device) {
 }
 
 bool vsound_open() {}
+
+// int sound_open(cstr device) {
+//   if (device == null) return open("/dev/sound/default");
+// }
