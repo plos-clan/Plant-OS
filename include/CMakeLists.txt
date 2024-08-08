@@ -1,5 +1,6 @@
 mkheader_recurse(config)
-mkheader_recurse(libc-base)
+mkheader_h_recurse(libc-base)
+mkheader_hpp_recurse(libc-base)
 mkheader_recurse(data-structure)
 mkheader_recurse(misc)
 mkheader_recurse(libc)

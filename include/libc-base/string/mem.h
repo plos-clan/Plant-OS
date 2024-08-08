@@ -29,9 +29,9 @@ finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) {
 #  if __has(memcpy)
   return __builtin_memcpy(_d, _s, _n);
 #  else
-  volatile byte       *d = _d;
-  volatile const byte *s = _s;
-  volatile const byte *e = _s + _n;
+  auto d = (volatile byte *)_d;
+  auto s = (volatile const byte *)_s;
+  auto e = (volatile const byte *)((byte *)_s + _n);
   __std_safe__({
     if (!d || !s) return null;
     if (d + _n < d || e < s) return null;
@@ -47,9 +47,9 @@ finline void *memmove(void *_d, const void *_s, size_t _n) {
 #  if __has(memmove)
   return __builtin_memmove(_d, _s, _n);
 #  else
-  volatile byte       *d = _d;
-  volatile const byte *s = _s;
-  volatile const byte *e = _s + _n;
+  auto d = (volatile byte *)_d;
+  auto s = (volatile const byte *)_s;
+  auto e = (volatile const byte *)((byte *)_s + _n);
   __std_safe__({
     if (!d || !s) return null;
     if (d + _n < d || e < s) return null;
@@ -71,9 +71,9 @@ finline void *memset(void *_s, int _c, size_t _n) {
 #  if __has(memset)
   return __builtin_memset(_s, _c, _n);
 #  else
-  volatile byte *s = _s;
-  volatile byte *e = _s + _n;
-  const byte     c = _c;
+  auto       s = (volatile byte *)_s;
+  auto       e = (volatile byte *)((byte *)_s + _n);
+  const byte c = _c;
   __std_safe__({
     if (!s) return null;
     if (e < s) return null;
@@ -88,8 +88,9 @@ finline int memcmp(const void *_s1, const void *_s2, size_t _n) {
 #  if __has(memcmp)
   return __builtin_memcmp(_s1, _s2, _n);
 #  else
-  const byte *s1 = _s1, *s2 = _s2;
-  const byte *e1 = _s1 + _n;
+  auto s1 = (const byte *)_s1;
+  auto s2 = (const byte *)_s2;
+  auto e1 = (const byte *)((byte *)_s1 + _n);
   for (; s1 < e1; s1++, s2++) {
     if (*s1 < *s2) return -1;
     if (*s1 > *s2) return 1;
@@ -102,9 +103,9 @@ finline void *memchr(const void *_s, int _c, size_t _n) {
 #  if __has(memchr)
   return __builtin_memchr(_s, _c, _n);
 #  else
-  const byte *s = _s;
-  const byte *e = _s + _n;
-  const byte  c = _c;
+  auto       s = (const byte *)_s;
+  auto       e = (const byte *)((byte *)_s + _n);
+  const byte c = _c;
   for (; s < e; s++)
     if (*s == c) return (void *)s;
   return null;
@@ -115,9 +116,9 @@ finline void *memccpy(void *_rest _d, const void *_rest _s, int _c, size_t _n) {
 #  if __has(memccpy)
   return __builtin_memccpy(_d, _s, _c, _n);
 #  else
-  byte       *d = _d;
-  const byte *s = _s;
-  const byte *e = _s + _n;
+  auto d = (byte *)_d;
+  auto s = (const byte *)_s;
+  auto e = (const byte *)((byte *)_s + _n);
   __std_safe__({
     if (!d || !s) return null;
     if (d + _n < d || e < s) return null;
@@ -132,8 +133,8 @@ finline void *memccpy(void *_rest _d, const void *_rest _s, int _c, size_t _n) {
 }
 
 finline void *rawmemchr(const void *_s, int _c) {
-  const byte *s = _s;
-  const byte  c = _c;
+  auto       s = (const byte *)_s;
+  const byte c = _c;
   __std_safe__({
     if (!s) return null;
   });
@@ -147,9 +148,9 @@ finline void *memrchr(const void *_s, int _c, size_t _n) {
 #  if __has(memrchr)
   return __builtin_memrchr(_s, _c, _n);
 #  else
-  const byte *s = _s;
-  const byte *e = _s + _n - 1;
-  const byte  c = _c;
+  auto       s = (const byte *)_s;
+  auto       e = (const byte *)((byte *)_s + _n - 1);
+  const byte c = _c;
   __std_safe__({
     if (!s) return null;
   });
@@ -166,8 +167,8 @@ finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn) {
 #  else
   if (_tn == 0) return (void *)_s;
   if (_sn < _tn) return null;
-  cstr s = _s;
-  cstr t = _t;
+  auto s = (cstr)_s;
+  auto t = (cstr)_t;
   for (size_t i = 0; i <= _sn - _tn; i++) {
     if (memcmp(s + i, t, _tn) == 0) return (void *)(s + i);
   }

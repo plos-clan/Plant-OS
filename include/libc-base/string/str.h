@@ -28,8 +28,8 @@ finline size_t strcspn(cstr s, cstr reject);
 finline size_t strspn(cstr s, cstr accept);
 finline char  *strpbrk(cstr _s, cstr accept);
 finline char  *strstr(cstr _s, cstr _t);
-finline char  *strtok(char *_rest _s, cstr _rest _delim);
-finline char  *strtok_r(char *_rest _s, cstr _rest _delim, char **_rest _save_ptr);
+finline char  *strtok(char *_rest _s, cstr _rest delim);
+finline char  *strtok_r(char *_rest _s, cstr _rest delim, char **_rest save_ptr);
 finline char  *strcasestr(cstr _s, cstr _t);
 finline size_t strlen(cstr _s);
 finline size_t strnlen(cstr _s, size_t _l);
@@ -37,7 +37,7 @@ dlimport char *strerror(int e);
 dlimport char *strerror_r(int e, char *buf, size_t n);
 dlimport cstr  strerrordesc_np(int __err);
 dlimport cstr  strerrorname_np(int __err);
-dlimport char *strsep(char **_rest __stringp, cstr _rest _delim);
+dlimport char *strsep(char **_rest __stringp, cstr _rest delim);
 dlimport char *strsignal(int __sig);
 finline cstr   sigabbrev_np(int __sig);
 finline cstr   sigdescr_np(int __sig);
@@ -102,9 +102,9 @@ finline int strcmp(cstr _s1, cstr _s2) {
     if (!_s1) return -1;
     if (!_s2) return 1;
   });
-  const byte *s1 = (const void *)_s1;
-  const byte *s2 = (const void *)_s2;
-  int         c1, c2;
+  auto s1      = (const byte *)_s1;
+  auto s2 = (const byte *)_s2;
+  int  c1, c2;
   do {
     c1 = *s1++;
     c2 = *s2++;
@@ -248,36 +248,31 @@ finline char *strstr(cstr _s, cstr _t) {
 #  endif
 }
 
-finline char *strtok(char *_rest _s, cstr _rest _delim) {
+finline char *strtok(char *_rest _s, cstr _rest delim) {
 #  if __has(strtok)
-  return __builtin_strtok(_s, _delim);
+  return __builtin_strtok(_s, delim);
 #  else
   static char *save_ptr;
-  return strtok_r(_s, _delim, &save_ptr);
+  return strtok_r(_s, delim, &save_ptr);
 #  endif
 }
 
-finline char *strtok_r(char *_rest _s, cstr _rest _delim, char **_rest _save_ptr) {
+finline char *strtok_r(char *_rest _s, cstr _rest delim, char **_rest save_ptr) {
 #  if __has(strtok_r)
-  return __builtin_strtok_r(_s, _delim, _save_ptr);
+  return __builtin_strtok_r(_s, delim, save_ptr);
 #  else
-  char *sbegin, *send;
-  if (_s) {
-    sbegin = _s;
-  } else {
-    sbegin = *_save_ptr;
-  }
-  sbegin += strspn(sbegin, _delim);
+  char *sbegin  = _s ?: *save_ptr;
+  sbegin       += strspn(sbegin, delim);
   if (*sbegin == '\0') {
-    *_save_ptr = sbegin;
+    *save_ptr = sbegin;
     return null;
   }
-  send = sbegin + strcspn(sbegin, _delim);
+  char *send = sbegin + strcspn(sbegin, delim);
   if (*send != '\0') {
     *send = '\0';
     send++;
   }
-  *_save_ptr = send;
+  *save_ptr = send;
   return sbegin;
 #  endif
 }
@@ -328,7 +323,7 @@ extern cstr strerrordesc_np(int __err);
 
 extern cstr strerrorname_np(int __err);
 
-extern char *strsep(char **_rest __stringp, cstr _rest _delim);
+extern char *strsep(char **_rest __stringp, cstr _rest delim);
 
 extern char *strsignal(int __sig);
 

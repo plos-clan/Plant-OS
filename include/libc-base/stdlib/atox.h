@@ -90,7 +90,7 @@ _atof(f128);
     if (!isdigit2(*s)) return 0;                                                                   \
     for (; isdigit2(*s); s++)                                                                      \
       n = n * 2 + (*s - '0');                                                                      \
-    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
+    if (e) *e = (char *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strb8to(t, type)                                                                         \
@@ -99,7 +99,7 @@ _atof(f128);
     type n = 0;                                                                                    \
     for (; isdigit8(*s); s++)                                                                      \
       n = n * 8 + (*s - '0');                                                                      \
-    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
+    if (e) *e = (char *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strb10to(t, type)                                                                        \
@@ -108,7 +108,7 @@ _atof(f128);
     type n = 0;                                                                                    \
     for (; isdigit(*s); s++)                                                                       \
       n = n * 10 + (*s - '0');                                                                     \
-    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
+    if (e) *e = (char *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strb16to(t, type)                                                                        \
@@ -126,7 +126,7 @@ _atof(f128);
         break;                                                                                     \
       }                                                                                            \
     }                                                                                              \
-    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
+    if (e) *e = (char *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 #define __strto(t, type)                                                                           \
@@ -148,7 +148,7 @@ _atof(f128);
         break;                                                                                     \
       }                                                                                            \
     }                                                                                              \
-    if (e) *e = (void *)(_s == s ? __s : s);                                                       \
+    if (e) *e = (char *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
 

@@ -13,6 +13,7 @@ extern "C" {
 #include "libc-base/asm/reg.h"
 #include "libc-base/asm/syscall.h"
 #include "libc-base/crypto/hash.h"
+#include "libc-base/include.h"
 #include "libc-base/math/base.h"
 #include "libc-base/math/bits.h"
 #include "libc-base/math/complex/base.h"
@@ -32,15 +33,4 @@ extern "C" {
 #include "libc-base/thread/spin.h"
 #ifdef __cplusplus
 }
-#endif
-#ifdef __cplusplus
-#include "libc-base/math/base.hpp"
-#include "libc-base/math/bits.hpp"
-#include "libc-base/math/complex/base.hpp"
-#include "libc-base/math/complex/complex.hpp"
-#include "libc-base/math/exp-log.hpp"
-#include "libc-base/math/math.hpp"
-#include "libc-base/math/sin.hpp"
-#include "libc-base/math/sqrt.hpp"
-#include "libc-base/math/sum.hpp"
 #endif
