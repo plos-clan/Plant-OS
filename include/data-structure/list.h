@@ -407,3 +407,28 @@ static void list_print(list_t list) {
     for (list_t node = (list); node; (node) = (node)->next, (i)++)                                 \
       (code);                                                                                      \
   })
+
+#define list_first_node(list, node, expr)                                                          \
+  ({                                                                                               \
+    list_t _match_ = null;                                                                         \
+    for (list_t node = (list); node; node = node->next) {                                          \
+      if ((expr)) {                                                                                \
+        _match_ = node;                                                                            \
+        break;                                                                                     \
+      }                                                                                            \
+    }                                                                                              \
+    _match_;                                                                                       \
+  })
+
+#define list_first(list, _data_, expr)                                                             \
+  ({                                                                                               \
+    void *_match_ = null;                                                                          \
+    for (list_t node = (list); node; node = node->next) {                                          \
+      void *_data_ = node->data;                                                                   \
+      if ((expr)) {                                                                                \
+        _match_ = _data_;                                                                          \
+        break;                                                                                     \
+      }                                                                                            \
+    }                                                                                              \
+    _match_;                                                                                       \
+  })

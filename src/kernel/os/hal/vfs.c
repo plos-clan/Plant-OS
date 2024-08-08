@@ -57,7 +57,6 @@ static vfs_t *findSeat(vfs_t *vstl) {
   }
   return NULL;
 }
-
 static vfs_t *check_disk_fs(u8 disk_number) {
   for (int i = 0; i < 26; i++) {
     if (vfsstl[i].flag == 1) {

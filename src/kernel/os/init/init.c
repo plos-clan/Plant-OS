@@ -91,6 +91,8 @@ void malloc_test() {
 
 #endif
 
+#include <fs.h>
+
 #ifdef __clang__
 #  pragma clang optimize off
 #endif
@@ -112,6 +114,7 @@ void sysinit() {
   clear();
   sb16_init();
   init_vdisk();
+  vfs_init();
   init_vfs();
   register_fat();
 
