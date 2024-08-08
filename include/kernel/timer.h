@@ -2,7 +2,6 @@
 #include <data-structure.h>
 #include <define.h>
 #include <kernel/mtask.h>
-#include <type.h>
 #define MAX_TIMER 500
 
 struct TIMER {

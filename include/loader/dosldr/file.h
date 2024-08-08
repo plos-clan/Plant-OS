@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #define EOF      -1
 #define SEEK_SET 0

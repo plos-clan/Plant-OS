@@ -1,7 +1,6 @@
 #pragma once
 #include "vfs.h"
 #include <define.h>
-#include <type.h>
 
 struct FAT_CACHE {
   u32                  ADR_DISKIMG;

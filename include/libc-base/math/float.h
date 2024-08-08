@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #define INFINITY (__builtin_inff())
 #define INF      (__builtin_inff())

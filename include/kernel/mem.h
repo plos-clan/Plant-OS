@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 extern u32 memsize;
 

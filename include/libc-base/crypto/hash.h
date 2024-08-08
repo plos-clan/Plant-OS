@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 finline u32 memhash($void *_rest src, size_t len) {
   if (!src) return 0;

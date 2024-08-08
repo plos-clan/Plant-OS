@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 typedef struct {
   u32 eax, ebx, ecx, edx, esi, edi, ebp;

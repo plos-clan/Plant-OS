@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #define _plos_c_xtoa_buf_len 32
 extern char _plos_c_xtoa_buf[_plos_c_xtoa_buf_len];

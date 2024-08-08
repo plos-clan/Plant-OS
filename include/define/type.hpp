@@ -1,8 +1,7 @@
 #pragma once
-#include <config.h>
+#include "config.h"
 
-#include <type_traits>
-// 实在实现不出来啊
+#include "type_traits" // 实在实现不出来啊
 
 namespace cpp {
 
@@ -41,8 +40,7 @@ inline constexpr bool is_base_of_v = __is_base_of(Base, Derived);
 
 } // namespace cpp
 
-// 偷个懒，直接使用 C 的版本
-#include <type.h>
+#include "type.h" // 偷个懒，直接使用 C 的版本
 
 class RefCount {
 public:

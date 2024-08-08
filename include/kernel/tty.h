@@ -1,7 +1,6 @@
 #pragma once
 #include <define.h>
 #include <kernel/screen.h>
-#include <type.h>
 
 struct tty {
   int   is_using;                                     // 使用标志

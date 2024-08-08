@@ -1,7 +1,6 @@
 #include <define.h>
 #include <kernel.h>
 #include <plty.h>
-#include <type.h>
 
 void write_serial(char a);
 

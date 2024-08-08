@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 dlimport int vsprintf(char *_rest s, cstr _rest fmt, va_list va);
 

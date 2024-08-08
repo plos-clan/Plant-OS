@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 void sendbyte(int byte);
 int  getbyte();
 void wait_floppy_interrupt();

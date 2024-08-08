@@ -17,11 +17,11 @@ auto operator new[](size_t size, void *ptr) -> void * {
 }
 
 auto operator delete(void *ptr, size_t size) -> void {
-  free(ptr);
+  //
 }
 
 auto operator delete[](void *ptr, size_t size) -> void {
-  free(ptr);
+  //
 }
 
 auto operator delete(void *ptr) -> void {

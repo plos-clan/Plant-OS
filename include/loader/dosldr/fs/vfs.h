@@ -2,7 +2,6 @@
 #include "../list.h"
 #include "../tsk.h"
 #include <define.h>
-#include <type.h>
 
 typedef enum {
   FLE,

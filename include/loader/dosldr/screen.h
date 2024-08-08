@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 int  logf(const char *format, ...);
 void clear();
 void print(const char *str);

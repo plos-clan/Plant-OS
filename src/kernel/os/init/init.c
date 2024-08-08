@@ -121,7 +121,7 @@ void sysinit() {
   if (memsize / (1024 * 1024) < 256) {
     fatal("You should have at least 256MB memory in your pc to start Plant-OS.");
   } else {
-    info("the memory test has been passed Your PC has %dMB memory", memsize / (1024 * 1024));
+    info("the memory test has been passed! Your PC has %dMB memory", memsize / (1024 * 1024));
   }
 
   // malloc_test();

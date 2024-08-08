@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 u32   memtest(u32 start, u32 end);
 void  memman_init(void *ptr, size_t size);

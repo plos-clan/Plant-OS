@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #define ARGS_NOT_IN_STACK 1
 

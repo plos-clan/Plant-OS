@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 typedef struct mtask mtask;
 typedef struct {

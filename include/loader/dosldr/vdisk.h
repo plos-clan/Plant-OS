@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 typedef struct {
   void (*Read)(char drive, u8 *buffer, u32 number, u32 lba);

@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #include "../libc-base/stdlib/alloc.h"
 #include "../libc-base/string/alloc.h"

@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 size_t strlen(const char *s);
 char  *strcpy(char *dest, const char *src);
 void   insert_char(char *str, int pos, char ch);

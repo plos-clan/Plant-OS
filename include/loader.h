@@ -13,7 +13,6 @@ extern "C" {
 #include "loader/dosldr/ahci.h"
 #include "loader/dosldr/cmos.h"
 #include "loader/dosldr/cpu.h"
-#include "loader/dosldr/debug.h"
 #include "loader/dosldr/dma.h"
 #include "loader/dosldr/fdc.h"
 #include "loader/dosldr/file.h"

@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #define PORT_KEYDAT     0x0060
 #define PORT_KEYSTA     0x0064

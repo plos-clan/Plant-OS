@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 // elf documentation: http://www.sco.com/developers/devspecs/gabi41.pdf
 

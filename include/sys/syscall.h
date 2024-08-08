@@ -13,7 +13,7 @@
 #define SYSCALL_WRITE   9
 #define MAX_SYSCALLS    256
 
-#ifndef KERNEL
+#ifndef RING0
 dlimport ssize_t syscall(ssize_t id, ...);
 
 dlimport void exit(int status) __attribute__((noreturn));

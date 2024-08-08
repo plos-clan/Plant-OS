@@ -1,5 +1,5 @@
 #pragma once
-#include <type.h>
+#include <define.h>
 
 #define asm_get_flags()                                                                            \
   ({                                                                                               \

@@ -1,4 +1,3 @@
-#include "type.h"
 #include <kernel.h>
 
 #define STACK_SIZE 1024 * 1024

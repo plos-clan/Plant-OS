@@ -1,5 +1,5 @@
 #pragma once
-#include <type.h>
+#include <define.h>
 
 #define __syscall0(id)                                                                             \
   ({                                                                                               \

@@ -1,5 +1,5 @@
 #pragma once
-#include <config.h>
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +34,9 @@ _CONST_(bool);
 #define typeof(arg) __typeof__((void)0, arg)
 
 #define $auto const auto
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ 基本类型
 
 #define INT_MIN  (-__INT_MAX__ - 1)
 #define INT_MAX  __INT_MAX__
@@ -91,8 +94,7 @@ _CONST_(ptrdiff_t);
 _CONST_(usize);
 _CONST_(isize);
 
-// 在大多数环境下 schar 就是 char
-typedef signed char        schar;
+typedef signed char        schar; // 在大多数环境下 schar 就是 char
 typedef unsigned char      uchar;
 typedef unsigned short     ushort;
 typedef unsigned int       uint;
@@ -109,9 +111,15 @@ _CONST_(llong);
 _CONST_(ullong);
 
 #ifndef __cplusplus
+typedef __UINT8_TYPE__ char8_t; // 我们认为 char8 就是 uint8
 typedef __CHAR16_TYPE__ char16_t;
 typedef __CHAR32_TYPE__ char32_t;
 typedef __WCHAR_TYPE__ wchar_t;
+
+_CONST_(char8_t);
+_CONST_(char16_t);
+_CONST_(char32_t);
+_CONST_(wchar_t);
 #endif
 
 typedef __INT8_TYPE__   int8_t;
@@ -153,6 +161,9 @@ typedef __UINTMAX_TYPE__ uintmax_t;
 
 _CONST_(intmax_t);
 _CONST_(uintmax_t);
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~ 自定义别名
 
 typedef int8_t    i8;
 typedef uint8_t   u8;
@@ -842,8 +853,8 @@ typedef atomic_flag_t atom_flag_t;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-typedef i8 sbyte;
-typedef u8 byte;
+typedef int8_t  sbyte;
+typedef uint8_t byte;
 
 _CONST_(sbyte);
 _CONST_(byte);

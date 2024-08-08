@@ -53,17 +53,22 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O1")
 set(CMAKE_EXE_LINKER_FLAGS "-nolibc -Qn")
 set(CMAKE_SHARED_LINKER_FLAGS "-nolibc -Qn")
 
+# if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+#   add_compile_flag("-emit-obj") # 不输出 llvm-ir
+# endif()
+
 add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查
 add_compile_flag("-fno-strict-aliasing") # 禁用严格别名规则
-add_compile_flag("-m32 -mfpmath=387 -mno-mmx -mno-sse -nostdlib -nostdinc")
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  add_compile_flag("-emit-obj") # 不输出 llvm-ir
-endif()
-
+add_compile_flag("-m32 -mfpmath=387")
+add_compile_flag("-mno-mmx -mno-sse")
+add_compile_flag("-nostdlib -nostdinc")
 add_compile_flag("-finput-charset=UTF-8 -fexec-charset=UTF-8")
-
-add_compile_flag("-ffreestanding -fno-stack-protector -fno-pic -fno-pie -fno-asynchronous-unwind-tables -fomit-frame-pointer -fno-exceptions")
+add_compile_flag("-ffreestanding")
+add_compile_flag("-fno-stack-protector")
+add_compile_flag("-fno-pic -fno-pie")
+add_compile_flag("-fno-asynchronous-unwind-tables")
+add_compile_flag("-fomit-frame-pointer")
+add_compile_flag("-fno-exceptions")
 
 # 禁用部分 warning
 add_compile_flag("-Wno-compound-token-split-by-macro")

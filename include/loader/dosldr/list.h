@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 typedef struct List    List;
 typedef struct ListCtl ListCtl;

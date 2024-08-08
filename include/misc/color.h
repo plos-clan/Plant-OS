@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #if COLOR_READABLE_HEX
 #  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__

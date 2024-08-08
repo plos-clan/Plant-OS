@@ -1,7 +1,6 @@
 #pragma once
 #include "vfs.h"
 #include <define.h>
-#include <type.h>
 
 void pfs_get_file_index_by_path(vfs_t *vfs, char *path, u32 start_block, u32 *err, u32 *idx,
                                 u32 *dict_block);

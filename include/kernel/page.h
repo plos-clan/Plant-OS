@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #define PAGE_P      MASK(0)
 #define PAGE_WRABLE MASK(1)

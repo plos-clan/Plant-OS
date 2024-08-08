@@ -1,6 +1,5 @@
 #pragma once
 #include <define.h>
-#include <type.h>
 
 #ifndef __cplusplus
 #  define F32_EPSILON 1e-5f

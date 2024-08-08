@@ -393,9 +393,6 @@ int snprintf(char *str, size_t size, const char *format, ...) {
   va_end(args);
   return len;
 }
-void assert(int expression) {
-  if (!expression) { printk("AN ERROR\n"); }
-}
 
 void *calloc(u32 num, u32 size) {
   return malloc(num * size);

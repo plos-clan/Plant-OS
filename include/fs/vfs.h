@@ -55,13 +55,13 @@ struct vfs_nmsb {
   list_t     child;       //
 };
 
-struct {
-  void  *file;
-  size_t offset;
-  bool   readable;
-  bool   writeable;
-};
-// getcwd
+// struct  {
+//   void  *file;
+//   size_t offset;
+//   bool   readable;
+//   bool   writeable;
+// };
+
 extern vfs_nmsb_t rootdir;
 
 bool vfs_init();

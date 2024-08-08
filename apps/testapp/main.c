@@ -45,17 +45,5 @@ int main(int argc, char **argv) {
   for (int i = 0; i < argc; i++) {
     printf("argv[%d]: %s\n", i, argv[i]);
   }
-  // char s[50];
-  // sprintf(s, "%p %08x\n", __syscall(SYSCALL_GETHEAP), __syscall(SYSCALL_HEAPSZ));
-  // print(s);
-  // void *p = (void *)__syscall(SYSCALL_MMAP, NULL, 0x1000);
-  // sprintf(p, "MMAP IN %p\n", p);
-  // print(p);
-  // __syscall(SYSCALL_MUNMAP, p, 0x1000);
-  // sprintf(p, "MMAP IN %p\n", p);
-  // print(p);
-  // p = (void *)__syscall(SYSCALL_MMAP, NULL, 0x1000);
-  // sprintf(p, "MMAP IN %p\n", p);
-  // print(p);
   return 0;
 }
