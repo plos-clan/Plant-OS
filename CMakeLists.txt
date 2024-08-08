@@ -27,8 +27,7 @@ add_subdirectory(include)
 # ---------------------------------------------------------------------------------------------------
 # 以下设定 本机 编译配置
 
-set(CMAKE_C_FLAGS "-std=gnu2x")
-set(CMAKE_CXX_FLAGS "-std=gnu++2b")
+set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 
 message("本机 环境")
 include(cmake/show-flags)
@@ -38,20 +37,14 @@ add_subdirectory(util)
 # ----------------------------------------------------------------------------------------------------
 # 以下设定 PLOS 编译配置
 
-set(CMAKE_C_FLAGS "-std=gnu2x")
-set(CMAKE_CXX_FLAGS "-std=gnu++2b")
+set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 
-set(CMAKE_C_FLAGS_RELEASE "-g -O1")
-set(CMAKE_CXX_FLAGS_RELEASE "-g -O1")
-set(CMAKE_C_FLAGS_DEBUG "-g -O1")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O1")
-# set(CMAKE_C_FLAGS_RELEASE "-O1")
-# set(CMAKE_CXX_FLAGS_RELEASE "-O1")
-# set(CMAKE_C_FLAGS_DEBUG "-O1")
-# set(CMAKE_CXX_FLAGS_DEBUG "-O1")
+set_optim_flag("-g -O1")
+# set_optim_flag("-O1")
+# set_optim_flag("-O2")
 
-set(CMAKE_EXE_LINKER_FLAGS "-nolibc -Qn")
-set(CMAKE_SHARED_LINKER_FLAGS "-nolibc -Qn")
+# 告诉编译器没有标准库 (但似乎不需要这个)
+# set_link_flag("-nolibc -Qn")
 
 # if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #   add_compile_flag("-emit-obj") # 不输出 llvm-ir
@@ -71,7 +64,10 @@ add_compile_flag("-fomit-frame-pointer")
 add_compile_flag("-fno-exceptions")
 
 # 禁用部分 warning
-add_compile_flag("-Wno-compound-token-split-by-macro")
+# 这是我们希望的特性，但默认情况下会报 warning
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  add_compile_flag("-Wno-compound-token-split-by-macro")
+endif()
 
 message("PLOS 环境")
 include(cmake/show-flags)

@@ -143,7 +143,7 @@ int getReadyDisk() {
   return 0;
 }
 
-void Disk_Write(u32 lba, u32 number, void *buffer, char drive) {
+void Disk_Write(u32 lba, u32 number, const void *buffer, char drive) {
   //  printk("%d\n",lba);
   if (have_vdisk(drive)) {
     if (drive_semaphore_take(get_drive_code((u8 *)"DISK_DRIVE"))) {

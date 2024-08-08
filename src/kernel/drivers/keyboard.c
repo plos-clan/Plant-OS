@@ -53,14 +53,16 @@ int getch() {
     }
   }
   // 返回扫描码（keytable之内）对应的ASCII码
-  if (keytable[ch] == 0x00) { return 0; }
-  if (shift == 0 && caps_lock == 0) {
+  if (keytable[ch] == 0x00) {
+    return 0;
+  } else if (shift == 0 && caps_lock == 0) {
     return keytable1[ch];
   } else if (shift == 1 || caps_lock == 1) {
     return keytable[ch];
   } else if (shift == 1 && caps_lock == 1) {
     return keytable1[ch];
   }
+  return -1;
 }
 
 extern struct tty *tty_default;

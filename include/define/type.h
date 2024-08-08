@@ -493,7 +493,7 @@ enum {
 #if defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__)
 
 extern "C++" {
-#  include <bits/atomic_base.h>
+#  include <bits/atomic_base.h> // 这文件移植不过来 (gcc 寄!)
 using std::__atomic_base;
 }
 

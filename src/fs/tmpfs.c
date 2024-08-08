@@ -62,7 +62,7 @@ void *tmpfs_open(void *parent, cstr name, vfs_nmsb_t node) {
   return null;
 }
 
-void *tmpfs_close(file_t handle) {
+void tmpfs_close(file_t handle) {
   file_free(handle);
 }
 
