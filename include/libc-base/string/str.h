@@ -37,12 +37,12 @@ dlimport char *strerror(int e);
 dlimport char *strerror_r(int e, char *buf, size_t n);
 dlimport cstr  strerrordesc_np(int __err);
 dlimport cstr  strerrorname_np(int __err);
-dlimport char *strsep(char **_rest __stringp, cstr _rest delim);
+finline char  *strsep(char **_rest _sp, cstr _rest delim);
 dlimport char *strsignal(int __sig);
 finline cstr   sigabbrev_np(int __sig);
 finline cstr   sigdescr_np(int __sig);
-finline char  *stpcpy(char *_rest __dest, cstr _rest __src);
-finline char  *stpncpy(char *_rest __dest, cstr _rest __src, size_t __n);
+finline char  *stpcpy(char *_rest _d, cstr _rest _s);
+finline char  *stpncpy(char *_rest _d, cstr _rest _s, size_t _n);
 finline int    strverscmp(cstr __s1, cstr __s2);
 finline char  *strfry(char *__string);
 finline char  *basename(cstr __filename);
@@ -102,7 +102,7 @@ finline int strcmp(cstr _s1, cstr _s2) {
     if (!_s1) return -1;
     if (!_s2) return 1;
   });
-  auto s1      = (const byte *)_s1;
+  auto s1 = (const byte *)_s1;
   auto s2 = (const byte *)_s2;
   int  c1, c2;
   do {
@@ -323,7 +323,22 @@ extern cstr strerrordesc_np(int __err);
 
 extern cstr strerrorname_np(int __err);
 
-extern char *strsep(char **_rest __stringp, cstr _rest delim);
+finline char *strsep(char **_rest _sp, cstr _rest delim) {
+#  if __has(strsep)
+  return __builtin_strsep(_sp, delim);
+#  else
+  char *s = *_sp;
+  if (!s) return null;
+  char *e = strpbrk(s, delim);
+  if (e) {
+    *e   = '\0';
+    *_sp = e + 1;
+  } else {
+    *_sp = null;
+  }
+  return s;
+#  endif
+}
 
 extern char *strsignal(int __sig);
 
@@ -331,9 +346,26 @@ extern cstr sigabbrev_np(int __sig);
 
 extern cstr sigdescr_np(int __sig);
 
-extern char *stpcpy(char *_rest __dest, cstr _rest __src);
+finline char *stpcpy(char *_rest d, cstr _rest s) {
+#  if __has(stpcpy)
+  return __builtin_stpcpy(d, s);
+#  else
+  char *_d = d;
+  while ((*d++ = *s++) != '\0') {}
+  return d - 1;
+#  endif
+}
 
-extern char *stpncpy(char *_rest __dest, cstr _rest __src, size_t __n);
+finline char *stpncpy(char *_rest d, cstr _rest s, size_t n) {
+#  if __has(stpncpy)
+  return __builtin_stpncpy(d, s, n);
+#  else
+  char *_d = d;
+  cstr  e  = s + n;
+  while (s < e && (*d++ = *s++) != '\0') {}
+  return d - 1;
+#  endif
+}
 
 extern int strverscmp(cstr __s1, cstr __s2);
 

@@ -15,7 +15,7 @@ finline void *memrchr(const void *_s, int _c, size_t _n);
 finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn);
 finline void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n);
 finline void  bzero(void *_s, size_t _n);
-finline void  explicit_bzero(void *_s, size_t _n);
+static void   explicit_bzero(void *_s, size_t _n);
 finline void *memfrob(void *_s, size_t _n) deprecated;
 
 // 非标准库函数
@@ -197,27 +197,29 @@ finline void bzero(void *_s, size_t _n) {
 #  endif
 }
 
-#  if !__has(explicit_bzero) && !defined(__clang__)
-#    pragma GCC push_options
-#    pragma GCC optimize("O0")
+#  if !__has(explicit_bzero)
+#    ifdef __clang__
+#      pragma clang optimize off
+#    else
+#      pragma GCC push_options
+#      pragma GCC optimize("O0")
+#    endif
 #  endif
-finline void explicit_bzero(void *_s, size_t _n) {
+static void explicit_bzero(void *_s, size_t _n) {
 #  if __has(explicit_bzero)
   return __builtin_explicit_bzero(_s, _n);
 #  else
-#    ifdef __clang__
-#      pragma clang optimize off
-#    endif
   for (size_t i = 0; i < _n; i++) {
     ((byte *)_s)[i] = 0;
   }
-#    ifdef __clang__
-#      pragma clang optimize on
-#    endif
 #  endif
 }
-#  if !__has(explicit_bzero) && !defined(__clang__)
-#    pragma GCC pop_options
+#  if !__has(explicit_bzero)
+#    ifdef __clang__
+#      pragma clang optimize on
+#    else
+#      pragma GCC pop_options
+#    endif
 #  endif
 
 finline void *memfrob(void *_s, size_t _n) {
