@@ -50,9 +50,7 @@ void init() {
   logd("set %d", init_ok_flag);
 
   printi("%d alloced pages", page_get_alloced());
-  int status =
-      os_execute("TESTAPP.BIN", "./TESTAPP.BIN \e[1;32m\"FUCK YOU SON OF BITCH\"\e[m\\\n,34543"
-                                " test\nprint 000\\ 111\\ 222\\ 333");
+  int status = os_execute("TESTAPP.BIN", "./TESTAPP.BIN 1 2 3");
   printi("TESTAPP.BIN exit with code %d", status);
   printi("%d alloced pages", page_get_alloced());
 

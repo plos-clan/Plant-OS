@@ -2,9 +2,18 @@
 #include <data-structure.h>
 #include <libc-base.h>
 
-typedef void *(*vfs_openfs_t)();
+// 读写时请 padding 到 PAGE_SIZE 的整数倍
+#define FILE_BLKSIZE PAGE_SIZE
 
-typedef void *(*vfs_open_t)(void *parent, cstr name);
+#define PADDING_DOWN(size, to) ((size_t)(size) / (size_t)(to) * (size_t)(to))
+#define PADDING_UP(size, to)   PADDING_DOWN((size_t)(size) + (size_t)(to) - (size_t)1, to)
+
+typedef struct vfs_nmsb *vfs_nmsb_t;
+
+typedef void *(*vfs_mount_t)(cstr src);
+typedef void (*vfs_unmount_t)(void *root);
+
+typedef void *(*vfs_open_t)(void *parent, cstr name, vfs_nmsb_t node);
 typedef void (*vfs_close_t)(void *current);
 typedef void (*vfs_resize_t)(void *current, u64 size);
 
@@ -12,19 +21,23 @@ typedef void (*vfs_resize_t)(void *current, u64 size);
 typedef int (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t size);
 typedef int (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size);
 
-typedef int (*vfs_create_dir_t)(void *file, cstr name);
+typedef int (*vfs_stat_t)(void *file, vfs_nmsb_t node);
+
+typedef int (*vfs_mk_t)(void *parent, cstr name, vfs_nmsb_t node);
+
 typedef struct vfs_callback {
-  vfs_open_t       opendir;
-  vfs_open_t       openfile;
-  vfs_close_t      closedir;
-  vfs_close_t      closefile;
-  vfs_read_t       read;
-  vfs_write_t      write;
-  vfs_create_dir_t mkdir;
+  vfs_mount_t   mount;
+  vfs_unmount_t unmount;
+  vfs_open_t    open;
+  vfs_close_t   close;
+  vfs_read_t    read;
+  vfs_write_t   write;
+  vfs_mk_t      mkdir;
+  vfs_mk_t      mkfile;
+  vfs_stat_t    stat; // 保留备用
   void (*free)(void *);
 } *vfs_callback_t;
 
-typedef struct vfs_nmsb *vfs_nmsb_t;
 struct vfs_nmsb {
   vfs_nmsb_t parent;      // 父目录
   char      *name;        // 名称
@@ -53,7 +66,8 @@ extern vfs_nmsb_t rootdir;
 
 bool vfs_init();
 void vfs_deinit();
-void register_fat();
+
+void vfs_regist(cstr name, vfs_callback_t callback);
 
 #define PATH_MAX     4096
 #define FILENAME_MAX 256

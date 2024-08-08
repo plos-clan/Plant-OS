@@ -16,11 +16,11 @@ u32 elf32_get_max_vaddr(Elf32_Ehdr *hdr) {
   }
   return max;
 }
-static unsigned div_round_up(unsigned num, unsigned size) {
+static unsigned padding_up(unsigned num, unsigned size) {
   return (num + size - 1) / size;
 }
 void load_segment(Elf32_Phdr *phdr, void *elf) {
-  u32 p = div_round_up(phdr->p_memsz, 0x1000);
+  u32 p = padding_up(phdr->p_memsz, 0x1000);
   int d = phdr->p_paddr;
   if (d & 0x00000fff) {
     unsigned e  = d + phdr->p_memsz;

@@ -13,7 +13,7 @@ void task_to_user_mode_shell();
 #define TIDX(addr) (((unsigned)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx)  ((unsigned)idx << 12) // 获取页索引 idx 对应的页开始的位置
 
-static u32 div_round_up(u32 num, u32 size) {
+static u32 padding_up(u32 num, u32 size) {
   return (num + size - 1) / size;
 }
 
@@ -166,7 +166,7 @@ void task_to_user_mode_shell() {
       ;
   }
   unsigned alloc_addr = (elf32_get_max_vaddr(p) & 0xfffff000) + 0x1000;
-  unsigned pg         = div_round_up(*(current_task()->alloc_size), 0x1000);
+  unsigned pg         = padding_up(*(current_task()->alloc_size), 0x1000);
   for (int i = 0; i < pg + 128; i++) {
     // logk("%d\n",i);
     page_link(alloc_addr + i * 0x1000);
@@ -254,7 +254,7 @@ void task_to_user_mode_elf(char *filename) {
       ;
   }
   unsigned alloc_addr = (elf32_get_max_vaddr(p) & 0xfffff000) + 0x1000;
-  unsigned pg         = div_round_up(*(current_task()->alloc_size), 0x1000);
+  unsigned pg         = padding_up(*(current_task()->alloc_size), 0x1000);
   for (int i = 0; i < pg + 128 * 4; i++) {
     page_link(alloc_addr + i * 0x1000);
   }

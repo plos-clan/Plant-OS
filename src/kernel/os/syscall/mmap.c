@@ -7,13 +7,13 @@
 
 extern struct PAGE_INFO *pages;
 
-static u32 div_round_up(u32 num, u32 size) {
+static u32 padding_up(u32 num, u32 size) {
   return (num + size - 1) / size;
 }
 
 void *syscall_mmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
-  u32  page_count = div_round_up(length, PAGE_SIZE);
+  u32  page_count = padding_up(length, PAGE_SIZE);
   bool size_is_2M = page_count == 512;
 
   u32 addr            = current_task()->pde;
@@ -43,7 +43,7 @@ _1:
 
 void syscall_munmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
-  u32 page_count = div_round_up(length, 0x1000);
+  u32 page_count = padding_up(length, 0x1000);
 
   if (start > 0xf0000000) {
     error("Couldn't unmap memory from %p to %p.", start, start + page_count * 0x1000);

@@ -25,6 +25,7 @@ extern "C" {
 #include "libc-base/stdio/print.h"
 #include "libc-base/stdlib/alloc.h"
 #include "libc-base/stdlib/atox.h"
+#include "libc-base/stdlib/lib.h"
 #include "libc-base/stdlib/rand.h"
 #include "libc-base/stdlib/xtoa.h"
 #include "libc-base/string/alloc.h"

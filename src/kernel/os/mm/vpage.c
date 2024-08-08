@@ -10,7 +10,7 @@ void  flush_tlb(u32 vaddr);
 
 struct PAGE_INFO *pages = (struct PAGE_INFO *)PAGE_MANNAGER;
 
-static u32 div_round_up(u32 num, u32 size) {
+static u32 padding_up(u32 num, u32 size) {
   return (num + size - 1) / size;
 }
 
@@ -210,7 +210,7 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
 }
 u32 page_get_alloced() {
   u32 r = 0;
-  for (int i = 0; i < div_round_up(memsize, 0x1000); i++) {
+  for (int i = 0; i < padding_up(memsize, 0x1000); i++) {
     if (pages[i].count) { r++; }
   }
   return r;
@@ -252,7 +252,7 @@ void page_link_share(u32 addr) {
 }
 
 void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
-  u32 pg = div_round_up(size, 0x1000);
+  u32 pg = padding_up(size, 0x1000);
   for (int i = 0; i < pg; i++) {
     memcpy((void *)page_get_phy_pde(line, pde), (void *)phy, size >= 0x1000 ? 0x1000 : size);
     size -= 0x1000;
@@ -262,7 +262,7 @@ void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
 }
 
 void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
-  u32 pg = div_round_up(size, 0x1000);
+  u32 pg = padding_up(size, 0x1000);
   for (int i = 0; i < pg; i++) {
     memset((void *)page_get_phy_pde(line, pde), val, size >= 0x1000 ? 0x1000 : size);
     size -= 0x1000;
@@ -707,7 +707,7 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
 }
 
 void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
-  int count = div_round_up(end - start, 0x1000); // 整除
+  int count = padding_up(end - start, 0x1000); // 整除
   for (int i = 0; i < count; i++) {
     u32 *pde_entry  = (u32 *)(pde + DIDX(start + i * 0x1000) * 4);
     u32  p          = *pde_entry & (0xfffff000);
