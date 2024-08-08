@@ -149,7 +149,7 @@ static void plty_fb_parse(plty_fb *fb) {
   fb->buf[fb->len] = '\0';
   if (fb->len == PLTY_FB_BUFSIZE - 1) goto err;
 
-  cstr s = fb->buf;
+  char *s = (char *)fb->buf;
 
   if (*s == '[') {
     if (fb->len == 1) goto again;
@@ -170,7 +170,7 @@ static void plty_fb_parse(plty_fb *fb) {
 
   goto end;
 err:
-  plty_fb_puts_raw(fb, fb->buf);
+  plty_fb_puts_raw(fb, (cstr)fb->buf);
 end:
   fb->len = -1; // 退出转义模式
 again:

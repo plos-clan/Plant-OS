@@ -8,8 +8,15 @@ extern "C" {
 #include "define/config/plui.h"
 #include "define/config/string-format.h"
 #include "define/config/type-undef.h"
-#include "define/define.h"
-#include "define/type.h"
+#include "define/define/00-include.h"
+#include "define/define/assert.h"
+#include "define/define/attribute.h"
+#include "define/define/base.h"
+#include "define/define/log.h"
+#include "define/define/rc.h"
+#include "define/define/va.h"
+#include "define/type/00-include.h"
+#include "define/type/type.h"
 #ifdef __cplusplus
 }
 #endif
