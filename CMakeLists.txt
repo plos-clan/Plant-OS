@@ -41,7 +41,7 @@ set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 
 set_optim_flag("-g -O1")
 # set_optim_flag("-O1")
-# set_optim_flag("-O2")
+# set_optim_flag("-O2") # 目前无法在 O2 下正常编译
 
 # 告诉编译器没有标准库 (但似乎不需要这个)
 # set_link_flag("-nolibc -Qn")
@@ -56,7 +56,7 @@ add_compile_flag("-m32 -mfpmath=387")
 add_compile_flag("-mno-mmx -mno-sse")
 add_compile_flag("-nostdlib -nostdinc")
 add_compile_flag("-finput-charset=UTF-8 -fexec-charset=UTF-8")
-add_compile_flag("-ffreestanding")
+# add_compile_flag("-ffreestanding") # 我们希望我们d的标准库函数能够有和标准库一样的行为 (所以默认不设置此项)
 add_compile_flag("-fno-stack-protector")
 add_compile_flag("-fno-pic -fno-pie")
 add_compile_flag("-fno-asynchronous-unwind-tables")

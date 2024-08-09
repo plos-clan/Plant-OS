@@ -9,3 +9,9 @@ int printf(cstr _rest fmt, ...) {
   print(buf);
   return rets;
 }
+
+int puts(cstr s) {
+  print(s);
+  print("\n");
+  return 0;
+}

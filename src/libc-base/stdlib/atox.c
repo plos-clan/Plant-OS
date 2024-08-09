@@ -149,9 +149,8 @@ _atof(f128);
     return neg ? -f : f;                                                                           \
   }
 
-__stof(ff, float);
-__stof(f, double);
-__stof(fl, long double);
+__stof(f, float);
+__stof(d, double);
 
 #define _stof(t) __stof(t, t)
 

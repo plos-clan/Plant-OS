@@ -8,12 +8,12 @@
 #define PADDING_DOWN(size, to) ((size_t)(size) / (size_t)(to) * (size_t)(to))
 #define PADDING_UP(size, to)   PADDING_DOWN((size_t)(size) + (size_t)(to) - (size_t)1, to)
 
-typedef struct vfs_nmsb *vfs_nmsb_t;
+typedef struct vfs_node *vfs_node_t;
 
 typedef void *(*vfs_mount_t)(cstr src);
 typedef void (*vfs_unmount_t)(void *root);
 
-typedef void *(*vfs_open_t)(void *parent, cstr name, vfs_nmsb_t node);
+typedef void *(*vfs_open_t)(void *parent, cstr name, vfs_node_t node);
 typedef void (*vfs_close_t)(void *current);
 typedef void (*vfs_resize_t)(void *current, u64 size);
 
@@ -21,9 +21,9 @@ typedef void (*vfs_resize_t)(void *current, u64 size);
 typedef int (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t size);
 typedef int (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size);
 
-typedef int (*vfs_stat_t)(void *file, vfs_nmsb_t node);
+typedef int (*vfs_stat_t)(void *file, vfs_node_t node);
 
-typedef int (*vfs_mk_t)(void *parent, cstr name, vfs_nmsb_t node);
+typedef int (*vfs_mk_t)(void *parent, cstr name, vfs_node_t node);
 
 typedef struct vfs_callback {
   vfs_mount_t   mount;
@@ -38,8 +38,8 @@ typedef struct vfs_callback {
   void (*free)(void *);
 } *vfs_callback_t;
 
-struct vfs_nmsb {
-  vfs_nmsb_t parent;      // 父目录
+struct vfs_node {
+  vfs_node_t parent;      // 父目录
   char      *name;        // 名称
   u64        realsize;    // 项目真实占用的空间 (可选)
   u64        size;        // 文件大小或若是文件夹则填0
@@ -55,14 +55,14 @@ struct vfs_nmsb {
   list_t     child;       //
 };
 
-// struct  {
-//   void  *file;
-//   size_t offset;
-//   bool   readable;
-//   bool   writeable;
-// };
+struct fd {
+  void  *file;
+  size_t offset;
+  bool   readable;
+  bool   writeable;
+};
 
-extern vfs_nmsb_t rootdir;
+extern vfs_node_t rootdir;
 
 bool vfs_init();
 void vfs_deinit();

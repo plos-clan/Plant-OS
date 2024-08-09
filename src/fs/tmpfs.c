@@ -24,12 +24,12 @@ static void file_free(file_t file) {
   free(file);
 }
 
-int tmpfs_mkdir(void *parent, cstr name, vfs_nmsb_t node) {
+int tmpfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   node->handle = null;
   return 0;
 }
 
-int tmpfs_mkfile(void *parent, cstr name, vfs_nmsb_t node) {
+int tmpfs_mkfile(void *parent, cstr name, vfs_node_t node) {
   file_t file = file_alloc(node->size);
   if (file == null) return -1;
   node->handle = file;
@@ -58,7 +58,7 @@ int tmpfs_writefile(file_t file, const void *addr, size_t offset, size_t size) {
   return 0;
 }
 
-void *tmpfs_open(void *parent, cstr name, vfs_nmsb_t node) {
+void *tmpfs_open(void *parent, cstr name, vfs_node_t node) {
   return null;
 }
 

@@ -91,8 +91,12 @@ void Move_Cursor(i16 x, i16 y) {
   int res = y * 80 + x;
   move_cursor_by_idx(res);
 }
-void print(const char *str) {
+void print(cstr str) {
   putstr(str, getlength(str));
+}
+void puts(cstr s) {
+  print(s);
+  print("\n");
 }
 void screen_ne() /*向下滚动一行*/
 {

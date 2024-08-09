@@ -17,6 +17,11 @@ finline void  bzero(void *_s, size_t _n);
 static void   explicit_bzero(void *_s, size_t _n);
 finline void *memfrob(void *_s, size_t _n) deprecated;
 
+finline int bcmp(const void *s1, const void *s2, size_t n) deprecated;
+finline int bcmp(const void *s1, const void *s2, size_t n) {
+  return memcmp(s1, s2, n);
+}
+
 // 非标准库函数
 finline void *memdup(const void *_s, size_t _n);
 

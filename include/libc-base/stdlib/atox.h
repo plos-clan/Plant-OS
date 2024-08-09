@@ -190,9 +190,8 @@ __(strto);
 
 #define __stof(_t_, _type_) dlimport _type_ strto##_t_(cstr _rest s, char **_rest e);
 
-__stof(ff, float);
-__stof(f, double);
-__stof(fl, long double);
+__stof(f, float);
+__stof(d, double);
 
 #define _stof(t) __stof(t, t)
 

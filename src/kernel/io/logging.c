@@ -47,3 +47,8 @@ int printf(cstr _rest fmt, ...) {
   klogi("print: %s", print_buf);
   return rets;
 }
+
+void puts(cstr s) {
+  print(s);
+  print("\n");
+}
