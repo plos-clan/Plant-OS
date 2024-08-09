@@ -165,7 +165,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
     t->times = t->pde;
   }
   t->top = esp_alloced; // r0的esp
-  logd("%p", t->top);
+  klogd("%p", t->top);
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
@@ -202,9 +202,9 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   }
 
   extern int init_ok_flag; // init_ok_flag 标记fs等是否初始化完成
-  logd("init ok flag = %d", init_ok_flag);
+  klogd("init ok flag = %d", init_ok_flag);
   if (init_ok_flag) {
-    logd("init ok flag set, so change for task");
+    klogd("init ok flag set, so change for task");
     vfs_change_disk_for_task(t->drive, t);
   }
 
@@ -242,7 +242,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->esp        = esp; // 设置用户态堆栈
   current->user_mode = 1;
   tss.esp0           = current->top;
-  logd("TTT %d\n", current_task()->tid);
+  klogd("TTT %d\n", current_task()->tid);
   // task_exit(0);
   // change_page_task_id(current_task()->tid, iframe->esp - 64 * 1024, 64 *
   // 1024);
@@ -516,12 +516,12 @@ int waittid(u32 tid) {
   if (t->ptid != current_task()->tid) return -1;
   current_task()->waittid = tid;
   while (t->state != DIED && t->ptid == current_task()->tid) {
-    //  logd("waiting for the fucking task");
+    //  klogd("waiting for the fucking task");
     task_fall_blocked(WAITING);
   }
-  logd("here");
+  klogd("here");
   u32 status = t->status;
-  logd("task exit with code %d\n", status);
+  klogd("task exit with code %d\n", status);
   t->state = EMPTY;
   return status;
 }
@@ -551,9 +551,9 @@ mtask *mtask_get_free() {
   mtask *t = NULL;
   for (int i = 1; i < 255; i++) {
     if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) {
-      logd("f:%d\n", i);
+      klogd("f:%d\n", i);
       t = &(m[i]);
-      logd("%d\n", t->tid);
+      klogd("%d\n", t->tid);
       break;
     }
   }
@@ -563,7 +563,7 @@ mtask *mtask_get_free() {
 // THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!
 void interrput_exit();
 void roc() {
-  logd("ROCT\n");
+  klogd("ROCT\n");
   while (true)
     ;
 }
@@ -573,7 +573,7 @@ static void build_fork_stack(mtask *task) {
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)addr;
   iframe->eax           = 0;
-  logd("iframe = %08x\n", iframe->eip);
+  klogd("iframe = %08x\n", iframe->eip);
   addr                -= sizeof(stack_frame);
   stack_frame *sframe  = (stack_frame *)addr;
   sframe->ebp          = 0x114514;
@@ -588,8 +588,8 @@ static void build_fork_stack(mtask *task) {
 int task_fork() {
   mtask *m = mtask_get_free();
   if (!m) { return -1; }
-  logd("get free %08x\n", m);
-  logd("current = %08x\n", get_tid(current_task()));
+  klogd("get free %08x\n", m);
+  klogd("current = %08x\n", get_tid(current_task()));
   bool state = interrupt_disable();
   int  tid   = 0;
   tid        = m->tid;
@@ -598,7 +598,7 @@ int task_fork() {
   change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;
   memcpy((void *)stack, (void *)(m->top - STACK_SIZE), STACK_SIZE);
-  logd("s = %08x \n", m->top - STACK_SIZE);
+  klogd("s = %08x \n", m->top - STACK_SIZE);
   m->top = stack += STACK_SIZE;
   stack          += STACK_SIZE;
   m->esp          = (stack_frame *)stack;
@@ -627,7 +627,7 @@ int task_fork() {
     m->mousefifo->buf = page_malloc_one();
     memcpy(m->mousefifo->buf, current_task()->mousefifo->buf, 4096);
   }
-  logd("copy vfs\n");
+  klogd("copy vfs\n");
   copy_vfs(current_task(), m);
   m->pde     = pde_clone(current_task()->pde);
   m->running = 0;
@@ -636,9 +636,9 @@ int task_fork() {
   m->state   = RUNNING;
   m->ptid    = get_tid(current_task());
   m->tid     = tid;
-  logd("m->tid = %d\n", m->tid);
+  klogd("m->tid = %d\n", m->tid);
   tid = m->tid;
-  logd("BUILD FORK STACK\n");
+  klogd("BUILD FORK STACK\n");
   build_fork_stack(m);
   set_interrupt_state(state);
   return tid;

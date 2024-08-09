@@ -19,7 +19,7 @@ section .text
 ;        int32() resets all selectors.
 ;
 ; C Prototype:
-;	void _cdelc int32(u8 intnum, regs16_t *regs);
+;	void _cdelc int32(u8 intnum, regs16 *regs);
 ; 
 ; Example of usage:
 ;   regs.ax = 0x0013;
@@ -36,7 +36,7 @@ section .text
 ;
 global int32
 
-struc regs16_t
+struc regs16
 	.di	resw 1
 	.si	resw 1
 	.bp	resw 1
@@ -59,7 +59,7 @@ endstruc
 %define CODE32                                 1000 * 8
 %define CODE16                                 1001 * 8
 %define DATA16                                 1002 * 8
-%define STACK16                                (INT32_BASE - regs16_t_size)	; 实模式堆栈只需要存寄存器就好了 所以不用多大
+%define STACK16                                (INT32_BASE - regs16_size)	; 实模式堆栈只需要存寄存器就好了 所以不用多大
 int32:
 		cli                     			; 禁止中断
 		mov eax,0x400000
@@ -89,7 +89,7 @@ reloc:                               		; by Napalm
 		mov  byte[REBASE(ib)], al                  ; 把INT机器码补全
 		mov  esi, [esi]                        ; esi = 寄存器指针
 		mov  edi, STACK16                      ; edi = 实模式堆栈地址
-		mov  ecx, regs16_t_size                ; ecx = 寄存器结构体的大小
+		mov  ecx, regs16_size                ; ecx = 寄存器结构体的大小
 		mov  esp, edi
 		rep  movsb                             ; 将保护模式下堆栈中的寄存器结构体拷贝到实模式堆栈
 		
@@ -163,7 +163,7 @@ p_mode32:
 											   ; esi = 实模式堆栈地址
 		lea  edi, [esp+24]
 		mov  edi, [edi]                        ; edi = 保护模式堆栈中的寄存器结构体指针
-		mov  ecx, regs16_t_size                ; ecx = 寄存器结构体的大小
+		mov  ecx, regs16_size                ; ecx = 寄存器结构体的大小
 		cld                                    ; 复制方向（正向
 		rep  movsb
 		;sti                                    ; 开中断

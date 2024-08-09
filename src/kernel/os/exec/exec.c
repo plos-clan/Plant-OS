@@ -18,21 +18,21 @@ static u32 padding_up(u32 num, u32 size) {
 }
 
 void task_app() {
-  logd("task_app");
+  klogd("task_app");
   char *filename;
   while (!current_task()->line) {
     asm_sti;
     task_next();
-    logd("%d", current_task()->line);
+    klogd("%d", current_task()->line);
   }
-  logd("1");
+  klogd("1");
   unsigned *r          = current_task()->line;
   filename             = (char *)r[0];
   current_task()->line = (char *)r[1];
-  logd("我爱你");
+  klogd("我爱你");
   page_free_one(r);
-  logd("%08x", current_task()->top);
-  logd("%p %d", current_task()->nfs, vfs_filesize("testapp.bin"));
+  klogd("%08x", current_task()->top);
+  klogd("%p %d", current_task()->nfs, vfs_filesize("testapp.bin"));
   char *kfifo = (char *)page_malloc_one();
   char *mfifo = (char *)page_malloc_one();
   char *kbuf  = (char *)page_malloc_one();
@@ -47,7 +47,7 @@ void task_app() {
   unsigned pde                  = current_task()->pde;
   asm_cli;
   asm_set_cr3(PDE_ADDRESS);
-  logd("P1 %08x", current_task()->pde);
+  klogd("P1 %08x", current_task()->pde);
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
 
@@ -168,7 +168,7 @@ void task_to_user_mode_shell() {
   unsigned alloc_addr = (elf32_get_max_vaddr(p) & 0xfffff000) + 0x1000;
   unsigned pg         = padding_up(*(current_task()->alloc_size), 0x1000);
   for (int i = 0; i < pg + 128; i++) {
-    // logk("%d\n",i);
+    // klog("%d\n",i);
     page_link(alloc_addr + i * 0x1000);
   }
   unsigned alloced_esp  = alloc_addr + 128 * 0x1000;
@@ -205,9 +205,9 @@ void task_to_user_mode_elf(char *filename) {
       .sp      = (void *)0xf0000001,
   };
   parse_args(&args);
-  logd("argc: %d", args.argc);
+  klogd("argc: %d", args.argc);
   for (int i = 0; i < args.argc; i++) {
-    logd("argv[%d]: %s", i, args.argv[i]);
+    klogd("argv[%d]: %s", i, args.argv[i]);
   }
 
   addr                 -= sizeof(intr_frame_t);
@@ -232,12 +232,12 @@ void task_to_user_mode_elf(char *filename) {
   iframe->esp    = NULL; // 设置用户态堆栈
   tss.eflags     = 0x202;
   u32 sz         = vfs_filesize(filename);
-  logd("%d", sz);
+  klogd("%d", sz);
   char *p = page_malloc(sz);
   vfs_readfile(filename, p);
-  logd();
+  klogd();
   if (!elf32Validate(p)) {
-    logd();
+    klogd();
     for (int i = 0; i < 0x200; i++) {
       // printf("%02x ", p[i]);
     }
@@ -264,15 +264,15 @@ void task_to_user_mode_elf(char *filename) {
   if (current_task()->ptid != -1) { *(u8 *)(0xf0000000) = 0; }
   //  strcpy((char *)0xf0000001, current_task()->line);
   // *(u32 *)(0xb5000000) = 2;
-  // logk("value = %08x\n",*(u32 *)(0xb5000000));
+  // klog("value = %08x\n",*(u32 *)(0xb5000000));
   current_task()->alloc_addr = alloc_addr;
   iframe->eip                = load_elf(p);
-  logk("eip = %08x\n", &(iframe->eip));
+  klog("eip = %08x\n", &(iframe->eip));
   current_task()->user_mode = 1;
   tss.esp0                  = current_task()->top;
   change_page_task_id(current_task()->tid, p, vfs_filesize(filename));
   change_page_task_id(current_task()->tid, (void *)(iframe->esp - 512 * 1024), 512 * 1024);
-  //logk("%d\n", get_interrupt_state());
+  //klog("%d\n", get_interrupt_state());
   asm volatile("movl %0, %%esp\n"
                "popa\n"
                "pop %%gs\n"
@@ -291,7 +291,7 @@ int os_execute(char *filename, char *line) {
   strcpy(fm, filename);
   init_ok_flag = 0;
 
-  logd("execute: %s %s", filename, line);
+  klogd("execute: %s %s", filename, line);
 
   mtask *t = create_task((u32)task_app, 0, 1, 1);
   // 轮询
@@ -313,7 +313,7 @@ int os_execute(char *filename, char *line) {
 
   current_task()->TTY = NULL;
   char *p1            = malloc(strlen(line) + 1);
-  logi("%d", t->nfs->FileSize(t->nfs, "TESTAPP.BIN"));
+  klogi("%d", t->nfs->FileSize(t->nfs, "TESTAPP.BIN"));
   strcpy(p1, line);
   int o                     = current_task()->fifosleep;
   current_task()->fifosleep = 1;
@@ -322,12 +322,12 @@ int os_execute(char *filename, char *line) {
   r[1]                      = (u32)p1;
   t->line                   = r;
 
-  logd();
+  klogd();
 
   unsigned status           = waittid(t->tid);
   current_task()->fifosleep = o;
 
-  logd();
+  klogd();
 
   free(p1);
   free(fm);
@@ -340,7 +340,7 @@ int os_execute(char *filename, char *line) {
   }
   current_task()->sigint_up = old;
 
-  logd();
+  klogd();
 
   return status;
 }

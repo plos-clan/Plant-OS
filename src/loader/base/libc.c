@@ -357,7 +357,7 @@ int printf(cstr fmt, ...) {
   return len;
 }
 
-int logf(const char *format, ...) {
+int klogf(const char *format, ...) {
   int     len;
   va_list ap;
   va_start(ap, format);

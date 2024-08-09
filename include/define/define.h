@@ -8,7 +8,7 @@ extern "C" {
 #include "define/assert.h"
 #include "define/attribute.h"
 #include "define/base.h"
-#include "define/log.h"
+#include "define/logging.h"
 #include "define/rc.h"
 #include "define/va.h"
 #ifdef __cplusplus

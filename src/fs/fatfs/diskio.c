@@ -9,7 +9,7 @@
 
 #include "diskio.h" /* Declarations of disk functions */
 #include "ff.h"     /* Obtains integer types */
-#include <kernel/vdisk.h>
+#include <kernel.h>
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -17,6 +17,7 @@
 
 DSTATUS disk_status(byte pdrv /* Physical drive nmuber to identify the drive */
 ) {
+  klogd();
   DSTATUS stat = STA_NOINIT;
   int     result;
   pdrv += 0x41;
@@ -30,6 +31,7 @@ DSTATUS disk_status(byte pdrv /* Physical drive nmuber to identify the drive */
 
 DSTATUS disk_initialize(byte pdrv /* Physical drive nmuber to identify the drive */
 ) {
+  klogd();
   DSTATUS stat = STA_NOINIT;
   int     result;
   pdrv += 0x41;

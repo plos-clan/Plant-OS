@@ -33,8 +33,8 @@ void *syscall_mmap(void *start, u32 length) {
     }
   }
 _1:
-  logd("找到了一段空闲的没有被映射的线性地址%p-%p", line_addr_start,
-       line_addr_start + page_count * 0x1000);
+  klogd("找到了一段空闲的没有被映射的线性地址%p-%p", line_addr_start,
+        line_addr_start + page_count * 0x1000);
   for (int i = 0; i < page_count; i++) {
     page_link_share(line_addr_start + i * 0x1000);
   }
@@ -54,5 +54,5 @@ void syscall_munmap(void *start, u32 length) {
     page_unlink((u32)start + i * 0x1000);
   }
 
-  logd("释放了地址%p-%p", start, start + length);
+  klogd("释放了地址%p-%p", start, start + length);
 }

@@ -478,12 +478,12 @@ void bios_fdc_rw(int block, byte *blockbuff, int read, unsigned long nosectors) 
   /* 获取block对应的ths */
   block2hts(block, &track, &head, &sector);
   if (!read) { memcpy(p_tbaddr, blockbuff, 512); }
-  regs16_t r;
+  regs16 r;
   r.ax = N(read ? 0x02 : 0x03, 1);
   r.cx = N(track, sector);
   r.dx = N(head, 0);
   r.es = 0x7e0;
   r.bx = 0;
-  INT(0x13, &r);
+  asm16_int(0x13, &r);
   if (read) { memcpy(blockbuff, p_tbaddr, 512); }
 }

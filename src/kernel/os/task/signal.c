@@ -31,7 +31,7 @@ void signal_deal() {
   if (current_task()->signal_disable) { return; }
   mtask *task;
   task = current_task();
-  //logd("B %d\n",task->signal);
+  //klogd("B %d\n",task->signal);
   int sig = -1;
   if (task->signal & SIGMASK(SIGINT)) {
     sig           = 0;

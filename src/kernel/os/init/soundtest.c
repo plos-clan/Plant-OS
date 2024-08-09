@@ -61,7 +61,7 @@ static byte gen(int t) {
   // return g(t);
 }
 void sound_test() {
-  logd("sound test has been started");
+  klogd("sound test has been started");
   F               = g(0);
   G               = g(T);
   const int total = T + ((128 - F) + (128 - G)) * K;

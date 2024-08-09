@@ -1,7 +1,7 @@
 // AHCI Controller Driver Implement
 
 #include <loader.h>
-#define logk printf
+#define klog printf
 static u8 *cache;
 
 static u32      ahci_bus, ahci_slot, ahci_func, port, ahci_ports_base_addr;
@@ -36,17 +36,17 @@ void ahci_search_ports(HBA_MEM *abar) {
     if (pi & 1) {
       int dt = check_type(&abar->ports[i]);
       if (dt == AHCI_DEV_SATA) {
-        logk("SATA drive found at port %d\n", i);
+        klog("SATA drive found at port %d\n", i);
         port                = i;
         ports[port_total++] = i;
       } else if (dt == AHCI_DEV_SATAPI) {
-        logk("SATAPI drive found at port %d\n", i);
+        klog("SATAPI drive found at port %d\n", i);
       } else if (dt == AHCI_DEV_SEMB) {
-        logk("SEMB drive found at port %d\n", i);
+        klog("SEMB drive found at port %d\n", i);
       } else if (dt == AHCI_DEV_PM) {
-        logk("PM drive found at port %d\n", i);
+        klog("PM drive found at port %d\n", i);
       } else {
-        logk("No drive found at port %d\n", i);
+        klog("No drive found at port %d\n", i);
       }
     }
 
@@ -143,7 +143,7 @@ bool ahci_read(HBA_PORT *port, u32 startl, u32 starth, u32 count, u16 *buf) {
     spin++;
   }
   if (spin == 1000000) {
-    logk("Port is hung\n");
+    klog("Port is hung\n");
     return false;
   }
 
@@ -156,14 +156,14 @@ bool ahci_read(HBA_PORT *port, u32 startl, u32 starth, u32 count, u16 *buf) {
     if ((port->ci & (1 << slot)) == 0) break;
     if (port->is & HBA_PxIS_TFES) // Task file error
     {
-      logk("Read disk error\n");
+      klog("Read disk error\n");
       return false;
     }
   }
 
   // Check again
   if (port->is & HBA_PxIS_TFES) {
-    logk("Read disk error\n");
+    klog("Read disk error\n");
     return false;
   }
 
@@ -203,7 +203,7 @@ bool ahci_identify(HBA_PORT *port, void *buf) {
     spin++;
   }
   if (spin == 1000000) {
-    logk("Port is hung\n");
+    klog("Port is hung\n");
     return false;
   }
 
@@ -216,14 +216,14 @@ bool ahci_identify(HBA_PORT *port, void *buf) {
     if ((port->ci & (1 << slot)) == 0) break;
     if (port->is & HBA_PxIS_TFES) // Task file error
     {
-      logk("Read disk error\n");
+      klog("Read disk error\n");
       return false;
     }
   }
 
   // Check again
   if (port->is & HBA_PxIS_TFES) {
-    logk("Read disk error\n");
+    klog("Read disk error\n");
     return false;
   }
 
@@ -288,7 +288,7 @@ bool ahci_write(HBA_PORT *port, u32 startl, u32 starth, u32 count, u16 *buf) {
     spin++;
   }
   if (spin == 1000000) {
-    logk("Port is hung\n");
+    klog("Port is hung\n");
     return false;
   }
 
@@ -301,14 +301,14 @@ bool ahci_write(HBA_PORT *port, u32 startl, u32 starth, u32 count, u16 *buf) {
     if ((port->ci & (1 << slot)) == 0) break;
     if (port->is & HBA_PxIS_TFES) // Task file error
     {
-      logk("Write disk error\n");
+      klog("Write disk error\n");
       return false;
     }
   }
 
   // Check again
   if (port->is & HBA_PxIS_TFES) {
-    logk("Write disk error\n");
+    klog("Write disk error\n");
     return false;
   }
 
@@ -323,7 +323,7 @@ int find_cmdslot(HBA_PORT *port) {
     if ((slots & 1) == 0) return i;
     slots >>= 1;
   }
-  logk("Cannot find free command list entry\n");
+  klog("Cannot find free command list entry\n");
   return -1;
 }
 void page_set_attr(unsigned start, unsigned end, unsigned attr, unsigned pde);
@@ -380,11 +380,11 @@ void ahci_init() {
   }
 OK:
   if (!flag) {
-    logk("Couldn't find AHCI Controller\n");
+    klog("Couldn't find AHCI Controller\n");
     return;
   }
   hba_mem_address = (HBA_MEM *)read_bar_n(ahci_bus, ahci_slot, ahci_func, 5);
-  logk("HBA Address has been Mapped in %08x ", hba_mem_address);
+  klog("HBA Address has been Mapped in %08x ", hba_mem_address);
   // 设置允许中断产生
   u32 conf  = pci_read_command_status(ahci_bus, ahci_slot, ahci_func);
   conf     &= 0xffff0000;
@@ -393,41 +393,41 @@ OK:
 
   // 设置HBA中 GHC控制器的 AE（AHCI Enable）位，关闭AHCI控制器的IDE仿真模式
   hba_mem_address->ghc |= (1 << 31);
-  logk("AHCI Enable = %08x\n", (hba_mem_address->ghc & (1 << 31)) >> 31);
+  klog("AHCI Enable = %08x\n", (hba_mem_address->ghc & (1 << 31)) >> 31);
 
   ahci_search_ports(hba_mem_address);
 
   ahci_ports_base_addr = (u32)page_malloc(1048576);
 
-  logk("AHCI port base address has been alloced in 0x%08x!\n", ahci_ports_base_addr);
-  logk("The Useable Ports:");
+  klog("AHCI port base address has been alloced in 0x%08x!\n", ahci_ports_base_addr);
+  klog("The Useable Ports:");
   for (i = 0; i < port_total; i++) {
-    logk("%d ", ports[i]);
+    klog("%d ", ports[i]);
     port_rebase(&(hba_mem_address->ports[ports[i]]), ports[i]);
   }
-  logk("\n");
+  klog("\n");
 
   for (i = 0; i < port_total; i++) {
     SATA_ident_t buf;
     int          a = ahci_identify(&(hba_mem_address->ports[ports[i]]), &buf);
     if (!a) {
-      logk("SATA Drive %d identify error.\n");
+      klog("SATA Drive %d identify error.\n");
       continue;
     }
-    logk("ports %d: total sector = %d\n", ports[i], buf.lba_capacity);
+    klog("ports %d: total sector = %d\n", ports[i], buf.lba_capacity);
     vdisk vd;
     vd.flag  = 1;
     vd.Read  = ahci_vdisk_read;
     vd.Write = ahci_vdisk_write;
     vd.size  = buf.lba_capacity * 512;
     u8 drive = register_vdisk(vd);
-    logk("drive: %c\n", drive);
+    klog("drive: %c\n", drive);
     drive_mapping[drive] = ports[i];
   }
 }
 
 static void ahci_vdisk_read(char drive, u8 *buffer, u32 number, u32 lba) {
-  //                    logk("mapping %d\n",drive_mapping[drive]);
+  //                    klog("mapping %d\n",drive_mapping[drive]);
   ahci_read(&(hba_mem_address->ports[drive_mapping[drive]]), lba, 0, number, (u16 *)buffer);
 }
 static void ahci_vdisk_write(char drive, u8 *buffer, u32 number, u32 lba) {}

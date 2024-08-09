@@ -4,7 +4,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "define/config/check.h"
 #include "define/config/data-structure.h"
+#include "define/config/log.h"
 #include "define/config/plui.h"
 #include "define/config/string-format.h"
 #include "define/config/type-undef.h"
@@ -12,7 +14,7 @@ extern "C" {
 #include "define/define/assert.h"
 #include "define/define/attribute.h"
 #include "define/define/base.h"
-#include "define/define/log.h"
+#include "define/define/logging.h"
 #include "define/define/rc.h"
 #include "define/define/va.h"
 #include "define/type/00-include.h"

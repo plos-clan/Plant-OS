@@ -1,6 +1,6 @@
 #pragma once
 #include <define.h>
-int  logf(const char *format, ...);
+int  klogf(const char *format, ...);
 void clear();
 void print(const char *str);
 void screen_ne();

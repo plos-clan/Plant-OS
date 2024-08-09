@@ -296,10 +296,10 @@
 //       }
 //       if (pdb.inodes[i].type != 0) {
 //         if (pdb.inodes[i].name[13] == 0) {
-//           logf("%s ", pdb.inodes[i].name);
+//           klogf("%s ", pdb.inodes[i].name);
 //         } else {
 //           for (int j = 0; j < 13; j++) {
-//             logf("%c", pdb.inodes[i].name[j]);
+//             klogf("%c", pdb.inodes[i].name[j]);
 //           }
 //           u32 idx;
 //           idx = pdb.inodes[i].next;
@@ -308,11 +308,11 @@
 //             pi                             = pfs_get_inode_by_index(vfs, idx, dict_block);
 //             pfs_inode_of_long_file_name *f = (pfs_inode_of_long_file_name *)&pi;
 //             if (f->name[26] == 0x0) {
-//               logf("%s ", f->name);
+//               klogf("%s ", f->name);
 //               break;
 //             } else {
 //               for (int k = 0; k < 26; k++) {
-//                 logf("%c", f->name[k]);
+//                 klogf("%c", f->name[k]);
 //               }
 //             }
 //             idx = f->next;
@@ -323,7 +323,7 @@
 //     dict_block = pdb.next;
 //     flags      = 0;
 //   }
-//   logf("\n");
+//   klogf("\n");
 // }
 // u32 pfs_get_idx_of_inode_by_name(vfs_t *vfs, char *name, u32 dict_block, u32 *err) {
 //   int            flags = 1;
@@ -521,12 +521,12 @@
 //   u32 err, idx;
 //   idx = pfs_get_idx_of_inode_by_name(vfs, filename, dict_block, &err);
 //   if (err == 0x114514) {
-//     logf("delete err.\n");
+//     klogf("delete err.\n");
 //     return;
 //   }
 //   pfs_inode i = pfs_get_inode_by_index(vfs, idx, dict_block);
 //   if (i.type != 1) {
-//     logf("it isn't a file!\n");
+//     klogf("it isn't a file!\n");
 //     return;
 //   }
 //   pfs_delete_name_link(vfs, i.next, dict_block);
@@ -542,17 +542,17 @@
 //   u32 err, idx;
 //   idx = pfs_get_idx_of_inode_by_name(vfs, name, dict_block, &err);
 //   if (err == 0x114514) {
-//     logf("delete err.\n");
+//     klogf("delete err.\n");
 //     return;
 //   }
 //   pfs_inode i = pfs_get_inode_by_index(vfs, idx, dict_block);
 //   if (i.type != 2) {
-//     logf("it isn't a dict!\n");
+//     klogf("it isn't a dict!\n");
 //     return;
 //   }
 //   if (i.dat) {
 //     if (pfs_get_dict_number(vfs, i.dat) > 0) {
-//       logf("The dict must be empty!\n");
+//       klogf("The dict must be empty!\n");
 //       return;
 //     }
 //     pfs_delete_dict_block(vfs, i.dat);
@@ -871,7 +871,7 @@
 //   return true;
 // }
 // bool pfs_Attrib(struct vfs_t *vfs, char *filename, ftype type) {
-//   logf("Sorry, pfs does not support attrib at this time.\n");
+//   klogf("Sorry, pfs does not support attrib at this time.\n");
 //   return false;
 // }
 // vfs_file *pfs_FileInfo(struct vfs_t *vfs, char *filename) {

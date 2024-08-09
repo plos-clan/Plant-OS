@@ -158,7 +158,7 @@ static void sb_reset() {
   while (timerctl.count <= oldcnt + 10) {}
   asm_out8(SB_RESET, 0);
   u8 state = asm_in8(SB_READ);
-  logd("sb16 reset state 0x%x\n", state);
+  klogd("sb16 reset state 0x%x\n", state);
 }
 
 static void sb_intr_irq() {
@@ -171,7 +171,7 @@ static void sb_intr_irq() {
 }
 
 void sb16_set_volume(u8 level) {
-  logd("set sb16 volume to %d/255\n", level);
+  klogd("set sb16 volume to %d/255\n", level);
   asm_out8(SB_MIXER, 0x22);
   asm_out8(SB_MIXER_DATA, level);
 }

@@ -4,11 +4,11 @@
 #include <libc-base.h>
 
 typedef enum {
-  FLE,
-  DIR,
-  RDO,
-  HID,
-  SYS
+  vfs_FLE,
+  vfs_DIR,
+  vfs_RDO,
+  vfs_HID,
+  vfs_SYS
 } ftype;
 
 typedef struct {

@@ -4,7 +4,7 @@ void syscall_exit(int status) {
   extern mtask *mouse_use_task;
   mtask        *task = current_task();
   if (!(*(u8 *)(0xf0000000))) {
-    logk("here\n");
+    klog("here\n");
     list_free_with(vfs_now->path, free);
     if (mouse_use_task == task) { mouse_sleep(&mdec); }
     free(vfs_now->cache);

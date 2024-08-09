@@ -139,10 +139,10 @@ void asm_ide_irq();
 typedef struct {
   u16 di, si, bp, sp, bx, dx, cx, ax;
   u16 gs, fs, es, ds, eflags;
-} regs16_t;
+} regs16;
 
-void int32(u8 intnum, regs16_t *regs);
-void INT(u8 intnum, regs16_t *regs);
+void int32(u8 intnum, regs16 *regs);
+void asm16_int(u8 intnum, regs16 *regs);
 void do_init_seg_register();
 void init_page();
 void init_gdtidt();

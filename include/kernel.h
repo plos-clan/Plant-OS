@@ -13,7 +13,7 @@ extern "C" {
 #include "kernel/include.h"
 #include "kernel/ipc.h"
 #include "kernel/lock.h"
-#include "kernel/log.h"
+#include "kernel/logging.h"
 #include "kernel/mem.h"
 #include "kernel/mtask.h"
 #include "kernel/os.h"

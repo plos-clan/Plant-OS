@@ -90,7 +90,7 @@ int disk_Size(char drive) {
     int indx = drive1 - 'A';
     return vdisk_ctl[indx].size;
   } else {
-    logf("Disk Not Ready.\n");
+    klogf("Disk Not Ready.\n");
     return 0;
   }
 

@@ -128,7 +128,7 @@ u32 disk_Size(char drive) {
     int indx = drive1 - 'A';
     return vdisk_ctl[indx].size;
   } else {
-    logk("Disk Not Ready.\n");
+    klog("Disk Not Ready.\n");
     return 0;
   }
 
@@ -161,7 +161,7 @@ bool CDROM_Read(u32 lba, u32 number, void *buffer, char drive) {
   if (have_vdisk(drive)) {
     int indx = drive - ('A');
     if (vdisk_ctl[indx].flag != 2) {
-      loge("Not a cdrom");
+      kloge("Not a cdrom");
       return false;
     }
     if (drive_semaphore_take(get_drive_code((u8 *)"DISK_DRIVE"))) {

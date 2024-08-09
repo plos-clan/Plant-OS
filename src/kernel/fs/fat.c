@@ -699,11 +699,11 @@ int deldir(char *path, vfs_t *vfs) {
   return 1;
 }
 int mkfile(char *name, vfs_t *vfs) {
-  logd("mkfile : %s\n", name);
+  klogd("mkfile : %s\n", name);
   char                 s[12];
   int                  i, j;
   struct FAT_FILEINFO *finfo = Get_dictaddr(name, vfs);
-  logd("finfo = %08x\n", finfo);
+  klogd("finfo = %08x\n", finfo);
   if (finfo == NULL) { return 0; }
   int max = get_directory_max(finfo, vfs);
 
@@ -974,13 +974,13 @@ int format(char drive) {
 int attrib(char *filename, ftype type, struct vfs_t *vfs) {
   struct FAT_FILEINFO *finfo = Get_File_Address(filename, vfs);
   if (finfo == 0) { return 0; }
-  if (type == FLE)
+  if (type == vfs_FLE)
     finfo->type = 0x20;
-  else if (type == RDO)
+  else if (type == vfs_RDO)
     finfo->type = 0x01;
-  else if (type == HID)
+  else if (type == vfs_HID)
     finfo->type = 0x02;
-  else if (type == SYS)
+  else if (type == vfs_SYS)
     finfo->type = 0x04;
   else
     return 0;
@@ -1152,15 +1152,15 @@ list_t Fat_ListFile(struct vfs_t *vfs, char *dictpath) {
         if (s[0] != '+') {
           vfs_file *d = malloc(sizeof(vfs_file));
           if (finfo[i].type == 0x10) {
-            d->type = DIR;
+            d->type = vfs_DIR;
           } else if (finfo[i].type == 0x20) {
-            d->type = FLE;
+            d->type = vfs_FLE;
           } else if (finfo[i].type == 0x01) {
-            d->type = RDO;
+            d->type = vfs_RDO;
           } else if (finfo[i].type == 0x02) {
-            d->type = HID;
+            d->type = vfs_HID;
           } else if (finfo[i].type == 0x04) {
-            d->type = SYS;
+            d->type = vfs_SYS;
           }
           d->year    = (finfo[i].update_date & 65024) >> 9;
           d->year   += 1980;
@@ -1199,7 +1199,7 @@ void Fat_DeleteFs(struct vfs_t *vfs) {
 bool Fat_Check(u8 disk_number) {
   u8 *boot_sec = malloc(512);
   Disk_Read(0, 1, boot_sec, disk_number);
-  logd("disk number = %02x", disk_number);
+  klogd("disk number = %02x", disk_number);
   if (memcmp(boot_sec + BS_FileSysType, "FAT12   ", 8) == 0 ||
       memcmp(boot_sec + BS_FileSysType, "FAT16   ", 8) == 0 ||
       memcmp(boot_sec + BS_FileSysType + BPB_Fat32ExtByts, "FAT32   ", 8) == 0) {
@@ -1256,15 +1256,15 @@ vfs_file *Fat_FileInfo(struct vfs_t *vfs, char *filename) {
   }
   s[i] = '\0';
   if (finfo->type == 0x10) {
-    result->type = DIR;
+    result->type = vfs_DIR;
   } else if (finfo->type == 0x20) {
-    result->type = FLE;
+    result->type = vfs_FLE;
   } else if (finfo->type == 0x01) {
-    result->type = RDO;
+    result->type = vfs_RDO;
   } else if (finfo->type == 0x02) {
-    result->type = HID;
+    result->type = vfs_HID;
   } else if (finfo->type == 0x04) {
-    result->type = SYS;
+    result->type = vfs_SYS;
   }
   result->year    = (finfo->update_date & 65024) >> 9;
   result->year   += 1980;

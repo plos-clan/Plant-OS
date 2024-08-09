@@ -84,7 +84,7 @@ void fpu_enable(mtask *task) {
                  "fninit \n" ::
                      : "memory");
     memset(&task->fpu, 0, sizeof(fpu_t));
-    logd("FPU create state for task 0x%08x\n", task);
+    klogd("FPU create state for task 0x%08x\n", task);
   } else {
     asm volatile("frstor (%%eax) \n" ::"a"(&(task->fpu)) : "memory");
   }
@@ -144,7 +144,7 @@ void ERROR7(u32 eip) {
 }
 
 void ERROR13(u32 eip) {
-  loge("ERROR GP!!!!");
+  kloge("ERROR GP!!!!");
   while (true)
     ;
 }

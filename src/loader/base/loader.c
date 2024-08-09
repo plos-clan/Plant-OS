@@ -8,7 +8,7 @@ bool elf32Validate(Elf32_Ehdr *hdr) {
 }
 
 void load_segment(Elf32_Phdr *phdr, void *elf) {
-  logf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
+  klogf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
   memcpy((void *)phdr->p_vaddr, elf + phdr->p_offset, phdr->p_filesz);
   if (phdr->p_memsz > phdr->p_filesz) { // 这个是bss段
     memset((void *)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
@@ -96,24 +96,24 @@ void DOSLDR_MAIN() {
   NowTask()->drive_number = default_drive_number;
   vfs_mount_disk(NowTask()->drive, NowTask()->drive);
   vfs_change_disk(NowTask()->drive);
-  logf("Plant-OS loader (Refactored)\n");
-  logf("MIT License\n");
-  logf("Copyright (c) 2024 plos-clan\n");
-  logf("memtotal=%dMB\n", memtotal / 1024 / 1024);
+  klogf("Plant-OS loader (Refactored)\n");
+  klogf("MIT License\n");
+  klogf("Copyright (c) 2024 plos-clan\n");
+  klogf("memtotal=%dMB\n", memtotal / 1024 / 1024);
   char path[15] = " :\\kernel.bin";
   path[0]       = NowTask()->drive;
-  logf("Load file:%s\n", path);
+  klogf("Load file:%s\n", path);
   int sz = vfs_filesize(path);
   if (sz == -1) {
-    logf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
+    klogf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
     while (true)
       ;
   }
   // printf("fp = %08x\n%d\n",fp, fp->size);
   char *s = page_malloc(sz);
-  logf("Will load in %08x size = %08x\n", s, sz);
+  klogf("Will load in %08x size = %08x\n", s, sz);
   vfs_readfile(path, s);
-  logf("Loading...\n");
+  klogf("Loading...\n");
   u32 entry = load_elf((Elf32_Ehdr *)s);
 
   // printf("ESP:%08x\n", *(u32 *)(0x00280000 + 12));

@@ -29,12 +29,12 @@ static void delete_char(char *str, size_t pos) {
 }
 
 static vfs_t *ParsePath(char *result) {
-  logd("Parse Path: %s", result);
+  klogd("Parse Path: %s", result);
   vfs_t *vfs_result = vfs_now;
   if (result[1] == ':') {
     if (!(vfs_result = drive2fs(result[0]))) {
-      logw("Mount Drive is not found!");
-      loge("Parse Error.");
+      klogw("Mount Drive is not found!");
+      kloge("Parse Error.");
       return NULL;
     }
     if (result) {
@@ -47,7 +47,7 @@ static vfs_t *ParsePath(char *result) {
       if (result[i] == '\\') { result[i] = '/'; }
     }
   }
-  logd("Parse Path OK: %s", result);
+  klogd("Parse Path OK: %s", result);
   return vfs_result;
 }
 
@@ -73,24 +73,24 @@ static void insert_str(char *str, char *insert_str, int pos) {
 }
 
 bool vfs_mount_disk(u8 disk_number, u8 drive) {
-  logd("Mount DISK ---- %02x", disk_number);
+  klogd("Mount DISK ---- %02x", disk_number);
   for (int i = 0; i < 26; i++) {
     if (vfsMount_Stl[i].flag == 1 &&
         (vfsMount_Stl[i].drive == drive || vfsMount_Stl[i].disk_number == disk_number)) {
-      logw("It has been mounted");
+      klogw("It has been mounted");
       return false;
     }
   }
   vfs_t *seat = findSeat(vfsMount_Stl);
   if (!seat) {
-    logw("can not find a seat of vfsMount_Stl(it's full)");
-    loge("Mount error!");
+    klogw("can not find a seat of vfsMount_Stl(it's full)");
+    kloge("Mount error!");
     return false;
   }
   vfs_t *fs = check_disk_fs(disk_number);
   if (!fs) {
-    logw("unknow file system.");
-    loge("Mount error!");
+    klogw("unknow file system.");
+    kloge("Mount error!");
     return false;
   }
   *seat = *fs;
@@ -98,37 +98,37 @@ bool vfs_mount_disk(u8 disk_number, u8 drive) {
   seat->drive       = drive;
   seat->disk_number = disk_number;
   seat->flag        = 1;
-  logd("success");
+  klogd("success");
   return true;
 }
 
 bool vfs_unmount_disk(u8 drive) {
-  logd("Unmount disk ---- %c", drive);
+  klogd("Unmount disk ---- %c", drive);
   for (int i = 0; i < 26; i++) {
     if (vfsMount_Stl[i].drive == drive && vfsMount_Stl[i].flag == 1) {
       vfsMount_Stl[i].DeleteFs(&vfsMount_Stl[i]);
       vfsMount_Stl[i].flag = 0;
-      logd("Unmount ok!");
+      klogd("Unmount ok!");
       return true;
     }
   }
-  loge("Not found the drive.");
+  kloge("Not found the drive.");
   return false;
 }
 
 bool vfs_readfile(char *path, char *buffer) {
-  logd("Readfile %s to %08x\n", path, buffer);
+  klogd("Readfile %s to %08x\n", path, buffer);
   char *new_path = malloc(strlen(path) + 1);
   strcpy(new_path, path);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
   int result = vfs->ReadFile(vfs, new_path, buffer);
   free(new_path);
-  logd("OK\n");
+  klogd("OK\n");
   return result;
 }
 
@@ -137,7 +137,7 @@ bool vfs_writefile(char *path, char *buffer, int size) {
   strcpy(new_path, path);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
@@ -151,7 +151,7 @@ u32 vfs_filesize(char *filename) {
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return -1;
   }
@@ -168,7 +168,7 @@ list_t vfs_listfile(char *dictpath) { // dictpath == "" 则表示当前路径
     strcpy(new_path, dictpath);
     vfs_t *vfs = ParsePath(new_path);
     if (vfs == NULL) {
-      logw("Attempt read a nonexistent disk");
+      klogw("Attempt read a nonexistent disk");
       free(new_path);
       return NULL;
     }
@@ -179,12 +179,12 @@ list_t vfs_listfile(char *dictpath) { // dictpath == "" 则表示当前路径
 }
 
 bool vfs_delfile(char *filename) {
-  logd("Delete file %s.\n", filename);
+  klogd("Delete file %s.\n", filename);
   char *new_path = malloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
@@ -198,7 +198,7 @@ bool vfs_deldir(char *dictname) {
   strcpy(new_path, dictname);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
@@ -212,7 +212,7 @@ bool vfs_createfile(char *filename) {
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
@@ -226,7 +226,7 @@ bool vfs_createdict(char *filename) {
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
@@ -240,7 +240,7 @@ bool vfs_renamefile(char *filename, char *filename_of_new) {
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
@@ -254,7 +254,7 @@ bool vfs_attrib(char *filename, ftype type) {
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return false;
   }
@@ -277,7 +277,7 @@ vfs_file *vfs_fileinfo(char *filename) {
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
-    logw("Attempt read a nonexistent disk");
+    klogw("Attempt read a nonexistent disk");
     free(new_path);
     return NULL;
   }
@@ -287,48 +287,48 @@ vfs_file *vfs_fileinfo(char *filename) {
 }
 
 bool vfs_change_disk(u8 drive) {
-  logd("will change to %c", drive);
+  klogd("will change to %c", drive);
   if (vfs_now != NULL) {
     list_free_with(vfs_now->path, free);
     free(vfs_now->cache);
     free(vfs_now);
   }
-  logd("Find mount.......");
+  klogd("Find mount.......");
   vfs_t *f;
   if (!(f = drive2fs(drive))) {
-    logw("no mount.");
+    klogw("no mount.");
     return false; // 没有mount
   }
-  logd("Changing......");
+  klogd("Changing......");
   vfs_now = malloc(sizeof(vfs_t));
   memcpy(vfs_now, f, sizeof(vfs_t));
   f->CopyCache(vfs_now, f);
   vfs_now->path = NULL;
   vfs_now->cd(vfs_now, "/");
-  logd("OK.");
+  klogd("OK.");
   return true;
 }
 
 bool vfs_change_disk_for_task(u8 drive, mtask *task) {
-  logd("will change to %c", drive);
+  klogd("will change to %c", drive);
   if (vfs(task) != NULL) {
     list_free_with(vfs(task)->path, free);
     free(vfs(task)->cache);
     free(vfs(task));
   }
-  logd("Find mount.......");
+  klogd("Find mount.......");
   vfs_t *f;
   if (!(f = drive2fs(drive))) {
-    logw("no mount.");
+    klogw("no mount.");
     return false; // 没有mount
   }
-  logd("Changing......");
+  klogd("Changing......");
   vfs(task) = malloc(sizeof(vfs_t));
   memcpy(vfs(task), f, sizeof(vfs_t));
   f->CopyCache(vfs(task), f);
   vfs(task)->path = NULL;
   vfs(task)->cd(vfs(task), "/");
-  logd("OK. %08x", vfs(task));
+  klogd("OK. %08x", vfs(task));
   return true;
 }
 
@@ -374,7 +374,7 @@ void vfs_getPath(char *buffer) {
   insert_char(buffer, 0, vfs_now->drive);
   insert_char(buffer, 1, ':');
   insert_char(buffer, 2, '\\');
-  logd("%s", vfs_now->FSName);
+  klogd("%s", vfs_now->FSName);
   int pos = strlen(buffer);
   list_foreach(vfs_now->path, path) {
     insert_str(buffer, path->data, pos);
@@ -389,7 +389,7 @@ void vfs_getPath_no_drive(char *buffer) {
   char  *path;
   list_t l;
   buffer[0] = 0;
-  logd("%s", vfs_now->FSName);
+  klogd("%s", vfs_now->FSName);
   int pos = strlen(buffer);
   int i;
   list_foreach(vfs_now->path, path) {
@@ -414,20 +414,20 @@ void init_vfs() {
     vfsMount_Stl[i].flag        = 0;
     vfsMount_Stl[i].disk_number = 0;
     vfsMount_Stl[i].drive       = 0;
-    // logd("Set vfsstl[%d] & vfsMount_Stl[%d] OK.", i, i);
+    // klogd("Set vfsstl[%d] & vfsMount_Stl[%d] OK.", i, i);
   }
   printi("vfs ok.");
   vfs_now = NULL;
 }
 
 bool vfs_register_fs(vfs_t vfs) {
-  logd("Register file system: %s", vfs.FSName);
-  logd("looking for a seat of vfsstl.........");
+  klogd("Register file system: %s", vfs.FSName);
+  klogd("looking for a seat of vfsstl.........");
   vfs_t *seat;
   seat = findSeat(vfsstl);
   if (!seat) {
-    logw("can not find a seat of vfsstl(it's full)");
-    loge("Register error!");
+    klogw("can not find a seat of vfsstl(it's full)");
+    kloge("Register error!");
     return false;
   }
   *seat = vfs;

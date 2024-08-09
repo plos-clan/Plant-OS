@@ -46,12 +46,12 @@ void memory_init(void *ptr, u32 size) {
 
 void *malloc(size_t size) {
   void *ptr = mpool_alloc(&pool, size);
-  logd("alloc %-10p %d -> %d", ptr, size, mpool_msize(&pool, ptr));
+  klogd("alloc %-10p %d -> %d", ptr, size, mpool_msize(&pool, ptr));
   return ptr;
 }
 
 void free(void *ptr) {
-  logd("free  %-10p %d", ptr, mpool_msize(&pool, ptr));
+  klogd("free  %-10p %d", ptr, mpool_msize(&pool, ptr));
   mpool_free(&pool, ptr);
 }
 

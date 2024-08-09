@@ -232,7 +232,7 @@ static int parse_vt100(struct tty *res, char *string) {
     return 1;
   }
   case MODE_m: {
-    // logd("MODE_m");
+    // klogd("MODE_m");
     int  k = 0;
     char dig_string[2][81];
     memset(dig_string, 0, sizeof(dig_string)); // 全部设置为0
@@ -244,18 +244,18 @@ static int parse_vt100(struct tty *res, char *string) {
           j = 0;
           continue;
         }
-        loge("nan");
+        kloge("nan");
         return 0;
       }
       dig_string[k][j++] = string[i];
     }
     if (k > 1) {
-      loge("k > 1");
+      kloge("k > 1");
       return 0;
     }
 
     int delta[2] = {0};
-    // logd("start for %d", k);
+    // klogd("start for %d", k);
     for (int i = 0; i <= k; i++) {
       delta[i] = atol(dig_string[i]);
     }
@@ -265,10 +265,10 @@ static int parse_vt100(struct tty *res, char *string) {
       res->color_saved = -1;
       return 1;
     } else if (delta[0] == 1 && k == 0) { // unsupported
-      loge("unsupport");
+      kloge("unsupport");
       return 0;
     }
-    // logd("switch k");
+    // klogd("switch k");
     static const byte color_map[8] = {0, 4, 2, 6, 1, 5, 3, 7};
     switch (k) {
     case 0: {
@@ -283,13 +283,13 @@ static int parse_vt100(struct tty *res, char *string) {
         res->color |= color_map[delta[0] - 40] << 4;
         return 1;
       } else {
-        loge("delta error %d", delta);
+        kloge("delta error %d", delta);
         return 0;
       }
     }
     case 1: {
       if (delta[0] != 1) {
-        loge("not 1");
+        kloge("not 1");
         return 0;
       }
       if (delta[1] >= 30 && delta[1] <= 37) { // foreground color
@@ -303,7 +303,7 @@ static int parse_vt100(struct tty *res, char *string) {
         res->color |= (color_map[delta[1] - 40] + 8) << 4;
         return 1;
       } else {
-        loge("delta error0 %d", delta);
+        kloge("delta error0 %d", delta);
         return 0;
       }
     }
@@ -317,7 +317,7 @@ static int parse_vt100(struct tty *res, char *string) {
 
 void t_putchar(struct tty *res, char ch) {
   if (ch == '\033' && res->vt100 == 0) {
-    // logd("vt100");
+    // klogd("vt100");
     memset(res->buffer, 0, 81);
     res->buf_p                = 0;
     res->buffer[res->buf_p++] = '\033';
@@ -344,7 +344,7 @@ void t_putchar(struct tty *res, char ch) {
     if (t_is_eos(ch)) {
       res->mode = (vt100_mode_t)ch;
       if (!parse_vt100(res, res->buffer)) { // 失败了
-        logd("failed to parse");
+        klogd("failed to parse");
         for (int i = 0; i < res->buf_p; i++) {
           res->putchar(res, res->buffer[i]);
         }

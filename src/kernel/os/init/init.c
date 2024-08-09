@@ -30,11 +30,11 @@ void srand(uint seed) {
   rand_seed = seed;
 }
 
-#  define logd(...) ((void)0)
+#  define klogd(...) ((void)0)
 
 void malloc_test() {
   size_t old_count = timerctl.count;
-  logw("%d", old_count);
+  klogw("%d", old_count);
 
 #  define M 2048
 #  define N (32 * 1024 * 1024)
@@ -42,7 +42,7 @@ void malloc_test() {
   static void  *ptr_list[M];
   static size_t size_list[M];
   static u32    hash_list[M];
-  logi("alloc...");
+  klogi("alloc...");
   for (size_t i = 0; i < M; i++) {
     size_list[i] = rand() % 256;
     ptr_list[i]  = malloc(size_list[i]);
@@ -50,9 +50,9 @@ void malloc_test() {
     //   ((u8 *)ptr_list[i])[j] = rand() >> 8;
     // }
     // hash_list[i] = memhash(ptr_list[i], size_list[i]);
-    logd("step 1: %d alloced: %p", i, ptr_list[i]);
+    klogd("step 1: %d alloced: %p", i, ptr_list[i]);
   }
-  logi("test...");
+  klogi("test...");
   for (size_t i = 0; i < N; i++) {
     size_t n = rand() % M;
     // size_t hash = memhash(ptr_list[n], size_list[n]);
@@ -61,30 +61,30 @@ void malloc_test() {
     //   fatal("hash error: %u != %u", hash, hash_list[n]);
     // }
     free(ptr_list[n]);
-    logd("step 2: %d:%d freed: %p", i, n, ptr_list[n]);
+    klogd("step 2: %d:%d freed: %p", i, n, ptr_list[n]);
     size_list[n] = rand() % 256;
     ptr_list[n]  = malloc(size_list[n]);
     // for (size_t j = 0; j < size_list[n]; j++) {
     //   ((u8 *)ptr_list[n])[j] = rand() >> 8;
     // }
     // hash_list[n] = memhash(ptr_list[n], size_list[n]);
-    logd("step 2: %d:%d alloced: %p", i, n, ptr_list[n]);
-    if (i % (N / 100) == 0) logi("  %d%%", i / (N / 100));
+    klogd("step 2: %d:%d alloced: %p", i, n, ptr_list[n]);
+    if (i % (N / 100) == 0) klogi("  %d%%", i / (N / 100));
   }
-  logi("free...");
+  klogi("free...");
   for (size_t i = 0; i < M; i++) {
     // size_t hash = memhash(ptr_list[i], size_list[i]);
     // if (hash_list[i] != hash) {
-    //   logd("step 3: %d check: %p", i, ptr_list[i]);
+    //   klogd("step 3: %d check: %p", i, ptr_list[i]);
     //   fatal("hash error: %u != %u", hash, hash_list[i]);
     // }
     free(ptr_list[i]);
-    logd("step 3: %d freed: %p", i, ptr_list[i]);
+    klogd("step 3: %d freed: %p", i, ptr_list[i]);
   }
 
   size_t new_count = timerctl.count;
-  logw("%d", new_count);
-  logw("%d", new_count - old_count);
+  klogw("%d", new_count);
+  klogw("%d", new_count - old_count);
 
   fatal("test end.");
 }

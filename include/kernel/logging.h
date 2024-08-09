@@ -1,9 +1,9 @@
 #pragma once
 #include <libc-base.h>
 
-dlimport void logk_raw(cstr s);
+dlimport void klog_raw(cstr s);
 
-dlimport void logk(cstr _rest fmt, ...);
+dlimport void klog(cstr _rest fmt, ...);
 
 dlimport void log_printf(cstr _rest fmt1, cstr _rest fmt2, ...);
 
@@ -13,13 +13,13 @@ dlimport void log_printf(cstr _rest fmt1, cstr _rest fmt2, ...);
 #define STR_LOGINFO_FUNC "[" CRGB(0, 255, 255) "%!8s" CEND ":" CRGB(255, 128, 192) "%-5d" CEND "] "
 
 #define __LOG(type, fmt, ...)                                                                      \
-  logk(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n", ARG_LOGINFO, ##__VA_ARGS__)
+  klog(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n", ARG_LOGINFO, ##__VA_ARGS__)
 
-#define logd(fmt, ...) __LOG(_DEBUG, fmt, ##__VA_ARGS__)
-#define logi(fmt, ...) __LOG(_INFO, fmt, ##__VA_ARGS__)
-#define logw(fmt, ...) __LOG(_WARN, fmt, ##__VA_ARGS__)
-#define loge(fmt, ...) __LOG(_ERROR, fmt, ##__VA_ARGS__)
-#define logf(fmt, ...) __LOG(_FATAL, fmt, ##__VA_ARGS__)
+#define klogd(fmt, ...) __LOG(_DEBUG, fmt, ##__VA_ARGS__)
+#define klogi(fmt, ...) __LOG(_INFO, fmt, ##__VA_ARGS__)
+#define klogw(fmt, ...) __LOG(_WARN, fmt, ##__VA_ARGS__)
+#define kloge(fmt, ...) __LOG(_ERROR, fmt, ##__VA_ARGS__)
+#define klogf(fmt, ...) __LOG(_FATAL, fmt, ##__VA_ARGS__)
 
 #define _COLOR_DEBUG "\033[1;36m"
 #define _COLOR_INFO  "\033[1;32m"

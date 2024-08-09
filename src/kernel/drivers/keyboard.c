@@ -223,7 +223,7 @@ void inthandler21(int *esp) {
                                         keyboard_use_task->tid); // 处理按下键
     }
     if (current_task() != keyboard_use_task) {
-      //   logd("SET 1\n");
+      //   klogd("SET 1\n");
       keyboard_use_task->timeout = 5;
       keyboard_use_task->ready   = 1;
       keyboard_use_task->urgent  = 1;
@@ -255,7 +255,7 @@ void inthandler21(int *esp) {
       }
       // 一般进程
     THROUGH:
-      //    logd("send\n");
+      //    klogd("send\n");
       if (e0_flag) { cir_queue_put(task_get_key_queue(task), 0xe0); }
       cir_queue_put(task_get_key_queue(task), data);
     }

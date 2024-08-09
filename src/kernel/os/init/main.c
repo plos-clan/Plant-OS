@@ -36,16 +36,16 @@ static int color_best_match(struct color24 c) {
   };
   int best_id  = 0;
   int diff_min = color_diff(c, _table[0]);
-  logw("%02d %-6d", 0, diff_min);
+  klogw("%02d %-6d", 0, diff_min);
   for (int i = 1; i < lengthof(_table); i++) {
     int diff = color_diff(c, _table[i]);
-    logw("%02d %-6d", i, diff);
+    klogw("%02d %-6d", i, diff);
     if (diff < diff_min) {
       best_id  = i;
       diff_min = diff;
     }
   }
-  logw("最佳: %02d %-6d", best_id, diff_min);
+  klogw("最佳: %02d %-6d", best_id, diff_min);
   return best_id;
 }
 
@@ -207,21 +207,21 @@ finline void plty_fb_puts(plty_fb *fb, cstr s) {
 plty_fb tty;
 
 void format_test() {
-  logi("开始格式化测试");
+  klogi("开始格式化测试");
 
-  logk("字符测试: %c\n", 'A');
-  logk("数字测试: %d\n", 114514);
-  logk("字符串测试: %s\n", "Hello world!");
+  klog("字符测试: %c\n", 'A');
+  klog("数字测试: %d\n", 114514);
+  klog("字符串测试: %s\n", "Hello world!");
 
-  logk("对齐测试: %10d\n", 1234);
-  logk("对齐测试: %-10d\n", 1234);
+  klog("对齐测试: %10d\n", 1234);
+  klog("对齐测试: %-10d\n", 1234);
 
-  logk("零填充对齐测试: %010d\n", 1234);
+  klog("零填充对齐测试: %010d\n", 1234);
 
-  logk("浮点测试: %lf\n", 123.45);
-  logk("浮点测试: %lf\n", 1145141919810.);
+  klog("浮点测试: %lf\n", 123.45);
+  klog("浮点测试: %lf\n", 1145141919810.);
 
-  logi("格式化测试结束");
+  klogi("格式化测试结束");
 }
 
 void kernel_main() {
@@ -238,11 +238,11 @@ void kernel_main() {
   // plty_fb_puts(&tty, "123456\n");
   // plty_fb_puts(&tty, "test-end\n");
 
-  // logd("一条测试 debug 消息");
-  // logi("一条测试 info 消息");
-  // logw("一条测试 warning 消息");
-  // loge("一条测试 error 消息");
-  // logf("一条测试 fatal 消息");
+  // klogd("一条测试 debug 消息");
+  // klogi("一条测试 info 消息");
+  // klogw("一条测试 warning 消息");
+  // kloge("一条测试 error 消息");
+  // klogf("一条测试 fatal 消息");
 
   sysinit();
   while (true) {}

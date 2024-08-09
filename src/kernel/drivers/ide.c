@@ -2,7 +2,7 @@
 
 static inline void nul(...) {}
 
-#define logk  nul
+#define klog  nul
 #define sleep nul
 
 u8 ide_read(u8 channel, u8 reg);
@@ -137,7 +137,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
                                                            // 2- Disable IRQs:
   ide_write(ATA_PRIMARY, ATA_REG_CONTROL, 2);
   ide_write(ATA_SECONDARY, ATA_REG_CONTROL, 2);
-  logk("w1\n");
+  klog("w1\n");
   // 3- Detect ATA-ATAPI Devices:
   for (int i = 0; i < 2; i++)
     for (j = 0; j < 2; j++) {
@@ -147,19 +147,19 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       // (I) Select Drive:
       ide_write(i, ATA_REG_HDDEVSEL, 0xA0 | (j << 4)); // Select Drive.
       sleep(1);                                        // Wait 1ms for drive select to work.
-      logk("I\n");
+      klog("I\n");
       // (II) Send ATA Identify Command:
       ide_write(i, ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
       sleep(1); // This function should be implemented in your OS. which waits
                 // for 1 ms. it is based on System Timer Device Driver.
-      logk("II\n");
+      klog("II\n");
       // (III) Polling:
       if (ide_read(i, ATA_REG_STATUS) == 0) continue; // If Status = 0, No Device.
-      logk("III\n");
+      klog("III\n");
       while (1) {
-        logk("read ide....\n");
+        klog("read ide....\n");
         status = ide_read(i, ATA_REG_STATUS);
-        logk("read ok\n");
+        klog("read ok\n");
         if ((status & ATA_SR_ERR)) {
           err = 1;
           break;
@@ -168,7 +168,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       }
 
       // (IV) Probe for ATAPI Devices:
-      logk("IV\n");
+      klog("IV\n");
       if (err != 0) {
         u8 cl = ide_read(i, ATA_REG_LBA1);
         u8 ch = ide_read(i, ATA_REG_LBA2);
@@ -185,11 +185,11 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       }
 
       // (V) Read Identification Space of the Device:
-      logk("V\n");
+      klog("V\n");
       ide_read_buffer(i, ATA_REG_DATA, (u32)ide_buf, 128);
 
       // (VI) Read Device Parameters:
-      logk("VI\n");
+      klog("VI\n");
       ide_devices[count].Reserved     = 1;
       ide_devices[count].Type         = type;
       ide_devices[count].Channel      = i;
@@ -199,7 +199,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       ide_devices[count].CommandSets  = *((u32 *)(ide_buf + ATA_IDENT_COMMANDSETS));
 
       // (VII) Get Size:
-      logk("VII\n");
+      klog("VII\n");
       if (ide_devices[count].CommandSets & (1 << 26))
         // Device uses 48-Bit Addressing:
         ide_devices[count].Size = *((u32 *)(ide_buf + ATA_IDENT_MAX_LBA_EXT));
@@ -209,7 +209,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
 
       // (VIII) String indicates model of device (like Western Digital HDD and
       // SONY DVD-RW...):
-      logk("VIII\n");
+      klog("VIII\n");
       for (k = 0; k < 40; k += 2) {
         ide_devices[count].Model[k]     = ide_buf[ATA_IDENT_MODEL + k + 1];
         ide_devices[count].Model[k + 1] = ide_buf[ATA_IDENT_MODEL + k];
@@ -294,20 +294,20 @@ u8 ide_polling(u8 channel, u32 advanced_check) {
 
   // (II) Wait for BSY to be cleared:
   // -------------------------------------------------
-  logk("II\n");
+  klog("II\n");
   int a = ide_read(channel, ATA_REG_STATUS);
   while (a & ATA_SR_BSY) {
-    logk("a=%d\n", a & ATA_SR_BSY); // Wait for BSY to be zero.
+    klog("a=%d\n", a & ATA_SR_BSY); // Wait for BSY to be zero.
     a = ide_read(channel, ATA_REG_STATUS);
     sleep(1);
   }
-  logk("II OK\n");
+  klog("II OK\n");
   if (advanced_check) {
     u8 state = ide_read(channel, ATA_REG_STATUS); // Read Status Register.
 
     // (III) Check For Errors:
     // -------------------------------------------------
-    logk("III\n");
+    klog("III\n");
     if (state & ATA_SR_ERR) return 2; // Error.
 
     // (IV) Check If Device fault:
@@ -398,7 +398,7 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
   u8  head, sect, err;
   ide_write(channel, ATA_REG_CONTROL, channels[channel].nIEN = (ide_irq_invoked = 0x0) + 0x02);
   // (I) Select one from LBA28, LBA48 or CHS;
-  logk("I %02x\n", channels[channel].nIEN);
+  klog("I %02x\n", channels[channel].nIEN);
   if (lba >= 0x10000000) { // Sure Drive should support LBA in this case, or
                            // you are giving a wrong LBA.
     // LBA48:
@@ -434,13 +434,13 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
     head = (lba + 1 - sect) % (16 * 63) / (63); // Head number is written to HDDEVSEL lower 4-bits.
   }
   // (II) See if drive supports DMA or not;
-  logk("II\n");
+  klog("II\n");
   dma = 0; // We don't support DMA
            // (III) Wait if the drive is busy;
-  logk("III\n");
+  klog("III\n");
   while (ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY) {} // Wait if busy.
   // (IV) Select Drive from the controller;
-  logk("IV\n");
+  klog("IV\n");
   if (lba_mode == 0)
     ide_write(channel, ATA_REG_HDDEVSEL,
               0xA0 | (slavebit << 4) | head); // Drive & CHS.
@@ -471,7 +471,7 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
   if (lba_mode == 1 && dma == 1 && direction == 1) cmd = ATA_CMD_WRITE_DMA;
   if (lba_mode == 2 && dma == 1 && direction == 1) cmd = ATA_CMD_WRITE_DMA_EXT;
   ide_write(channel, ATA_REG_COMMAND, cmd); // Send the Command.
-  logk("IV1\n");
+  klog("IV1\n");
   if (dma)
     if (direction == 0)
       ;
@@ -486,10 +486,10 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
     current_task()->running = 0;
     u16 *word_              = (u16 *)edi;
     for (i = 0; i < numsects; i++) {
-      logk("read %d\n", i);
+      klog("read %d\n", i);
       if (err = ide_polling(channel, 1)) return err; // Polling, set error and exit if there is.
 
-      logk("words=%d bus=%d\n", words, bus);
+      klog("words=%d bus=%d\n", words, bus);
       // for (int h = 0; h < words; h++) {
       //   u16 a = io_in16(bus);
       //   word_[i * words + h] = a;
@@ -504,7 +504,7 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
     current_task()->running = 0;
     u16 *word_              = (u16 *)edi;
     for (i = 0; i < numsects; i++) {
-      logk("write %d\n", i);
+      klog("write %d\n", i);
       ide_polling(channel, 0); // Polling.
       // asm("pushw %ds");
       // asm("mov %%ax, %%ds" ::"a"(selector));
@@ -529,13 +529,13 @@ void ide_wait_irq() {
   ide_irq_invoked = 0;
 }
 void ide_irq() {
-  logk("ide irq.\n");
+  klog("ide irq.\n");
   ide_irq_invoked = 1;
   send_eoi(0xf);
   send_eoi(0xe);
 }
 u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
-  logk("cdrom read.\n");
+  klog("cdrom read.\n");
   u32 channel  = ide_devices[drive].Channel;
   u32 slavebit = ide_devices[drive].Drive;
   u32 bus      = channels[channel].base;
@@ -546,7 +546,7 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
   ide_write(channel, ATA_REG_CONTROL, channels[channel].nIEN = ide_irq_invoked = 0x0);
   // (I): Setup SCSI Packet:
   // ------------------------------------------------------------------
-  logk("I\n");
+  klog("I\n");
   atapi_packet[0]  = ATAPI_CMD_READ;
   atapi_packet[1]  = 0x0;
   atapi_packet[2]  = (lba >> 24) & 0xFF;
@@ -561,13 +561,13 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
   atapi_packet[11] = 0x0; // (II): Select the drive:
   // ------------------------------------------------------------------
   ide_write(channel, ATA_REG_HDDEVSEL, slavebit << 4);
-  logk("II\n");
+  klog("II\n");
   // (III): Delay 400 nanoseconds for select to complete:
   for (int i = 0; i < 4000; i++)
     ;
-  logk("III\n");
+  klog("III\n");
   // ------------------------------------------------------------------
-  logk("IV\n");
+  klog("IV\n");
   for (int i = 0; i < 4; i++)
     ide_read(channel,
              ATA_REG_ALTSTATUS); // Reading the Alternate Status port wastes
@@ -578,7 +578,7 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
             0); // PIO mode.
                 // (V): Tell the Controller the size of buffer:
   // ------------------------------------------------------------------
-  logk("V\n");
+  klog("V\n");
   ide_write(channel, ATA_REG_LBA1,
             (words * 2) & 0xFF); // Lower Byte of Sector Size.
   ide_write(channel, ATA_REG_LBA2,
@@ -593,19 +593,19 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
 
   // (VIII): Sending the packet data:
   // ------------------------------------------------------------------
-  logk("VIII\n");
+  klog("VIII\n");
   u16 *_atapi_packet = atapi_packet;
   for (int i = 0; i < 6; i++) {
     asm_out16(bus, _atapi_packet[i]);
   }
   // (IX): Receiving Data:
   // ------------------------------------------------------------------
-  logk("IX\n");
+  klog("IX\n");
   u16 *_word = (u16 *)edi;
   for (i = 0; i < numsects; i++) {
     ide_wait_irq();                                // Wait for an IRQ.
     if (err = ide_polling(channel, 1)) return err; // Polling and return if error.
-    logk("words = %d\n", words);
+    klog("words = %d\n", words);
     for (int h = 0; h < words; h++) {
       u16 a                = asm_in16(bus);
       _word[i * words + h] = a;
@@ -637,7 +637,7 @@ void ide_read_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi) {
   else {
     u8 err;
     if (ide_devices[drive].Type == IDE_ATA) {
-      logk("Will Read.\n");
+      klog("Will Read.\n");
       err = ide_ata_access(ATA_READ, drive, lba, numsects, es, edi);
 
     } else if (ide_devices[drive].Type == IDE_ATAPI)

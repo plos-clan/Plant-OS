@@ -1,13 +1,6 @@
 #pragma once
 #include "00-include.h"
 
-#if !__BYTE_ORDER__ || !__ORDER_LITTLE_ENDIAN__ || !__ORDER_BIG_ENDIAN__
-#  error "请指定端序"
-#endif
-#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__ && __BYTE_ORDER__ != __ORDER_BIG_ENDIAN__
-#  error "端序必须为大端序或小端序"
-#endif
-
 // 获取数组的长度
 #ifndef lengthof
 #  define lengthof(arr) (sizeof(arr) / sizeof(*(arr)))

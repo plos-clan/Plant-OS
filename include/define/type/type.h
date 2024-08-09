@@ -21,7 +21,7 @@ static const auto null = nullptr;
 
 _CONST_(bool);
 
-// gcc 扩展
+// gcc 扩展，让 C 中的 auto 具有和 C++ 类似的语义
 #ifndef __cplusplus
 #  define auto __auto_type
 #endif
@@ -36,7 +36,7 @@ _CONST_(bool);
 
 #define INT_MIN  (-__INT_MAX__ - 1)
 #define INT_MAX  __INT_MAX__
-#define UINT_MAX (((unsigned int)__INT_MAX__ << 1) | 1)
+#define UINT_MAX ((unsigned int)-1)
 
 #define INT8_MIN   (-__INT8_MAX__ - 1)
 #define INT8_MAX   __INT8_MAX__
@@ -55,7 +55,9 @@ _CONST_(bool);
 #define INTMAX_MAX  __INTMAX_MAX__
 #define UINTMAX_MAX __UINTMAX_MAX__
 
-#define SIZE_MAX __SIZE_MAX__
+#define SSIZE_MAX ((__INTPTR_TYPE__)(__SIZE_MAX__ >> 1))
+#define SSIZE_MIN (-SSIZE_MAX - 1)
+#define SIZE_MAX  __SIZE_MAX__
 
 #define I8_MIN  (-__INT8_MAX__ - 1)
 #define I8_MAX  __INT8_MAX__

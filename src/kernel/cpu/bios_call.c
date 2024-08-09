@@ -5,9 +5,9 @@ extern u8 *IVT;
 #ifdef __clang__
 #  pragma clang optimize off
 #endif
-void INT(u8 intnum, regs16_t *regs) {
+void asm16_int(u8 intnum, regs16 *regs) {
   struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-  // logd("%08x\n",current_task()->pde);
+  // klogd("%08x\n",current_task()->pde);
   asm_set_cr3(PDE_ADDRESS);
   set_segmdesc(gdt + 1000, 0xffffffff, 0, AR_CODE32_ER); // CODE32
   set_segmdesc(gdt + 1001, 0xfffff, 0, AR_CODE16_ER);    // CODE16
