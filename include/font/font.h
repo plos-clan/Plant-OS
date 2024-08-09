@@ -2,39 +2,35 @@
 #include <data-structure.h>
 #include <libc-base.h>
 
-#define FONT_IMG_WIDTH 1024
-
 typedef struct font_char {
-  int32_t code : 24; // 字符的unicode码点
-  int8_t  top;       //
-  int8_t  left;      //
-  int8_t  width;     //
-  int8_t  height;    //
-  int8_t  advance;   //
-  union {
-    int32_t offset;
-    byte   *img; //
-  };
+  i32   code;    // 字符的 unicode 码点
+  byte *img;     // 字符的位图
+  i16   top;     // 到上方的距离
+  i16   left;    // 到左侧的距离
+  i16   width;   // 位图的宽度
+  i16   height;  // 位图的高度
+  i16   advance; // 字符的宽度
 } *font_char_t;
 
 typedef struct font {
-  int32_t     rc;
-  byte       *img;
-  int32_t     img_size;
-  int32_t     channels;
-  int32_t     height;
-  int32_t     nchars;
+  u32         nchars;   //
+  u16         height;   // 标准字符高度 (大小)
+  u16         channels; // 单通道 或 RGBA
   font_char_t chars_list;
+  byte       *img;
   rbtree_t    chars;
-} *font_t;
+} *plff_t;
 
-extern font_t font_load(const char *filename);
-extern int    font_save(const char *filename, font_t font);
-extern void   font_free(font_t font);
+extern plff_t font_load(const char *filename);
+extern int    font_save(const char *filename, plff_t font);
+extern void   font_free(plff_t font);
 
-extern font_t font_ref(font_t font);
-extern void   font_unref(font_t font);
+extern plff_t font_ref(plff_t font);
+extern void   font_unref(plff_t font);
 
-finline font_char_t font_getchar(font_t font, int32_t code) {
+dlexport plff_t plff_load_from_mem(const void *data, size_t size);
+dlexport void  *font_save_to_mem(plff_t font, size_t *size_p);
+
+finline font_char_t font_getchar(plff_t font, i32 code) {
   return rbtree_get(font->chars, code);
 }

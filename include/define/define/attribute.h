@@ -2,7 +2,12 @@
 #include "00-include.h"
 
 // 部分数据结构不应该有 padding
-#define __PACKED__ __attribute__((packed))
+#define __PACKED__   __attribute__((packed))
+#define __ALIGN__(x) __attr(packed, aligned(x))
+#define __ALIGN2__   __ALIGN__(2)
+#define __ALIGN4__   __ALIGN__(4)
+#define __ALIGN8__   __ALIGN__(8)
+#define __ALIGN16__  __ALIGN__(16)
 
 #define _rest __restrict
 

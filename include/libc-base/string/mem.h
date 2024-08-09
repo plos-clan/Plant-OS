@@ -3,6 +3,8 @@
 
 // 声明
 
+#if NO_STD
+
 finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n);
 finline void *memmove(void *_d, const void *_s, size_t _n);
 finline void *memset(void *_s, int _c, size_t _n);
@@ -22,8 +24,10 @@ finline int bcmp(const void *s1, const void *s2, size_t n) {
   return memcmp(s1, s2, n);
 }
 
+#endif
+
 // 非标准库函数
-finline void *memdup(const void *_s, size_t _n);
+finline void *memdup(const void *s, size_t n);
 
 // 定义
 

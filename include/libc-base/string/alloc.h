@@ -1,29 +1,64 @@
 #pragma once
+#include "../crypto/hash.h"
 #include "../stdlib/alloc.h"
 #include "mem.h"
 #include "str.h"
 
-finline char *strdup(cstr _s) {
-  size_t len = strlen(_s);
+#if NO_STD
+
+finline char *strdup(cstr s) {
+  size_t len = strlen(s);
   auto   ptr = (char *)malloc(len + 1);
   if (ptr == null) return null;
-  memcpy(ptr, _s, len + 1);
+  memcpy(ptr, s, len + 1);
   return ptr;
 }
 
-finline char *strndup(cstr _s, size_t _n) {
-  size_t len = strlen(_s);
-  if (_n > len) _n = len;
-  auto ptr = (char *)malloc(_n + 1);
+finline char *strndup(cstr s, size_t n) {
+  size_t len = strlen(s);
+  if (n > len) n = len;
+  auto ptr = (char *)malloc(n + 1);
   if (ptr == null) return null;
-  memcpy(ptr, _s, _n);
-  ptr[_n] = '\0';
+  memcpy(ptr, s, n);
+  ptr[n] = '\0';
   return ptr;
 }
 
-finline void *memdup(const void *_s, size_t _n) {
-  void *ptr = malloc(_n);
+#endif
+
+finline void *memdup(const void *s, size_t n) {
+  void *ptr = malloc(n);
   if (ptr == null) return null;
-  memcpy(ptr, _s, _n);
+  memcpy(ptr, s, n);
   return ptr;
+}
+
+// 将 C 标准的字符串 转换为 xstr
+finline xstr c2xstr(cstr s) {
+  if (s == null) return null;
+  size_t len = strlen(s);
+  xstr   x   = (xstr)malloc(sizeof(struct _xstr) + len + 1);
+  if (x == null) return null;
+  x->len  = len;
+  x->hash = memhash(s, len);
+  memcpy(x->data, s, len + 1);
+  return x;
+}
+
+// 将 xstr 转换为 C 标准的字符串，并删除 xstr
+finline char *x2str(xstr s) {
+  if (s == null) return null;
+  auto ptr = strdup(s->data);
+  free(s);
+  return ptr;
+}
+
+finline xstr xstrdup(xstr s) {
+  if (s == null) return null;
+  xstr x = (xstr)malloc(sizeof(struct _xstr) + s->len + 1);
+  if (x == null) return null;
+  x->len  = s->len;
+  x->hash = s->hash;
+  memcpy(x->data, s->data, s->len + 1);
+  return x;
 }

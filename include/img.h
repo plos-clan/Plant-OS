@@ -4,8 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "font/font.h"
-#include "font/plff.h"
+#include "img/qoi.h"
 #ifdef __cplusplus
 }
 #endif

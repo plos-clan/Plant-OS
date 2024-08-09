@@ -111,7 +111,15 @@ finline u64 byteswap64(u64 x) {
   return x;
 }
 #  define byteswap(x)                                                                              \
-    _Generic((x), u8: byteswap8(x), u16: byteswap16(x), u32: byteswap32(x), u64: byteswap64(x))
+    _Generic((x),                                                                                  \
+        u8: byteswap8(x),                                                                          \
+        u16: byteswap16(x),                                                                        \
+        u32: byteswap32(x),                                                                        \
+        u64: byteswap64(x),                                                                        \
+        i8: byteswap8(x),                                                                          \
+        i16: byteswap16(x),                                                                        \
+        i32: byteswap32(x),                                                                        \
+        i64: byteswap64(x))
 #  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #    define little_endian(x) (x)
 #    define big_endian(x)    (byteswap(x))

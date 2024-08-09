@@ -6,23 +6,32 @@
 #define isdigit(c)   ('0' <= (c) && (c) <= '9')
 #define isdigit16(c) (isdigit(c) || ('a' <= (c) && (c) <= 'f') || ('A' <= (c) && (c) <= 'F'))
 
-#define __ato(t, type)                                                                             \
-  finline type ato##t(cstr s) {                                                                    \
-    bool neg = *s == '-';                                                                          \
-    if (neg || *s == '+') s++;                                                                     \
-    type n = 0;                                                                                    \
-    for (; isdigit(*s); s++)                                                                       \
-      n = n * 10 + (*s - '0');                                                                     \
-    return neg ? -n : n;                                                                           \
-  }
-#define __uato(t, type)                                                                            \
-  finline type ato##t(cstr s) {                                                                    \
-    if (*s == '+') s++;                                                                            \
-    type n = 0;                                                                                    \
-    for (; isdigit(*s); s++)                                                                       \
-      n = n * 10 + (*s - '0');                                                                     \
-    return n;                                                                                      \
-  }
+#if NO_STD
+
+#  define __ato(t, type)                                                                           \
+    finline type ato##t(cstr s) {                                                                  \
+      bool neg = *s == '-';                                                                        \
+      if (neg || *s == '+') s++;                                                                   \
+      type n = 0;                                                                                  \
+      for (; isdigit(*s); s++)                                                                     \
+        n = n * 10 + (*s - '0');                                                                   \
+      return neg ? -n : n;                                                                         \
+    }
+#  define __uato(t, type)                                                                          \
+    finline type ato##t(cstr s) {                                                                  \
+      if (*s == '+') s++;                                                                          \
+      type n = 0;                                                                                  \
+      for (; isdigit(*s); s++)                                                                     \
+        n = n * 10 + (*s - '0');                                                                   \
+      return n;                                                                                    \
+    }
+
+#else
+
+#  define __ato(t, type)  type ato##t(cstr s);
+#  define __uato(t, type) type ato##t(cstr s);
+
+#endif
 
 __ato(hh, char);
 __uato(uhh, uchar);
@@ -128,28 +137,37 @@ _atof(f128);
     if (e) *e = (char *)(_s == s ? __s : s);                                                       \
     return neg ? -n : n;                                                                           \
   }
-#define __strto(t, type)                                                                           \
-  finline type strto##t(cstr _rest s, char **_rest e, int base) {                                  \
-    __strto_begin;                                                                                 \
-    type n = 0;                                                                                    \
-    for (;; s++) {                                                                                 \
-      if (isdigit(*s)) {                                                                           \
-        n = n * base + (*s - '0');                                                                 \
-      } else if (base > 10) {                                                                      \
-        if ('a' <= *s && *s <= 'a' + base - 11) {                                                  \
-          n = n * base + (*s - 'a' + 10);                                                          \
-        } else if ('A' <= *s && *s <= 'A' + base - 11) {                                           \
-          n = n * base + (*s - 'A' + 10);                                                          \
+
+#if NO_STD
+
+#  define __strto(t, type)                                                                         \
+    finline type strto##t(cstr _rest s, char **_rest e, int base) {                                \
+      __strto_begin;                                                                               \
+      type n = 0;                                                                                  \
+      for (;; s++) {                                                                               \
+        if (isdigit(*s)) {                                                                         \
+          n = n * base + (*s - '0');                                                               \
+        } else if (base > 10) {                                                                    \
+          if ('a' <= *s && *s <= 'a' + base - 11) {                                                \
+            n = n * base + (*s - 'a' + 10);                                                        \
+          } else if ('A' <= *s && *s <= 'A' + base - 11) {                                         \
+            n = n * base + (*s - 'A' + 10);                                                        \
+          } else {                                                                                 \
+            break;                                                                                 \
+          }                                                                                        \
         } else {                                                                                   \
           break;                                                                                   \
         }                                                                                          \
-      } else {                                                                                     \
-        break;                                                                                     \
       }                                                                                            \
-    }                                                                                              \
-    if (e) *e = (char *)(_s == s ? __s : s);                                                       \
-    return neg ? -n : n;                                                                           \
-  }
+      if (e) *e = (char *)(_s == s ? __s : s);                                                     \
+      return neg ? -n : n;                                                                         \
+    }
+
+#else
+
+#  define __strto(t, type) type strto##t(cstr _rest s, char **_rest e, int base);
+
+#endif
 
 #define _strb2to(t)  __strb2to(t, t)
 #define _strb8to(t)  __strb8to(t, t)
@@ -206,4 +224,7 @@ _stof(f128);
 
 #undef __stof
 
+#undef isdigit2
+#undef isdigit8
 #undef isdigit
+#undef isdigit16

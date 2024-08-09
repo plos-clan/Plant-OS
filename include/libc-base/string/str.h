@@ -3,6 +3,8 @@
 
 // 声明
 
+#if NO_STD
+
 /**
  *\brief 复制字符串
  * 
@@ -18,8 +20,8 @@ finline int    strcmp(cstr _s1, cstr _s2);
 finline int    tolower(int c);
 finline int    toupper(int c);
 finline int    strncmp(cstr _s1, cstr _s2, size_t n);
-finline char  *strdup(cstr _s);
-finline char  *strndup(cstr _s, size_t _n);
+finline char  *strdup(cstr s);
+finline char  *strndup(cstr s, size_t n);
 finline char  *strchr(cstr _s, int _c);
 finline char  *strrchr(cstr _s, int _c);
 finline char  *strchrnul(cstr _s, int _c);
@@ -46,11 +48,25 @@ finline int    strverscmp(cstr __s1, cstr __s2);
 finline char  *strfry(char *__string);
 finline char  *basename(cstr __filename);
 
+#endif
+
 #define streq(s1, s2)                                                                              \
   ({                                                                                               \
     cstr _s1 = (s1), _s2 = (s2);                                                                   \
     (_s1 && _s2) ? strcmp(_s1, _s2) == 0 : _s1 == _s2;                                             \
   })
+
+#define xstreq(s1, s2)                                                                             \
+  ({                                                                                               \
+    xstr _s1 = (s1), _s2 = (s2);                                                                   \
+    (_s1 && _s2) ? (_s1->hash == _s2->hash ? xstrcmp(_s1, _s2) == 0 : false) : _s1 == _s2;         \
+  })
+
+typedef struct _xstr {
+  size_t len;
+  size_t hash;
+  char   data[];
+} *xstr;
 
 // 定义
 
@@ -389,3 +405,6 @@ finline int isupper(int c) {
 }
 
 #endif
+
+u32  utf8_to_32(cstr *s_p);
+void utf8_to_32s(u32 *d, cstr s);

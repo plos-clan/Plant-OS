@@ -9,27 +9,36 @@ extern const char _plos_lut_alnum_upper[62];
 
 // 这些函数将数字转换为字符串形式
 
-#define __toa(t, type)                                                                             \
-  finline cstr t##toa(type n) {                                                                    \
-    char *s  = _plos_c_xtoa_buf + _plos_c_xtoa_buf_len;                                            \
-    *--s     = '\0';                                                                               \
-    bool neg = n < 0;                                                                              \
-    if (neg) n = -n;                                                                               \
-    if (n == 0) *--s = '0';                                                                        \
-    for (; n > 0; n /= 10)                                                                         \
-      *--s = n % 10 + '0';                                                                         \
-    if (neg) *--s = '-';                                                                           \
-    return s;                                                                                      \
-  }
-#define __utoa(t, type)                                                                            \
-  finline cstr t##toa(type n) {                                                                    \
-    char *s = _plos_c_xtoa_buf + _plos_c_xtoa_buf_len;                                             \
-    *--s    = '\0';                                                                                \
-    if (n == 0) *--s = '0';                                                                        \
-    for (; n > 0; n /= 10)                                                                         \
-      *--s = n % 10 + '0';                                                                         \
-    return s;                                                                                      \
-  }
+#if NO_STD
+
+#  define __toa(t, type)                                                                           \
+    finline cstr t##toa(type n) {                                                                  \
+      char *s  = _plos_c_xtoa_buf + _plos_c_xtoa_buf_len;                                          \
+      *--s     = '\0';                                                                             \
+      bool neg = n < 0;                                                                            \
+      if (neg) n = -n;                                                                             \
+      if (n == 0) *--s = '0';                                                                      \
+      for (; n > 0; n /= 10)                                                                       \
+        *--s = n % 10 + '0';                                                                       \
+      if (neg) *--s = '-';                                                                         \
+      return s;                                                                                    \
+    }
+#  define __utoa(t, type)                                                                          \
+    finline cstr t##toa(type n) {                                                                  \
+      char *s = _plos_c_xtoa_buf + _plos_c_xtoa_buf_len;                                           \
+      *--s    = '\0';                                                                              \
+      if (n == 0) *--s = '0';                                                                      \
+      for (; n > 0; n /= 10)                                                                       \
+        *--s = n % 10 + '0';                                                                       \
+      return s;                                                                                    \
+    }
+
+#else
+
+#  define __toa(t, type)  cstr t##toa(type n);
+#  define __utoa(t, type) cstr t##toa(type n);
+
+#endif
 
 #define _toa(t)  __toa(t, t)
 #define _utoa(t) __utoa(t, t)
@@ -168,25 +177,34 @@ _utoa(u64);
     return s;                                                                                      \
   }
 
-#define __tostr(t, type, utype)                                                                    \
-  finline char *t##tostr(char *buf, size_t len, type _n, int b) {                                  \
-    __tostr_begin_nlt;                                                                             \
-    if (_n == 0) return (*--s = '0', s);                                                           \
-    bool  neg = _n < 0;                                                                            \
-    utype n   = neg ? -_n : _n;                                                                    \
-    for (; n; n /= b)                                                                              \
-      *--s = nlt[n % b];                                                                           \
-    if (neg) *--s = '-';                                                                           \
-    return s;                                                                                      \
-  }
-#define __utostr(t, type)                                                                          \
-  finline char *t##tostr(char *buf, size_t len, type n, int b) {                                   \
-    __tostr_begin_nlt;                                                                             \
-    if (n == 0) return (*--s = '0', s);                                                            \
-    for (; n; n /= b)                                                                              \
-      *--s = nlt[n % b];                                                                           \
-    return s;                                                                                      \
-  }
+#if NO_STD
+
+#  define __tostr(t, type, utype)                                                                  \
+    finline char *t##tostr(char *buf, size_t len, type _n, int b) {                                \
+      __tostr_begin_nlt;                                                                           \
+      if (_n == 0) return (*--s = '0', s);                                                         \
+      bool  neg = _n < 0;                                                                          \
+      utype n   = neg ? -_n : _n;                                                                  \
+      for (; n; n /= b)                                                                            \
+        *--s = nlt[n % b];                                                                         \
+      if (neg) *--s = '-';                                                                         \
+      return s;                                                                                    \
+    }
+#  define __utostr(t, type)                                                                        \
+    finline char *t##tostr(char *buf, size_t len, type n, int b) {                                 \
+      __tostr_begin_nlt;                                                                           \
+      if (n == 0) return (*--s = '0', s);                                                          \
+      for (; n; n /= b)                                                                            \
+        *--s = nlt[n % b];                                                                         \
+      return s;                                                                                    \
+    }
+
+#else
+
+#  define __tostr(t, type, utype) char *t##tostr(char *buf, size_t len, type _n, int b);
+#  define __utostr(t, type)       char *t##tostr(char *buf, size_t len, type n, int b);
+
+#endif
 
 #define _tostrb2(t, u)  __tostrb2(t, t, u)
 #define _utostrb2(t)    __utostrb2(t, t)

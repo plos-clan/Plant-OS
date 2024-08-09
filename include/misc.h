@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #include "misc/color.h"
+#include "misc/file.h"
 #include "misc/include.h"
 #include "misc/math/fft.h"
 #include "misc/stdio/print.h"
