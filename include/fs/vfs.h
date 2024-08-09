@@ -10,10 +10,10 @@
 
 typedef struct vfs_node *vfs_node_t;
 
-typedef void *(*vfs_mount_t)(cstr src);
+typedef int (*vfs_mount_t)(cstr src, vfs_node_t node);
 typedef void (*vfs_unmount_t)(void *root);
 
-typedef void *(*vfs_open_t)(void *parent, cstr name, vfs_node_t node);
+typedef void (*vfs_open_t)(void *parent, cstr name, vfs_node_t node);
 typedef void (*vfs_close_t)(void *current);
 typedef void (*vfs_resize_t)(void *current, u64 size);
 
@@ -25,6 +25,13 @@ typedef int (*vfs_stat_t)(void *file, vfs_node_t node);
 
 typedef int (*vfs_mk_t)(void *parent, cstr name, vfs_node_t node);
 
+enum {
+  file_none,   // 未获取信息
+  file_dir,    // 文件夹
+  file_block,  // 块设备，如硬盘
+  file_stream, // 流式设备，如终端
+};
+
 typedef struct vfs_callback {
   vfs_mount_t   mount;
   vfs_unmount_t unmount;
@@ -35,7 +42,6 @@ typedef struct vfs_callback {
   vfs_mk_t      mkdir;
   vfs_mk_t      mkfile;
   vfs_stat_t    stat; // 保留备用
-  void (*free)(void *);
 } *vfs_callback_t;
 
 struct vfs_node {
@@ -62,12 +68,24 @@ struct fd {
   bool   writeable;
 };
 
+extern struct vfs_callback vfs_empty_callback;
+
 extern vfs_node_t rootdir;
+
+vfs_node_t vfs_child_append(vfs_node_t parent, cstr name, void *handle);
 
 bool vfs_init();
 void vfs_deinit();
 
-void vfs_regist(cstr name, vfs_callback_t callback);
+int vfs_mount(cstr src, vfs_node_t node);
+
+int vfs_regist(cstr name, vfs_callback_t callback);
 
 #define PATH_MAX     4096
 #define FILENAME_MAX 256
+
+void       tmpfs_regist();
+vfs_node_t vfs_open(cstr str);
+int        vfs_mkdir(cstr name);
+
+int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size);

@@ -58,19 +58,25 @@ int tmpfs_writefile(file_t file, const void *addr, size_t offset, size_t size) {
   return 0;
 }
 
-void *tmpfs_open(void *parent, cstr name, vfs_node_t node) {
-  return null;
+void tmpfs_open(void *parent, cstr name, vfs_node_t node) {
+  //
 }
 
 void tmpfs_close(file_t handle) {
   file_free(handle);
 }
 
-void *tmpfs_mount(cstr src) {
-  return null;
+int tmpfs_mount(cstr src, vfs_node_t node) {
+  return -1;
 }
 
-void tmpfs_unmount(void *root) {}
+void tmpfs_unmount(void *root) {
+  //
+}
+
+int tmpfs_stat(void *file, vfs_node_t node) {
+  return 0;
+}
 
 static struct vfs_callback callbacks = {
     .mount   = tmpfs_mount,
@@ -81,6 +87,7 @@ static struct vfs_callback callbacks = {
     .write   = (vfs_write_t)tmpfs_writefile,
     .mkdir   = tmpfs_mkdir,
     .mkfile  = tmpfs_mkfile,
+    .stat    = tmpfs_stat,
 };
 
 void tmpfs_regist() {

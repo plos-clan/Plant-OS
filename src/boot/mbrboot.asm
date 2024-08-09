@@ -9,7 +9,7 @@
 ; BIOS 会将这个扇区读到 7c00h 地址并开始执行，所以这就是本引导在内存中的位置的段寄存器表示
 bootseg  equ 7c0h
 dataseg  equ 1000h
-readsize equ 200                          ; 单位是扇区
+readsize equ 220                          ; 单位是扇区
 %define e_entry                24
 %define e_phoff                28
 %define e_phentsize            42
