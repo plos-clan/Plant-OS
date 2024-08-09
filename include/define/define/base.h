@@ -15,12 +15,6 @@
 #  define __has(name) (__has_builtin(__builtin_##name))
 #endif
 
-#define MASK8(n)  ((u8)1 << (n))
-#define MASK16(n) ((u16)1 << (n))
-#define MASK32(n) ((u32)1 << (n))
-#define MASK64(n) ((u64)1 << (n))
-#define MASK(n)   ((size_t)1 << (n))
-
 #define CONCAT_(a, b) a##b
 #define CONCAT(a, b)  CONCAT_(a, b)
 

@@ -1,7 +1,8 @@
 #pragma once
 #include "00-include.h"
 
-#define __PACKED__ __attribute__((packed)) // plos kernel 使用
+// 部分数据结构不应该有 padding
+#define __PACKED__ __attribute__((packed))
 
 #define _rest __restrict
 

@@ -9,6 +9,7 @@ extern "C" {
 #include "define/attribute.h"
 #include "define/base.h"
 #include "define/logging.h"
+#include "define/magic.h"
 #include "define/rc.h"
 #include "define/va.h"
 #ifdef __cplusplus

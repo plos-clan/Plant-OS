@@ -15,6 +15,7 @@ extern "C" {
 #include "define/define/attribute.h"
 #include "define/define/base.h"
 #include "define/define/logging.h"
+#include "define/define/magic.h"
 #include "define/define/rc.h"
 #include "define/define/va.h"
 #include "define/type/00-include.h"
