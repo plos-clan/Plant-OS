@@ -80,6 +80,15 @@ static void do_free(mpool_t pool, void *ptr) {
   }
 }
 
+finline bool try_split_and_free(mpool_t pool, void *ptr, size_t size) {
+  if (blk_size(ptr) >= size + 8 * sizeof(size_t)) {
+    void *new_ptr = blk_split(ptr, size);
+    do_free(pool, new_ptr);
+    return true;
+  }
+  return false;
+}
+
 dlexport void *mpool_alloc(mpool_t pool, size_t size) {
   if (size == 0) size = 2 * sizeof(size_t);
   size = PADDING(size);
@@ -93,13 +102,11 @@ dlexport void *mpool_alloc(mpool_t pool, size_t size) {
     ptr = freelist_match(&pool->large_blk, size);
   }
 
-  if (blk_size(ptr) >= size + 8 * sizeof(size_t)) {
-    void *new_ptr = blk_split(ptr, size);
-    do_free(pool, new_ptr);
-  }
+  try_split_and_free(pool, ptr, size);
 
-  blk_setalloced(ptr, blk_size(ptr));
-  pool->alloced_size += blk_size(ptr);
+  size = blk_size(ptr);
+  blk_setalloced(ptr, size);
+  pool->alloced_size += size;
   return ptr;
 }
 
@@ -115,4 +122,31 @@ dlexport void mpool_free(mpool_t pool, void *ptr) {
 dlexport size_t mpool_msize(mpool_t pool, void *ptr) {
   if (ptr == null) return 0;
   return blk_size(ptr);
+}
+
+dlexport void *mpool_realloc(mpool_t pool, void *ptr, size_t newsize) {
+  if (newsize == 0) newsize = 2 * sizeof(size_t);
+  newsize = PADDING(newsize);
+
+  size_t size = blk_size(ptr);
+
+  if (size < newsize) {
+    void *next = blk_next(ptr);
+    if (next != null && blk_freed(next)) {
+      size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
+      if (total_size >= newsize) {
+        ptr = blk_mergenext(ptr, (blk_detach_t)_detach, pool);
+        try_split_and_free(pool, ptr, newsize);
+        return ptr;
+      }
+    }
+
+    void *new_ptr = mpool_alloc(pool, newsize);
+    memcpy(new_ptr, ptr, size);
+    mpool_free(pool, ptr);
+    return new_ptr;
+  }
+
+  try_split_and_free(pool, ptr, newsize);
+  return ptr;
 }

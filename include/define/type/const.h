@@ -92,7 +92,7 @@ _CONST_(cint64_t);
 _CONST_(cuint64_t);
 _CONST_(cfloat32_t);
 _CONST_(cfloat64_t);
-#if defined(__x86_64__)
+#if defined(__x86_64__) && __GCC__ > 12
 _CONST_(cfloat16_t);
 #  ifdef __clang__
 _CONST_(cfloat128_t);
@@ -109,7 +109,7 @@ _CONST_(ci64);
 _CONST_(cu64);
 _CONST_(cf32);
 _CONST_(cf64);
-#if defined(__x86_64__)
+#if defined(__x86_64__) && __GCC__ > 12
 _CONST_(cf16);
 #  ifdef __clang__
 _CONST_(cf128);

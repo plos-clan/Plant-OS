@@ -84,7 +84,10 @@ int vfs_mkfile(cstr name) {
 
   while (*--filename != '/' && filename != path) {}
   *filename++ = '\0';
-
+  if (strlen(path) == 0) {
+    free(path);
+    return -1;
+  }
   for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
     current = vfs_child_find(current, buf);
     if (current == null || current->type != file_dir) goto err;

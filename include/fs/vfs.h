@@ -5,9 +5,6 @@
 // 读写时请 padding 到 PAGE_SIZE 的整数倍
 #define FILE_BLKSIZE PAGE_SIZE
 
-#define PADDING_DOWN(size, to) ((size_t)(size) / (size_t)(to) * (size_t)(to))
-#define PADDING_UP(size, to)   PADDING_DOWN((size_t)(size) + (size_t)(to) - (size_t)1, to)
-
 typedef struct vfs_node *vfs_node_t;
 
 typedef int (*vfs_mount_t)(cstr src, vfs_node_t node);
@@ -89,3 +86,4 @@ vfs_node_t vfs_open(cstr str);
 int        vfs_mkdir(cstr name);
 
 int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size);
+int vfs_mkfile(cstr name);

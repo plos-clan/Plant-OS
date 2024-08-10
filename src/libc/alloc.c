@@ -24,12 +24,7 @@ void *calloc(size_t n, size_t size) {
 }
 
 void *realloc(void *ptr, size_t newsize) {
-  void *newptr = malloc(newsize);
-  if (newptr == null) return null;
-  size_t size = malloc_usable_size(ptr);
-  memcpy(newptr, ptr, size);
-  free(ptr);
-  return newptr;
+  return mman_realloc(&mman, ptr, newsize);
 }
 
 void *reallocarray(void *ptr, size_t n, size_t size) {

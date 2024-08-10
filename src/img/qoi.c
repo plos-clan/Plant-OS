@@ -13,13 +13,6 @@
 #define QOI_MAGIC       0x66696f71
 #define QOI_HEADER_SIZE 14
 
-typedef union {
-  struct {
-    byte r, g, b, a;
-  };
-  u32 v;
-} color_t;
-
 finline int _color_hash(color_t c) {
   return (c.r * 3 + c.g * 5 + c.b * 7 + c.a * 11) % 64;
 }

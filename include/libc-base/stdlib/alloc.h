@@ -180,6 +180,8 @@ dlimport void mpool_free(mpool_t pool, void *ptr);
  */
 dlimport size_t mpool_msize(mpool_t pool, void *ptr);
 
+dlimport void *mpool_realloc(mpool_t pool, void *ptr, size_t newsize);
+
 //* ----------------------------------------------------------------------------------------------------
 //& 内存管理器
 
@@ -221,3 +223,5 @@ dlimport void *mman_alloc(mman_t pool, size_t size);
 dlimport void mman_free(mman_t pool, void *ptr);
 
 dlimport size_t mman_msize(mman_t pool, void *ptr);
+
+dlimport void *mman_realloc(mman_t man, void *ptr, size_t newsize);

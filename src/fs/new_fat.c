@@ -9,11 +9,28 @@ typedef struct file {
 } *file_t;
 
 int fatfs_mkdir(void *parent, cstr name, vfs_node_t node) {
-  node->handle = null;
+  file_t p        = parent;
+  char  *new_path = malloc(strlen(p->path) + strlen(name) + 1 + 1);
+  sprintf(new_path, "%s/%s", p->path, name);
+  FIL     fp;
+  FRESULT res = f_mkdir(new_path);
+  f_close(&fp);
+  free(new_path);
+  if (res != FR_OK) { return -1; }
   return 0;
 }
 
-int fatfs_mkfile(void *parent, cstr name, vfs_node_t node) {}
+int fatfs_mkfile(void *parent, cstr name, vfs_node_t node) {
+  file_t p        = parent;
+  char  *new_path = malloc(strlen(p->path) + strlen(name) + 1 + 1);
+  sprintf(new_path, "%s/%s", p->path, name);
+  FIL     fp;
+  FRESULT res = f_open(&fp, new_path, FA_CREATE_NEW);
+  f_close(&fp);
+  free(new_path);
+  if (res != FR_OK) { return -1; }
+  return 0;
+}
 
 int fatfs_readfile(file_t file, void *addr, size_t offset, size_t size) {
   if (file == null || addr == null) return -1;
@@ -27,6 +44,13 @@ int fatfs_readfile(file_t file, void *addr, size_t offset, size_t size) {
 }
 
 int fatfs_writefile(file_t file, const void *addr, size_t offset, size_t size) {
+  if (file == null || addr == null) return -1;
+  FRESULT res;
+  res = f_lseek(file->handle, offset);
+  if (res != FR_OK) return -1;
+  u32 n;
+  res = f_write(file->handle, addr, size, &n);
+  if (res != FR_OK) return -1;
   return 0;
 }
 
@@ -66,7 +90,19 @@ void fatfs_open(void *parent, cstr name, vfs_node_t node) {
   node->handle = new;
 }
 
-void fatfs_close(file_t handle) {}
+void fatfs_close(file_t handle) {
+  FILINFO fno;
+  FRESULT res = f_stat(handle->path, &fno);
+  assert(res == FR_OK);
+  if (fno.fattrib & AM_DIR) {
+    res = f_closedir(handle->handle);
+  } else {
+    res = f_close(handle->handle);
+  }
+  free(handle->path);
+  free(handle);
+  assert(res == FR_OK);
+}
 
 int fatfs_mount(cstr src, vfs_node_t node) {
   int drive  = *(int *)src;
@@ -102,7 +138,18 @@ int fatfs_mount(cstr src, vfs_node_t node) {
 
 void fatfs_unmount(void *root) {}
 
-int dummy() {
+int fatfs_stat(void *handle, vfs_node_t node) {
+  file_t  f = handle;
+  FILINFO fno;
+  FRESULT res = f_stat(f->path, &fno);
+  if (res != FR_OK) return -1;
+  if (fno.fattrib & AM_DIR) {
+    node->type = file_dir;
+  } else {
+    node->type = file_block;
+    node->size = fno.fsize;
+    // node->createtime = fno.ftime
+  }
   return 0;
 }
 
@@ -115,7 +162,7 @@ static struct vfs_callback callbacks = {
     .write   = (vfs_write_t)fatfs_writefile,
     .mkdir   = fatfs_mkdir,
     .mkfile  = fatfs_mkfile,
-    .stat    = (vfs_stat_t)dummy,
+    .stat    = fatfs_stat,
 };
 
 void fatfs_regist() {

@@ -27,6 +27,7 @@ extern "C" {
 #include "define/type/bool.h"
 #include "define/type/complex.h"
 #include "define/type/const.h"
+#include "define/type/ex.h"
 #include "define/type/int.h"
 #include "define/type/limit.h"
 #include "define/type/vector.h"

@@ -8,13 +8,6 @@
 #define QOI_OP_RGBA  0xff /* 11111111 */
 #define QOI_MASK     0xc0 /* 11000000 */
 
-typedef union {
-  struct {
-    byte r, g, b, a;
-  };
-  u32 v;
-} color_t;
-
 finline int _color_hash(color_t c) {
   return (c.r * 3 + c.g * 5 + c.b * 7 + c.a * 11) % 64;
 }

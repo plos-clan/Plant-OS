@@ -29,6 +29,8 @@ add_subdirectory(include)
 
 set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 
+set_optim_flag("-g -O1")
+
 message("本机 环境")
 include(cmake/show-flags)
 

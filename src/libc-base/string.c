@@ -36,4 +36,5 @@ void utf8_to_32s(u32 *d, cstr s) {
   while (*s) {
     *d++ = utf8_to_32(&s);
   }
+  *d++ = 0;
 }

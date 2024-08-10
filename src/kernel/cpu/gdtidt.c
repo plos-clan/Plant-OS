@@ -38,7 +38,10 @@ void init_gdtidt() {
   set_segmdesc(gdt + 3, 0xffffffff, 0x00000000, AR_DATA32_RW | 3 << 5);
   set_segmdesc(gdt + 4, 0xffffffff, 0x00000000, AR_CODE32_ER | 3 << 5);
   set_segmdesc(gdt + 5, 0xffffffff, 0x70000000, AR_DATA32_RW | 3 << 5);
-  load_gdtr(LIMIT_GDT, ADR_GDT); // 加载GDT表
+  set_segmdesc(gdt + 1000, 0xffffffff, 0, AR_CODE32_ER); // CODE32
+  set_segmdesc(gdt + 1001, 0xfffff, 0, AR_CODE16_ER);    // CODE16
+  set_segmdesc(gdt + 1002, 0xfffff, 0, AR_DATA16_RW);    // DATA16
+  load_gdtr(LIMIT_GDT, ADR_GDT);                         // 加载GDT表
 
   /* IDT */
   for (i = 0; i <= LIMIT_IDT / 8; i++) {

@@ -1,9 +1,7 @@
 #include <kernel.h>
 
-static inline void nul(...) {}
-
-#define klog  nul
-#define sleep nul
+#define klog
+#define sleep
 
 u8 ide_read(u8 channel, u8 reg);
 

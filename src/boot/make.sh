@@ -9,4 +9,5 @@ mcopy -i disk.img kernel.bin ::
 qemu-img create hd.img 128M
 mformat -t 64 -h 64 -i hd.img
 mcopy -i hd.img testapp.bin ::
-mcopy -i hd.img font.plff ::
+mcopy -i hd.img font1.plff ::
+mcopy -i hd.img font2.plff ::

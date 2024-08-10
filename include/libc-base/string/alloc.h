@@ -1,5 +1,6 @@
 #pragma once
 #include "../crypto/hash.h"
+#include "../stdio/print.h"
 #include "../stdlib/alloc.h"
 #include "mem.h"
 #include "str.h"
@@ -61,4 +62,14 @@ finline xstr xstrdup(xstr s) {
   x->hash = s->hash;
   memcpy(x->data, s->data, s->len + 1);
   return x;
+}
+
+finline char *pathcat(cstr p1, cstr p2) {
+  char *p = (char *)malloc(strlen(p1) + strlen(p2) + 2);
+  if (p1[strlen(p1) - 1] == '/') {
+    sprintf(p, "%s%s", p1, p2);
+  } else {
+    sprintf(p, "%s/%s", p1, p2);
+  }
+  return p;
 }

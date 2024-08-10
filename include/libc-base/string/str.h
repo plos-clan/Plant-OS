@@ -56,6 +56,12 @@ finline char  *basename(cstr __filename);
     (_s1 && _s2) ? strcmp(_s1, _s2) == 0 : _s1 == _s2;                                             \
   })
 
+#define strneq(s1, s2, n)                                                                          \
+  ({                                                                                               \
+    cstr _s1 = (s1), _s2 = (s2);                                                                   \
+    (_s1 && _s2) ? strncmp(_s1, _s2, n) == 0 : _s1 == _s2;                                         \
+  })
+
 #define xstreq(s1, s2)                                                                             \
   ({                                                                                               \
     xstr _s1 = (s1), _s2 = (s2);                                                                   \

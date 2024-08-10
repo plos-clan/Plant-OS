@@ -16,7 +16,7 @@ FT_Face    face;
 int main() {
   FT_Init_FreeType(&library);
   FT_New_Face(library, "SourceHanSans-Light.ttc", 2, &face);
-  // FT_New_Face(library, "Inconsolata-Regular.ttf", 0, &face);
+  // FT_New_Face(library, "Ligconsolata-Regular.ttf", 0, &face);
   int pixel_height = 14;
   FT_Set_Pixel_Sizes(face, 0, pixel_height);
 

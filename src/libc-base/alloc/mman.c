@@ -110,6 +110,15 @@ static void do_free(mman_t man, void *ptr) {
   }
 }
 
+finline bool try_split_and_free(mman_t man, void *ptr, size_t size) {
+  if (blk_size(ptr) >= size + 8 * sizeof(size_t)) {
+    void *new_ptr = blk_split(ptr, size);
+    do_free(man, new_ptr);
+    return true;
+  }
+  return false;
+}
+
 dlexport void *mman_alloc(mman_t man, size_t size) {
   if (size == 0) size = 2 * sizeof(size_t);
   size = PADDING(size);
@@ -123,10 +132,7 @@ dlexport void *mman_alloc(mman_t man, size_t size) {
     ptr = freelist_match(&man->large_blk, size);
   }
 
-  if (blk_size(ptr) >= size + 8 * sizeof(size_t)) {
-    void *new_ptr = blk_split(ptr, size);
-    do_free(man, new_ptr);
-  }
+  try_split_and_free(man, ptr, size);
 
   size = blk_size(ptr);
   blk_setalloced(ptr, size);
@@ -158,4 +164,31 @@ dlexport void mman_free(mman_t man, void *ptr) {
 dlexport size_t mman_msize(mman_t man, void *ptr) {
   if (ptr == null) return 0;
   return blk_size(ptr);
+}
+
+dlexport void *mman_realloc(mman_t man, void *ptr, size_t newsize) {
+  if (newsize == 0) newsize = 2 * sizeof(size_t);
+  newsize = PADDING(newsize);
+
+  size_t size = blk_size(ptr);
+
+  if (size < newsize) {
+    void *next = blk_next(ptr);
+    if (next != null && blk_freed(next)) {
+      size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
+      if (total_size >= newsize) {
+        ptr = blk_mergenext(ptr, (blk_detach_t)_detach, man);
+        try_split_and_free(man, ptr, newsize);
+        return ptr;
+      }
+    }
+
+    void *new_ptr = mman_alloc(man, newsize);
+    memcpy(new_ptr, ptr, size);
+    mman_free(man, ptr);
+    return new_ptr;
+  }
+
+  try_split_and_free(man, ptr, newsize);
+  return ptr;
 }

@@ -13,6 +13,7 @@ extern "C" {
 #include "type/bool.h"
 #include "type/complex.h"
 #include "type/const.h"
+#include "type/ex.h"
 #include "type/int.h"
 #include "type/limit.h"
 #include "type/vector.h"

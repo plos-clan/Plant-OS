@@ -31,6 +31,6 @@ extern void   font_unref(plff_t font);
 dlexport plff_t plff_load_from_mem(const void *data, size_t size);
 dlexport void  *font_save_to_mem(plff_t font, size_t *size_p);
 
-finline font_char_t font_getchar(plff_t font, i32 code) {
-  return rbtree_get(font->chars, code);
+finline font_char_t font_getchar(plff_t font, u32 code) {
+  return rbtree_get(font->chars, (i32)code);
 }
