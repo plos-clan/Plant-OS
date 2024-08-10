@@ -18,7 +18,7 @@ void *syscall_mmap(void *start, u32 length) {
 
   u32 addr            = current_task()->pde;
   u32 line_addr_start = null;
-  for (int i = DIDX(0x70000000) * 4, c = 0; i < 1024; i++) {
+  for (int i = DIDX(0x70000000), c = 0; i < 1024; i++) {
     u32 *pde_entry = (u32 *)addr + i;
     u32  p         = *pde_entry & (0xfffff000);
     for (int j = 0; j < 1024; size_is_2M ? j += 512 : j++) {

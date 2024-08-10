@@ -28,7 +28,7 @@ u32 utf8_to_32(cstr *s_p) {
 
 err:
   s++;
-  *s_p = s;
+  *s_p = (cstr)s;
   return 0xfffd; // 跳过非法序列
 }
 

@@ -5,7 +5,17 @@
 extern "C" {
 #endif
 #include "type/00-include.h"
-#include "type/type.h"
+#include "type/atom-func.h"
+#include "type/atom-lockfree.h"
+#include "type/atom-type.h"
+#include "type/atom.h"
+#include "type/base.h"
+#include "type/bool.h"
+#include "type/complex.h"
+#include "type/const.h"
+#include "type/int.h"
+#include "type/limit.h"
+#include "type/vector.h"
 #ifdef __cplusplus
 }
 #endif

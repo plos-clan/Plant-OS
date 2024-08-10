@@ -1,6 +1,10 @@
 #include <kernel.h>
+
 #pragma GCC optimize("O0")
-void        task_to_user_mode_elf(char *filename);
+
+#pragma clang optimize off
+
+void task_to_user_mode_elf(char *filename);
 
 extern char             *shell_data;
 extern struct TSS32      tss;
@@ -267,7 +271,7 @@ void task_to_user_mode_elf(char *filename) {
   // klog("value = %08x\n",*(u32 *)(0xb5000000));
   current_task()->alloc_addr = alloc_addr;
   iframe->eip                = load_elf(p);
-  klog("eip = %08x\n", &(iframe->eip));
+  klogd("eip = %08x", &(iframe->eip));
   current_task()->user_mode = 1;
   tss.esp0                  = current_task()->top;
   change_page_task_id(current_task()->tid, p, vfs_filesize(filename));
@@ -296,6 +300,7 @@ int os_execute(char *filename, char *line) {
   mtask *t = create_task((u32)task_app, 0, 1, 1);
   // 轮询
   t->train = 0;
+
   vfs_change_disk_for_task(current_task()->nfs->drive, t);
 
   char *path;

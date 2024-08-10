@@ -108,30 +108,22 @@ int kbhit() {
   return tty_fifo_status() != 0; // 进程的键盘FIFO缓冲区是否为空
 }
 
+// 扫描码转化ASCII码
+// 逻辑与getch函数大同小异
 int sc2a(int sc) {
-  // 扫描码转化ASCII码
-  // 逻辑与getch函数大同小异
   int ch = sc;
   if (ch > 0x80) {
     ch -= 0x80;
-    if (ch == 0x48) {
-      return -1;
-    } else if (ch == 0x50) {
-      return -2;
-    } else if (ch == 0x4b) {
-      return -3;
-    } else if (ch == 0x4d) {
-      return -4;
-    }
+    if (ch == 0x48) return -1;
+    if (ch == 0x50) return -2;
+    if (ch == 0x4b) return -3;
+    if (ch == 0x4d) return -4;
   }
-  if (keytable[ch] == 0x00) { return 0; }
-  if (shift == 0 && caps_lock == 0) {
-    return keytable1[ch];
-  } else if (shift == 1 || caps_lock == 1) {
-    return keytable[ch];
-  } else if (shift == 1 && caps_lock == 1) {
-    return keytable1[ch];
-  }
+  if (keytable[ch] == 0x00) return 0;
+  if (shift == 0 && caps_lock == 0) return keytable1[ch];
+  if (shift == 1 || caps_lock == 1) return keytable[ch];
+  if (shift == 1 && caps_lock == 1) return keytable1[ch];
+  return -1;
 }
 
 int    disable_flag      = 0;

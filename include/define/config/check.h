@@ -4,6 +4,9 @@
 #  error "请指定端序"
 #endif
 
+#undef LITTLE_ENDIAN
+#undef BIG_ENDIAN
+
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #  define LITTLE_ENDIAN 1
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__

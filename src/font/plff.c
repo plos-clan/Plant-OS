@@ -40,15 +40,15 @@ dlexport plff_t plff_load_from_mem(const void *data, size_t size) {
 
   font->chars = null;
   for (int32_t i = 0; i < font->nchars; i++) {
-    plff_file_char_t s = &info->chars[i];
-    font_char_t      c = &font->chars_list[i];
-    c->code            = s->code;
-    c->img             = font->img + s->img;
-    c->top             = s->top;
-    c->left            = s->left;
-    c->width           = s->width;
-    c->height          = s->height;
-    c->advance         = s->advance;
+    auto s     = &info->chars[i];
+    auto c     = &font->chars_list[i];
+    c->code    = s->code;
+    c->img     = font->img + s->img;
+    c->top     = s->top;
+    c->left    = s->left;
+    c->width   = s->width;
+    c->height  = s->height;
+    c->advance = s->advance;
     rbtree_insert(font->chars, c->code, c);
   }
 

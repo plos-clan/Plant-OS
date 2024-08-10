@@ -19,7 +19,17 @@ extern "C" {
 #include "define/define/rc.h"
 #include "define/define/va.h"
 #include "define/type/00-include.h"
-#include "define/type/type.h"
+#include "define/type/atom-func.h"
+#include "define/type/atom-lockfree.h"
+#include "define/type/atom-type.h"
+#include "define/type/atom.h"
+#include "define/type/base.h"
+#include "define/type/bool.h"
+#include "define/type/complex.h"
+#include "define/type/const.h"
+#include "define/type/int.h"
+#include "define/type/limit.h"
+#include "define/type/vector.h"
 #ifdef __cplusplus
 }
 #endif

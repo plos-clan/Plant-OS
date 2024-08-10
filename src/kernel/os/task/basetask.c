@@ -57,12 +57,12 @@ void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
 
-  klogd("Set Mode");
-  byte *vram = (void *)set_mode(1024, 768, 32);
-  memset(vram, 0xff, 1024 * 768 * 4);
-  for (int i = 0; i < 20; i++) {
-    printi("I=%d", i);
-  }
+  // klogd("Set Mode");
+  // byte *vram = (void *)set_mode(1024, 768, 32);
+  // memset(vram, 0xff, 1024 * 768 * 4);
+  // for (int i = 0; i < 20; i++) {
+  //   printi("I=%d", i);
+  // }
 
   init_floppy();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
@@ -85,30 +85,30 @@ void init() {
     printf("name: %s  size: %d", file->name, file->size);
   }
 
-  auto  file = vfs_open("/fatfs1/font.plff");
-  byte *buf  = malloc(file->size);
-  vfs_read(file, buf, 0, file->size);
+  // auto  file = vfs_open("/fatfs1/font.plff");
+  // byte *buf  = malloc(file->size);
+  // vfs_read(file, buf, 0, file->size);
 
-  auto font = plff_load_from_mem(buf, file->size);
-  klogi("font: %d %d %d", font->nchars, font->height, font->channels);
-  u32 text[16];
-  utf8_to_32s(text, "你好，世界");
-  size_t bx = 50, by = 50;
-  for (int i = 0; text[i]; i++) {
-    auto ch = font_getchar(font, text[i]);
-    for (int y = 0; y < ch->height; y++) {
-      for (int x = 0; x < ch->width; x++) {
-        size_t vx = bx + ch->left + x, vy = by + ch->top + y;
-        vram[(vy * 1024 + vx) * 4 + 2] = 255 - ch->img[(y * ch->width + x) * 3];
-        vram[(vy * 1024 + vx) * 4 + 1] = 255 - ch->img[(y * ch->width + x) * 3 + 1];
-        vram[(vy * 1024 + vx) * 4]     = 255 - ch->img[(y * ch->width + x) * 3 + 2];
-      }
-    }
-    bx += ch->advance;
-  }
+  // auto font = plff_load_from_mem(buf, file->size);
+  // klogi("font: %d %d %d", font->nchars, font->height, font->channels);
+  // u32 text[16];
+  // utf8_to_32s(text, "你好，世界");
+  // size_t bx = 50, by = 50;
+  // for (int i = 0; text[i]; i++) {
+  //   auto ch = font_getchar(font, text[i]);
+  //   for (int y = 0; y < ch->height; y++) {
+  //     for (int x = 0; x < ch->width; x++) {
+  //       size_t vx = bx + ch->left + x, vy = by + ch->top + y;
+  //       vram[(vy * 1024 + vx) * 4 + 2] = 255 - ch->img[(y * ch->width + x) * 3];
+  //       vram[(vy * 1024 + vx) * 4 + 1] = 255 - ch->img[(y * ch->width + x) * 3 + 1];
+  //       vram[(vy * 1024 + vx) * 4]     = 255 - ch->img[(y * ch->width + x) * 3 + 2];
+  //     }
+  //   }
+  //   bx += ch->advance;
+  // }
 
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
+  //create_task((u32)sound_test, 0, 1, 1);
 
   extern int init_ok_flag;
   init_ok_flag = 1;

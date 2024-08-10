@@ -14,10 +14,11 @@
 #undef __THROW
 #undef __wur
 #undef __nonnull
+#undef __attr_dealloc
+
 #define __THROW           __attribute__((nothrow, leaf))
 #define __wur             __attribute__((warn_unused_result))
 #define __nonnull(params) __attribute__((nonnull params))
-
 #define __attr(...)       __attribute__((__VA_ARGS__))
 #define __attr_deprecated __attr(deprecated)
 #define __attr_nthrow     __attr(nothrow)

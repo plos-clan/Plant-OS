@@ -384,7 +384,7 @@ OK:
     return;
   }
   hba_mem_address = (HBA_MEM *)read_bar_n(ahci_bus, ahci_slot, ahci_func, 5);
-  klog("HBA Address has been Mapped in %08x ", hba_mem_address);
+  klog("HBA Address has been Mapped in %p ", hba_mem_address);
   // 设置允许中断产生
   u32 conf  = pci_read_command_status(ahci_bus, ahci_slot, ahci_func);
   conf     &= 0xffff0000;
@@ -411,7 +411,7 @@ OK:
     SATA_ident_t buf;
     int          a = ahci_identify(&(hba_mem_address->ports[ports[i]]), &buf);
     if (!a) {
-      klog("SATA Drive %d identify error.\n");
+      klog("SATA Drive identify error.\n");
       continue;
     }
     klog("ports %d: total sector = %d\n", ports[i], buf.lba_capacity);
