@@ -100,15 +100,20 @@ void sysinit() {
   do_init_seg_register();
   memsize = memtest(0x00400000, 0xbfffffff);
   init_page();
-  IVT = page_malloc_one_no_mark();
-  memcpy(IVT, null, 0x1000);
+  IVT = page_malloc(0x10000);
+  memcpy(IVT, null, 0x10000);
   init_gdtidt();
   init_pic();
+
   asm_sti;
   irq_mask_clear(0);
   irq_mask_clear(1);
   asm_set_em, asm_set_ts, asm_set_ne;
+
   memory_init(page_malloc(128 * 1024 * 1024), 128 * 1024 * 1024);
+
+  // 可以 setmode
+
   init_pit();
   init_tty();
   clear();

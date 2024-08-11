@@ -1,7 +1,7 @@
 #include <kernel.h>
 
-#define klog
-#define sleep
+#define klog(...)  ((void)0)
+#define sleep(...) ((void)0)
 
 u8 ide_read(u8 channel, u8 reg);
 

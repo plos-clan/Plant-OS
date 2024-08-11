@@ -1,5 +1,9 @@
 #include <kernel.h>
 
+#pragma GCC optimize("O0")
+
+#pragma clang optimize off
+
 #define rmfarptr2ptr(x) ((void *)((x).seg * 0x10 + (x).offset))
 
 int check_vbe_mode(int mode, struct VBEINFO *vinfo) {
@@ -74,8 +78,6 @@ void get_all_mode() {
   }
 }
 
-#pragma GCC optimize("O0")
-
 u32 set_mode(int width, int height, int bpp) {
   regs16 regs = {.ax = 0x4f00, .es = 0x07e0, .di = 0x0000};
   asm16_int(0x10, &regs);
@@ -84,7 +86,7 @@ u32 set_mode(int width, int height, int bpp) {
   volatile u16 *mode = (u16 *)rmfarptr2ptr(vbe->videoModes);
   for (size_t c = 0; mode[c] != U16_MAX; c++) {
     volatile VESAModeInfo *info = GetVESAModeInfo(mode[c]);
-    klogd("%04x:%dx%dx%d", mode[c], info->width, info->height, info->bitsPerPixel);
+    // klogd("%04x:%dx%dx%d", mode[c], info->width, info->height, info->bitsPerPixel);
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
       SwitchVBEMode(mode[c]);
       volatile struct VBEINFO *v = (struct VBEINFO *)VBEINFO_ADDRESS;

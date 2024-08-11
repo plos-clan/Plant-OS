@@ -60,6 +60,13 @@ endstruc
 %define CODE16                                 1001 * 8
 %define DATA16                                 1002 * 8
 %define STACK16                                (INT32_BASE - regs16_size)	; 实模式堆栈只需要存寄存器就好了 所以不用多大
+%macro L 0                                      
+pusha
+mov dx,0x3f8
+mov al,'A'
+out dx,al
+popa
+%endmacro
 int32:
 		cli                     			; 禁止中断
 		mov eax,0x400000
@@ -80,6 +87,7 @@ int32:
 		add	esp,8							; 丢弃栈中数据
 		mov eax,0x400000
 		mov cr3,eax
+		sti
 		ret
 reloc:                               		; by Napalm
 		mov  [REBASE(stack32_ptr)], esp        ; 保存保护模式的esp

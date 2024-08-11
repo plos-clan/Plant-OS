@@ -314,7 +314,7 @@ void init() {
 
   klogd("Set Mode");
   byte *vram = (void *)set_mode(1024, 768, 32);
-  memset(vram, 0xff, 1024 * 768 * 4);
+  memset(vram, 0, 1024 * 768 * 4);
   for (int i = 0; i < 20; i++) {
     printi("I=%d", i);
   }
@@ -329,17 +329,6 @@ void init() {
   s++;
   vfs_mkdir("/fatfs1");
   vfs_mount(&s, vfs_open("/fatfs1"));
-  // vfs_mkdir("/fatfs1/test");
-  // vfs_mkfile("/fatfs1/test/a.txt");
-  // scan_files("/");
-  // vfs_mount_disk('B', 'B');
-  // vfs_change_disk('B');
-  // list_t l = vfs_listfile("");
-  // printf("List files:");
-  // list_foreach(l, file_node) {
-  //   vfs_file *file = file_node->data;
-  //   printf("name: %s  size: %d", file->name, file->size);
-  // }
 
   auto font1 = load_font("/fatfs1/font1.plff");
   // auto font2 = load_font("/fatfs1/font2.plff");
@@ -350,11 +339,12 @@ void init() {
   for (int i = 0;; i++) {
     static char text[1024];
     static char buf[32];
-    // sprintf(text, "你好，世界！  %d\n", i + 1);
     rand_str(buf, 16);
     sprintf(text, "Hello world!  %s %d\n", buf, i + 1);
     color_t color = {rand(), rand(), rand(), 255};
     plty_setfg(tty, color);
+    color_t color2 = {rand(), rand(), rand(), 255};
+    plty_setbg(tty, color2);
     plty_puts(tty, text);
     plty_flush(tty);
   }

@@ -256,20 +256,6 @@ init_float:
 	pop eax
 	sti
 	ret
-global check
-check:
-	mov eax,cs      ; 获取cs的值 如果等于0x10则是ldrldr跳转来的
-	cmp eax,0x10
-	jne .not
-	ret
-.not:
-	mov edx,str
-	mov eax,5
-	int 36h
-	mov eax,0x1e
-	int 36h
-.hlt:
-	jmp .hlt
 extern current
 global task_switch,task_start
 task_switch:

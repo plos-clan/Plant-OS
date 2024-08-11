@@ -431,8 +431,8 @@ u32 plty_getch(plty_t tty, i32 x, i32 y) {
 static font_char_t plty_getfontch(plty_t tty, u32 ch) {
   font_char_t _ch = null;
 #pragma unroll
-  for (size_t i = 0; _ch == null && i < lengthof(tty->fonts); i++) {
-    _ch = font_getchar(tty->fonts[i], ch);
+  for (size_t i = 0; i < lengthof(tty->fonts); i++) {
+    _ch = _ch ?: font_getchar(tty->fonts[i], ch);
   }
   return _ch;
 }

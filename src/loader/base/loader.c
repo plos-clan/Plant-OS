@@ -1,5 +1,7 @@
 #include <loader.h>
-void        _IN(int cs, int eip);
+
+void _IN(int cs, int eip);
+
 struct TASK MainTask;
 
 bool elf32Validate(Elf32_Ehdr *hdr) {

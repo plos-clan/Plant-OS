@@ -30,8 +30,6 @@ dlexport plff_t plff_load_from_mem(const void *data, size_t size) {
   } else {
     font->img = plff_decode_rgb(img_data, info->img_zippedsize, (info->img_size + 2) / 3);
   }
-  printf("img_data: %p\n", img_data);
-  printf("font->img: %p\n", font->img);
   if (font->img == null) {
     free(font->chars_list);
     free(font);

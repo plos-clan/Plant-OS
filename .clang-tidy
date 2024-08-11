@@ -10,4 +10,5 @@ Checks: >
   -bugprone-reserved-identifier,
   -bugprone-easily-swappable-parameters,
   -readability-isolate-declaration,
+  -bugprone-sizeof-expression,
 FormatStyle: none

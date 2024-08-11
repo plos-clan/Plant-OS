@@ -1,5 +1,7 @@
 #include <kernel.h>
-list_t      tty_list = null;
+
+list_t tty_list;
+
 struct tty *tty_default;
 
 void t_putchar(struct tty *res, char ch);
