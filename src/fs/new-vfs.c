@@ -1,3 +1,4 @@
+#include "fs/vfs.h"
 #include <fs.h>
 
 vfs_node_t rootdir = null;
@@ -56,7 +57,19 @@ int vfs_mkdir(cstr name) {
   vfs_node_t current  = rootdir;
   for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
     vfs_node_t father = current;
+    if(streq(buf,".")) {
+      goto upd;
+    } else if(streq(buf,"..")){
+      if(current->parent && current->type == file_dir) {
+        current = current->parent;
+        goto upd;
+      } else {
+        goto err;
+      }
+    }
     current           = vfs_child_find(current, buf);
+
+upd:
     if (current == null) {
       current       = vfs_node_alloc(father, buf);
       current->type = file_dir;
@@ -89,7 +102,18 @@ int vfs_mkfile(cstr name) {
     return -1;
   }
   for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
+    if(streq(buf,".")) {
+      goto go;
+    } else if(streq(buf,"..")){
+      if(current->parent && current->type == file_dir) {
+        current = current->parent;
+        goto go;
+      } else {
+        goto err;
+      }
+    }
     current = vfs_child_find(current, buf);
+go:
     if (current == null || current->type != file_dir) goto err;
   }
 
@@ -129,9 +153,19 @@ vfs_node_t vfs_open(cstr str) {
   vfs_node_t current  = rootdir;
   for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
     vfs_node_t father = current;
+    if(streq(buf,".")) {
+      goto upd;
+    } else if(streq(buf,"..")){
+      if(current->parent && current->type == file_dir) {
+        current = current->parent;
+        goto upd;
+      } else {
+        goto err;
+      }
+    }
     current           = vfs_child_find(current, buf);
     if (current == null) goto err;
-    do_update(current);
+upd:    do_update(current);
   }
 
   free(path);

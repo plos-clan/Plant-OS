@@ -1,3 +1,5 @@
+#include "kernel/mtask.h"
+#include "kernel/syscall.h"
 #include <kernel.h>
 #define buffer_len 32768
 static const char l[] = "  QQffQQLLLfLLDDQQQfff  rrff``UU  QQDDQQLLLfLLDD<<f333  r\x98rf`r`U  "
@@ -75,7 +77,5 @@ void sound_test() {
     sb16_write(buffer, buffer_len);
   }
   sb16_close();
-  while (true) {
-    task_next();
-  }
+  syscall_exit(-1);
 }
