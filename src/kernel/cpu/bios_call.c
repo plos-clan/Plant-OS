@@ -1,3 +1,4 @@
+#include "kernel/8295a.h"
 #include <kernel.h>
 
 extern u8 *IVT;
@@ -11,5 +12,7 @@ void asm16_int(u8 intnum, regs16 *regs) {
   memcpy(null, IVT, 0x1000);
   int32(intnum, regs);
   asm_set_cr3(current_task()->pde);
+  init_pic();
   asm_sti;
+ 
 }
