@@ -1,4 +1,4 @@
-#pragma oncev
+#pragma once
 #include <define.h>
 
 #define isdigit2(c)  ((c) == '0' || (c) == '1')

@@ -86,6 +86,14 @@ u32 plty_getch(plty_t tty, i32 x, i32 y);
 
 void plty_setch(plty_t tty, i32 x, i32 y, u32 ch);
 
-void plty_putc(plty_t tty, int c);
+void plty_getcur(plty_t tty, u32 *x, u32 *y);
+
+u32 plty_getcurx(plty_t tty);
+
+u32 plty_getcury(plty_t tty);
+
+void plty_setcur(plty_t tty, u32 x, u32 y);
+
+void plty_putc(plty_t tty, u32 c);
 
 void plty_puts(plty_t tty, cstr s);

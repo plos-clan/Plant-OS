@@ -95,8 +95,9 @@ add_compile_flag("-fno-exceptions")
 # 这是我们希望的特性，但默认情况下会报 warning
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_flag("-Wno-compound-token-split-by-macro")
-  add_compile_flag("-Wpointer-integer-compare")
+  add_compile_flag("-Wno-pointer-integer-compare")
 endif()
+add_compile_flag("-Wno-address-of-packed-member")
 
 message("PLOS 环境")
 include(cmake/show-flags)

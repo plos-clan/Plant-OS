@@ -12,10 +12,10 @@ extern struct PAGE_INFO *pages;
 
 void task_to_user_mode_shell();
 
-#define IDX(addr)  ((unsigned)addr >> 12)           // 获取 addr 的页索引
-#define DIDX(addr) (((unsigned)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define TIDX(addr) (((unsigned)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PAGE(idx)  ((unsigned)idx << 12) // 获取页索引 idx 对应的页开始的位置
+#define IDX(addr)  ((u32)(addr) >> 12)           // 获取 addr 的页索引
+#define DIDX(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
+#define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
+#define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
 static u32 padding_up(u32 num, u32 size) {
   return (num + size - 1) / size;
@@ -30,7 +30,7 @@ void task_app() {
     klogd("%d", current_task()->line);
   }
   klogd("1");
-  unsigned *r          = current_task()->line;
+  u32 *r               = (u32 *)current_task()->line;
   filename             = (char *)r[0];
   current_task()->line = (char *)r[1];
   klogd("我爱你");
@@ -42,13 +42,13 @@ void task_app() {
   char *kbuf  = (char *)page_malloc_one();
   char *mbuf  = (char *)page_malloc_one();
 
-  cir_queue_init((cir_queue_t)kfifo, 4096, (u8 *)kbuf);
-  cir_queue_init((struct FIFO8 *)mfifo, 4096, (u8 *)mbuf);
-  task_set_fifo(current_task(), (struct FIFO8 *)kfifo, (struct FIFO8 *)mfifo);
+  cir_queue8_init((cir_queue8_t)kfifo, 4096, (u8 *)kbuf);
+  cir_queue8_init((cir_queue8_t)mfifo, 4096, (u8 *)mbuf);
+  task_set_fifo(current_task(), (cir_queue8_t)kfifo, (cir_queue8_t)mfifo);
   current_task()->alloc_size    = (u32 *)malloc(4);
   current_task()->alloced       = 1;
   *(current_task()->alloc_size) = 2 * 1024 * 1024;
-  unsigned pde                  = current_task()->pde;
+  u32 pde                       = current_task()->pde;
   asm_cli;
   asm_set_cr3(PDE_ADDRESS);
   klogd("P1 %08x", current_task()->pde);
@@ -63,7 +63,7 @@ void task_app() {
       if (pages[IDX(*pde_entry)].count > 1) {
         u32 old    = *pde_entry & 0xfffff000;
         u32 attr   = *pde_entry & 0xfff;
-        *pde_entry = (unsigned)page_malloc_one_count_from_4gb();
+        *pde_entry = (u32)page_malloc_one_count_from_4gb();
         memcpy((void *)(*pde_entry), (void *)old, 0x1000);
         pages[IDX(old)].count--;
         *pde_entry |= PAGE_USER | PAGE_P | PAGE_WRABLE;
@@ -72,7 +72,7 @@ void task_app() {
         *pde_entry |= 7;
       }
     }
-    unsigned p = *pde_entry & (0xfffff000);
+    u32 p = *pde_entry & (0xfffff000);
     for (int j = 0; j < 0x1000; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
       if ((*pte_entry & PAGE_SHARED)) {
@@ -83,24 +83,24 @@ void task_app() {
   }
   asm_sti;
   asm_set_cr3(pde);
-  char tmp[100];
   task_to_user_mode_elf(filename);
-  while (true) {}
+  infinite_loop;
 }
+
 void task_shell() {
   while (!current_task()->line) {}
-  char *kfifo = (char *)page_malloc_one();
-  char *mfifo = (char *)page_malloc_one();
-  char *kbuf  = (char *)page_malloc_one();
-  char *mbuf  = (char *)page_malloc_one();
-  cir_queue_init((struct FIFO8 *)kfifo, 4096, (u8 *)kbuf);
-  cir_queue_init((struct FIFO8 *)mfifo, 4096, (u8 *)mbuf);
-  task_set_fifo(current_task(), (cir_queue_t)kfifo, (cir_queue_t)mfifo);
+  void *kfifo = page_malloc_one();
+  void *mfifo = page_malloc_one();
+  void *kbuf  = page_malloc_one();
+  void *mbuf  = page_malloc_one();
+  cir_queue8_init(kfifo, 4096, kbuf);
+  cir_queue8_init(mfifo, 4096, mbuf);
+  task_set_fifo(current_task(), (cir_queue8_t)kfifo, (cir_queue8_t)mfifo);
   current_task()->alloc_size    = (u32 *)malloc(4);
   current_task()->alloced       = 1;
   *(current_task()->alloc_size) = 1 * 1024 * 1024;
 
-  unsigned pde = current_task()->pde;
+  u32 pde = current_task()->pde;
   asm_cli;
   asm_set_cr3(PDE_ADDRESS);
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
@@ -110,7 +110,7 @@ void task_shell() {
       if (pages[IDX(*pde_entry)].count > 1) {
         u32 old    = *pde_entry & 0xfffff000;
         u32 attr   = *pde_entry & 0xfff;
-        *pde_entry = (unsigned)page_malloc_one_count_from_4gb();
+        *pde_entry = (u32)page_malloc_one_count_from_4gb();
         memcpy((void *)(*pde_entry), (void *)old, 0x1000);
         pages[IDX(old)].count--;
         *pde_entry |= PAGE_USER | PAGE_P | PAGE_WRABLE;
@@ -120,7 +120,7 @@ void task_shell() {
       }
     } else {
     }
-    unsigned p = *pde_entry & (0xfffff000);
+    u32 p = *pde_entry & (0xfffff000);
     for (int j = 0; j < 0x1000; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
       if ((*pte_entry & PAGE_SHARED)) {
@@ -131,13 +131,12 @@ void task_shell() {
   }
   asm_sti;
   asm_set_cr3(pde);
-  char tmp[100];
   task_to_user_mode_shell();
-  while (true)
-    ;
+  infinite_loop;
 }
+
 void task_to_user_mode_shell() {
-  unsigned addr = (unsigned)current_task()->top;
+  u32 addr = (u32)current_task()->top;
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
@@ -159,7 +158,7 @@ void task_to_user_mode_shell() {
   iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp    = NULL; // 设置用户态堆栈
   char *p        = shell_data;
-  if (!elf32Validate(p)) {
+  if (!elf32Validate((Elf32_Ehdr *)p)) {
     extern mtask *mouse_use_task;
     if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
     list_free_with(vfs_now->path, free);
@@ -169,20 +168,20 @@ void task_to_user_mode_shell() {
     while (true)
       ;
   }
-  unsigned alloc_addr = (elf32_get_max_vaddr(p) & 0xfffff000) + 0x1000;
-  unsigned pg         = padding_up(*(current_task()->alloc_size), 0x1000);
+  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + 0x1000;
+  u32 pg         = padding_up(*(current_task()->alloc_size), 0x1000);
   for (int i = 0; i < pg + 128; i++) {
     // klog("%d\n",i);
     page_link(alloc_addr + i * 0x1000);
   }
-  unsigned alloced_esp  = alloc_addr + 128 * 0x1000;
-  alloc_addr           += 128 * 0x1000;
-  iframe->esp           = alloced_esp;
+  u32 alloced_esp  = alloc_addr + 128 * 0x1000;
+  alloc_addr      += 128 * 0x1000;
+  iframe->esp      = alloced_esp;
   page_link(0xf0000000);
   *(u8 *)(0xf0000000)        = 1;
   current_task()->alloc_addr = alloc_addr;
 
-  iframe->eip               = load_elf(p);
+  iframe->eip               = load_elf((Elf32_Ehdr *)p);
   current_task()->user_mode = 1;
   tss.esp0                  = current_task()->top;
   change_page_task_id(current_task()->tid, (void *)(iframe->esp - 512 * 1024), 512 * 1024);
@@ -195,12 +194,12 @@ void task_to_user_mode_shell() {
                "pop %%es\n\t"
                "pop %%ds\n\t"
                "iret" ::"m"(iframe));
-  while (true) {}
+  infinite_loop;
 }
 
 void task_to_user_mode_elf(char *filename) {
   page_link(0xf0000000); // 配置空间
-  unsigned addr = (unsigned)current_task()->top;
+  u32 addr = (u32)current_task()->top;
   // 配置空间放置在0xf0000000 用于记录一些启动信息
 
   struct args args = {
@@ -240,7 +239,7 @@ void task_to_user_mode_elf(char *filename) {
   char *p = page_malloc(sz);
   vfs_readfile(filename, p);
   klogd();
-  if (!elf32Validate(p)) {
+  if (!elf32Validate((Elf32_Ehdr *)p)) {
     klogd();
     for (int i = 0; i < 0x200; i++) {
       // printf("%02x ", p[i]);
@@ -257,20 +256,20 @@ void task_to_user_mode_elf(char *filename) {
     while (true)
       ;
   }
-  unsigned alloc_addr = (elf32_get_max_vaddr(p) & 0xfffff000) + 0x1000;
-  unsigned pg         = padding_up(*(current_task()->alloc_size), 0x1000);
+  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + 0x1000;
+  u32 pg         = padding_up(*(current_task()->alloc_size), 0x1000);
   for (int i = 0; i < pg + 128 * 4; i++) {
     page_link(alloc_addr + i * 0x1000);
   }
-  unsigned alloced_esp  = alloc_addr + 128 * 0x1000 * 4;
-  alloc_addr           += 128 * 0x1000 * 4;
-  iframe->esp           = alloced_esp;
+  u32 alloced_esp  = alloc_addr + 128 * 0x1000 * 4;
+  alloc_addr      += 128 * 0x1000 * 4;
+  iframe->esp      = alloced_esp;
   if (current_task()->ptid != -1) { *(u8 *)(0xf0000000) = 0; }
   //  strcpy((char *)0xf0000001, current_task()->line);
   // *(u32 *)(0xb5000000) = 2;
   // klog("value = %08x\n",*(u32 *)(0xb5000000));
   current_task()->alloc_addr = alloc_addr;
-  iframe->eip                = load_elf(p);
+  iframe->eip                = load_elf((Elf32_Ehdr *)p);
   klogd("eip = %08x", &(iframe->eip));
   current_task()->user_mode = 1;
   tss.esp0                  = current_task()->top;
@@ -284,7 +283,7 @@ void task_to_user_mode_elf(char *filename) {
                "pop %%es\n"
                "pop %%ds\n"
                "iret" ::"m"(iframe));
-  while (true) {}
+  infinite_loop;
 }
 
 int os_execute(char *filename, char *line) {
@@ -322,14 +321,14 @@ int os_execute(char *filename, char *line) {
   strcpy(p1, line);
   int o                     = current_task()->fifosleep;
   current_task()->fifosleep = 1;
-  unsigned *r               = page_malloc_one_no_mark();
+  u32 *r                    = page_malloc_one_no_mark();
   r[0]                      = (u32)fm;
   r[1]                      = (u32)p1;
-  t->line                   = r;
+  t->line                   = (char *)r;
 
   klogd();
 
-  unsigned status           = waittid(t->tid);
+  u32 status                = waittid(t->tid);
   current_task()->fifosleep = o;
 
   klogd();
@@ -370,7 +369,7 @@ int os_execute_shell(char *line) {
   current_task()->fifosleep = 1;
   t->line                   = p1;
   // io_sti();
-  unsigned status           = waittid(t->tid);
+  u32 status                = waittid(t->tid);
   current_task()->fifosleep = o;
   free(p1);
   current_task()->TTY       = tty_backup;
@@ -383,8 +382,8 @@ void os_execute_no_ret(char *filename, char *line) {
   struct tty *tty_backup = current_task()->TTY;
   t->TTY                 = current_task()->TTY;
   current_task()->TTY    = NULL;
-  unsigned *r            = page_malloc_one_no_mark();
+  u32 *r                 = page_malloc_one_no_mark();
   r[0]                   = (u32)filename;
   r[1]                   = (u32)line;
-  t->line                = r;
+  t->line                = (char *)r;
 }

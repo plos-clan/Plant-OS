@@ -8,8 +8,8 @@ struct TIMERCTL timerctl;
 #define TIMER_FLAGS_ALLOC 1 /* 已配置状态 */
 #define TIMER_FLAGS_USING 2 /* 定时器运行中 */
 
-extern int          cg_flag0;
-extern struct TASK *c_task;
+extern int    cg_flag0;
+extern mtask *c_task;
 
 void init_pit() {
   asm_out8(0x43, 0x34);
@@ -46,7 +46,7 @@ void timer_free(struct TIMER *timer) {
   timer->waiter = NULL;
 }
 
-void timer_init(struct TIMER *timer, cir_queue_t queue, u8 data) {
+void timer_init(struct TIMER *timer, cir_queue8_t queue, u8 data) {
   timer->queue = queue;
   timer->data  = data;
 }
@@ -128,7 +128,7 @@ void inthandler20(int cs, int *esp) {
     /* 超时 */
     timer->flags = TIMER_FLAGS_ALLOC;
     task_run(timer->waiter);
-    cir_queue_put(timer->queue, timer->data);
+    cir_queue8_put(timer->queue, timer->data);
     timer = timer->next; /* 将下一个定时器的地址赋给timer*/
   }
   timerctl.t0   = timer;

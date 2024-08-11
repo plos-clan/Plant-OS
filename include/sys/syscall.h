@@ -16,7 +16,7 @@
 #ifndef RING0
 dlimport ssize_t syscall(ssize_t id, ...);
 
-dlimport void exit(int status) __attribute__((noreturn));
+dlimport void exit(int status) __attr(noreturn);
 
 dlimport int print(cstr s);
 

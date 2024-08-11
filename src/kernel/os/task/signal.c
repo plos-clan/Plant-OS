@@ -1,5 +1,6 @@
 #include <kernel.h>
-typedef struct intr_frame1_t {
+
+typedef struct signal_frame {
   u32 eip1;
   u32 edi;
   u32 esi;
@@ -19,12 +20,7 @@ typedef struct intr_frame1_t {
 
   u32 eip;
 } signal_frame_t;
-void b2() {
 
-  while (true)
-    ;
-  return;
-}
 // TODO: 给GUI接管
 void signal_deal() {
   if (!current_task()) return;
@@ -33,12 +29,12 @@ void signal_deal() {
   task = current_task();
   //klogd("B %d\n",task->signal);
   int sig = -1;
-  if (task->signal & SIGMASK(SIGINT)) {
+  if (task->signal & MASK32(SIGINT)) {
     sig           = 0;
-    task->signal &= ~SIGMASK(SIGINT);
+    task->signal &= ~MASK32(SIGINT);
     if (task->handler[SIGINT]) {
-      intr_frame_t   *i     = (void *)(task->top - sizeof(intr_frame_t));
-      signal_frame_t *frame = (u32 *)(i->esp - sizeof(signal_frame_t));
+      intr_frame_t   *i     = (intr_frame_t *)(task->top - sizeof(intr_frame_t));
+      signal_frame_t *frame = (signal_frame_t *)(i->esp - sizeof(signal_frame_t));
       frame->edi            = i->edi;
       frame->esi            = i->esi;
       frame->ebp            = i->ebp;
@@ -60,7 +56,7 @@ void signal_deal() {
 
       // task_exit(0);
     }
-  } else if (task->signal & SIGMASK(SIGKIL)) {
+  } else if (task->signal & MASK32(SIGKIL)) {
     task_exit(0);
   } else {
     return;

@@ -45,7 +45,7 @@ void syscall_munmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
   u32 page_count = padding_up(length, 0x1000);
 
-  if (start > 0xf0000000) {
+  if (start > (void *)0xf0000000) {
     error("Couldn't unmap memory from %p to %p.", start, start + page_count * 0x1000);
     syscall_exit(-1);
     return;

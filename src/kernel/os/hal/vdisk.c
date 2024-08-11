@@ -9,6 +9,7 @@ int init_vdisk() {
     vdisk_ctl[i].flag = 0; // 设置为未使用
   }
   printi("ok");
+  return 0;
 }
 
 int register_vdisk(vdisk vd) {
@@ -66,16 +67,16 @@ bool have_vdisk(char drive) {
 }
 // 基于vdisk的通用读写
 
-static u8              *drive_name[16] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                                          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static struct cir_queue drive_fifo[16];
-static u8               drive_buf[16][256];
+static u8               *drive_name[16] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                                           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static struct cir_queue8 drive_fifo[16];
+static u8                drive_buf[16][256];
 
 bool set_drive(u8 *name) {
   for (int i = 0; i != 16; i++) {
     if (drive_name[i] == NULL) {
       drive_name[i] = name;
-      cir_queue_init(&drive_fifo[i], 256, drive_buf[i]);
+      cir_queue8_init(&drive_fifo[i], 256, drive_buf[i]);
       return true;
     }
   }
@@ -91,7 +92,7 @@ u32 get_drive_code(u8 *name) {
 
 bool drive_semaphore_take(u32 drive_code) {
   if (drive_code >= 16) { return true; }
-  cir_queue_put(&drive_fifo[drive_code], get_tid(current_task()));
+  cir_queue8_put(&drive_fifo[drive_code], get_tid(current_task()));
   // printk("FIFO: %d PUT: %d STATUS: %d\n", drive_code, Get_Tid(current_task()),
   //        fifo8_status(&drive_fifo[drive_code]));
   while (drive_buf[drive_code][drive_fifo[drive_code].head] != get_tid(current_task())) {
@@ -106,7 +107,7 @@ void drive_semaphore_give(u32 drive_code) {
     // 暂时先不做处理 一般不会出现这种情况
     return;
   }
-  cir_queue_get(&drive_fifo[drive_code]);
+  cir_queue8_get(&drive_fifo[drive_code]);
 }
 
 #define SECTORS_ONCE 8
@@ -150,7 +151,7 @@ void Disk_Write(u32 lba, u32 number, const void *buffer, char drive) {
       // printk("*buffer(%d %d) = %02x\n",lba,number,*(u8 *)buffer);
       for (int i = 0; i < number; i += SECTORS_ONCE) {
         int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
-        rw_vdisk(drive, lba + i, buffer + i * 512, sectors, 0);
+        rw_vdisk(drive, lba + i, (u8 *)((u32)buffer + i * 512), sectors, 0);
       }
       drive_semaphore_give(get_drive_code((u8 *)"DISK_DRIVE"));
     }

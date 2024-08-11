@@ -17,6 +17,11 @@ dlexport void exit(int status) {
   __builtin_unreachable();
 }
 
+dlexport void abort() {
+  __syscall(SYSCALL_EXIT, 1);
+  __builtin_unreachable();
+}
+
 dlexport int print(cstr s) {
   return __syscall(SYSCALL_PRINT, s);
 }

@@ -93,7 +93,7 @@ void fpu_enable(mtask *task) {
 
 void ERROR(int CODE, char *TIPS) {
   asm_cli;
-  while (true) {}
+  infinite_loop;
 }
 
 #define _ERROR(_code_, _tips_)                                                                     \

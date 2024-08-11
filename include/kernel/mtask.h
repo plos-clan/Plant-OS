@@ -6,9 +6,8 @@
 #include <kernel/mem.h>
 #include <libc-base.h>
 
-#define SIGINT     0
-#define SIGKIL     1
-#define SIGMASK(n) 1 << n
+#define SIGINT 0
+#define SIGKIL 1
 
 enum STATE {
   EMPTY,
@@ -46,8 +45,8 @@ struct __PACKED__ mtask {
   int           fpu_flag;
   char          drive_number;
   char          drive;
-  cir_queue_t   press_key_fifo, release_keyfifo;
-  cir_queue_t   keyfifo, mousefifo; // 基本输入设备的缓冲区
+  cir_queue8_t  press_key_fifo, release_keyfifo;
+  cir_queue8_t  keyfifo, mousefifo; // 基本输入设备的缓冲区
   char          urgent;
   cb_keyboard_t keyboard_press;
   cb_keyboard_t keyboard_release;
@@ -83,11 +82,11 @@ void task_fall_blocked(enum STATE state);
 void idle();
 void init();
 #define vfs_now current_task()->nfs
-cir_queue_t task_get_key_queue(mtask *task);
-cir_queue_t task_get_mouse_fifo(mtask *task);
-void        into_mtask();
-mtask      *create_task(u32 eip, u32 esp, u32 ticks, u32 floor);
-void        task_exit(u32 status);
-int         waittid(u32 tid);
-void        task_set_fifo(mtask *task, cir_queue_t kfifo, cir_queue_t mfifo);
-int         task_fork();
+cir_queue8_t task_get_key_queue(mtask *task);
+cir_queue8_t task_get_mouse_fifo(mtask *task);
+void         into_mtask();
+mtask       *create_task(u32 eip, u32 esp, u32 ticks, u32 floor);
+void         task_exit(u32 status);
+int          waittid(u32 tid);
+void         task_set_fifo(mtask *task, cir_queue8_t kfifo, cir_queue8_t mfifo);
+int          task_fork();

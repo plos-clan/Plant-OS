@@ -350,12 +350,12 @@ void into_mtask() {
   task_start(&(m[0]));
 }
 
-void task_set_fifo(mtask *task, cir_queue_t kfifo, cir_queue_t mfifo) {
+void task_set_fifo(mtask *task, cir_queue8_t kfifo, cir_queue8_t mfifo) {
   task->keyfifo   = kfifo;
   task->mousefifo = mfifo;
 }
 
-cir_queue_t task_get_key_queue(mtask *task) {
+cir_queue8_t task_get_key_queue(mtask *task) {
   return task->keyfifo;
 }
 
@@ -380,7 +380,7 @@ void task_fifo_sleep(mtask *task) {
   task->fifosleep = 1;
 }
 
-cir_queue_t task_get_mouse_fifo(mtask *task) {
+cir_queue8_t task_get_mouse_fifo(mtask *task) {
   return task->mousefifo;
 }
 

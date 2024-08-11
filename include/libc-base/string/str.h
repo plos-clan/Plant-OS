@@ -414,3 +414,15 @@ finline int isupper(int c) {
 
 u32  utf8_to_32(cstr *s_p);
 void utf8_to_32s(u32 *d, cstr s);
+
+finline void str2upper(char *str) {
+  for (; *str != '\0'; str++) {
+    if ('a' <= *str && *str <= 'z') *str = *str - 'a' + 'A';
+  }
+}
+
+finline void str2lower(char *str) {
+  for (; *str != '\0'; str++) {
+    if ('A' <= *str && *str <= 'Z') *str = *str - 'A' + 'a';
+  }
+}

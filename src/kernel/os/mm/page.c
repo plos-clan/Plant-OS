@@ -48,6 +48,7 @@ finline void *find_page(size_t size) {
       if (info->size >= size) { return info; }
     }
   }
+  return 0;
 }
 
 /**
@@ -92,4 +93,5 @@ void physical_mman_unref(void *ptr, size_t size) {
 
 size_t physical_mman_rc(void *ptr) {
   if ((size_t)ptr & (PAGE_SIZE - 1)) fatal("传入参数未对齐 ptr: %p", ptr);
+  return 0;
 }

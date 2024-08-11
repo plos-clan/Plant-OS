@@ -201,7 +201,7 @@ void sb16_close() {
   sb16_do_close();
 }
 
-int sb16_write(char *data, size_t size) {
+int sb16_write(void *data, size_t size) {
   while (sb.size1) {}
 
   memcpy(sb.addr1, data, size);

@@ -116,7 +116,7 @@ void input(char *ptr, int len) {
       //     printchar('\b');
       //   }
       //   char *Str = input_stack_pop();
-      //   clean(ptr, len);
+      //   bzero(ptr, len);
       //   strcpy(ptr, Str);
       //   i = strlen(ptr);
       //   print(ptr);
@@ -143,7 +143,7 @@ void input(char *ptr, int len) {
       //     printchar('\b');
       //   }
       //   char *Str = input_stack_pop();
-      //   clean(ptr, len);
+      //   bzero(ptr, len);
       //   strcpy(ptr, Str);
       //   i = strlen(ptr);
       //   print(ptr);
@@ -235,17 +235,14 @@ void list_files(char *path) {
 
 void shell() {
   printi("shell has been started");
-  char *kfifo = page_malloc_one();
-  char *kbuf  = page_malloc_one();
-  cir_queue_init(kfifo, 0x1000, kbuf);
-  current_task()->keyfifo = (cir_queue_t)kfifo;
+  void *kfifo = page_malloc_one();
+  void *kbuf  = page_malloc_one();
+  cir_queue8_init(kfifo, 0x1000, kbuf);
+  current_task()->keyfifo = (cir_queue8_t)kfifo;
   char *path              = malloc(1024);
   char *ch                = malloc(255);
   sprintf(path, "/");
-  for (;;) {
-    // printi("%c", getch());
-    // printf("psh 0.1 %s # ", path);
-    // printf("psh 0.1\n");
+  while (true) {
     printf("%s# ", path);
     input(ch, 255);
 
@@ -325,10 +322,10 @@ void init() {
   fatfs_regist();
   int s = 0x41;
   vfs_mkdir("/fatfs0");
-  vfs_mount(&s, vfs_open("/fatfs0"));
+  vfs_mount((cstr)&s, vfs_open("/fatfs0"));
   s++;
   vfs_mkdir("/fatfs1");
-  vfs_mount(&s, vfs_open("/fatfs1"));
+  vfs_mount((cstr)&s, vfs_open("/fatfs1"));
 
   auto font1 = load_font("/fatfs1/font1.plff");
   // auto font2 = load_font("/fatfs1/font2.plff");

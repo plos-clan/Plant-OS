@@ -158,7 +158,7 @@ void inthandler21(int *esp) {
   if (data == 0x2e && ctrl) {
     for (int i = 0; i < 255; i++) {
       if (!get_task(i)) { continue; }
-      if (get_task(i)->sigint_up) { get_task(i)->signal |= SIGMASK(SIGINT); }
+      if (get_task(i)->sigint_up) { get_task(i)->signal |= MASK32(SIGINT); }
     }
     // return;
   }
@@ -248,8 +248,8 @@ void inthandler21(int *esp) {
       // 一般进程
     THROUGH:
       //    klogd("send\n");
-      if (e0_flag) { cir_queue_put(task_get_key_queue(task), 0xe0); }
-      cir_queue_put(task_get_key_queue(task), data);
+      if (e0_flag) { cir_queue8_put(task_get_key_queue(task), 0xe0); }
+      cir_queue8_put(task_get_key_queue(task), data);
     }
   if (e0_flag == 1) e0_flag = 0;
 }

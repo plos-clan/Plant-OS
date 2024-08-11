@@ -326,7 +326,7 @@ int find_cmdslot(HBA_PORT *port) {
   klog("Cannot find free command list entry\n");
   return -1;
 }
-void page_set_attr(unsigned start, unsigned end, unsigned attr, unsigned pde);
+void page_set_attr(u32 start, u32 end, u32 attr, u32 pde);
 void port_rebase(HBA_PORT *port, int portno) {
   stop_cmd(port); // Stop command engine
 

@@ -75,6 +75,7 @@ int get_directory_max(struct FAT_FILEINFO *directory, vfs_t *vfs) {
       return (int)FindForCount(i, (List *)get_dm(vfs).directory_max_list)->val;
     }
   }
+  return -1;
 }
 void file_loadfile(int clustno, int size, char *buf, int *fat, vfs_t *vfs) {
   if (!size) { return; }
@@ -125,7 +126,7 @@ void file_savefile(int clustno, int size, char *buf, int *fat, u8 *ff, vfs_t *vf
     // 这里不分配Fat的原因是要清空更改后多余的数据
   }
   void *img = page_malloc(alloc_size);
-  clean((char *)img, alloc_size);
+  bzero((char *)img, alloc_size);
   memcpy(img, buf, size); // 把要写入的数据复制到新请求的内存地址
   for (int i = 0; i != (alloc_size / get_dm(vfs).ClustnoBytes); i++) {
     u32 sec = (get_dm(vfs).FileDataAddress + (clustno - 2) * get_dm(vfs).ClustnoBytes) /
@@ -288,7 +289,7 @@ struct FAT_FILEINFO *Get_File_Address(char *path1, vfs_t *vfs) {
   char                *path         = (char *)page_malloc(strlen(path1) + 1);
   char                *bmp          = path;
   strcpy(path, path1);
-  strtoupper(path);
+  str2upper(path);
   if (strncmp("/", path, 1) == 0) {
     path    += 1;
     bmpDict  = get_dm(vfs).root_directory;
@@ -344,7 +345,7 @@ struct FAT_FILEINFO *Get_File_Address(char *path1, vfs_t *vfs) {
       } else {
         bmpDict = get_dm(vfs).root_directory;
       }
-      clean(temp_name, 128);
+      bzero(temp_name, 128);
     }
   }
 END:
@@ -359,7 +360,7 @@ struct FAT_FILEINFO *Get_dictaddr(char *path1, vfs_t *vfs) {
   char                *path         = (char *)page_malloc(strlen(path1) + 1);
   char                *bmp          = path;
   strcpy(path, path1);
-  strtoupper(path);
+  str2upper(path);
   if (strncmp("/", path, 1) == 0) {
     path    += 1;
     bmpDict  = get_dm(vfs).root_directory;
@@ -403,7 +404,7 @@ struct FAT_FILEINFO *Get_dictaddr(char *path1, vfs_t *vfs) {
       } else {
         bmpDict = get_dm(vfs).root_directory;
       }
-      clean(temp_name, 128);
+      bzero(temp_name, 128);
       if (path[i] == '\0') { goto END; }
     }
   }
@@ -680,7 +681,7 @@ void mkfile(char *name, vfs_t *vfs) {
 }
 int changedict(char *dictname, vfs_t *vfs) {
   // cd命令的依赖函数
-  strtoupper(dictname);
+  str2upper(dictname);
 
   if (strcmp(dictname, "/") == 0) {
     while (vfs->path->ctl->all != 0) {
@@ -731,12 +732,12 @@ int changedict(char *dictname, vfs_t *vfs) {
   return 1;
 }
 int rename(char *src_name, char *dst_name, vfs_t *vfs) {
-  strtoupper(src_name);
-  strtoupper(dst_name);
+  str2upper(src_name);
+  str2upper(dst_name);
   char name[9], ext[4];
   int  i;
-  clean(name, 9);
-  clean(ext, 4);
+  bzero(name, 9);
+  bzero(ext, 4);
   for (i = 0; dst_name[i] != '.'; i++) {
     name[i] = dst_name[i];
   }
@@ -914,6 +915,7 @@ bool Fat_WriteFile(struct vfs_t *vfs, char *path, char *buffer, int size) {
                 get_dm(vfs).FatClustnoFlags, vfs);
   finfo->size = size;
   file_saveinfo(Get_dictaddr(path, vfs), vfs);
+  return true;
 }
 List *Fat_ListFile(struct vfs_t *vfs, char *dictpath) {
   struct FAT_FILEINFO *finfo  = Get_dictaddr(dictpath, vfs);
@@ -1016,6 +1018,7 @@ bool Fat_CreateDict(struct vfs_t *vfs, char *filename) {
   int                  last_clustno = finfo[0].clustno_low;
   if (finfo == get_dm(vfs).root_directory) { last_clustno = 0; }
   mkdir(filename, last_clustno, vfs);
+  return true;
 }
 bool Fat_Attrib(struct vfs_t *vfs, char *filename, ftype type) {
   return attrib(filename, type, vfs);

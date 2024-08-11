@@ -187,7 +187,7 @@ finline void plty_fb_puts(plty_fb *fb, cstr s) {
 static struct font_char empty_char;
 
 plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
-  size_t font_width = (font_getchar(font, 'A') ?: &empty_char)->advance ?: font->height / 2;
+  size_t font_width = ((font_getchar(font, 'A') ?: &empty_char)->advance ?: font->height / 2) + 1;
   plty_t tty        = malloc(sizeof(*tty));
   if (tty == null) return null;
   tty->vram     = vram;
@@ -364,34 +364,6 @@ void plty_scroll(plty_t tty) {
   }
 }
 
-static u32 *utf8to32(cstr s) {
-  u32 *r = malloc((strlen(s) + 1) * 4);
-  if (r == null) return null;
-  size_t i = 0;
-  for (; *s != '\0'; i++) {
-    if ((*s & 0x80) == 0) {
-      r[i] = *s++;
-    } else if ((*s & 0xe0) == 0xc0) {
-      r[i]  = (*s++ & 0x1f) << 6;
-      r[i] |= *s++ & 0x3f;
-    } else if ((*s & 0xf0) == 0xe0) {
-      r[i]  = (*s++ & 0x0f) << 12;
-      r[i] |= (*s++ & 0x3f) << 6;
-      r[i] |= *s++ & 0x3f;
-    } else if ((*s & 0xf8) == 0xf0) {
-      r[i]  = (*s++ & 0x07) << 18;
-      r[i] |= (*s++ & 0x3f) << 12;
-      r[i] |= (*s++ & 0x3f) << 6;
-      r[i] |= *s++ & 0x3f;
-    } else {
-      r[i] = 0xfffd;
-      s++;
-    }
-  }
-  r[i] = '\0';
-  return r;
-}
-
 color_t plty_getfg(plty_t tty) {
   return tty->cur_fg;
 }
@@ -443,7 +415,25 @@ void plty_setch(plty_t tty, i32 x, i32 y, u32 ch) {
   tty->text[y * tty->ncols + x].bg = tty->cur_bg;
 }
 
-finline void plty_lf(plty_t tty) {
+void plty_getcur(plty_t tty, u32 *x, u32 *y) {
+  *x = tty->cur_x;
+  *y = tty->cur_y;
+}
+
+u32 plty_getcurx(plty_t tty) {
+  return tty->cur_x;
+}
+
+u32 plty_getcury(plty_t tty) {
+  return tty->cur_y;
+}
+
+void plty_setcur(plty_t tty, u32 x, u32 y) {
+  tty->cur_x = x;
+  tty->cur_y = y;
+}
+
+static void plty_lf(plty_t tty) {
   for (u32 i = tty->cur_x; i < tty->ncols; i++) {
     tty->text[tty->cur_y * tty->ncols + i].ch = null;
     tty->text[tty->cur_y * tty->ncols + i].fg = tty->cur_fg;
@@ -505,8 +495,36 @@ static void plty_puts_raw(plty_t tty, const u32 *s) {
   }
 }
 
-void plty_putc(plty_t tty, int c) {
+void plty_putc(plty_t tty, u32 c) {
   plty_putc_raw(tty, c);
+}
+
+static u32 *utf8to32(cstr s) {
+  u32 *r = malloc((strlen(s) + 1) * 4);
+  if (r == null) return null;
+  size_t i = 0;
+  for (; *s != '\0'; i++) {
+    if ((*s & 0x80) == 0) {
+      r[i] = *s++;
+    } else if ((*s & 0xe0) == 0xc0) {
+      r[i]  = (*s++ & 0x1f) << 6;
+      r[i] |= *s++ & 0x3f;
+    } else if ((*s & 0xf0) == 0xe0) {
+      r[i]  = (*s++ & 0x0f) << 12;
+      r[i] |= (*s++ & 0x3f) << 6;
+      r[i] |= *s++ & 0x3f;
+    } else if ((*s & 0xf8) == 0xf0) {
+      r[i]  = (*s++ & 0x07) << 18;
+      r[i] |= (*s++ & 0x3f) << 12;
+      r[i] |= (*s++ & 0x3f) << 6;
+      r[i] |= *s++ & 0x3f;
+    } else {
+      r[i] = 0xfffd;
+      s++;
+    }
+  }
+  r[i] = '\0';
+  return r;
 }
 
 void plty_puts(plty_t tty, cstr s) {

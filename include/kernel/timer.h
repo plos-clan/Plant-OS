@@ -7,7 +7,7 @@
 struct TIMER {
   struct TIMER *next;
   u32           timeout, flags;
-  cir_queue_t   queue;
+  cir_queue8_t  queue;
   u8            data;
   mtask        *waiter;
 };

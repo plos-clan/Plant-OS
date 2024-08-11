@@ -133,7 +133,7 @@ void sysinit() {
 
   init_keyboard();
   into_mtask();
-  while (true) {}
+  infinite_loop;
 }
 #ifdef __clang__
 #  pragma clang optimize on

@@ -1,12 +1,11 @@
 #include <kernel.h>
 
-#define IDX(addr)  ((u32)addr >> 12)           // 获取 addr 的页索引
-#define DIDX(addr) (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define TIDX(addr) (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PAGE(idx)  ((u32)idx << 12)            // 获取页索引 idx 对应的页开始的位置
+#define IDX(addr)  ((u32)(addr) >> 12)           // 获取 addr 的页索引
+#define DIDX(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
+#define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
+#define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
-void *page_malloc_one_no_mark();
-void  flush_tlb(u32 vaddr);
+void flush_tlb(u32 vaddr);
 
 struct PAGE_INFO *pages = (struct PAGE_INFO *)PAGE_MANNAGER;
 
@@ -16,14 +15,18 @@ static u32 padding_up(u32 num, u32 size) {
 
 void init_pdepte(u32 pde_addr, u32 pte_addr, u32 page_end) {
   memset((void *)pde_addr, 0, page_end - pde_addr);
-  // 这是初始化PDE 页目录
-  for (int addr = pde_addr, i = pte_addr | PAGE_P | PAGE_WRABLE; addr != pte_addr;
-       addr += 4, i += 0x1000) {
-    *(int *)(addr) = i;
+  { // 这是初始化PDE 页目录
+    size_t *addr = (void *)pde_addr;
+    for (size_t i = 0; addr + i < (size_t *)pte_addr; i++) {
+      addr[i] = (pte_addr + i * 0x1000) | PAGE_P | PAGE_WRABLE;
+    }
   }
-  // 这是初始化PTE 页表
-  for (int addr = PTE_ADDRESS, i = PAGE_P | PAGE_WRABLE; addr != PAGE_END; addr += 4, i += 0x1000) {
-    *(int *)(addr) = i;
+
+  { // 这是初始化PTE 页表
+    size_t *addr = (void *)PTE_ADDRESS;
+    for (size_t i = 0; addr + i < (size_t *)PAGE_END; i++) {
+      addr[i] = (i * 0x1000) | PAGE_P | PAGE_WRABLE;
+    }
   }
   return;
 }
@@ -428,16 +431,6 @@ void page_free_one(void *p) {
   }
   pages[IDX(p)].task_id = 0;
   pages[IDX(p)].count   = 0;
-}
-
-u32 get_shell_tid(struct TASK *task) {
-  // if (task->app == 0) {
-  //   return get_tid(task);
-  // }
-  // if (task->app == 1) {
-  //   return get_shell_tid(task->thread.father);
-  // }
-  return 0;
 }
 
 int find_kpage(int line, int n) {

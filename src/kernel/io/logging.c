@@ -7,17 +7,6 @@ void init_serial();
 void write_serial(char a);
 
 void klog_raw(cstr s) {
-  static int first = 1;
-  static u32 hash;
-  if (first == 1) {
-    hash = memhash(0, 16384);
-    // hash  = memhash((void *)0x00280000, 168665);
-    first = 0;
-  } else if (first == 0 && hash != memhash(0, 16384)) {
-    first = 2;
-    klogf();
-    abort();
-  }
   for (size_t i = 0; s[i] != '\0'; i++) {
     write_serial(s[i]);
   }

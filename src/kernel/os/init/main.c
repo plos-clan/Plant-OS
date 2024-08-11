@@ -31,5 +31,5 @@ void kernel_main() {
   format_test();
 
   sysinit();
-  while (true) {}
+  infinite_loop;
 }

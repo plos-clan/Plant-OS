@@ -16,19 +16,19 @@ u32 elf32_get_max_vaddr(Elf32_Ehdr *hdr) {
   }
   return max;
 }
-static unsigned padding_up(unsigned num, unsigned size) {
+static u32 padding_up(u32 num, u32 size) {
   return (num + size - 1) / size;
 }
 void load_segment(Elf32_Phdr *phdr, void *elf) {
   u32 p = padding_up(phdr->p_memsz, 0x1000);
   int d = phdr->p_paddr;
   if (d & 0x00000fff) {
-    unsigned e  = d + phdr->p_memsz;
-    d           = d & 0xfffff000;
-    e          &= 0xfffff000;
-    p           = (e - d) / 0x1000 + 1;
+    u32 e  = d + phdr->p_memsz;
+    d      = d & 0xfffff000;
+    e     &= 0xfffff000;
+    p      = (e - d) / 0x1000 + 1;
   }
-  for (unsigned i = 0; i < p; i++) {
+  for (u32 i = 0; i < p; i++) {
     page_link(d + i * 0x1000);
   }
   memcpy((void *)phdr->p_vaddr, elf + phdr->p_offset, phdr->p_filesz);

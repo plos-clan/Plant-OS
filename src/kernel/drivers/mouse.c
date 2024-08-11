@@ -126,7 +126,7 @@ void inthandler2c(int *esp) {
     times = 0;
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
       //   klogd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
-      cir_queue_put(task_get_mouse_fifo(mouse_use_task), data);
+      cir_queue8_put(task_get_mouse_fifo(mouse_use_task), data);
 
       if (current_task() != mouse_use_task) {
         //   klogd("SET 1\n");
@@ -143,7 +143,7 @@ void inthandler2c(int *esp) {
   } else {
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
       //   klogd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
-      cir_queue_put(task_get_mouse_fifo(mouse_use_task), data);
+      cir_queue8_put(task_get_mouse_fifo(mouse_use_task), data);
     }
   }
 }

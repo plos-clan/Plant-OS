@@ -81,10 +81,10 @@ struct IDEChannelRegisters {
   u16 bmide; // Bus Master IDE
   u8  nIEN;  // nIEN (No Interrupt);
 } channels[2];
-u8                            ide_buf[2048]    = {0};
-volatile unsigned static char ide_irq_invoked  = 0;
-unsigned static char          atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int                    package[2];
+u8                   ide_buf[2048]    = {0};
+volatile static byte ide_irq_invoked  = 0;
+static byte          atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int           package[2];
 struct ide_device {
   u8  Reserved;     // 0 (Empty) or 1 (This Drive really exists).
   u8  Channel;      // 0 (Primary Channel) or 1 (Secondary Channel).
@@ -216,7 +216,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
              (const char *[]){"ATA", "ATAPI"}[ide_devices[i].Type], /* Type */
              ide_devices[i].Size / 1024 / 2,                        /* Size */
              ide_devices[i].Model);
-      strcpy(vd.DriveName, ide_devices[i].Model);
+      strcpy(vd.DriveName, (cstr)ide_devices[i].Model);
       if (ide_devices[i].Type == IDE_ATAPI) {
         vd.flag = 2;
       } else {
@@ -464,7 +464,8 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
     u16 *word_ = (u16 *)edi;
     for (i = 0; i < numsects; i++) {
       printk("read %d\n", i);
-      if (err = ide_polling(channel, 1)) return err; // Polling, set error and exit if there is.
+      if ((err = ide_polling(channel, 1)) != NULL)
+        return err; // Polling, set error and exit if there is.
 
       printk("words=%d bus=%d\n", words, bus);
       for (int h = 0; h < words; h++) {
@@ -559,7 +560,7 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
 
   // (VII): Waiting for the driver to finish or return an error code:
   // ------------------------------------------------------------------
-  if (err = ide_polling(channel, 1)) return err; // Polling and return if error.
+  if ((err = ide_polling(channel, 1)) != NULL) return err; // Polling and return if error.
 
   // (VIII): Sending the packet data:
   // ------------------------------------------------------------------
@@ -573,8 +574,8 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
   printk("IX\n");
   u16 *_word = (u16 *)edi;
   for (i = 0; i < numsects; i++) {
-    ide_wait_irq();                                // Wait for an IRQ.
-    if (err = ide_polling(channel, 1)) return err; // Polling and return if error.
+    ide_wait_irq();                                          // Wait for an IRQ.
+    if ((err = ide_polling(channel, 1)) != NULL) return err; // Polling and return if error.
     printk("words = %d\n", words);
     for (int h = 0; h < words; h++) {
       u16 a                = asm_in16(bus);

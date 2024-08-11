@@ -469,7 +469,7 @@ void ISO_CopyCache(struct vfs_t *dest, struct vfs_t *src) {
 
 int ISO_cd(struct vfs_t *vfs, char *dictname) {
   //
-  //    strtoupper(dictname);
+  //    str2upper(dictname);
   //
   if (strcmp(dictname, "/") == 0) {
     while (vfs->path->ctl->all != 0) {
@@ -490,7 +490,7 @@ RE:
       kfree(dictname);
     } else {
       dictname = strdup(dictname);
-      strtoupper(dictname);
+      str2upper(dictname);
       free_flag = 1;
       goto RE;
     }
@@ -522,7 +522,7 @@ RE:
       kfree(path);
     } else {
       path = strdup(path);
-      strtoupper(path);
+      str2upper(path);
       free_flag = 1;
       goto RE;
     }
@@ -552,7 +552,7 @@ List *ISO_ListFile(struct vfs_t *vfs, char *dictpath) {
         kfree(dictpath);
       } else {
         dictpath = strdup(dictpath);
-        strtoupper(dictpath);
+        str2upper(dictpath);
         free_flag = 1;
         goto RE;
       }
@@ -613,7 +613,7 @@ RE:
       kfree(filename);
     } else {
       filename = strdup(filename);
-      strtoupper(filename);
+      str2upper(filename);
       free_flag = 1;
       goto RE;
     }
