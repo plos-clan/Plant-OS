@@ -19,7 +19,7 @@ typedef enum {
 
 void move_cursor_by_idx(int idx);
 void print(const char *str);
-void clear();
+void screen_clear();
 void putchar(char ch);
 void gotoxy(int x1, int y1);
 int  get_x();

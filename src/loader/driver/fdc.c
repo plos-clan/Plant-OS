@@ -60,7 +60,7 @@ static void         Read(char drive, u8 *buffer, u32 number, u32 lba) {
 static void Write(char drive, u8 *buffer, u32 number, u32 lba) {
   fdc_rw(lba, buffer, 0, number);
 }
-void init_floppy() {
+void floppy_init() {
 #ifndef __NO_FLOPPY__
   sendbyte(CMD_VERSION); //发送命令（获取软盘版本），如果收到回应，说明软盘正在工作
   if (getbyte() == -1) {

@@ -9,7 +9,7 @@ typedef struct {
   char DriveName[50];
 } vdisk;
 
-int  init_vdisk();
+int  vdisk_init();
 int  register_vdisk(vdisk vd);
 int  logout_vdisk(char drive);
 void Disk_Read(u32 lba, u32 number, void *buffer, char drive);

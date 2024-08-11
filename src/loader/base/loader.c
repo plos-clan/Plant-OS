@@ -52,13 +52,13 @@ void DOSLDR_MAIN() {
   u32 memtotal = 128 * 1024 * 1024;
   memman_init((void *)0x00600000, memtotal - 0x00600000);
   // asm("mov $0x00650000,%esp");
-  clear();
+  screen_clear();
   init_gdtidt();
   init_pic();
   asm_sti; /* IDT/PIC的初始化已经完成，于是开放CPU的中断 */
-  init_vdisk();
+  vdisk_init();
   init_vfs();
-  init_floppy();
+  floppy_init();
   Register_fat_fileSys();
   // reg_pfs();
   vdisk vd;

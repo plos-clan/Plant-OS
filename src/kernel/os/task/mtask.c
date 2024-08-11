@@ -172,6 +172,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   t->state        = RUNNING; // running
   t->drive_number = default_drive_number;
   t->drive        = default_drive;
+  t->TTY          = NULL;
   t->jiffies      = 0;
 
   // 获取default_drive_number

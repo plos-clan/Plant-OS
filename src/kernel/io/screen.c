@@ -2,7 +2,7 @@
 
 extern struct tty *tty_default;
 
-void clear() {
+void screen_clear() {
   mtask *task = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->clear(tty_default);
@@ -269,7 +269,12 @@ static int parse_vt100(struct tty *res, char *string) {
       return 0;
     }
     // klogd("switch k");
-    static const byte color_map[8] = {0, 4, 2, 6, 1, 5, 3, 7};
+    static byte color_map[8] = {0, 4, 2, 6, 1, 5, 3, 7};
+    if (res->vram != 0xb8000) {
+      for (byte q = 0; q < 8; q++) {
+        color_map[q] = q;
+      }
+    }
     switch (k) {
     case 0: {
       if (delta[0] >= 30 && delta[0] <= 37) { // foreground color
@@ -430,6 +435,7 @@ int get_ysize() {
 void print(cstr str) {
   mtask *task = current_task();
   if (task->TTY->is_using != 1) {
+
     tty_default->print(tty_default, str);
   } else {
     task->TTY->print(task->TTY, str);

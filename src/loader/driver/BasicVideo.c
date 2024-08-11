@@ -5,7 +5,7 @@ static int cons_x, cons_y;
 
 void Move_Cursor(i16 x, i16 y);
 
-void clear() {
+void screen_clear() {
   int i;
   int j;
   for (i = 0; i < 160; i += 2) {
@@ -106,7 +106,7 @@ void screen_ne() /*向下滚动一行*/
   for (i = 0; i < 160; i += 2) {
     *(char *)(0xb8000 + 0 * 160 + i) = 0;
   }
-  //clear();
+  //screen_clear();
   for (i = 0; i < 25; i++) {
     for (j = 0; j < 80; j++) {
       //*(char *)(0xb8000 + i * 160 + j) = *(char *)(0xb8000 + i+1 * 160 + j);

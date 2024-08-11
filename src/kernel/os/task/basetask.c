@@ -4,8 +4,6 @@
 #include <kernel.h>
 #include <plty.h>
 
-void fatfs_regist();
-
 u8  *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
@@ -295,15 +293,20 @@ plff_t load_font(cstr path) {
   return font;
 }
 
-static void rand_str(char *s, size_t n) {
+static void *rand_str(size_t n) {
+  static char s[65];
+  if (n > 64) return null;
   static const char alphanum[] = "0123456789"
                                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                  "abcdefghijklmnopqrstuvwxyz";
-  for (int i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; i++) {
     s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
   }
   s[n] = '\0';
+  return s;
 }
+
+void plty_set_default(plty_t plty);
 
 void init() {
   klogd("init function has been called successfully!");
@@ -316,10 +319,9 @@ void init() {
     printi("I=%d", i);
   }
 
-  init_floppy();
+  floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
 
-  fatfs_regist();
   int s = 0x41;
   vfs_mkdir("/fatfs0");
   vfs_mount((cstr)&s, vfs_open("/fatfs0"));
@@ -328,23 +330,29 @@ void init() {
   vfs_mount((cstr)&s, vfs_open("/fatfs1"));
 
   auto font1 = load_font("/fatfs1/font1.plff");
-  // auto font2 = load_font("/fatfs1/font2.plff");
+  auto font2 = load_font("/fatfs1/font2.plff");
 
   auto tty = plty_alloc(vram, 1024, 768, font1);
-  // plty_addfont(tty, font2);
+  plty_addfont(tty, font2);
 
-  for (int i = 0;; i++) {
-    static char text[1024];
-    static char buf[32];
-    rand_str(buf, 16);
-    sprintf(text, "Hello world!  %s %d\n", buf, i + 1);
-    color_t color = {rand(), rand(), rand(), 255};
-    plty_setfg(tty, color);
-    color_t color2 = {rand(), rand(), rand(), 255};
-    plty_setbg(tty, color2);
-    plty_puts(tty, text);
-    plty_flush(tty);
-  }
+  plty_set_default(tty);
+
+  info("Plant-OS 终端现在支持中文啦！");
+
+  // for (int i = 0;; i++) {
+  //   info("Hello world! %d", i);
+  // }
+
+  // for (int i = 0;; i++) {
+  //   static char text[1024];
+  //   sprintf(text, "Hello world!  %s %d\n", rand_str(16), i + 1);
+  //   color_t color = {rand(), rand(), rand(), 255};
+  //   plty_setfg(tty, color);
+  //   color_t color2 = {rand(), rand(), rand(), 255};
+  //   plty_setbg(tty, color2);
+  //   plty_puts(tty, text);
+  //   plty_flush(tty);
+  // }
 
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);

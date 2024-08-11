@@ -4,7 +4,7 @@ int getReadyDisk(); // init.c
 
 vdisk vdisk_ctl[26];
 
-int init_vdisk() {
+int vdisk_init() {
   for (int i = 0; i < 26; i++) {
     vdisk_ctl[i].flag = 0; // 设置为未使用
   }

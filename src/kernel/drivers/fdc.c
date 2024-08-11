@@ -85,7 +85,7 @@ static void Write(char drive, byte *buffer, uint number, uint lba) {
   floppy_use = NULL;
 }
 
-void init_floppy() {
+void floppy_init() {
 #ifndef __NO_FLOPPY__
   sendbyte(CMD_VERSION); // 发送命令（获取软盘版本），如果收到回应，说明软盘正在工作
   if (getbyte() == -1) {

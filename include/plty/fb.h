@@ -2,6 +2,8 @@
 #include <font.h>
 #include <libc-base.h>
 
+extern const color_t color_table_16[16];
+
 // 终端颜色序号
 enum {
   tty_black,
@@ -40,18 +42,21 @@ typedef struct plty_char {
 } *plty_char_t;
 
 typedef struct plty {
-  plty_char_t text;           // 行缓冲区
-  plty_char_t text2;          // 行缓冲区
-  u32         ncols;          // 每行的字符数
-  u32         nlines;         // 行数
-  u16         charw, charh;   // 字符的宽高
-  void       *vram;           // 显存
-  u32         width;          // 终端的宽度
-  u32         height;         // 终端的高度
-  plff_t      fonts[4];       // 字体
-  color_t     fg, bg;         // 前景色和背景色
-  u32         cur_x, cur_y;   // 当前光标的位置
-  color_t     cur_fg, cur_bg; // 当前字符的颜色
+  plty_char_t text;               // 行缓冲区
+  plty_char_t text2;              // 行缓冲区
+  u32         ncols;              // 每行的字符数
+  u32         nlines;             // 行数
+  u16         charw, charh;       // 字符的宽高
+  void       *vram;               // 显存
+  u32         width;              // 终端的宽度
+  u32         height;             // 终端的高度
+  plff_t      fonts[4];           // 字体
+  color_t     fg, bg;             // 前景色和背景色
+  u32         cur_x, cur_y;       // 当前光标的位置
+  color_t     cur_fg, cur_bg;     // 当前字符的颜色
+  u32         cur_oldx, cur_oldy; // 当前光标的位置
+  bool        auto_flush;         // 在换行时自动刷新
+  bool        show_cur;           // 在换行时自动刷新
 } *plty_t;
 
 plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font);
@@ -94,6 +99,12 @@ u32 plty_getcury(plty_t tty);
 
 void plty_setcur(plty_t tty, u32 x, u32 y);
 
+void plty_curnext(plty_t tty, u32 i);
+
+void plty_curprev(plty_t tty, u32 i);
+
 void plty_putc(plty_t tty, u32 c);
+
+void plty_pututf8c(plty_t tty, byte c);
 
 void plty_puts(plty_t tty, cstr s);

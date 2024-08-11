@@ -31,7 +31,7 @@ void SwitchToText8025_BIOS() {
   regs16 regs = {.ax = 0x0003};
   asm16_int(0x10, &regs);
   //   init_palette();
-  //   clear();
+  //   screen_clear();
 }
 
 void SwitchTo320X200X256_BIOS() {

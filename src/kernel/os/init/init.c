@@ -17,19 +17,6 @@ void abort() {
 }
 
 #if 0
-static uint rand_seed = 1;
-
-int rand() {
-  rand_seed ^= rand_seed << 13;
-  rand_seed ^= rand_seed >> 17;
-  rand_seed ^= rand_seed << 5;
-  return rand_seed & INT32_MAX;
-}
-
-void srand(uint seed) {
-  rand_seed = seed;
-}
-
 #  define klogd(...) ((void)0)
 
 void malloc_test() {
@@ -116,9 +103,9 @@ void sysinit() {
 
   init_pit();
   init_tty();
-  clear();
+  screen_clear();
   sb16_init();
-  init_vdisk();
+  vdisk_init();
   vfs_init();
   init_vfs();
   register_fat();

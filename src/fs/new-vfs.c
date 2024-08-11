@@ -147,6 +147,9 @@ bool vfs_init() {
     ((void **)&vfs_empty_callback)[i] = empty_func;
   }
 
+  fatfs_regist();
+  tmpfs_regist();
+
   rootdir       = vfs_node_alloc(null, null);
   rootdir->type = file_dir;
   return true;

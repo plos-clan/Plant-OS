@@ -1,3 +1,3 @@
 #pragma once
 #include <define.h>
-void init_floppy();
+void floppy_init();

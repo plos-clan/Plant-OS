@@ -81,7 +81,9 @@ int vfs_regist(cstr name, vfs_callback_t callback);
 #define PATH_MAX     4096
 #define FILENAME_MAX 256
 
-void       tmpfs_regist();
+void tmpfs_regist();
+void fatfs_regist();
+
 vfs_node_t vfs_open(cstr str);
 int        vfs_mkdir(cstr name);
 
