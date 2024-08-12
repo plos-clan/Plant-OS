@@ -36,7 +36,7 @@ void task_app() {
   klogd("我爱你");
   page_free_one(r);
   klogd("%08x", current_task()->top);
-  klogd("%p %d", current_task()->nfs, vfs_filesize("testapp.bin"));
+  // klogd("%p %d", current_task()->nfs, vfs_filesize("testapp.bin"));
   char *kfifo = (char *)page_malloc_one();
   char *mfifo = (char *)page_malloc_one();
   char *kbuf  = (char *)page_malloc_one();
@@ -161,9 +161,9 @@ void task_to_user_mode_shell() {
   if (!elf32Validate((Elf32_Ehdr *)p)) {
     extern mtask *mouse_use_task;
     if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
-    list_free_with(vfs_now->path, free);
-    free(vfs_now->cache);
-    free((void *)vfs_now);
+    // list_free_with(vfs_now->path, free);
+    // free(vfs_now->cache);
+    // free((void *)vfs_now);
     task_exit(-1);
     while (true)
       ;
@@ -215,6 +215,8 @@ void task_to_user_mode_elf(char *filename) {
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
+  vfs_node_t    file    = vfs_open(filename);
+  if (!file) { goto err; }
   // 这里可以改变跳转后各个寄存器的初始值
   iframe->edi       = (size_t)args.argc; // argc
   iframe->esi       = (size_t)args.argv; // argv
@@ -234,24 +236,22 @@ void task_to_user_mode_elf(char *filename) {
   iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp    = NULL; // 设置用户态堆栈
   tss.eflags     = 0x202;
-  u32 sz         = vfs_filesize(filename);
+  u32 sz         = file->size;
   klogd("%d", sz);
   char *p = page_malloc(sz);
-  vfs_readfile(filename, p);
+  vfs_read(file, p, 0, sz);
   klogd();
   if (!elf32Validate((Elf32_Ehdr *)p)) {
     klogd();
-    for (int i = 0; i < 0x200; i++) {
-      // printf("%02x ", p[i]);
-    }
-    for (;;)
-      ;
     extern mtask *mouse_use_task;
+    page_free(p, sz);
+  err:
+
     if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
-    page_free(p, vfs_filesize(filename));
-    list_free_with(vfs_now->path, free);
-    free(vfs_now->cache);
-    free((void *)vfs_now);
+
+    // list_free_with(vfs_now->path, free);
+    // free(vfs_now->cache);
+    // free((void *)vfs_now);
     task_exit(-1);
     while (true)
       ;
@@ -273,7 +273,7 @@ void task_to_user_mode_elf(char *filename) {
   klogd("eip = %08x", &(iframe->eip));
   current_task()->user_mode = 1;
   tss.esp0                  = current_task()->top;
-  change_page_task_id(current_task()->tid, p, vfs_filesize(filename));
+  change_page_task_id(current_task()->tid, p, sz);
   change_page_task_id(current_task()->tid, (void *)(iframe->esp - 512 * 1024), 512 * 1024);
   //klog("%d\n", get_interrupt_state());
   asm volatile("movl %0, %%esp\n"
@@ -289,10 +289,8 @@ void task_to_user_mode_elf(char *filename) {
 int os_execute(char *filename, char *line) {
   extern mtask *mouse_use_task;
   mtask        *backup = mouse_use_task;
-  extern int    init_ok_flag;
-  char         *fm = (char *)malloc(strlen(filename) + 1);
+  char         *fm     = (char *)malloc(strlen(filename) + 1);
   strcpy(fm, filename);
-  init_ok_flag = 0;
 
   klogd("execute: %s %s", filename, line);
 
@@ -300,14 +298,13 @@ int os_execute(char *filename, char *line) {
   // 轮询
   t->train = 0;
 
-  vfs_change_disk_for_task(current_task()->nfs->drive, t);
+  // vfs_change_disk_for_task(current_task()->nfs->drive, t);
 
   char *path;
   //   list_foreach(current_task()->nfs->path, l) {
   //     path = (char *)l->data;
   //     t->nfs->cd(t->nfs, path);
   //   }
-  init_ok_flag              = 1;
   t->ptid                   = current_task()->tid;
   int old                   = current_task()->sigint_up;
   current_task()->sigint_up = 0;
@@ -317,7 +314,6 @@ int os_execute(char *filename, char *line) {
 
   current_task()->TTY = NULL;
   char *p1            = malloc(strlen(line) + 1);
-  klogi("%d", t->nfs->FileSize(t->nfs, "TESTAPP.BIN"));
   strcpy(p1, line);
   int o                     = current_task()->fifosleep;
   current_task()->fifosleep = 1;
@@ -350,15 +346,11 @@ int os_execute(char *filename, char *line) {
 }
 
 int os_execute_shell(char *line) {
-  extern int init_ok_flag;
-  init_ok_flag              = 0;
   mtask *t                  = create_task((u32)task_shell, 0, 1, 1);
-  t->nfs                    = current_task()->nfs;
   t->train                  = 1;
   int old                   = current_task()->sigint_up;
   current_task()->sigint_up = 0;
   t->sigint_up              = 1;
-  init_ok_flag              = 1;
   t->ptid                   = current_task()->tid;
   struct tty *tty_backup    = current_task()->TTY;
   t->TTY                    = current_task()->TTY;
@@ -368,7 +360,6 @@ int os_execute_shell(char *line) {
   int o                     = current_task()->fifosleep;
   current_task()->fifosleep = 1;
   t->line                   = p1;
-  // io_sti();
   u32 status                = waittid(t->tid);
   current_task()->fifosleep = o;
   free(p1);

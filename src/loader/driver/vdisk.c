@@ -21,7 +21,7 @@ int register_vdisk(vdisk vd) {
   //   printf("[vdisk]not found\n");
   return 0; // 注册失败
 }
-int logout_vdisk(char drive) {
+int logout_vdisk(int drive) {
   int indx = drive - ('A');
   if (indx > 10) {
     return 0; // 失败
@@ -33,7 +33,7 @@ int logout_vdisk(char drive) {
     return 0; // 失败
   }
 }
-int rw_vdisk(char drive, u32 lba, u8 *buffer, u32 number, int read) {
+int rw_vdisk(int drive, u32 lba, u8 *buffer, u32 number, int read) {
   int indx = drive - ('A');
   if (indx > 10) {
     return 0; // 失败
@@ -50,7 +50,7 @@ int rw_vdisk(char drive, u32 lba, u8 *buffer, u32 number, int read) {
     return 0; // 失败
   }
 }
-int get_vdisk_type(char drive) {
+int get_vdisk_type(int drive) {
   int indx = drive - ('A');
   if (indx > 10) {
     return 0; // 失败
@@ -61,7 +61,7 @@ int get_vdisk_type(char drive) {
     return 0; // 失败
   }
 }
-bool have_vdisk(char drive) {
+bool have_vdisk(int drive) {
   int indx = drive - 'A';
   // printk("drive=%c\n",drive);
   if (indx > 10) {
@@ -75,7 +75,7 @@ bool have_vdisk(char drive) {
 }
 // 基于vdisk的通用读写
 #define SECTORS_ONCE 8
-void Disk_Read(u32 lba, u32 number, void *buffer, char drive) {
+void Disk_Read(u32 lba, u32 number, void *buffer, int drive) {
   if (have_vdisk(drive)) {
     for (int i = 0; i < number; i += SECTORS_ONCE) {
       int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
@@ -84,7 +84,7 @@ void Disk_Read(u32 lba, u32 number, void *buffer, char drive) {
     }
   }
 }
-int disk_Size(char drive) {
+int disk_Size(int drive) {
   u8 drive1 = drive;
   if (have_vdisk(drive1)) {
     int indx = drive1 - 'A';
@@ -96,13 +96,13 @@ int disk_Size(char drive) {
 
   return 0;
 }
-bool DiskReady(char drive) {
+bool DiskReady(int drive) {
   return have_vdisk(drive);
 }
 int getReadyDisk() {
   return 0;
 }
-void Disk_Write(u32 lba, u32 number, void *buffer, char drive) {
+void Disk_Write(u32 lba, u32 number, void *buffer, int drive) {
   //  printf("%d\n",lba);
   if (have_vdisk(drive)) {
     // printk("*buffer(%d %d) = %02x\n",lba,number,*(u8 *)buffer);

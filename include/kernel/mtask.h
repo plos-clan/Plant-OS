@@ -32,7 +32,7 @@ struct __PACKED__ mtask {
   enum STATE    state; // 此项为1（RUNNING） 即正常调度，为 2（WAITING） 3
                        // （SLEEPING）的时候不执行 ，0 EMPTY 空闲格子
   uint64_t      jiffies;
-  struct vfs_t *nfs;
+  // struct vfs_t *nfs;
   uint64_t      tid, ptid;
   u32           alloc_addr;
   u32          *alloc_size;
@@ -41,7 +41,7 @@ struct __PACKED__ mtask {
   int           DisableExpFlag;
   u32           CatchEIP;
   char          flagOfexp;
-  fpu_t         fpu;
+  fpu_regs_t    fpu;
   int           fpu_flag;
   char          drive_number;
   char          drive;
@@ -78,10 +78,10 @@ mtask *get_task(u32 tid);
 
 #define get_tid(n) ((n)->tid)
 
-void task_fall_blocked(enum STATE state);
-void idle();
-void init();
-#define vfs_now current_task()->nfs
+void         task_fall_blocked(enum STATE state);
+void         idle_loop();
+void         init();
+//#define vfs_now current_task()->nfs
 cir_queue8_t task_get_key_queue(mtask *task);
 cir_queue8_t task_get_mouse_fifo(mtask *task);
 void         into_mtask();

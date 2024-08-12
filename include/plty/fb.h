@@ -57,6 +57,8 @@ typedef struct plty {
   u32         cur_oldx, cur_oldy; // 当前光标的位置
   bool        auto_flush;         // 在换行时自动刷新
   bool        show_cur;           // 在换行时自动刷新
+  char       *input_buf;          // 输入缓冲区
+  size_t      input_bufsize;      // 输入缓冲区大小
 } *plty_t;
 
 plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font);

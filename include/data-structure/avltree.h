@@ -126,7 +126,7 @@ extern void avltree_print_postorder(avltree_t root, int depth) __THROW;
 #ifdef AVL_IMPLEMENTATION
 
 static int avltree_height(avltree_t node) {
-  return node == NULL ? -1 : node->height;
+  return node == null ? -1 : node->height;
 }
 
 static int avltree_max_height(int height1, int height2) {
@@ -134,11 +134,11 @@ static int avltree_max_height(int height1, int height2) {
 }
 
 static int avltree_balance_factor(avltree_t node) {
-  return node == NULL ? 0 : avltree_height(node->left) - avltree_height(node->right);
+  return node == null ? 0 : avltree_height(node->left) - avltree_height(node->right);
 }
 
 static void avltree_update_height(avltree_t node) {
-  if (node != NULL) {
+  if (node != null) {
     int left_height  = avltree_height(node->left);
     int right_height = avltree_height(node->right);
     node->height     = 1 + avltree_max_height(left_height, right_height);
@@ -168,7 +168,7 @@ static avltree_t avltree_right_rotate(avltree_t node) {
 }
 
 static avltree_t avltree_balance(avltree_t node) {
-  if (node == NULL) return NULL;
+  if (node == null) return null;
 
   avltree_update_height(node);
 
@@ -193,31 +193,31 @@ static avltree_t avltree_alloc(int32_t key, void *value) {
   avltree_t node = malloc(sizeof(*node));
   node->key      = key;
   node->value    = value;
-  node->left     = NULL;
-  node->right    = NULL;
+  node->left     = null;
+  node->right    = null;
   node->height   = 0;
   return node;
 }
 
 static void avltree_free(avltree_t root) {
-  if (root == NULL) return;
+  if (root == null) return;
   avltree_free(root->left);
   avltree_free(root->right);
   free(root);
 }
 
 static void *avltree_get(avltree_t root, int32_t key) {
-  while (root != NULL && root->key != key) {
+  while (root != null && root->key != key) {
     if (key < root->key)
       root = root->left;
     else
       root = root->right;
   }
-  return root ? root->value : NULL;
+  return root ? root->value : null;
 }
 
 static avltree_t avltree_get_node(avltree_t root, int32_t key) {
-  while (root != NULL && root->key != key) {
+  while (root != null && root->key != key) {
     if (key < root->key)
       root = root->left;
     else
@@ -227,7 +227,7 @@ static avltree_t avltree_get_node(avltree_t root, int32_t key) {
 }
 
 static bool avltree_search(avltree_t root, void *value, int32_t *key) {
-  if (root == NULL) return false;
+  if (root == null) return false;
   if (root->value == value) {
     *key = root->key;
     return true;
@@ -238,7 +238,7 @@ static bool avltree_search(avltree_t root, void *value, int32_t *key) {
 }
 
 static avltree_t avltree_search_node(avltree_t root, void *value) {
-  if (root == NULL) return NULL;
+  if (root == null) return null;
   if (root->value == value) return root;
   if (root->left) {
     avltree_t node = avltree_search_node(root->left, value);
@@ -248,23 +248,23 @@ static avltree_t avltree_search_node(avltree_t root, void *value) {
     avltree_t node = avltree_search_node(root->right, value);
     if (node) return node;
   }
-  return NULL;
+  return null;
 }
 
 static avltree_t avltree_min(avltree_t root) {
-  while (root->left != NULL)
+  while (root->left != null)
     root = root->left;
   return root;
 }
 
 static avltree_t avltree_max(avltree_t root) {
-  while (root->right != NULL)
+  while (root->right != null)
     root = root->right;
   return root;
 }
 
 static avltree_t avltree_insert(avltree_t root, int32_t key, void *value) {
-  if (root == NULL) return avltree_alloc(key, value);
+  if (root == null) return avltree_alloc(key, value);
 
   if (key < root->key) {
     root->left = avltree_insert(root->left, key, value);
@@ -279,18 +279,18 @@ static avltree_t avltree_insert(avltree_t root, int32_t key, void *value) {
 }
 
 static avltree_t avltree_delete(avltree_t root, int32_t key) {
-  if (root == NULL) { return NULL; }
+  if (root == null) { return null; }
 
   if (key < root->key) {
     root->left = avltree_delete(root->left, key);
   } else if (key > root->key) {
     root->right = avltree_delete(root->right, key);
   } else {
-    if (root->left == NULL) {
+    if (root->left == null) {
       avltree_t temp = root->right;
       free(root);
       return temp;
-    } else if (root->right == NULL) {
+    } else if (root->right == null) {
       avltree_t temp = root->left;
       free(root);
       return temp;
@@ -308,7 +308,7 @@ static avltree_t avltree_delete(avltree_t root, int32_t key) {
 #  ifdef __libplos__
 static void avltree_print_inorder(avltree_t root, int depth) {
   if (depth == 0) printf("In-order traversal of the AVL Tree: \n");
-  if (root == NULL) return;
+  if (root == null) return;
   avltree_print_inorder(root->left, depth + 1);
   for (int i = 0; i < depth; i++)
     printf("| ");
@@ -318,7 +318,7 @@ static void avltree_print_inorder(avltree_t root, int depth) {
 
 static void avltree_print_preorder(avltree_t root, int depth) {
   if (depth == 0) printf("Pre-order traversal of the AVL Tree: \n");
-  if (root == NULL) return;
+  if (root == null) return;
   for (int i = 0; i < depth; i++)
     printf("| ");
   printf("%d %p\n", root->key, root->value);
@@ -328,7 +328,7 @@ static void avltree_print_preorder(avltree_t root, int depth) {
 
 static void avltree_print_postorder(avltree_t root, int depth) {
   if (depth == 0) printf("Post-order traversal of the AVL Tree: \n");
-  if (root == NULL) return;
+  if (root == null) return;
   avltree_print_postorder(root->left, depth + 1);
   avltree_print_postorder(root->right, depth + 1);
   for (int i = 0; i < depth; i++)

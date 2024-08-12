@@ -51,6 +51,7 @@ void set_interrupt_state(bool state) {
     asm_cli;
   }
 }
+
 void lock(lock_t *key) {
   int state = interrupt_disable();
   if (key->value != LOCK_UNLOCKED) {
@@ -68,6 +69,7 @@ void lock(lock_t *key) {
   key->owner  = current_task();
   set_interrupt_state(state);
 }
+
 void unlock(lock_t *key) {
   int state  = interrupt_disable();
   key->value = LOCK_UNLOCKED;

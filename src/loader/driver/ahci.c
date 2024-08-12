@@ -9,8 +9,8 @@ static u32      drive_mapping[0xff];
 static u32      ports[32];
 static u32      port_total = 0;
 static HBA_MEM *hba_mem_address;
-static void     ahci_vdisk_read(char drive, u8 *buffer, u32 number, u32 lba);
-static void     ahci_vdisk_write(char drive, u8 *buffer, u32 number, u32 lba);
+static void     ahci_vdisk_read(int drive, u8 *buffer, u32 number, u32 lba);
+static void     ahci_vdisk_write(int drive, u8 *buffer, u32 number, u32 lba);
 static int      check_type(HBA_PORT *port) {
   u32 ssts = port->ssts;
 
@@ -426,8 +426,8 @@ OK:
   }
 }
 
-static void ahci_vdisk_read(char drive, u8 *buffer, u32 number, u32 lba) {
+static void ahci_vdisk_read(int drive, u8 *buffer, u32 number, u32 lba) {
   //                    klog("mapping %d\n",drive_mapping[drive]);
   ahci_read(&(hba_mem_address->ports[drive_mapping[drive]]), lba, 0, number, (u16 *)buffer);
 }
-static void ahci_vdisk_write(char drive, u8 *buffer, u32 number, u32 lba) {}
+static void ahci_vdisk_write(int drive, u8 *buffer, u32 number, u32 lba) {}

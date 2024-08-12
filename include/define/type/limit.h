@@ -27,7 +27,6 @@
 #define INTMAX_MAX  __INTMAX_MAX__
 #define UINTMAX_MAX __UINTMAX_MAX__
 
-#undef SSIZE_MAX
 #define SSIZE_MAX ((__INTPTR_TYPE__)(__SIZE_MAX__ >> 1))
 #define SSIZE_MIN (-SSIZE_MAX - 1)
 #define SIZE_MAX  __SIZE_MAX__

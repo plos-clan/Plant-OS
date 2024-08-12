@@ -687,8 +687,7 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
           line_address, eip);
     if (current_task()->user_mode) { // 用户级FAULT
       task_exit(-1);                 // 强制退出
-      for (;;)
-        ;
+      infinite_loop;
     }
     asm_cli;
     // 系统级FAULT

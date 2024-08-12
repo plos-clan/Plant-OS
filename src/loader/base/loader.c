@@ -46,7 +46,7 @@ int is_ide_device(u8 bus, u8 device, u8 function) {
   }
 }
 
-int get_vdisk_type(char drive);
+int get_vdisk_type(int drive);
 
 void DOSLDR_MAIN() {
   u32 memtotal = 128 * 1024 * 1024;

@@ -6,18 +6,19 @@
 static struct font_char empty_char;
 
 plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
-  size_t font_width = ((font_getchar(font, 'A') ?: &empty_char)->advance ?: font->height / 2) + 1;
-  plty_t tty        = malloc(sizeof(*tty));
+  size_t font_width  = ((font_getchar(font, 'A') ?: &empty_char)->advance ?: font->height / 2) + 1;
+  size_t font_height = font->height + 2;
+  plty_t tty         = malloc(sizeof(*tty));
   if (tty == null) return null;
   tty->vram       = vram;
   tty->width      = width;
   tty->height     = height;
   tty->ncols      = width / font_width;
-  tty->nlines     = height / font->height;
+  tty->nlines     = height / font_height;
   tty->text       = malloc(tty->ncols * tty->nlines * sizeof(*tty->text));
   tty->text2      = malloc(tty->ncols * tty->nlines * sizeof(*tty->text));
   tty->charw      = font_width;
-  tty->charh      = font->height + 2;
+  tty->charh      = font_height;
   tty->fonts[0]   = font;
   tty->fonts[1]   = null;
   tty->fonts[2]   = null;
@@ -62,18 +63,16 @@ finline bool cheq(plty_char_t c1, plty_char_t c2) {
   return true;
 }
 
-void klog(cstr s);
-
 static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
   struct __PACKED__ {
     byte b, g, r, a;
-  }   *vram = tty->vram;
-  auto _ch  = &tty->text[y * tty->ncols + x];
-  auto _ch2 = &tty->text2[y * tty->ncols + x];
-  auto fg   = _ch->fg;
-  auto bg   = _ch->bg;
-  auto ch   = _ch->ch;
-  auto cw   = ch ? (ch->advance + tty->charw - 1) / tty->charw : 1;
+  } vbuf, *const vram = tty->vram;
+  const auto _ch  = &tty->text[y * tty->ncols + x];
+  const auto _ch2 = &tty->text2[y * tty->ncols + x];
+  auto       fg   = _ch->fg;
+  auto       bg   = _ch->bg;
+  const auto ch   = _ch->ch;
+  const auto cw   = ch ? (ch->advance + tty->charw - 1) / tty->charw : 1;
   if (!force && cheq(_ch, _ch2)) return cw;
   if (force && x == tty->cur_x && y == tty->cur_y) {
     auto tmp = fg;
@@ -81,79 +80,33 @@ static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
     bg       = tmp;
   }
   x *= tty->charw, y *= tty->charh;
-  if (ch == null) {
-    for (i32 dy = 0; dy < tty->charh; dy++) {
-      i32 vy = y + dy;
-      if (vy < 0) continue;
-      if (vy >= tty->height) break;
-      for (i32 dx = 0; dx < tty->charw; dx++) {
-        i32 vx = x + dx;
-        if (vx < 0) continue;
-        if (vx >= tty->width) break;
-        vram[vy * tty->width + vx].r = bg.r;
-        vram[vy * tty->width + vx].g = bg.g;
-        vram[vy * tty->width + vx].b = bg.b;
+  const auto charw = cw * tty->charw;
+  for (i32 dy = 0; dy < tty->charh; dy++) {
+    const i32 vy = y + dy;
+    if (vy < 0) continue;
+    if (vy >= tty->height) break;
+    const bool by = dy < ch->top || dy >= ch->top + ch->height;
+    for (i32 dx = 0; dx < charw; dx++) {
+      const i32 vx = x + dx;
+      if (vx < 0) continue;
+      if (vx >= tty->width) break;
+      const bool bx    = dx < ch->left || dx >= ch->left + ch->width;
+      const auto vramp = &vram[vy * tty->width + vx];
+      if (ch == null || by || bx) {
+        vbuf.r = bg.r;
+        vbuf.g = bg.g;
+        vbuf.b = bg.b;
+      } else {
+        const i32 cx = dx - ch->left, cy = dy - ch->top;
+        auto      kr = ch->img[(cy * ch->width + cx) * 3];
+        auto      kg = ch->img[(cy * ch->width + cx) * 3 + 1];
+        auto      kb = ch->img[(cy * ch->width + cx) * 3 + 2];
+        vbuf.r       = (fg.r * kr + bg.r * (255 - kr)) / 256;
+        vbuf.g       = (fg.g * kg + bg.g * (255 - kg)) / 256;
+        vbuf.b       = (fg.b * kb + bg.b * (255 - kb)) / 256;
       }
-    }
-    return 1;
-  }
-  auto charw = cw * tty->charw;
-  for (i32 dy = 0; dy < ch->top; dy++) {
-    i32 vy = y + dy;
-    if (vy < 0) continue;
-    if (vy >= tty->height) break;
-    for (i32 dx = 0; dx < charw; dx++) {
-      i32 vx = x + dx;
-      if (vx < 0) continue;
-      if (vx >= tty->width) break;
-      vram[vy * tty->width + vx].r = bg.r;
-      vram[vy * tty->width + vx].g = bg.g;
-      vram[vy * tty->width + vx].b = bg.b;
-    }
-  }
-  for (i32 dy = ch->top; dy < ch->top + ch->height; dy++) {
-    i32 vy = y + dy;
-    if (vy < 0) continue;
-    if (vy >= tty->height) break;
-    for (i32 dx = 0; dx < ch->left; dx++) {
-      i32 vx = x + dx;
-      if (vx < 0) continue;
-      if (vx >= tty->width) break;
-      vram[vy * tty->width + vx].r = bg.r;
-      vram[vy * tty->width + vx].g = bg.g;
-      vram[vy * tty->width + vx].b = bg.b;
-    }
-    for (i32 dx = ch->left; dx < ch->left + ch->width; dx++) {
-      i32 vx = x + dx, cx = dx - ch->left, cy = dy - ch->top;
-      if (vx < 0) continue;
-      if (vx >= tty->width) break;
-      auto kr                      = ch->img[(cy * ch->width + cx) * 3];
-      auto kg                      = ch->img[(cy * ch->width + cx) * 3 + 1];
-      auto kb                      = ch->img[(cy * ch->width + cx) * 3 + 2];
-      vram[vy * tty->width + vx].r = (fg.r * kr + bg.r * (255 - kr)) / 256;
-      vram[vy * tty->width + vx].g = (fg.g * kg + bg.g * (255 - kg)) / 256;
-      vram[vy * tty->width + vx].b = (fg.b * kb + bg.b * (255 - kb)) / 256;
-    }
-    for (i32 dx = ch->left + ch->width; dx < charw; dx++) {
-      i32 vx = x + dx;
-      if (vx < 0) continue;
-      if (vx >= tty->width) break;
-      vram[vy * tty->width + vx].r = bg.r;
-      vram[vy * tty->width + vx].g = bg.g;
-      vram[vy * tty->width + vx].b = bg.b;
-    }
-  }
-  for (i32 dy = ch->top + ch->height; dy < tty->charh; dy++) {
-    i32 vy = y + dy;
-    if (vy < 0) continue;
-    if (vy >= tty->height) break;
-    for (i32 dx = 0; dx < charw; dx++) {
-      i32 vx = x + dx;
-      if (vx < 0) continue;
-      if (vx >= tty->width) break;
-      vram[vy * tty->width + vx].r = bg.r;
-      vram[vy * tty->width + vx].g = bg.g;
-      vram[vy * tty->width + vx].b = bg.b;
+      vbuf.a = 255;
+      *vramp = vbuf;
     }
   }
   return cw;
@@ -420,13 +373,6 @@ static u32 *utf8to32(cstr s) {
   return r;
 }
 
-// void plty_puts(plty_t tty, cstr s) {
-//   auto utf32s = utf8to32(s);
-//   if (utf32s == null) return;
-//   plty_puts_raw(tty, utf32s);
-//   free(utf32s);
-// }
-
 void plty_pututf8c(plty_t tty, byte c) {
   static u32 ch;
   static i32 nneed = -1;
@@ -447,9 +393,12 @@ void plty_pututf8c(plty_t tty, byte c) {
       ch    = 0xfffd;
       nneed = 0;
     }
-  } else {
+  } else if ((c & 0xc0) == 0x80) {
     nneed--;
     ch |= (c & 0x3f) << (nneed * 6);
+  } else {
+    ch    = 0xfffd;
+    nneed = 0;
   }
   if (nneed == 0) {
     plty_putc(tty, ch);

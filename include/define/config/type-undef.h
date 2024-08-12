@@ -11,6 +11,9 @@
 #undef INT_MIN
 #undef INT_MAX
 #undef UINT_MAX
+#undef LONG_MIN
+#undef LONG_MAX
+#undef ULONG_MAX
 
 #undef INT8_MIN
 #undef INT8_MAX
@@ -29,4 +32,6 @@
 #undef INTMAX_MAX
 #undef UINTMAX_MAX
 
+#undef SSIZE_MAX
+#undef SSIZE_MIN
 #undef SIZE_MAX

@@ -132,15 +132,15 @@ extern void slist_sp_print(slist_sp_t list) __THROW;
 
 static slist_sp_t slist_sp_alloc(const char *key, void *val) {
   slist_sp_t node = malloc(sizeof(*node));
-  if (node == NULL) return NULL;
-  node->key  = key ? strdup(key) : NULL;
+  if (node == null) return null;
+  node->key  = key ? strdup(key) : null;
   node->val  = val;
-  node->next = NULL;
+  node->next = null;
   return node;
 }
 
 static void slist_sp_free(slist_sp_t list) {
-  while (list != NULL) {
+  while (list != null) {
     slist_sp_t next = list->next;
     free(list->key);
     free(list);
@@ -149,7 +149,7 @@ static void slist_sp_free(slist_sp_t list) {
 }
 
 static void slist_sp_free_with(slist_sp_t list, void (*free_value)(void *)) {
-  while (list != NULL) {
+  while (list != null) {
     slist_sp_t next = list->next;
     free(list->key);
     free_value(list->val);
@@ -160,13 +160,13 @@ static void slist_sp_free_with(slist_sp_t list, void (*free_value)(void *)) {
 
 static slist_sp_t slist_sp_append(slist_sp_t list, const char *key, void *val) {
   slist_sp_t node = slist_sp_alloc(key, val);
-  if (node == NULL) return list;
+  if (node == null) return list;
 
-  if (list == NULL) {
+  if (list == null) {
     list = node;
   } else {
     slist_sp_t current = list;
-    while (current->next != NULL) {
+    while (current->next != null) {
       current = current->next;
     }
     current->next = node;
@@ -177,7 +177,7 @@ static slist_sp_t slist_sp_append(slist_sp_t list, const char *key, void *val) {
 
 static slist_sp_t slist_sp_prepend(slist_sp_t list, const char *key, void *val) {
   slist_sp_t node = slist_sp_alloc(key, val);
-  if (node == NULL) return list;
+  if (node == null) return list;
 
   node->next = list;
   list       = node;
@@ -189,14 +189,14 @@ static void *slist_sp_get(slist_sp_t list, const char *key) {
   for (slist_sp_t current = list; current; current = current->next) {
     if (streq(current->key, key)) return current->val;
   }
-  return NULL;
+  return null;
 }
 
 static slist_sp_t slist_sp_get_node(slist_sp_t list, const char *key) {
   for (slist_sp_t current = list; current; current = current->next) {
     if (streq(current->key, key)) return current;
   }
-  return NULL;
+  return null;
 }
 
 static bool slist_sp_search(slist_sp_t list, void *val, const char **key) {
@@ -213,11 +213,11 @@ static slist_sp_t slist_sp_search_node(slist_sp_t list, void *val) {
   for (slist_sp_t current = list; current; current = current->next) {
     if (current->val == val) return current;
   }
-  return NULL;
+  return null;
 }
 
 static slist_sp_t slist_sp_delete(slist_sp_t list, const char *key) {
-  if (list == NULL) return NULL;
+  if (list == null) return null;
 
   if (streq(list->key, key)) {
     slist_sp_t temp = list;
@@ -228,7 +228,7 @@ static slist_sp_t slist_sp_delete(slist_sp_t list, const char *key) {
   }
 
   slist_sp_t prev = list;
-  for (slist_sp_t current = list->next; current != NULL; current = current->next) {
+  for (slist_sp_t current = list->next; current != null; current = current->next) {
     if (streq(current->key, key)) {
       prev->next = current->next;
       free(current->key);
@@ -243,7 +243,7 @@ static slist_sp_t slist_sp_delete(slist_sp_t list, const char *key) {
 
 static slist_sp_t slist_sp_delete_with(slist_sp_t list, const char *key,
                                        void (*free_value)(void *)) {
-  if (list == NULL) return NULL;
+  if (list == null) return null;
 
   if (streq(list->key, key)) {
     slist_sp_t temp = list;
@@ -255,7 +255,7 @@ static slist_sp_t slist_sp_delete_with(slist_sp_t list, const char *key,
   }
 
   slist_sp_t prev = list;
-  for (slist_sp_t current = list->next; current != NULL; current = current->next) {
+  for (slist_sp_t current = list->next; current != null; current = current->next) {
     if (streq(current->key, key)) {
       prev->next = current->next;
       free(current->key);
@@ -270,7 +270,7 @@ static slist_sp_t slist_sp_delete_with(slist_sp_t list, const char *key,
 }
 
 static slist_sp_t slist_sp_delete_node(slist_sp_t list, slist_sp_t node) {
-  if (list == NULL || node == NULL) return list;
+  if (list == null || node == null) return list;
 
   if (list == node) {
     slist_sp_t temp = list;
@@ -281,7 +281,7 @@ static slist_sp_t slist_sp_delete_node(slist_sp_t list, slist_sp_t node) {
   }
 
   slist_sp_t prev = list;
-  for (slist_sp_t current = list->next; current != NULL; current = current->next) {
+  for (slist_sp_t current = list->next; current != null; current = current->next) {
     if (current == node) {
       prev->next = current->next;
       free(current->key);
@@ -296,7 +296,7 @@ static slist_sp_t slist_sp_delete_node(slist_sp_t list, slist_sp_t node) {
 
 static slist_sp_t slist_sp_delete_node_with(slist_sp_t list, slist_sp_t node,
                                             void (*free_value)(void *)) {
-  if (list == NULL || node == NULL) return list;
+  if (list == null || node == null) return list;
 
   if (list == node) {
     slist_sp_t temp = list;
@@ -308,7 +308,7 @@ static slist_sp_t slist_sp_delete_node_with(slist_sp_t list, slist_sp_t node,
   }
 
   slist_sp_t prev = list;
-  for (slist_sp_t current = list->next; current != NULL; current = current->next) {
+  for (slist_sp_t current = list->next; current != null; current = current->next) {
     if (current == node) {
       prev->next = current->next;
       free(current->key);
@@ -325,7 +325,7 @@ static slist_sp_t slist_sp_delete_node_with(slist_sp_t list, slist_sp_t node,
 static size_t slist_sp_length(slist_sp_t slist_sp) {
   size_t     count   = 0;
   slist_sp_t current = slist_sp;
-  while (current != NULL) {
+  while (current != null) {
     count++;
     current = current->next;
   }
@@ -334,11 +334,11 @@ static size_t slist_sp_length(slist_sp_t slist_sp) {
 
 static void slist_sp_print(slist_sp_t slist_sp) {
   slist_sp_t current = slist_sp;
-  while (current != NULL) {
+  while (current != null) {
     printf("%p -> ", current->val);
     current = current->next;
   }
-  printf("NULL\n");
+  printf("null\n");
 }
 
 #  undef SLIST_SP_IMPLEMENTATION

@@ -3,7 +3,8 @@
 
 #define STACK_SIZE 1024 * 1024
 
-void         free_pde(u32 addr);
+void free_pde(u32 addr);
+
 char         default_drive, default_drive_number;
 static char  flags_once = false;
 mtask        m[255];
@@ -32,7 +33,6 @@ static void init_task(mtask *t, int id) {
   t->my               = 0;
   t->line             = NULL;
   t->timer            = NULL;
-  t->nfs              = NULL;
   t->waittid          = -1;
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
@@ -67,8 +67,8 @@ static void init_tasks() {
   }
 }
 
-fpu_t public_fpu;
-bool  task_check_train(mtask *task) {
+fpu_regs_t public_fpu;
+bool       task_check_train(mtask *task) {
   if (!task) { return false; }
   if (task->train == 1 && timerctl.count - task->jiffies >= 5) return true;
   return false;
@@ -134,8 +134,8 @@ H:
   if (next == NULL) { next = idle_task; }
   if (next->urgent) { next->urgent = 0; }
   if (next->ready) { next->ready = 0; }
-  int    current_fpu_flag = current->fpu_flag;
-  fpu_t *current_fpu      = &(current->fpu);
+  int         current_fpu_flag = current->fpu_flag;
+  fpu_regs_t *current_fpu      = &(current->fpu);
   asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
   if (current_fpu && current_fpu_flag)
     asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
@@ -205,19 +205,13 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
     flags_once    = true;
   }
 
-  extern int init_ok_flag; // init_ok_flag 标记fs等是否初始化完成
-  klogd("init ok flag = %d", init_ok_flag);
-  if (init_ok_flag) {
-    klogd("init ok flag set, so change for task");
-    vfs_change_disk_for_task(t->drive, t);
-  }
-
   return t;
 }
+
 mtask *get_task(u32 tid) {
-  if (tid >= 255) { return NULL; }
-  if (m[tid].state == EMPTY || m[tid].state == WILL_EMPTY || m[tid].state == READY) { return NULL; }
-  return &(m[tid]);
+  if (tid >= 255) return NULL;
+  if (m[tid].state == EMPTY || m[tid].state == WILL_EMPTY || m[tid].state == READY) return NULL;
+  return &m[tid];
 }
 
 void task_to_user_mode(u32 eip, u32 esp) {
@@ -292,7 +286,6 @@ void task_kill(u32 tid) {
   m[tid].line       = NULL;
   m[tid].jiffies    = 0;
   m[tid].timer      = NULL;
-  m[tid].nfs        = NULL;
   m[tid].waittid    = -1;
   m[tid].state      = WILL_EMPTY;
   m[tid].alloc_addr = 0;
@@ -332,11 +325,9 @@ void task_kill(u32 tid) {
 }
 
 mtask *current_task() {
-  if (current == NULL) {
-    null_task.tid = NULL_TID;
-    return &null_task;
-  }
-  return current;
+  if (current != NULL) return current;
+  null_task.tid = NULL_TID;
+  return &null_task;
 }
 
 void into_mtask() {
@@ -350,7 +341,7 @@ void into_mtask() {
   tss.ss0 = 1 * 8;
   set_segmdesc(gdt + 103, 103, (int)&tss, AR_TSS32);
   load_tr(103 * 8);
-  idle_task = create_task((u32)idle, 0, 1, 3);
+  idle_task = create_task((u32)idle_loop, 0, 1, 3);
   create_task((u32)init, 0, 5, 1);
   asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
   task_start(&(m[0]));
@@ -478,7 +469,6 @@ void task_exit(u32 status) {
   m[tid].line       = NULL;
   m[tid].jiffies    = 0;
   m[tid].timer      = NULL;
-  m[tid].nfs        = NULL;
   m[tid].waittid    = -1;
   m[tid].state      = DIED;
   m[tid].alloc_addr = 0;
@@ -546,21 +536,21 @@ void mtask_run_now(mtask *obj) {
   next_set = obj;
 }
 
-void copy_vfs(mtask *src, mtask *dest) {
-  vfs_change_disk_for_task(src->nfs->drive, dest);
-  char *path;
-  list_foreach(src->nfs->path, l) {
-    path = (char *)l->data;
-    dest->nfs->cd(dest->nfs, path);
-  }
-}
+// void copy_vfs(mtask *src, mtask *dest) {
+//   // vfs_change_disk_for_task(src->nfs->drive, dest);
+//   // char *path;
+//   // list_foreach(src->nfs->path, l) {
+//   //   path = (char *)l->data;
+//   //   dest->nfs->cd(dest->nfs, path);
+//   // }
+// }
 
 mtask *mtask_get_free() {
   mtask *t = NULL;
   for (int i = 1; i < 255; i++) {
     if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) {
       klogd("f:%d\n", i);
-      t = &(m[i]);
+      t = &m[i];
       klogd("%d\n", t->tid);
       break;
     }
@@ -610,7 +600,7 @@ int task_fork() {
   m->top = stack += STACK_SIZE;
   stack          += STACK_SIZE;
   m->esp          = (stack_frame *)stack;
-  m->nfs          = NULL;
+  // m->nfs          = NULL;
   if (current_task()->press_key_fifo) {
     m->press_key_fifo = malloc(sizeof(struct event));
     memcpy(m->press_key_fifo, current_task()->press_key_fifo, sizeof(struct event));
@@ -635,8 +625,6 @@ int task_fork() {
     m->mousefifo->buf = page_malloc_one();
     memcpy(m->mousefifo->buf, current_task()->mousefifo->buf, 4096);
   }
-  klogd("copy vfs\n");
-  copy_vfs(current_task(), m);
   m->pde     = pde_clone(current_task()->pde);
   m->running = 0;
   m->jiffies = 0;

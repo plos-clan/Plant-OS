@@ -21,7 +21,7 @@ void move_cursor_by_idx(int idx);
 void print(const char *str);
 void screen_clear();
 void putchar(char ch);
-void gotoxy(int x1, int y1);
+void gotoxy(int x, int y);
 int  get_x();
 int  get_y();
 int  get_xsize();

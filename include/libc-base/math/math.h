@@ -7,18 +7,11 @@
 
 #if NO_STD
 
-// --------------------------------------------------
-//; 求和
-
-// --------------------------------------------------
-//; 平均数
-
-// --------------------------------------------------
-//;
-
-finline int abs(int x) {
-  return x >= 0 ? x : -x;
-}
+#  define abs(x)                                                                                   \
+    ({                                                                                             \
+      auto _x = (x);                                                                               \
+      _x < 0 ? -_x : _x;                                                                           \
+    })
 
 finline double fmod(double x, double y) {
   return x - (long)(x / y) * y;
@@ -37,13 +30,19 @@ finline float fmodf(float x, float y) {
 // --------------------------------------------------
 //; 最大最小
 
-finline int min(int a, int b) {
-  return a < b ? a : b;
-}
+#define min(a, b)                                                                                  \
+  ({                                                                                               \
+    auto _a = (a);                                                                                 \
+    auto _b = (b);                                                                                 \
+    _a < _b ? _a : _b;                                                                             \
+  })
 
-finline int max(int a, int b) {
-  return a > b ? a : b;
-}
+#define max(a, b)                                                                                  \
+  ({                                                                                               \
+    auto _a = (a);                                                                                 \
+    auto _b = (b);                                                                                 \
+    _a > _b ? _a : _b;                                                                             \
+  })
 
 // --------------------------------------------------
 //; 平方 立方

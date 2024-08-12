@@ -269,12 +269,7 @@ static int parse_vt100(struct tty *res, char *string) {
       return 0;
     }
     // klogd("switch k");
-    static byte color_map[8] = {0, 4, 2, 6, 1, 5, 3, 7};
-    if (res->vram != 0xb8000) {
-      for (byte q = 0; q < 8; q++) {
-        color_map[q] = q;
-      }
-    }
+    static const byte color_map[8] = {0, 4, 2, 6, 1, 5, 3, 7};
     switch (k) {
     case 0: {
       if (delta[0] >= 30 && delta[0] <= 37) { // foreground color

@@ -111,10 +111,10 @@ static inline void insl(u32 port, u32 *addr, int cnt) {
                : "d"(port), "0"(addr), "1"(cnt)
                : "memory", "cc");
 }
-static void Read(char drive, u8 *buffer, u32 number, u32 lba) {
+static void Read(int drive, u8 *buffer, u32 number, u32 lba) {
   ide_read_sectors(drive - 'B', number, lba, 1 * 8, (u32)buffer);
 }
-static void Write(char drive, u8 *buffer, u32 number, u32 lba) {
+static void Write(int drive, u8 *buffer, u32 number, u32 lba) {
   ide_write_sectors(drive - 'B', number, lba, 1 * 8, (u32)buffer);
 }
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {

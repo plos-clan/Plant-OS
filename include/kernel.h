@@ -4,13 +4,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "kernel/00-include.h"
 #include "kernel/8295a.h"
 #include "kernel/cpu.h"
 #include "kernel/dma.h"
 #include "kernel/elf.h"
 #include "kernel/fat.h"
 #include "kernel/fdc.h"
-#include "kernel/include.h"
 #include "kernel/ipc.h"
 #include "kernel/lock.h"
 #include "kernel/logging.h"
@@ -26,7 +26,6 @@ extern "C" {
 #include "kernel/tty.h"
 #include "kernel/vbe.h"
 #include "kernel/vdisk.h"
-#include "kernel/vfs.h"
 #ifdef __cplusplus
 }
 #endif

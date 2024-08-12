@@ -54,10 +54,10 @@ static u8           sr0       = 0;
 static u8           fdc_track = 0xff;
 static DrvGeom      geometry  = {DG144_HEADS, DG144_TRACKS, DG144_SPT};
 u32                 tbaddr    = 0x80000L; /* 位于1M以下的轨道缓冲器的物理地址 */
-static void         Read(char drive, u8 *buffer, u32 number, u32 lba) {
+static void         Read(int drive, u8 *buffer, u32 number, u32 lba) {
   fdc_rw(lba, buffer, 1, number);
 }
-static void Write(char drive, u8 *buffer, u32 number, u32 lba) {
+static void Write(int drive, u8 *buffer, u32 number, u32 lba) {
   fdc_rw(lba, buffer, 0, number);
 }
 void floppy_init() {

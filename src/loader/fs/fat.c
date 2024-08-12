@@ -757,7 +757,7 @@ int rename(char *src_name, char *dst_name, vfs_t *vfs) {
   file_saveinfo(Get_dictaddr(src_name, vfs), vfs);
   return 1;
 }
-int format(char drive) {
+int format(int drive) {
   return 0;
 }
 int attrib(char *filename, ftype type, struct vfs_t *vfs) {

@@ -30,7 +30,7 @@ typedef struct intr_frame_t {
   u32 ss;
 } intr_frame_t;
 
-typedef struct __PACKED__ fpu {
+typedef struct __PACKED__ fpu_regs {
   u16 control;
   u16 RESERVED1;
   u16 status;
@@ -42,7 +42,7 @@ typedef struct __PACKED__ fpu {
   u32 fdp0;
   u32 fdp1;
   u8  regs[80];
-} fpu_t;
+} fpu_regs_t;
 
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);

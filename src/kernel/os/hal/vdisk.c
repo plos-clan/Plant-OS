@@ -23,7 +23,7 @@ int register_vdisk(vdisk vd) {
   return 0; // 注册失败
 }
 
-int logout_vdisk(char drive) {
+int logout_vdisk(int drive) {
   int indx = drive - ('A');
   if (indx > 26) {
     return 0; // 失败
@@ -36,7 +36,7 @@ int logout_vdisk(char drive) {
   }
 }
 
-int rw_vdisk(char drive, u32 lba, u8 *buffer, u32 number, int read) {
+int rw_vdisk(int drive, u32 lba, u8 *buffer, u32 number, int read) {
   int indx = drive - ('A');
   if (indx > 26) {
     return 0; // 失败
@@ -53,7 +53,7 @@ int rw_vdisk(char drive, u32 lba, u8 *buffer, u32 number, int read) {
   }
 }
 
-bool have_vdisk(char drive) {
+bool have_vdisk(int drive) {
   int indx = drive - 'A';
   // printk("drive=%c\n",drive);
   if (indx > 26) {
@@ -67,10 +67,12 @@ bool have_vdisk(char drive) {
 }
 // 基于vdisk的通用读写
 
-static u8               *drive_name[16] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-                                           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static u8 *drive_name[16] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+                             NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+
 static struct cir_queue8 drive_fifo[16];
-static u8                drive_buf[16][256];
+
+static u8 drive_buf[16][256];
 
 bool set_drive(u8 *name) {
   for (int i = 0; i != 16; i++) {
@@ -111,7 +113,7 @@ void drive_semaphore_give(u32 drive_code) {
 }
 
 #define SECTORS_ONCE 8
-void Disk_Read(u32 lba, u32 number, void *buffer, char drive) {
+void Disk_Read(u32 lba, u32 number, void *buffer, int drive) {
   if (have_vdisk(drive)) {
     if (drive_semaphore_take(get_drive_code((u8 *)"DISK_DRIVE"))) {
       for (int i = 0; i < number; i += SECTORS_ONCE) {
@@ -123,7 +125,7 @@ void Disk_Read(u32 lba, u32 number, void *buffer, char drive) {
   }
 }
 
-u32 disk_Size(char drive) {
+u32 disk_Size(int drive) {
   u8 drive1 = drive;
   if (have_vdisk(drive1)) {
     int indx = drive1 - 'A';
@@ -136,7 +138,7 @@ u32 disk_Size(char drive) {
   return 0;
 }
 
-bool DiskReady(char drive) {
+bool DiskReady(int drive) {
   return have_vdisk(drive);
 }
 
@@ -144,7 +146,7 @@ int getReadyDisk() {
   return 0;
 }
 
-void Disk_Write(u32 lba, u32 number, const void *buffer, char drive) {
+void Disk_Write(u32 lba, u32 number, const void *buffer, int drive) {
   //  printk("%d\n",lba);
   if (have_vdisk(drive)) {
     if (drive_semaphore_take(get_drive_code((u8 *)"DISK_DRIVE"))) {
@@ -158,7 +160,7 @@ void Disk_Write(u32 lba, u32 number, const void *buffer, char drive) {
   }
 }
 
-bool CDROM_Read(u32 lba, u32 number, void *buffer, char drive) {
+bool CDROM_Read(u32 lba, u32 number, void *buffer, int drive) {
   if (have_vdisk(drive)) {
     int indx = drive - ('A');
     if (vdisk_ctl[indx].flag != 2) {

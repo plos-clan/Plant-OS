@@ -3,7 +3,6 @@
 
 void sb16_init();
 
-int              init_ok_flag = 0;
 struct MOUSE_DEC mdec;
 size_t           memsize;
 byte            *IVT;
@@ -103,8 +102,8 @@ void sysinit() {
   sb16_init();
   vdisk_init();
   vfs_init();
-  init_vfs();
-  register_fat();
+  // init_vfs();
+  // register_fat();
 
   if (memsize / (1024 * 1024) < 256) {
     fatal("You should have at least 256MB memory in your pc to start Plant-OS.");

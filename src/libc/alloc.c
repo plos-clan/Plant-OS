@@ -66,7 +66,6 @@ static void *mmap_buf_4k[4] = {null};
 static void *mmap_buf_2M    = null;
 
 static void *wrap_mmap(void *addr, size_t size) {
-  // printf("map   %p %d\n", addr, size);
   if (size == SIZE_2M) {
     if (mmap_buf_2M != null) {
       void *tmp   = mmap_buf_2M;
@@ -92,7 +91,6 @@ static void *wrap_mmap(void *addr, size_t size) {
 }
 
 static void wrap_munmap(void *addr, size_t size) {
-  // printf("unmap %p %d\n", addr, size);
   if (size == SIZE_2M) {
     if (mmap_buf_2M == null) {
       mmap_buf_2M = addr;

@@ -6,21 +6,13 @@
 // ELF HEADER
 
 // identification indexes
-#define EI_MAG0    0 // file identification
-#define EI_MAG1    1 // file identification
-#define EI_MAG2    2 // file identification
-#define EI_MAG3    3 // file identification
 #define EI_CLASS   4 // file class
 #define EI_DATA    5 // data encoding
 #define EI_VERSION 6 // file version
 #define EI_PAD     7 // start of padding bytes
 #define EI_NIDENT  16
 
-// magic numbers
-#define ELFMAG0 0x7f
-#define ELFMAG1 'E'
-#define ELFMAG2 'L'
-#define ELFMAG3 'F'
+#define ELF_MAGIC MAGIC32(0x7f, 'E', 'L', 'F')
 
 // file class
 #define ELFCLASSNONE 0 // invalid class
