@@ -18,10 +18,12 @@ typedef _Complex __INT64_TYPE__  cint64_t;
 typedef _Complex __UINT64_TYPE__ cuint64_t;
 typedef _Complex float           cfloat32_t;
 typedef _Complex double          cfloat64_t;
-#if defined(__x86_64__) && __GCC__ > 12
+#if !NO_EXTFLOAT
+#  if defined(__x86_64__) && __GCC__ > 12
 typedef _Complex _Float16 cfloat16_t;
-#  ifdef __clang__
+#    ifdef __clang__
 typedef _Complex __float128 cfloat128_t;
+#    endif
 #  endif
 #endif
 
@@ -35,9 +37,11 @@ typedef cint64_t   ci64;
 typedef cuint64_t  cu64;
 typedef cfloat32_t cf32;
 typedef cfloat64_t cf64;
-#if defined(__x86_64__) && __GCC__ > 12
+#if !NO_EXTFLOAT
+#  if defined(__x86_64__) && __GCC__ > 12
 typedef cfloat16_t cf16;
-#  ifdef __clang__
+#    ifdef __clang__
 typedef cfloat128_t cf128;
+#    endif
 #  endif
 #endif

@@ -39,8 +39,10 @@ typedef double          float64_t;
 #if defined(__x86_64__)
 typedef __int128          int128_t;
 typedef unsigned __int128 uint128_t;
-typedef _Float16          float16_t;
-typedef __float128        float128_t;
+#  if !NO_EXTFLOAT
+typedef _Float16   float16_t;
+typedef __float128 float128_t;
+#  endif
 #endif
 
 typedef __INTMAX_TYPE__  intmax_t;
@@ -60,10 +62,12 @@ typedef uint64_t  u64;
 typedef float32_t f32;
 typedef float64_t f64;
 #if defined(__x86_64__)
-typedef int128_t   i128;
-typedef uint128_t  u128;
+typedef int128_t  i128;
+typedef uint128_t u128;
+#  if !NO_EXTFLOAT
 typedef float16_t  f16;
 typedef float128_t f128;
+#  endif
 #endif
 
 typedef intmax_t  imax_t;

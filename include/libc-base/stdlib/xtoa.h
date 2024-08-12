@@ -284,7 +284,7 @@ __ftostr(fl, long double, u64, 19);
 
 _ftostr(f32, u32, 9);
 _ftostr(f64, u64, 19);
-#if defined(__x86_64__)
+#if defined(__x86_64__) && !NO_EXTFLOAT
 _ftostr(f16, u32, 9);
 _ftostr(f128, u64, 19);
 #endif
@@ -303,7 +303,7 @@ __ftoa(fl, long double, u64, 19);
 
 _ftoa(f32, u32, 9);
 _ftoa(f64, u64, 19);
-#if defined(__x86_64__)
+#if defined(__x86_64__) && !NO_EXTFLOAT
 _ftoa(f16, u32, 9);
 _ftoa(f128, u64, 19);
 #endif

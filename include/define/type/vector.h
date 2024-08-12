@@ -36,8 +36,10 @@ __16(float64_t);
 #if defined(__x86_64__)
 __8(int128_t);
 __8(uint128_t);
+#  if !NO_EXTFLOAT
 __64(float16_t);
 __8(float128_t);
+#  endif
 #endif
 
 __32(float);
@@ -84,8 +86,10 @@ __16(f64);
 #if defined(__x86_64__)
 __8(i128);
 __8(u128);
+#  if !NO_EXTFLOAT
 __64(f16);
 __8(f128);
+#  endif
 #endif
 
 #undef __16

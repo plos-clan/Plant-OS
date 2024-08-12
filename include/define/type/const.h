@@ -48,8 +48,10 @@ _CONST_(float64_t);
 #if defined(__x86_64__)
 _CONST_(int128_t);
 _CONST_(uint128_t);
+#  if !NO_EXTFLOAT
 _CONST_(float16_t);
 _CONST_(float128_t);
+#  endif
 #endif
 
 _CONST_(intmax_t);
@@ -68,8 +70,10 @@ _CONST_(f64);
 #if defined(__x86_64__)
 _CONST_(i128);
 _CONST_(u128);
+#  if !NO_EXTFLOAT
 _CONST_(f16);
 _CONST_(f128);
+#  endif
 #endif
 
 _CONST_(imax_t);
@@ -92,10 +96,12 @@ _CONST_(cint64_t);
 _CONST_(cuint64_t);
 _CONST_(cfloat32_t);
 _CONST_(cfloat64_t);
-#if defined(__x86_64__) && __GCC__ > 12
+#if !NO_EXTFLOAT
+#  if defined(__x86_64__) && __GCC__ > 12
 _CONST_(cfloat16_t);
-#  ifdef __clang__
+#    ifdef __clang__
 _CONST_(cfloat128_t);
+#    endif
 #  endif
 #endif
 
@@ -109,10 +115,12 @@ _CONST_(ci64);
 _CONST_(cu64);
 _CONST_(cf32);
 _CONST_(cf64);
-#if defined(__x86_64__) && __GCC__ > 12
+#if !NO_EXTFLOAT
+#  if defined(__x86_64__) && __GCC__ > 12
 _CONST_(cf16);
-#  ifdef __clang__
+#    ifdef __clang__
 _CONST_(cf128);
+#    endif
 #  endif
 #endif
 

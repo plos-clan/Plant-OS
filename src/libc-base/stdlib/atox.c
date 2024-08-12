@@ -74,7 +74,7 @@ __atof(fl, long double);
 
 _atof(f32);
 _atof(f64);
-#if defined(__x86_64__)
+#if defined(__x86_64__) && !NO_EXTFLOAT
 _atof(f16);
 _atof(f128);
 #endif
@@ -156,7 +156,7 @@ __stof(d, double);
 
 _stof(f32);
 _stof(f64);
-#if defined(__x86_64__)
+#if defined(__x86_64__) && !NO_EXTFLOAT
 _stof(f16);
 _stof(f128);
 #endif
