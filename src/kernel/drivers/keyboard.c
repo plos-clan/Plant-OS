@@ -134,6 +134,7 @@ void inthandler21(int *esp) {
   u8 data, s[4];
   asm_out8(PIC0_OCW2, 0x61);
   data = asm_in8(PORT_KEYDAT); // 从键盘IO口读取扫描码
+  //return;
   //  特殊键处理
   if (data == 0xe0) {
     e0_flag = 1;
@@ -247,9 +248,13 @@ void inthandler21(int *esp) {
       }
       // 一般进程
     THROUGH:
-      //    klogd("send\n");
-      if (e0_flag) { cir_queue8_put(task_get_key_queue(task), 0xe0); }
-      cir_queue8_put(task_get_key_queue(task), data);
+
+      if(task_get_key_queue(task)) {
+        if (e0_flag) {
+          cir_queue8_put(task_get_key_queue(task), 0xe0); 
+        }
+        cir_queue8_put(task_get_key_queue(task), data);
+      }
     }
   if (e0_flag == 1) e0_flag = 0;
 }

@@ -1,3 +1,4 @@
+#include "define/type/base.h"
 #include <kernel.h>
 
 #define STACK_SIZE 1024 * 1024
@@ -46,6 +47,8 @@ static void init_task(mtask *t, int id) {
   t->times            = 0;
   t->keyboard_press   = NULL;
   t->keyboard_release = NULL;
+  t->keyfifo          = NULL;
+  t->mousefifo        = NULL;
   lock_init(&t->ipc_header.l);
   t->ipc_header.now = 0;
   for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
@@ -308,6 +311,8 @@ void task_kill(u32 tid) {
   m[tid].signal_disable   = 0;
   m[tid].keyboard_press   = NULL;
   m[tid].keyboard_release = NULL;
+  m[tid].keyfifo          = NULL;
+  m[tid].mousefifo        = NULL;
   lock_init(&(m[tid].ipc_header.l));
   for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
     m[tid].ipc_header.messages[k].from_tid = -1;
@@ -493,6 +498,8 @@ void task_exit(u32 status) {
   m[tid].signal_disable   = 0;
   m[tid].keyboard_press   = NULL;
   m[tid].keyboard_release = NULL;
+  m[tid].keyfifo          = NULL;
+  m[tid].mousefifo        = NULL;
   lock_init(&(m[tid].ipc_header.l));
   for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
     m[tid].ipc_header.messages[k].from_tid = -1;

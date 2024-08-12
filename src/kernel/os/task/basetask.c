@@ -1,4 +1,6 @@
 #include "../../../fs/fatfs/ff.h"
+#include "data-structure/circular-queue.h"
+#include "kernel/mtask.h"
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
