@@ -37,6 +37,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install NASM
+        run: sudo apt install -y nasm
+
       - name: Download resource
         run: |
           mkdir ${{ github.workspace }}/bin && cd ${{ github.workspace }}/bin
