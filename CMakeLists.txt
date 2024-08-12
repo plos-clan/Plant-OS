@@ -7,7 +7,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 enable_language(ASM_NASM)
 set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS asm ASM)
-set(CMAKE_ASM_NASM_FLAGS "-f elf32")
 
 # ----------------------------------------------------------------------------------------------------
 # 项目配置
