@@ -1,4 +1,3 @@
-#include "libc-base/string/mem.h"
 #include <loader.h>
 
 #define EFLAGS_AC_BIT     0x00040000
@@ -52,6 +51,10 @@ void *malloc(size_t size) {
 
 void free(void *ptr) {
   mpool_free(&pool, ptr);
+}
+
+void *realloc(void *ptr, size_t size) {
+  return mpool_realloc(&pool, ptr, size);
 }
 
 void *page_malloc(int size) {

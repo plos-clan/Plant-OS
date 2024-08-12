@@ -4,9 +4,9 @@ GLOBAL	asm_inthandler21, asm_inthandler20,asm_inthandler72
 EXTERN	inthandler21,inthandler20,syscall,inthandler2c,signal_deal
 GLOBAL	asm_inthandler36,asm_inthandler2c,floppy_int,interrput_exit
 section .text
-global null_inthandler
+global empty_inthandler
 %define PDE_ADDRESS 0x400000
-null_inthandler:
+empty_inthandler:
 	IRETD
 
 asm_inthandler36:

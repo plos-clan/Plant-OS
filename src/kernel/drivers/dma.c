@@ -1,8 +1,8 @@
 #include <kernel.h>
 
 /* 定义用于访问一个整数的上位和下位字节。 */
-#define LOW_BYTE(x) (x & 0x00FF)
-#define HI_BYTE(x)  ((x & 0xFF00) >> 8)
+#define LOW_BYTE(x) ((x) & 0x00FF)
+#define HI_BYTE(x)  (((x) & 0xFF00) >> 8)
 
 /* 每个DMA通道的快速访问寄存器和端口。 */
 byte MaskReg[8]  = {0x0A, 0x0A, 0x0A, 0x0A, 0xD4, 0xD4, 0xD4, 0xD4};
@@ -26,9 +26,8 @@ void dma_send(byte channel, u64 address, uint length, byte read) {
   /* 我们不想别的事情来打扰 */
   asm_cli;
 
-  /* 设置DMA通道，以便我们可以正确传输数据，这很简单，只要我们用I/O操作告诉DMA控制器就行了
-   */
-  /* 我们将使用这个通道（DMA_channel）*/
+  // 设置DMA通道，以便我们可以正确传输数据，这很简单，只要我们用I/O操作告诉DMA控制器就行了
+  // 我们将使用这个通道（DMA_channel）
   asm_out8(MaskReg[channel], 0x04 | channel);
 
   /* 我们先得解除DMA对这个通道的屏蔽，不然用不了 */
@@ -37,8 +36,7 @@ void dma_send(byte channel, u64 address, uint length, byte read) {
   /* 向DMA发送指定的模式 */
   asm_out8(ModeReg[channel], mode);
 
-  /* 发送偏移量地址，先发送高八位，再发送低八位（因为一次性最多只能发送一个byte）
-   */
+  // 发送偏移量地址，先发送高八位，再发送低八位（因为一次性最多只能发送一个byte）
   asm_out8(AddrPort[channel], LOW_BYTE(offset));
   asm_out8(AddrPort[channel], HI_BYTE(offset));
 

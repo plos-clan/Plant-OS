@@ -1,5 +1,3 @@
-#include "kernel/mtask.h"
-#include "kernel/syscall.h"
 #include <kernel.h>
 #define buffer_len 32768
 static const char l[] = "  QQffQQLLLfLLDDQQQfff  rrff``UU  QQDDQQLLLfLLDD<<f333  r\x98rf`r`U  "

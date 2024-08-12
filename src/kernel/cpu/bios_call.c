@@ -1,7 +1,6 @@
-#include "kernel/8295a.h"
 #include <kernel.h>
 
-extern u8 *IVT;
+extern byte *IVT;
 
 #pragma GCC optimize("O0")
 
@@ -14,5 +13,4 @@ void asm16_int(u8 intnum, regs16 *regs) {
   asm_set_cr3(current_task()->pde);
   init_pic();
   asm_sti;
- 
 }

@@ -315,9 +315,6 @@ void init() {
   klogd("Set Mode");
   byte *vram = (void *)set_mode(1024, 768, 32);
   memset(vram, 0, 1024 * 768 * 4);
-  for (int i = 0; i < 20; i++) {
-    printi("I=%d", i);
-  }
 
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
@@ -330,14 +327,14 @@ void init() {
   vfs_mount((cstr)&s, vfs_open("/fatfs1"));
 
   auto font1 = load_font("/fatfs1/font1.plff");
-  auto font2 = load_font("/fatfs1/font2.plff");
+  // auto font2 = load_font("/fatfs1/font2.plff");
 
   auto tty = plty_alloc(vram, 1024, 768, font1);
-  plty_addfont(tty, font2);
+  // plty_addfont(tty, font2);
 
   plty_set_default(tty);
 
-  info("Plant-OS 终端现在支持中文啦！");
+  // info("Plant-OS 终端现在支持中文啦！");
 
   // for (int i = 0;; i++) {
   //   info("Hello world! %d", i);

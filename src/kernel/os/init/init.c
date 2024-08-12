@@ -1,13 +1,12 @@
-#include "kernel/8295a.h"
-#include "kernel/timer.h"
-#include "kernel/vdisk.h"
+#include <fs.h>
 #include <kernel.h>
 
-void             sb16_init();
+void sb16_init();
+
 int              init_ok_flag = 0;
 struct MOUSE_DEC mdec;
 size_t           memsize;
-u8              *IVT;
+byte            *IVT;
 
 void abort() {
   while (true) {
@@ -75,10 +74,7 @@ void malloc_test() {
 
   fatal("test end.");
 }
-
 #endif
-
-#include <fs.h>
 
 #ifdef __clang__
 #  pragma clang optimize off

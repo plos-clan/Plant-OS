@@ -1,6 +1,6 @@
 #include "fatfs/ff.h"
 #include <fs.h>
-#include <kernel.h>
+
 static FATFS volume[10];
 static int   fatfs_id = 0;
 typedef struct file {
@@ -167,5 +167,4 @@ static struct vfs_callback callbacks = {
 
 void fatfs_regist() {
   fatfs_id = vfs_regist("fatfs", &callbacks);
-  klogd("%d", fatfs_id);
 }
