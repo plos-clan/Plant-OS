@@ -22,19 +22,11 @@ u32 memtest(u32 start, u32 end) {
   eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
   asm_set_flags(eflg);
 
-  if (flg486 != 0) {
-    cr0  = asm_get_cr0();
-    cr0 |= CR0_CACHE_DISABLE; /* 禁止缓存 */
-    asm_set_cr0(cr0);
-  }
+  if (flg486 != 0) asm_set_cd;
 
   i = memtest_sub(start, end);
 
-  if (flg486 != 0) {
-    cr0  = asm_get_cr0();
-    cr0 &= ~CR0_CACHE_DISABLE; /* 允许缓存 */
-    asm_set_cr0(cr0);
-  }
+  if (flg486 != 0) asm_clr_cd;
   return i;
 }
 
@@ -65,29 +57,12 @@ void *realloc(void *ptr, size_t size) {
 
 void *kmalloc(int size) {
   return malloc(size);
-  // void *p;
-  // p = page_malloc(size + sizeof(int));
-  // if (p == NULL) return NULL;
-  // *(int *)p = size;
-  // return (char *)p + sizeof(int);
 }
 
 void kfree(void *p) {
   free(p);
-  // if (p == NULL) return;
-  // int size = *(int *)(p - sizeof(int));
-  // page_free((char *)p - sizeof(int), size + sizeof(int));
 }
 
 void *krealloc(void *ptr, u32 size) {
-  void *new = kmalloc(size);
-  if (new == null || ptr == null) return new;
-  memcpy(new, ptr, mpool_msize(&pool, ptr));
-  kfree(ptr);
-  // void *new = kmalloc(size);
-  // if (ptr) {
-  //   memcpy(new, ptr, *(int *)((int)ptr - 4));
-  //   kfree(ptr);
-  // }
-  return new;
+  return realloc(ptr, size);
 }

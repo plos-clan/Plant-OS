@@ -3,9 +3,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ 基本类型
 
-#define INT_MIN  (-__INT_MAX__ - 1)
-#define INT_MAX  __INT_MAX__
-#define UINT_MAX ((unsigned int)-1)
+#define INT_MIN   (-__INT_MAX__ - 1)
+#define INT_MAX   __INT_MAX__
+#define UINT_MAX  ((unsigned int)-1)
+#define LONG_MIN  (-__LONG_MAX__ - 1)
+#define LONG_MAX  __LONG_MAX__
+#define ULONG_MAX ((unsigned long)-1)
 
 #define INT8_MIN   (-__INT8_MAX__ - 1)
 #define INT8_MAX   __INT8_MAX__

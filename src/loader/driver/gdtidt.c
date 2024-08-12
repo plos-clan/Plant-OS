@@ -3,7 +3,7 @@
 //  Copyright (C) 2021-2022 zhouzhihao & min0911_
 //  ------------------------------------------------
 #include <loader.h>
-void null_inthandler();
+void empty_inthandler();
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
@@ -49,7 +49,7 @@ void init_gdtidt(void) {
   /* IDT初始化*/
   for (int i = 0; i < 0xff; i++) {
     // 为了防止报#GP异常，将所有中断处理函数的地址设置为0
-    set_gatedesc(idt + i, (int)null_inthandler, 2 * 8, AR_INTGATE32);
+    set_gatedesc(idt + i, (int)empty_inthandler, 2 * 8, AR_INTGATE32);
   }
   return;
 }

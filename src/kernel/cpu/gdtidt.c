@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-void null_inthandler();
+void empty_inthandler();
 void ide_irq();
 
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
@@ -52,7 +52,7 @@ void init_gdtidt() {
 
   for (int i = 0; i < 0xff; i++) {
     // 为了防止报#GP异常，将所有中断处理函数的地址设置为0
-    set_gatedesc(idt + i, (int)null_inthandler, 2 * 8, AR_INTGATE32);
+    set_gatedesc(idt + i, (int)empty_inthandler, 2 * 8, AR_INTGATE32);
   }
   // 接下来这里是设置中断处理函数的地址
   set_gatedesc(idt + 0x00, (int)asm_error0, 2 * 8, AR_INTGATE32); // 0x00号异常

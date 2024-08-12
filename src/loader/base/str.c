@@ -1,5 +1,5 @@
-/* a string lib for miniset */
 #include <loader.h>
+
 mstr *mstr_init() {
   mstr *ms = (mstr *)malloc(sizeof(mstr));
   if (!ms) { return NULL; }
