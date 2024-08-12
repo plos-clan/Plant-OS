@@ -1,7 +1,6 @@
 #include <loader.h>
 
-#define EFLAGS_AC_BIT     0x00040000
-#define CR0_CACHE_DISABLE 0x60000000
+#define EFLAGS_AC_BIT 0x00040000
 
 u32 memtest(u32 start, u32 end) {
   char flg486 = 0;
@@ -12,28 +11,17 @@ u32 memtest(u32 start, u32 end) {
   eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
   asm_set_flags(eflg);
   eflg = asm_get_flags();
-  if ((eflg & EFLAGS_AC_BIT) != 0) {
-    /* 如果是386，即使设定AC=1，AC的值还会自动回到0 */
-    flg486 = 1;
-  }
+  // 如果是386，即使设定AC=1，AC的值还会自动回到0
+  if ((eflg & EFLAGS_AC_BIT) != 0) flg486 = 1;
 
   eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
   asm_set_flags(eflg);
 
-  if (flg486 != 0) {
-    cr0  = asm_get_cr0();
-    cr0 |= CR0_CACHE_DISABLE; /* 禁止缓存 */
-    asm_set_cr0(cr0);
-  }
+  if (flg486 != 0) asm_set_cd;
 
   i = memtest_sub(start, end);
 
-  if (flg486 != 0) {
-    cr0  = asm_get_cr0();
-    cr0 &= ~CR0_CACHE_DISABLE; /* 允许缓存 */
-    asm_set_cr0(cr0);
-  }
-
+  if (flg486 != 0) asm_clr_cd;
   return i;
 }
 

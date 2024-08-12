@@ -65,13 +65,13 @@ ssize_t syscall() {
   asm("mov %%edx, %0\n\t" : "=r"(edx));
   asm("mov %%esi, %0\n\t" : "=r"(esi));
   asm("mov %%edi, %0\n\t" : "=r"(edi));
-  klogi("eax: %d, ebx: %d, ecx: %d, edx: %d, esi: %d, edi: %d", eax, ebx, ecx, edx, esi, edi);
+  // klogi("eax: %d, ebx: %d, ecx: %d, edx: %d, esi: %d, edi: %d", eax, ebx, ecx, edx, esi, edi);
   if (0 <= eax && eax < MAX_SYSCALLS && sycall_handlers[eax] != null) {
     eax = ((syscall_t)sycall_handlers[eax])(ebx, ecx, edx, esi, edi);
   } else {
     eax = -1;
   }
-  klogi("ret: %d", eax);
+  // klogi("ret: %d", eax);
   return eax;
 }
 

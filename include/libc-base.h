@@ -8,7 +8,6 @@ extern "C" {
 #include "libc-base/asm/asm.h"
 #include "libc-base/asm/cpuid.h"
 #include "libc-base/asm/cr.h"
-#include "libc-base/asm/flag.h"
 #include "libc-base/asm/io.h"
 #include "libc-base/asm/reg.h"
 #include "libc-base/asm/syscall.h"

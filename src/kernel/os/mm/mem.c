@@ -1,7 +1,6 @@
 #include <kernel.h>
 
-#define EFLAGS_AC_BIT     0x00040000
-#define CR0_CACHE_DISABLE 0x60000000
+#define EFLAGS_AC_BIT 0x00040000
 
 u32 memtest_sub(u32, u32);
 
@@ -14,10 +13,8 @@ u32 memtest(u32 start, u32 end) {
   eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
   asm_set_flags(eflg);
   eflg = asm_get_flags();
-  if ((eflg & EFLAGS_AC_BIT) != 0) {
-    /* 如果是386，即使设定AC=1，AC的值还会自动回到0 */
-    flg486 = 1;
-  }
+  // 如果是386，即使设定AC=1，AC的值还会自动回到0
+  if ((eflg & EFLAGS_AC_BIT) != 0) flg486 = 1;
 
   eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
   asm_set_flags(eflg);
@@ -55,14 +52,13 @@ void *realloc(void *ptr, size_t size) {
   return mpool_realloc(&pool, ptr, size);
 }
 
-void *kmalloc(int size) {
-  return malloc(size);
-}
-
-void kfree(void *p) {
-  free(p);
-}
-
-void *krealloc(void *ptr, u32 size) {
-  return realloc(ptr, size);
-}
+// 老旧代码
+// void *kmalloc(int size) {
+//   return malloc(size);
+// }
+// void kfree(void *p) {
+//   free(p);
+// }
+// void *krealloc(void *ptr, u32 size) {
+//   return realloc(ptr, size);
+// }

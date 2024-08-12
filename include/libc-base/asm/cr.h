@@ -41,6 +41,20 @@
 
 #define asm_set_cr4(cr4) ({ asm volatile("mov %0, %%cr4\n\t" ::"r"((size_t)(cr4))); })
 
+enum {
+  CR0_PE = MASK(0), // Protection Enable 启用保护模式
+  CR0_MP = MASK(1), // Monitor Coprocessor
+  CR0_EM = MASK(2), // Emulation 启用模拟，表示没有 FPU
+  CR0_TS = MASK(3), // Task Switch 任务切换，延迟保存浮点环境
+  CR0_ET = MASK(4), // Extension Type 保留
+  CR0_NE = MASK(5), // Numeric Error 启用内部浮点错误报告
+  CR0_WP = MASK(16), // Write Protect 写保护（禁止超级用户写入只读页）帮助写时复制
+  CR0_AM = MASK(18), // Alignment Mask 对齐掩码
+  CR0_NW = MASK(29), // Not Write-Through 不是直写
+  CR0_CD = MASK(30), // Cache Disable 禁用内存缓冲
+  CR0_PG = MASK(31), // Paging 启用分页
+};
+
 // set: 设置标志  clr: 清除标志
 // PE: 保护模式
 // MP: 协处理器
