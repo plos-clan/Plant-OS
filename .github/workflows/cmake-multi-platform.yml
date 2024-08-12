@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y nasm mtools qemu-system-i386
+          sudo apt install -y nasm mtools qemu-system-i386 libfreetype6-dev
 
       - name: Download resource
         run: |
