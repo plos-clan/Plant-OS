@@ -7,13 +7,9 @@
 
 extern struct PAGE_INFO *pages;
 
-static u32 padding_up(u32 num, u32 size) {
-  return (num + size - 1) / size;
-}
-
 void *syscall_mmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
-  u32  page_count = padding_up(length, PAGE_SIZE);
+  u32  page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
   bool size_is_2M = page_count == 512;
 
   u32 addr            = current_task()->pde;
@@ -24,12 +20,12 @@ void *syscall_mmap(void *start, u32 length) {
     for (int j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
       u32 *pte_entry = (u32 *)p + j;
       if (!(page_get_attr(get_line_address(i, j, 0)) & PAGE_WRABLE)) {
-        line_addr_start = get_line_address(i, j, 0);
+        if (c == 0) line_addr_start = get_line_address(i, j, 0);
         c++;
       } else {
         c = 0;
       }
-      if (c == page_count) { goto _1; }
+      if (c == page_count) goto _1;
     }
   }
 _1:
@@ -43,7 +39,7 @@ _1:
 
 void syscall_munmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
-  u32 page_count = padding_up(length, 0x1000);
+  u32 page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
 
   if (start > (void *)0xf0000000) {
     error("Couldn't unmap memory from %p to %p.", start, start + page_count * 0x1000);

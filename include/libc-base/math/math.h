@@ -7,11 +7,15 @@
 
 #if NO_STD
 
-#  define abs(x)                                                                                   \
-    ({                                                                                             \
-      auto _x = (x);                                                                               \
-      _x < 0 ? -_x : _x;                                                                           \
-    })
+#  ifndef __cplusplus
+
+#    define abs(x)                                                                                 \
+      ({                                                                                           \
+        auto _x = (x);                                                                             \
+        _x < 0 ? -_x : _x;                                                                         \
+      })
+
+#  endif
 
 finline double fmod(double x, double y) {
   return x - (long)(x / y) * y;
@@ -30,19 +34,23 @@ finline float fmodf(float x, float y) {
 // --------------------------------------------------
 //; 最大最小
 
-#define min(a, b)                                                                                  \
-  ({                                                                                               \
-    auto _a = (a);                                                                                 \
-    auto _b = (b);                                                                                 \
-    _a < _b ? _a : _b;                                                                             \
-  })
+#ifndef __cplusplus
 
-#define max(a, b)                                                                                  \
-  ({                                                                                               \
-    auto _a = (a);                                                                                 \
-    auto _b = (b);                                                                                 \
-    _a > _b ? _a : _b;                                                                             \
-  })
+#  define min(a, b)                                                                                \
+    ({                                                                                             \
+      auto _a = (a);                                                                               \
+      auto _b = (b);                                                                               \
+      _a < _b ? _a : _b;                                                                           \
+    })
+
+#  define max(a, b)                                                                                \
+    ({                                                                                             \
+      auto _a = (a);                                                                               \
+      auto _b = (b);                                                                               \
+      _a > _b ? _a : _b;                                                                           \
+    })
+
+#endif
 
 // --------------------------------------------------
 //; 平方 立方

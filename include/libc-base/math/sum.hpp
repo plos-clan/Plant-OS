@@ -1,7 +1,6 @@
 #pragma once
 #include "base.hpp"
-#include <define.h>
-#include <type.hpp>
+#include <define.hpp>
 
 namespace cpp {
 

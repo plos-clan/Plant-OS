@@ -2,7 +2,7 @@
 #include "../exp-log.hpp"
 #include "../sin.hpp"
 #include <define.h>
-#include <type.hpp>
+#include <define.hpp>
 
 namespace cpp {
 

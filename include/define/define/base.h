@@ -9,6 +9,8 @@
 // 获取表达式的类型，类似于 auto
 #define typeof(arg) __typeof__((void)0, arg)
 
+#define alloca(size) __builtin_alloca(size)
+
 #if NO_BUILTIN
 #  define __has(name) (0)
 #else

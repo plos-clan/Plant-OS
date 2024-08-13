@@ -1,10 +1,11 @@
 #pragma once
 #include <define.h>
 
-// --------------------------------------------------
-//; clz
-
 #ifndef __cplusplus
+
+// --------------------------------------------------
+//; clz 返回无符号整数中前导 0 的个数
+
 #  if __has(clz)
 #    if defined(__GNUC__) && !defined(__clang__)
 #      define clz(x)                                                                               \
@@ -44,12 +45,40 @@ __(ullong, clzll)
           unsigned long: _clzl(x),                                                                 \
           unsigned long long: _clzll(x))
 #  endif
-#endif
+
+// --------------------------------------------------
+//; fhsb 返回 64 位无符号整数中最高有效位的索引，如果没有找到 1 位则返回 -1
+
+finline ssize_t fhsb8(u8 x) {
+  if (x == 0) return -1;
+  return 7 - clz(x);
+}
+finline ssize_t fhsb16(u16 x) {
+  if (x == 0) return -1;
+  return 15 - clz(x);
+}
+finline ssize_t fhsb32(u32 x) {
+  if (x == 0) return -1;
+  return 31 - clz(x);
+}
+finline ssize_t fhsb64(u64 x) {
+  if (x == 0) return -1;
+  return 63 - clz(x);
+}
+#  define fhsb(x)                                                                                  \
+    _Generic((x),                                                                                  \
+        u8: fhsb8(x),                                                                              \
+        u16: fhsb16(x),                                                                            \
+        u32: fhsb32(x),                                                                            \
+        u64: fhsb64(x),                                                                            \
+        i8: fhsb8(x),                                                                              \
+        i16: fhsb16(x),                                                                            \
+        i32: fhsb32(x),                                                                            \
+        i64: fhsb64(x))
 
 // --------------------------------------------------
 //; 位逆序
 
-#ifndef __cplusplus
 finline u8 bit_reverse_8(u8 x) {
   x = ((x & 0x55) << 1) | ((x >> 1) & 0x55);
   x = ((x & 0x33) << 2) | ((x >> 2) & 0x33);
@@ -85,13 +114,15 @@ finline u64 bit_reverse_64(u64 x) {
         u8: bit_reverse_8(x),                                                                      \
         u16: bit_reverse_16(x),                                                                    \
         u32: bit_reverse_32(x),                                                                    \
-        u64: bit_reverse_64(x))
-#endif
+        u64: bit_reverse_64(x),                                                                    \
+        i8: bit_reverse_8(x),                                                                      \
+        i16: bit_reverse_16(x),                                                                    \
+        i32: bit_reverse_32(x),                                                                    \
+        i64: bit_reverse_64(x))
 
 // --------------------------------------------------
 //; 字节逆序
 
-#ifndef __cplusplus
 finline u8 byteswap8(u8 x) {
   return x;
 }
@@ -127,4 +158,5 @@ finline u64 byteswap64(u64 x) {
 #    define little_endian(x) (byteswap(x))
 #    define big_endian(x)    (x)
 #  endif
+
 #endif

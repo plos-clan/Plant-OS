@@ -14,7 +14,7 @@ mtask       *current         = NULL;
 char         mtask_stop_flag = 0;
 
 mtask *next_set = NULL;
-mtask  null_task;
+mtask  empty_task;
 
 static void init_task(mtask *t, int id) {
   t->jiffies          = 0; // 最后一次执行的全局时间片
@@ -68,8 +68,9 @@ static void init_tasks() {
 }
 
 fpu_regs_t public_fpu;
-bool       task_check_train(mtask *task) {
-  if (!task) { return false; }
+
+bool task_check_train(mtask *task) {
+  if (!task) return false;
   if (task->train == 1 && timerctl.count - task->jiffies >= 5) return true;
   return false;
 }
@@ -326,8 +327,8 @@ void task_kill(u32 tid) {
 
 mtask *current_task() {
   if (current != NULL) return current;
-  null_task.tid = NULL_TID;
-  return &null_task;
+  empty_task.tid = NULL_TID;
+  return &empty_task;
 }
 
 void into_mtask() {

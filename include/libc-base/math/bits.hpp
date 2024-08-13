@@ -1,7 +1,6 @@
 #pragma once
 #include "base.hpp"
-#include <define.h>
-#include <type.hpp>
+#include <define.hpp>
 
 namespace cpp {
 
@@ -38,7 +37,7 @@ finline auto clz(u64 x) -> int {
 #  endif
 #else
 #  define __(TYPE, NAME)                                                                           \
-    static auto clz(TYPE x)->int {                                                                 \
+    static auto clz(TYPE x) -> int {                                                               \
       int  count = 0;                                                                              \
       TYPE mask  = (TYPE)1 << (sizeof(TYPE) - 1);                                                  \
       for (; mask && (x & mask) == 0; count++, mask = mask >> 1) {}                                \

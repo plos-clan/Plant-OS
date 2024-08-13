@@ -1,5 +1,5 @@
 #pragma once
-#include <libc-base.h>
+#include <libc-base.hpp>
 
 namespace cpp {
 

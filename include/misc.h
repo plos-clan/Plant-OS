@@ -4,15 +4,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "misc/00-include.h"
 #include "misc/color.h"
 #include "misc/file.h"
-#include "misc/include.h"
 #include "misc/math/fft.h"
 #include "misc/stdio/print.h"
 #ifdef __cplusplus
 }
 #endif
 #ifdef __cplusplus
-#include "misc/exch.hpp"
+#include "misc/00-include.hpp"
 #include "misc/math/fft.hpp"
+#include "misc/math/gaussian-blur.hpp"
 #endif

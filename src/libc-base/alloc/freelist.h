@@ -77,16 +77,14 @@ finline void *freelists_match(freelists_t lists, size_t size) {
 /**
  *\brief 将元素放到 freelist 中
  *
- *\param list     空闲链表
+ *\param list_p   空闲链表指针
  *\param ptr      内存块指针
- *\return 新的空闲链表头指针
  */
-finline freelist_t freelist_put(freelist_t list, freelist_t ptr) {
-  ptr->next = list;
+finline void freelist_put(freelist_t *list_p, freelist_t ptr) {
+  ptr->next = *list_p;
   ptr->prev = null;
-  list      = ptr;
+  *list_p   = ptr;
   if (ptr->next) ptr->next->prev = ptr;
-  return list;
 }
 
 /**

@@ -28,7 +28,7 @@ dlexport bool mpool_init(mpool_t pool, void *ptr, size_t size) {
     pool->freed[i] = null;
   }
   allocarea_init(ptr, size, null);
-  pool->large_blk = freelist_put(pool->large_blk, ptr + 2 * sizeof(size_t));
+  freelist_put(&pool->large_blk, ptr + 2 * sizeof(size_t));
   return true;
 }
 
@@ -68,16 +68,15 @@ static bool mpool_reqmem(mpool_t pool, size_t size) {
 
   ptr = blk_trymerge(ptr, (blk_detach_t)_detach, pool);
   blk_setfreed(ptr, blk_size(ptr));
-  pool->large_blk = freelist_put(pool->large_blk, ptr);
+  freelist_put(&pool->large_blk, ptr);
   return true;
 }
 
 // 将块标记为已释放并加入空闲链表
 static void do_free(mpool_t pool, void *ptr) {
   blk_setfreed(ptr, blk_size(ptr));
-  if (!freelists_put(pool->freed, ptr)) { //
-    pool->large_blk = freelist_put(pool->large_blk, ptr);
-  }
+  bool puted = freelists_put(pool->freed, ptr);
+  if (!puted) freelist_put(&pool->large_blk, ptr);
 }
 
 finline bool try_split_and_free(mpool_t pool, void *ptr, size_t size) {

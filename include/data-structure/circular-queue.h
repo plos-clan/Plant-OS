@@ -13,7 +13,7 @@ typedef struct cir_queue8 {
   size_t tail;
   size_t head;
   size_t free;
-  size_t size;
+  size_t len;
   size_t flags;
 } *cir_queue8_t;
 
@@ -35,7 +35,7 @@ extern int  cir_queue8_len(cir_queue8_t queue);
 #ifdef CIRCQUEUE_IMPLEMENTATION
 
 static void cir_queue8_init(cir_queue8_t queue, size_t size, byte *buf) {
-  queue->size  = size;
+  queue->len   = size;
   queue->buf   = buf;
   queue->free  = size;
   queue->flags = 0;
@@ -50,33 +50,33 @@ static int cir_queue8_put(cir_queue8_t queue, byte data) {
   }
   queue->buf[queue->tail] = data;
   queue->tail++;
-  if (queue->tail == queue->size) { queue->tail = 0; }
+  if (queue->tail == queue->len) { queue->tail = 0; }
   queue->free--;
   return 0;
 }
 
 static int cir_queue8_get(cir_queue8_t queue) {
   int data;
-  if (queue->free == queue->size) return -1; // 如果缓冲区为空则返回
+  if (queue->free == queue->len) return -1; // 如果缓冲区为空则返回
   data = queue->buf[queue->head];
   queue->head++;
-  if (queue->head == queue->size) { queue->head = 0; }
+  if (queue->head == queue->len) { queue->head = 0; }
   queue->free++;
   return data;
 }
 
 static int cir_queue8_len(cir_queue8_t queue) {
   if (queue == null) return 0;
-  return queue->size - queue->free;
+  return queue->len - queue->free;
 }
 
 static void cir_queue8_copyto(cir_queue8_t src, cir_queue8_t dst) {
-  if (dst->size != src->size) return;
+  if (dst->len != src->len) return;
   dst->free  = src->free;
   dst->flags = src->flags;
   dst->tail  = src->tail;
   dst->head  = src->head;
-  memcpy(dst->buf, src->buf, src->size);
+  memcpy(dst->buf, src->buf, src->len);
 }
 
 #  undef CIRCQUEUE_IMPLEMENTATION

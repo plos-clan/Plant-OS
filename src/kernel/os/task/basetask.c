@@ -101,6 +101,8 @@ ssize_t input(char *ptr, size_t len) {
     }
   }
 
+  putchar('\n');
+
   return p;
 }
 
@@ -210,6 +212,27 @@ void init() {
   //   info("Hello world! %d", i);
   // }
 
+  // const int bx = 200, by = 200, r = 100;
+  // for (int y = 0; y < 1024; y++) {
+  //   for (int x = 0; x < 768; x++) {
+  //     struct __PACKED__ {
+  //       byte b, g, r, a;
+  //     } *const buf = (void *)vram;
+  //     if ((x - bx) * (x - bx) + (y - by) * (y - by) >= (r - 1) * (r - 1) &&
+  //         (x - bx) * (x - bx) + (y - by) * (y - by) < r * r) {
+  //       buf[y * 1024 + x].r = 255;
+  //       buf[y * 1024 + x].g = 255;
+  //       buf[y * 1024 + x].b = 255;
+  //     } else {
+  //       buf[y * 1024 + x].r = 0;
+  //       buf[y * 1024 + x].g = 0;
+  //       buf[y * 1024 + x].b = 0;
+  //     }
+  //   }
+  // }
+
+  // infinite_loop;
+
   // for (int i = 0;; i++) {
   //   static char text[1024];
   //   sprintf(text, "Hello world!  %d\n", i + 1);
@@ -225,8 +248,8 @@ void init() {
   create_task((u32)sound_test, 0, 1, 1);
 
   printi("%d alloced pages", page_get_alloced());
-  int status = os_execute("/fatfs1/testapp.bin", "/fatfs1/testapp.bin 1 2 3");
-  printi("TESTAPP.BIN exit with code %d", status);
+  int status = os_execute("/fatfs1/testapp-cpp.bin", "/fatfs1/testapp-cpp.bin 1 2 3");
+  printi("TESTAPP-CPP.BIN exit with code %d", status);
   printi("%d alloced pages", page_get_alloced());
 
   infinite_loop task_next();

@@ -1,5 +1,7 @@
 #pragma once
 
+#undef alloca
+
 #undef NULL
 
 #ifndef __cplusplus

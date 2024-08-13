@@ -91,7 +91,7 @@ void fpu_enable(mtask *task) {
   task->fpu_flag = 1;
 }
 
-void ERROR(int CODE, char *TIPS) {
+finline void _ERROR_(int CODE, char *TIPS) {
   asm_cli;
   infinite_loop;
 }
@@ -99,7 +99,7 @@ void ERROR(int CODE, char *TIPS) {
 #define _ERROR(_code_, _tips_)                                                                     \
   void ERROR##_code_(u32 eip) {                                                                    \
     u32 *esp = &eip;                                                                               \
-    ERROR(_code_, _tips_);                                                                         \
+    _ERROR_(_code_, _tips_);                                                                       \
     if (public_catch) {                                                                            \
       *esp = CatchEIP;                                                                             \
     } else {                                                                                       \

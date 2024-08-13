@@ -5,3 +5,4 @@
 #include "define/define/assert.hpp"
 #include "define/type/00-include.hpp"
 #include "define/type/type.hpp"
+#include "define/type/type_traits.hpp"

@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "libc-base/00-include.h"
 #include "libc-base/arg.h"
 #include "libc-base/asm/asm.h"
 #include "libc-base/asm/cpuid.h"
@@ -11,8 +12,10 @@ extern "C" {
 #include "libc-base/asm/io.h"
 #include "libc-base/asm/reg.h"
 #include "libc-base/asm/syscall.h"
+#include "libc-base/color.h"
 #include "libc-base/crypto/hash.h"
-#include "libc-base/include.h"
+#include "libc-base/errno.h"
+#include "libc-base/error.h"
 #include "libc-base/math/base.h"
 #include "libc-base/math/bits.h"
 #include "libc-base/math/complex/base.h"

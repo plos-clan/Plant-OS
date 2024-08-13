@@ -9,7 +9,7 @@ extern "C" {
 #include "config/log.h"
 #include "config/plui.h"
 #include "config/string-format.h"
-#include "config/type-undef.h"
+#include "config/undef.h"
 #ifdef __cplusplus
 }
 #endif

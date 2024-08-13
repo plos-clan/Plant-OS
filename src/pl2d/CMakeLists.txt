@@ -1,0 +1,6 @@
+file(GLOB_RECURSE c_files "*.c")
+file(GLOB_RECURSE cpp_files "*.cpp")
+add_library(pl2d ${c_files} ${cpp_files})
+target_link_libraries(pl2d misc)
+target_compile_definitions(pl2d PRIVATE RING3=1)
+mkheader_hpp(fb)

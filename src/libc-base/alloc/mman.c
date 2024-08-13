@@ -30,7 +30,7 @@ dlexport bool mman_init(mman_t man, void *ptr, size_t size) {
     man->freed[i] = null;
   }
   allocarea_init(ptr, size, &man->main);
-  man->large_blk = freelist_put(man->large_blk, ptr + 2 * sizeof(size_t));
+  freelist_put(&man->large_blk, ptr + 2 * sizeof(size_t));
   return true;
 }
 
@@ -59,6 +59,8 @@ dlexport void mman_setcb(mman_t man, cb_reqmem_t reqmem, cb_delmem_t delmem) {
   man->cb_delmem = delmem;
 }
 
+#define RESERVED_SIZE (PADDING(sizeof(struct mman_pool)) + 6 * sizeof(size_t))
+
 static bool mman_reqmem(mman_t man, size_t size) {
   if (man->cb_reqmem == null) return false;
   if (size > SIZE_2M) return false;
@@ -81,7 +83,7 @@ static bool mman_reqmem(mman_t man, size_t size) {
   pool->next         = man->main.next;
   man->main.next     = pool;
 
-  man->large_blk = freelist_put(man->large_blk, ptr);
+  freelist_put(&man->large_blk, ptr);
   return true;
 }
 
@@ -105,9 +107,8 @@ static bool mman_delmem(mman_t man, mman_pool_t pool) {
 // 将块标记为已释放并加入空闲链表
 static void do_free(mman_t man, void *ptr) {
   blk_setfreed(ptr, blk_size(ptr));
-  if (!freelists_put(man->freed, ptr)) { //
-    man->large_blk = freelist_put(man->large_blk, ptr);
-  }
+  bool puted = freelists_put(man->freed, ptr);
+  if (!puted) freelist_put(&man->large_blk, ptr);
 }
 
 finline bool try_split_and_free(mman_t man, void *ptr, size_t size) {
@@ -141,8 +142,6 @@ dlexport void *mman_alloc(mman_t man, size_t size) {
   man->alloced_size  += size;
   return ptr;
 }
-
-#define RESERVED_SIZE (PADDING(sizeof(struct mman_pool)) + 6 * sizeof(size_t))
 
 dlexport void mman_free(mman_t man, void *ptr) {
   if (ptr == null) return;

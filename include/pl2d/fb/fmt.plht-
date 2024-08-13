@@ -1,0 +1,65 @@
+ns.plds:
+  enum.PixFmt:
+    - ?type=u32
+    - BlackWhite # 黑白双色
+    - Grayscale8 # 8位灰度
+    - Palette16 # 16色调色板
+    - Palette256 # 256色调色板
+
+    - RGB565
+    - BGR565
+
+    # 24位真彩色
+    - RGB888
+    - RGB = `RGB888
+    - BGR888
+    - BGR = `BGR888
+    # 32位真彩色
+    - RGBA8888
+    - RGBA = `RGBA8888
+    - BGRA8888
+    - BGRA = `BGRA8888
+    - ARGB8888
+    - ARGB = `ARGB8888
+    - ABGR8888
+    - ABGR = `ABGR8888
+
+    # 浮点
+    - RGB_FLT
+    - BGR_FLT
+    - RGBA_FLT
+    - BGRA_FLT
+    - ARGB_FLT
+    - ABGR_FLT
+
+    # 通道分离
+    - RGB_Plane
+    - RGBA_Plane
+    - RGB_FLT_Plane
+    - RGBA_FLT_Plane
+
+  enum.PalFmt:
+    - ?type=u32
+    - None
+
+    # 24位真彩色
+    - RGB888
+    - RGB = `RGB888
+    - BGR888
+    - BGR = `BGR888
+    # 32位真彩色
+    - RGBA8888
+    - RGBA = `RGBA8888
+    - BGRA8888
+    - BGRA = `BGRA8888
+    - ARGB8888
+    - ARGB = `ARGB8888
+    - ABGR8888
+    - ABGR = `ABGR8888
+
+  if.1:
+    if: COLOR_USE_BGR
+    expr.texture_pixfmt: PixFmt::BGRA
+  if.2:
+    if: "!COLOR_USE_BGR"
+    expr.texture_pixfmt: PixFmt::RGBA
