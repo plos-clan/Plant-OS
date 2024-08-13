@@ -18,6 +18,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+include(cmake/mklib)
 include(cmake/util)
 include(cmake/add_binary)
 include(cmake/mkheader)

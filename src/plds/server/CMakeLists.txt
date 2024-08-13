@@ -1,0 +1,5 @@
+file(GLOB_RECURSE c_files "*.c")
+file(GLOB_RECURSE cpp_files "*.cpp")
+file(GLOB_RECURSE c_files_2 "../base/*.c")
+file(GLOB_RECURSE cpp_files_2 "../base/*.cpp")
+addlib(plds-server ${c_files} ${cpp_files} ${c_files_2} ${cpp_files_2})
