@@ -48,6 +48,12 @@ extern rbtree_t rbtree_alloc(int32_t key, void *value) __THROW __attr_malloc;
 extern void rbtree_free(rbtree_t root) __THROW;
 
 /**
+ *\brief 释放红黑树
+ *\param[in] root 树的根节点
+ */
+extern void rbtree_free_with(rbtree_t root, free_t callback) __THROW;
+
+/**
  *\brief 在红黑树中根据键值查找对应的节点值
  *\param[in] root 树的根节点
  *\param[in] key 要查找的键值
@@ -110,6 +116,14 @@ extern rbtree_t rbtree_insert(rbtree_t root, int32_t key, void *value) __THROW _
  *\return 删除节点后的树的根节点
  */
 extern rbtree_t rbtree_delete(rbtree_t root, int32_t key) __THROW __wur;
+
+/**
+ *\brief 在红黑树中删除节点
+ *\param[in] root 树的根节点
+ *\param[in] key 节点键值
+ *\return 删除节点后的树的根节点
+ */
+extern rbtree_t rbtree_delete_with(rbtree_t root, int32_t key, free_t callback) __THROW __wur;
 
 /**
  *\brief 按照中序遍历打印红黑树节点
@@ -195,6 +209,14 @@ static void rbtree_free(rbtree_t root) {
   if (root == null) return;
   rbtree_free(root->left);
   rbtree_free(root->right);
+  free(root);
+}
+
+static void rbtree_free_with(rbtree_t root, free_t callback) {
+  if (root == null) return;
+  rbtree_free_with(root->left, callback);
+  rbtree_free_with(root->right, callback);
+  callback(root->value);
   free(root);
 }
 
@@ -437,10 +459,11 @@ static rbtree_t rbtree_delete_fixup(rbtree_t root, rbtree_t x, rbtree_t x_parent
   return root;
 }
 
-static rbtree_t rbtree_delete(rbtree_t root, int32_t key) {
+static rbtree_t rbtree_delete_with(rbtree_t root, int32_t key, free_t callback) {
   if (root == null) return null;
   rbtree_t z = rbtree_get_node(root, key);
   if (z == null) return root;
+  if (callback) callback(z->value);
 
   rbtree_t x;
   rbtree_t x_parent;
@@ -477,6 +500,10 @@ static rbtree_t rbtree_delete(rbtree_t root, int32_t key) {
   if (original_color == RBT_BLACK) root = rbtree_delete_fixup(root, x, x_parent);
 
   return root;
+}
+
+static rbtree_t rbtree_delete(rbtree_t root, int32_t key) {
+  return rbtree_delete_with(root, key, null);
 }
 
 #  ifdef __libplos__
@@ -528,3 +555,10 @@ static void rbtree_print_postorder(rbtree_t root, int deepth) {
  *\param[in] key 节点键值
  */
 #define rbtree_delete(root, key) ((root) = rbtree_delete(root, key))
+
+/**
+ *\brief 在红黑树中删除节点
+ *\param[in,out] root 树的根节点
+ *\param[in] key 节点键值
+ */
+#define rbtree_delete_with(root, key, callback) ((root) = rbtree_delete_with(root, key, callback))

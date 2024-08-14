@@ -29,11 +29,11 @@ struct __PACKED__ mtask {
   u32           running; // 已经占用了多少时间片
   u32           timeout; // 需要占用多少时间片
   int           floor;
-  enum STATE    state; // 此项为1（RUNNING） 即正常调度，为 2（WAITING） 3
-                       // （SLEEPING）的时候不执行 ，0 EMPTY 空闲格子
-  uint64_t      jiffies;
+  enum STATE    state;   // 此项为1（RUNNING） 即正常调度，为 2（WAITING） 3
+                         // （SLEEPING）的时候不执行 ，0 EMPTY 空闲格子
+  uint64_t      jiffies; // 最后一次执行的全局时间片
   // struct vfs_t *nfs;
-  uint64_t      tid, ptid;
+  i32           tid, ptid;
   u32           alloc_addr;
   u32          *alloc_size;
   u32           alloced;
@@ -65,6 +65,8 @@ struct __PACKED__ mtask {
   u32           ret_to_app;
   u32           times;
   u32           signal_disable;
+  list_t        subtasks; // 子任务
+  u64           cpu_time; // CPU 时间
 };
 
 mtask *current_task();

@@ -68,6 +68,12 @@ finline char  *basename(cstr __filename);
     (_s1 && _s2) ? (_s1->hash == _s2->hash ? xstrcmp(_s1, _s2) == 0 : false) : _s1 == _s2;         \
   })
 
+#define memeq(s1, s2, n)                                                                           \
+  ({                                                                                               \
+    cstr _s1 = (s1), _s2 = (s2);                                                                   \
+    (_s1 && _s2) ? memcmp(_s1, _s2, n) == 0 : _s1 == _s2;                                          \
+  })
+
 typedef struct _xstr {
   size_t len;
   size_t hash;

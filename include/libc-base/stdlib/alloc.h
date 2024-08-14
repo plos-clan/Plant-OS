@@ -34,6 +34,9 @@ dlimport void  *valloc(size_t size);
  * 除非 ptr 为 null, 否则因分配从 ptr 开始的 size 大小的内存
  * 除非 [ptr 处已被占用] 或 [ptr 为 null 时内存已满]，否则不应该返回 null
  *
+ * 多分配区模式下请求的 4k 内存必须符合 4k 对齐
+ * 多分配区模式下请求的 2M 内存必须符合 2M 对齐
+ *
  *\param ptr      上一次返回的内存尾地址
  *\param size     请求的内存大小
  *\return 分配的内存地址
@@ -50,11 +53,11 @@ typedef void (*cb_delmem_t)(void *ptr, size_t size);
 //* ----------------------------------------------------------------------------------------------------
 //& 空闲链表
 
-#define FREELISTS_NUM 8
+#define FREELIST_NUM 8
 
 typedef struct freelist *freelist_t;
 
-typedef freelist_t freelists_t[FREELISTS_NUM];
+typedef freelist_t freelists_t[FREELIST_NUM];
 
 //* ----------------------------------------------------------------------------------------------------
 //& 指定元素大小的内存池
@@ -108,6 +111,15 @@ dlexport void sized_mpool_free(sized_mpool_t pool, void *ptr);
 dlexport bool sized_mpool_inpool(sized_mpool_t pool, void *ptr);
 
 //* ----------------------------------------------------------------------------------------------------
+//& 大块内存管理
+
+#define LARGEBLKLIST_NUM 16
+
+typedef struct large_blk *large_blk_t;
+
+typedef large_blk_t large_blks_t[LARGEBLKLIST_NUM];
+
+//* ----------------------------------------------------------------------------------------------------
 //& 内存池
 
 /**
@@ -120,8 +132,8 @@ typedef struct mpool {
   size_t      alloced_size; // 已分配的内存大小
   cb_reqmem_t cb_reqmem;    // 请求内存的回调函数
   cb_delmem_t cb_delmem;    // 释放内存的回调函数
-  freelist_t  large_blk;    // 大块内存的空闲链表 (组)
-  freelists_t freed;        // 小块内存的空闲链表
+  freelist_t  large_blk;    // 大块内存的空闲链表
+  freelists_t freed;        // 小块内存的空闲链表 (组)
 } *mpool_t;
 
 /**
@@ -206,8 +218,9 @@ typedef struct mman {
   size_t           alloced_size; // 已分配的内存大小
   cb_reqmem_t      cb_reqmem;    // 请求内存的回调函数
   cb_delmem_t      cb_delmem;    // 释放内存的回调函数
-  freelist_t       large_blk;    // 大块内存的空闲链表 (组)
-  freelists_t      freed;        // 小块内存的空闲链表
+  freelist_t       large_blk;    // 大块内存的空闲链表
+  freelists_t      freed;        // 小块内存的空闲链表 (组)
+  large_blks_t     large;        //
 } *mman_t;
 
 dlimport bool mman_init(mman_t pool, void *ptr, size_t size);

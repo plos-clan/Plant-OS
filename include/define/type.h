@@ -14,6 +14,7 @@ extern "C" {
 #include "type/complex.h"
 #include "type/const.h"
 #include "type/ex.h"
+#include "type/func.h"
 #include "type/int.h"
 #include "type/limit.h"
 #include "type/vector.h"

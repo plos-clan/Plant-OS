@@ -24,7 +24,8 @@ dlexport bool mpool_init(mpool_t pool, void *ptr, size_t size) {
   pool->cb_reqmem    = null;
   pool->cb_delmem    = null;
   pool->large_blk    = null;
-  for (size_t i = 0; i < FREELISTS_NUM; i++) {
+#pragma unroll
+  for (size_t i = 0; i < FREELIST_NUM; i++) {
     pool->freed[i] = null;
   }
   allocarea_init(ptr, size, null);
@@ -124,28 +125,28 @@ dlexport size_t mpool_msize(mpool_t pool, void *ptr) {
 }
 
 dlexport void *mpool_realloc(mpool_t pool, void *ptr, size_t newsize) {
+  if (ptr == null) return mpool_alloc(pool, newsize);
   if (newsize == 0) newsize = 2 * sizeof(size_t);
   newsize = PADDING(newsize);
 
   size_t size = blk_size(ptr);
-
-  if (size < newsize) {
-    void *next = blk_next(ptr);
-    if (next != null && blk_freed(next)) {
-      size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
-      if (total_size >= newsize) {
-        ptr = blk_mergenext(ptr, (blk_detach_t)_detach, pool);
-        try_split_and_free(pool, ptr, newsize);
-        return ptr;
-      }
-    }
-
-    void *new_ptr = mpool_alloc(pool, newsize);
-    memcpy(new_ptr, ptr, size);
-    mpool_free(pool, ptr);
-    return new_ptr;
+  if (size >= newsize) {
+    try_split_and_free(pool, ptr, newsize);
+    return ptr;
   }
 
-  try_split_and_free(pool, ptr, newsize);
-  return ptr;
+  void *next = blk_next(ptr);
+  if (next != null && blk_freed(next)) {
+    size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
+    if (total_size >= newsize) {
+      ptr = blk_mergenext(ptr, (blk_detach_t)_detach, pool);
+      try_split_and_free(pool, ptr, newsize);
+      return ptr;
+    }
+  }
+
+  void *new_ptr = mpool_alloc(pool, newsize);
+  memcpy(new_ptr, ptr, size);
+  mpool_free(pool, ptr);
+  return new_ptr;
 }

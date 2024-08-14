@@ -3,6 +3,7 @@
 #include "area.h"
 #include "block.h"
 #include "freelist.h"
+#include "large-blk.h"
 
 // mman_free 中使用的临时函数
 // 用于将内存块从空闲链表中分离
@@ -26,8 +27,13 @@ dlexport bool mman_init(mman_t man, void *ptr, size_t size) {
   man->cb_reqmem         = null;
   man->cb_delmem         = null;
   man->large_blk         = null;
-  for (size_t i = 0; i < FREELISTS_NUM; i++) {
+#pragma unroll
+  for (size_t i = 0; i < FREELIST_NUM; i++) {
     man->freed[i] = null;
+  }
+#pragma unroll
+  for (size_t i = 0; i < LARGEBLKLIST_NUM; i++) {
+    man->large[i] = null;
   }
   allocarea_init(ptr, size, &man->main);
   freelist_put(&man->large_blk, ptr + 2 * sizeof(size_t));
@@ -64,8 +70,11 @@ dlexport void mman_setcb(mman_t man, cb_reqmem_t reqmem, cb_delmem_t delmem) {
 static bool mman_reqmem(mman_t man, size_t size) {
   if (man->cb_reqmem == null) return false;
   if (size > SIZE_2M) return false;
-  if (size > SIZE_4k) size = SIZE_2M;
-  if (size < SIZE_4k) size = SIZE_4k;
+#if !ALLOC_FORCE_2M_PAGE
+  size = size > SIZE_4k ? SIZE_2M : SIZE_4k;
+#else
+  size = SIZE_2M;
+#endif
 
   void *mem = man->cb_reqmem(null, size);
   if (mem == null) return false;
@@ -124,6 +133,10 @@ dlexport void *mman_alloc(mman_t man, size_t size) {
   if (size == 0) size = 2 * sizeof(size_t);
   size = PADDING(size);
 
+  if (size >= ALLOC_LARGE_BLK_SIZE) {
+    return large_blk_alloc(size, man->large, man->cb_reqmem, man->cb_delmem);
+  }
+
   void *ptr = freelists_match(man->freed, size);
 
   if (ptr == null) ptr = freelist_match(&man->large_blk, size);
@@ -146,6 +159,10 @@ dlexport void *mman_alloc(mman_t man, size_t size) {
 dlexport void mman_free(mman_t man, void *ptr) {
   if (ptr == null) return;
 
+  if ((size_t)ptr % SIZE_4k == 0) {
+    if (large_blk_free(man->large, ptr, man->cb_delmem)) return;
+  }
+
   size_t      size    = blk_size(ptr);
   mman_pool_t pool    = blk_poolptr(ptr);
   pool->alloced_size -= size;
@@ -166,28 +183,28 @@ dlexport size_t mman_msize(mman_t man, void *ptr) {
 }
 
 dlexport void *mman_realloc(mman_t man, void *ptr, size_t newsize) {
+  if (ptr == null) return mman_alloc(man, newsize);
   if (newsize == 0) newsize = 2 * sizeof(size_t);
   newsize = PADDING(newsize);
 
   size_t size = blk_size(ptr);
-
-  if (size < newsize) {
-    void *next = blk_next(ptr);
-    if (next != null && blk_freed(next)) {
-      size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
-      if (total_size >= newsize) {
-        ptr = blk_mergenext(ptr, (blk_detach_t)_detach, man);
-        try_split_and_free(man, ptr, newsize);
-        return ptr;
-      }
-    }
-
-    void *new_ptr = mman_alloc(man, newsize);
-    memcpy(new_ptr, ptr, size);
-    mman_free(man, ptr);
-    return new_ptr;
+  if (size >= newsize) {
+    try_split_and_free(man, ptr, newsize);
+    return ptr;
   }
 
-  try_split_and_free(man, ptr, newsize);
-  return ptr;
+  void *next = blk_next(ptr);
+  if (next != null && blk_freed(next)) {
+    size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
+    if (total_size >= newsize) {
+      ptr = blk_mergenext(ptr, (blk_detach_t)_detach, man);
+      try_split_and_free(man, ptr, newsize);
+      return ptr;
+    }
+  }
+
+  void *new_ptr = mman_alloc(man, newsize);
+  memcpy(new_ptr, ptr, size);
+  mman_free(man, ptr);
+  return new_ptr;
 }

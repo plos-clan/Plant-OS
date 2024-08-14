@@ -107,10 +107,10 @@ void inthandler20(int cs, int *esp) {
   extern mtask *current;
   if (global_time + 1 == 0) {
     klogd("reset\n");
-    extern mtask m[255];
-    for (int i = 0; i < 255; i++) {
-      m[i].jiffies = 0;
-    }
+    // extern mtask m[255];
+    // for (int i = 0; i < 255; i++) {
+    //   m[i].jiffies = 0;
+    // }
     global_time = 0;
   }
   global_time++;

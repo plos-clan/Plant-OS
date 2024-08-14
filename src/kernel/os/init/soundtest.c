@@ -75,5 +75,5 @@ void sound_test() {
     sb16_write(buffer, buffer_len);
   }
   sb16_close();
-  syscall_exit(-1);
+  syscall_exit(0);
 }

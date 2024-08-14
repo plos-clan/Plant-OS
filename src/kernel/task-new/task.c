@@ -73,8 +73,6 @@ struct process {
   ssize_t  euid;
 };
 
-ssize_t next_tid; // 下一个线程号
-
 void thread_init(thread_t thread, process_t proc) {
   thread->proc        = proc;
   thread->signal_mask = 0;

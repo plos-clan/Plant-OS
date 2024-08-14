@@ -3,6 +3,8 @@
 
 #include "block.h"
 
+// 大于 16k 的都算作大内存块
+// 大内存块使用专门的 freelist
 #define FREELIST_MAXBLKSIZE 16384
 
 struct freelist {
@@ -10,11 +12,13 @@ struct freelist {
   freelist_t prev;
 };
 
+finline int freelists_size2id(size_t size) __attr(const);
+
 //; 获取该大小属于freelists中的哪个list
 finline int freelists_size2id(size_t size) {
   if (size < 64) return 0;
   if (size < 256) return 1;
-  if (size >= 16384) return -1;
+  if (size >= FREELIST_MAXBLKSIZE) return -1;
   return (32 - 9) - __builtin_clz(size) + 2;
 }
 
@@ -28,9 +32,9 @@ finline freelist_t freelist_detach(freelist_t list, freelist_t ptr) {
 /**
  *\brief 将 freelist 中的内存块分离
  *
- *\param lists    param
- *\param id       param
- *\param ptr      param
+ *\param lists    空闲链表组
+ *\param id       空闲链表的 id
+ *\param ptr      要分离的内存块指针
  *\return value
  */
 finline void *freelists_detach(freelists_t lists, int id, freelist_t ptr) {
@@ -65,7 +69,7 @@ finline void *freelist_match(freelist_t *list_p, size_t size) {
 finline void *freelists_match(freelists_t lists, size_t size) {
   int id = freelists_size2id(size);
   if (id < 0) return null;
-  for (; id < FREELISTS_NUM; id++) {
+  for (; id < FREELIST_NUM; id++) {
     for (freelist_t list = lists[id]; list != null; list = list->next) {
       size_t tgt_size = blk_size(list);
       if (tgt_size >= size) return freelists_detach(lists, id, list);

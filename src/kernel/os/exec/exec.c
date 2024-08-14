@@ -83,6 +83,7 @@ void task_app() {
   }
   asm_sti;
   asm_set_cr3(pde);
+  klogd("go to task_to_usermode_elf(%s)", filename);
   task_to_user_mode_elf(filename);
   infinite_loop;
 }
@@ -164,9 +165,9 @@ void task_to_user_mode_shell() {
     // list_free_with(vfs_now->path, free);
     // free(vfs_now->cache);
     // free((void *)vfs_now);
+    kloge();
     task_exit(-1);
-    while (true)
-      ;
+    infinite_loop;
   }
   u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + 0x1000;
   u32 pg         = padding_up(*(current_task()->alloc_size), 0x1000);
@@ -252,9 +253,9 @@ void task_to_user_mode_elf(char *filename) {
     // list_free_with(vfs_now->path, free);
     // free(vfs_now->cache);
     // free((void *)vfs_now);
+    kloge();
     task_exit(-1);
-    while (true)
-      ;
+    infinite_loop;
   }
   u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + 0x1000;
   u32 pg         = padding_up(*(current_task()->alloc_size), 0x1000);
@@ -305,7 +306,8 @@ int os_execute(char *filename, char *line) {
   //     path = (char *)l->data;
   //     t->nfs->cd(t->nfs, path);
   //   }
-  t->ptid                   = current_task()->tid;
+  t->ptid = current_task()->tid;
+  klogd("ptid = %d", t->ptid);
   int old                   = current_task()->sigint_up;
   current_task()->sigint_up = 0;
   t->sigint_up              = 1;
@@ -322,7 +324,7 @@ int os_execute(char *filename, char *line) {
   r[1]                      = (u32)p1;
   t->line                   = (char *)r;
 
-  klogd();
+  klogd("t->tid %d %d", t->tid, t->ptid);
 
   u32 status                = waittid(t->tid);
   current_task()->fifosleep = o;

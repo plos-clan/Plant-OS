@@ -84,19 +84,19 @@ finline void *blk_next(void *ptr) {
   return ptr + size + 2 * sizeof(size_t);
 }
 
-typedef void (*blk_detach_t)(void *pool, void *ptr);
+typedef void (*blk_detach_t)(void *data, void *ptr);
 
-finline void *blk_mergeprev(void *ptr, blk_detach_t detach, void *pool) {
+finline void *blk_mergeprev(void *ptr, blk_detach_t detach, void *data) {
   void  *prev = blk_prev(ptr);
   size_t size = blk_size(ptr) + blk_size(prev) + 2 * sizeof(size_t);
-  if (detach) detach(pool, prev);
+  if (detach) detach(data, prev);
   blk_setsize(prev, size);
   return prev;
 }
-finline void *blk_mergenext(void *ptr, blk_detach_t detach, void *pool) {
+finline void *blk_mergenext(void *ptr, blk_detach_t detach, void *data) {
   void  *next = blk_next(ptr);
   size_t size = blk_size(ptr) + blk_size(next) + 2 * sizeof(size_t);
-  if (detach) detach(pool, next);
+  if (detach) detach(data, next);
   blk_setsize(ptr, size);
   return ptr;
 }
@@ -108,14 +108,14 @@ finline void *blk_mergenext(void *ptr, blk_detach_t detach, void *pool) {
  *\param pool     内存池指针
  *\return 新的块指针
  */
-finline void *blk_trymerge(void *ptr, blk_detach_t detach, void *pool) {
+finline void *blk_trymerge(void *ptr, blk_detach_t detach, void *data) {
   bool   is_2M = blk_area_is_2M(ptr);
   size_t size  = blk_size(ptr);
   if (!blk_nonext(ptr, size) && (blk_nexthead(ptr, size) & FREE_FLAG)) { //
-    ptr = blk_mergenext(ptr, detach, pool);
+    ptr = blk_mergenext(ptr, detach, data);
   }
   if (!blk_noprev(ptr) && (blk_prevtail(ptr) & FREE_FLAG)) { //
-    ptr = blk_mergeprev(ptr, detach, pool);
+    ptr = blk_mergeprev(ptr, detach, data);
   }
   if (is_2M) blk_set_area_2M(ptr, blk_size(ptr));
   return ptr;

@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "config/alloc.h"
 #include "config/check.h"
 #include "config/data-structure.h"
 #include "config/log.h"

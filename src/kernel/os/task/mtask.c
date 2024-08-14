@@ -1,4 +1,3 @@
-#include "define/type/base.h"
 #include <kernel.h>
 
 #define STACK_SIZE 1024 * 1024
@@ -7,17 +6,41 @@ void free_pde(u32 addr);
 
 char         default_drive, default_drive_number;
 static char  flags_once = false;
-mtask        m[255];
 struct TSS32 tss;
 mtask       *idle_task;
-mtask       *current         = NULL;
+mtask       *current = NULL;
+rbtree_t     tasks;
 char         mtask_stop_flag = 0;
 
 mtask *next_set = NULL;
 mtask  empty_task;
 
+mtask *task_by_id(i32 tid) {
+  if (tid < 0) return null;
+  return rbtree_get(tasks, tid);
+}
+
+queue_t running_tasks;
+spin_t  running_tasks_lock;
+
+finline void running_tasks_push(mtask *task) {
+  spin_lock(running_tasks_lock);
+  if (running_tasks == null) running_tasks = queue_alloc();
+  queue_enqueue(running_tasks, task);
+  spin_unlock(running_tasks_lock);
+}
+finline mtask *running_tasks_pop() {
+  mtask *task = null;
+  spin_lock(running_tasks_lock);
+  while (task == null) {
+    task = queue_dequeue(running_tasks);
+  }
+  spin_unlock(running_tasks_lock);
+  return task;
+}
+
 static void init_task(mtask *t, int id) {
-  t->jiffies          = 0; // 最后一次执行的全局时间片
+  t->jiffies          = 0;
   t->user_mode        = 0; // 此项暂时废除
   t->running          = 0;
   t->timeout          = 0;
@@ -49,6 +72,7 @@ static void init_task(mtask *t, int id) {
   t->keyboard_release = NULL;
   t->keyfifo          = NULL;
   t->mousefifo        = NULL;
+  t->signal           = 0;
   lock_init(&t->ipc_header.l);
   t->ipc_header.now = 0;
   for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
@@ -61,11 +85,7 @@ static void init_task(mtask *t, int id) {
   }
 }
 
-static void init_tasks() {
-  for (int i = 0; i < 255; i++) {
-    init_task(&m[i], i);
-  }
-}
+static void init_tasks() {}
 
 fpu_regs_t public_fpu;
 
@@ -99,11 +119,10 @@ void task_next() {
     i = 0;
   }
   for (; i < 255; i++) {
-    mtask *p = (&(m[i]));
-    if (p == current) { continue; }
-    if (p->state != RUNNING) // RUNNING
-    {
-      if (p->state == READY) { p->state = EMPTY; }
+    mtask *p = task_by_id(i);
+    if (p == current) continue;
+    if (p->state != RUNNING) { // RUNNING
+      if (p->state == READY) p->state = EMPTY;
       if (p->state == WAITING) {
         if (p->ready) {
           p->ready = 0;
@@ -111,8 +130,8 @@ void task_next() {
           goto OK;
         }
         if (p->waittid == -1) continue;
-        if ((m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) ||
-            m[p->waittid].ptid != p->tid) {
+        if ((p->state == EMPTY || p->state == WILL_EMPTY || p->state == READY) ||
+            task_by_id(p->waittid)->ptid != p->tid) {
           p->state   = RUNNING;
           p->waittid = -1;
           i--;
@@ -131,10 +150,10 @@ void task_next() {
       }
   }
 H:
-  if (next->user_mode == 1) { tss.esp0 = next->top; }
-  if (next == NULL) { next = idle_task; }
-  if (next->urgent) { next->urgent = 0; }
-  if (next->ready) { next->ready = 0; }
+  if (next->user_mode == 1) tss.esp0 = next->top;
+  if (next == NULL) next = idle_task;
+  if (next->urgent) next->urgent = 0;
+  if (next->ready) next->ready = 0;
   int         current_fpu_flag = current->fpu_flag;
   fpu_regs_t *current_fpu      = &(current->fpu);
   asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
@@ -147,15 +166,20 @@ H:
   task_switch(next); // 调度
 }
 
-mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
-  mtask *t = NULL;
-  for (int i = 0; i < 255; i++) {
-    if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) {
-      t = &(m[i]);
-      break;
-    }
+finline int alloc_tid() {
+  static i32 next_tid = 0;        // 下一个线程号
+  if (next_tid < 0) next_tid = 1; // 0 号是主进程
+  while (rbtree_get(tasks, next_tid) != null) {
+    next_tid++;
   }
-  if (!t) { return NULL; }
+  return next_tid++;
+}
+
+mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
+  mtask *t = malloc(sizeof(*t));
+  init_task(t, alloc_tid());
+
+  if (t == null) return null;
   u32 esp_alloced = (u32)page_malloc(STACK_SIZE) + STACK_SIZE;
   change_page_task_id(t->tid, (void *)(esp_alloced - STACK_SIZE), STACK_SIZE);
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
@@ -168,8 +192,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
     t->pde   = pde_clone(current_task()->pde); // 启用了就复制一个
     t->times = t->pde;
   }
-  t->top = esp_alloced; // r0的esp
-  klogd("%p", t->top);
+  t->top          = esp_alloced; // r0的esp
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
@@ -181,39 +204,48 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
 
   // 获取default_drive_number
   if (!flags_once) {
-    if (memcmp((void *)"FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) == 0 ||
-        memcmp((void *)"FAT16   ", (void *)0x7c00 + BS_FileSysType, 8) == 0) { // FAT12 or FAT16
-      if (*(u8 *)(0x7c00 + BS_DrvNum) >= 0x80) {
-        default_drive_number = *(u8 *)(0x7c00 + BS_DrvNum) - 0x80 + 0x02;
+    if (memeq((void *)"FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) ||
+        memeq((void *)"FAT16   ", (void *)0x7c00 + BS_FileSysType, 8)) { // FAT12 or FAT16
+      if (*(byte *)(0x7c00 + BS_DrvNum) >= 0x80) {
+        default_drive_number = *(byte *)(0x7c00 + BS_DrvNum) - 0x80 + 0x02;
       } else {
-        default_drive_number = *(u8 *)(0x7c00 + BS_DrvNum);
+        default_drive_number = *(byte *)(0x7c00 + BS_DrvNum);
       }
-    } else if (memcmp((void *)"FAT32   ", (void *)0x7c00 + BPB_Fat32ExtByts + BS_FileSysType, 8) ==
-               0) {                                                 // FAT32
-      if (*(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) >= 0x80) { // 0x80以上是硬盘
-        default_drive_number = *(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) - 0x80 + 0x02;
+    } else if (memeq((void *)"FAT32   ", (void *)0x7c00 + BPB_Fat32ExtByts + BS_FileSysType,
+                     8)) {                                            // FAT32
+      if (*(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) >= 0x80) { // 0x80以上是硬盘
+        default_drive_number = *(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) - 0x80 + 0x02;
       } else { // 0x00 是软盘 所以不管他了
-        default_drive_number = *(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum);
+        default_drive_number = *(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum);
       }
     } else {
-      if (*(u8 *)(0x7c00) >= 0x80) {
-        default_drive_number = *(u8 *)(0x7c00) - 0x80 + 0x02;
+      if (*(byte *)(0x7c00) >= 0x80) {
+        default_drive_number = *(byte *)(0x7c00) - 0x80 + 0x02;
       } else {
-        default_drive_number = *(u8 *)(0x7c00);
+        default_drive_number = *(byte *)(0x7c00);
       }
     }
     default_drive = default_drive_number + 0x41;
     flags_once    = true;
   }
-
+  rbtree_insert(tasks, t->tid, t);
   return t;
 }
 
 mtask *get_task(u32 tid) {
-  if (tid >= 255) return NULL;
-  if (m[tid].state == EMPTY || m[tid].state == WILL_EMPTY || m[tid].state == READY) return NULL;
-  return &m[tid];
+  mtask *task = task_by_id(tid);
+  if (!task) return NULL;
+  if (task->state == READY) return NULL;
+  return task;
 }
+
+// enum {
+//   THREAD_IDLE,    // 线程被创建但未运行
+//   THREAD_RUNNING, // 线程正在运行
+//   THREAD_WAITING, // 线程正在等待被调度
+//   THREAD_STOPPED, // 线程已暂停
+//   THREAD_DEAD,    // 线程已结束
+// };
 
 void task_to_user_mode(u32 eip, u32 esp) {
   u32 addr = (u32)current->top;
@@ -221,14 +253,14 @@ void task_to_user_mode(u32 eip, u32 esp) {
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
 
-  iframe->edi       = 1;
-  iframe->esi       = 2;
-  iframe->ebp       = 3;
-  iframe->esp_dummy = 4;
-  iframe->ebx       = 5;
-  iframe->edx       = 6;
-  iframe->ecx       = 7;
-  iframe->eax       = 8;
+  iframe->edi       = 0;
+  iframe->esi       = 0;
+  iframe->ebp       = 0;
+  iframe->esp_dummy = 0;
+  iframe->ebx       = 0;
+  iframe->edx       = 0;
+  iframe->ecx       = 0;
+  iframe->eax       = 0;
 
   iframe->gs         = 0;
   iframe->ds         = GET_SEL(3 * 8, SA_RPL3);
@@ -241,7 +273,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->esp        = esp; // 设置用户态堆栈
   current->user_mode = 1;
   tss.esp0           = current->top;
-  klogd("TTT %d\n", current_task()->tid);
+  klogd("tid: %d\n", current_task()->tid);
   // task_exit(0);
   // change_page_task_id(current_task()->tid, iframe->esp - 64 * 1024, 64 *
   // 1024);
@@ -254,72 +286,37 @@ void task_to_user_mode(u32 eip, u32 esp) {
                "pop %%ds\n"
                "iret" ::"m"(iframe)
                : "memory");
-  while (true)
-    ;
+  infinite_loop;
   __builtin_unreachable();
 }
 
 void task_kill(u32 tid) {
-  if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
+  mtask *task = task_by_id(tid);
+  if (mouse_use_task == current_task()) mouse_sleep(&mdec);
   for (int i = 0; i < 255; i++) {
-    if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-    if (m[i].tid == tid) continue;
-    if (m[i].ptid == tid) { task_kill(m[i].tid); }
+    if (task->state == EMPTY || task->state == WILL_EMPTY || task->state == READY) continue;
+    if (task->tid == tid) continue;
+    if (task->ptid == tid) task_kill(task->tid);
   }
   asm_cli;
   if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }
-  free_pde(m[tid].pde);
+  free_pde(task->pde);
   gc(tid); // 释放内存
-  if (m[tid].press_key_fifo) {
-    page_free(m[tid].press_key_fifo->buf, 4096);
-    free(m[tid].press_key_fifo);
+  if (task->press_key_fifo) {
+    page_free(task->press_key_fifo->buf, 4096);
+    free(task->press_key_fifo);
   }
-  if (m[tid].release_keyfifo) {
-    page_free(m[tid].release_keyfifo->buf, 4096);
-    free(m[tid].release_keyfifo);
+  if (task->release_keyfifo) {
+    page_free(task->release_keyfifo->buf, 4096);
+    free(task->release_keyfifo);
   }
 
-  m[tid].urgent     = 0;
-  m[tid].fpu_flag   = 0;
-  m[tid].fifosleep  = 0;
-  m[tid].mx         = 0;
-  m[tid].my         = 0;
-  m[tid].line       = NULL;
-  m[tid].jiffies    = 0;
-  m[tid].timer      = NULL;
-  m[tid].waittid    = -1;
-  m[tid].state      = WILL_EMPTY;
-  m[tid].alloc_addr = 0;
-  if (m[tid].alloced) {
-    free(m[tid].alloc_size);
-    m[tid].alloced = 0;
+  if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
+    task_by_id(task->ptid)->state = RUNNING;
   }
-  m[tid].alloc_size       = 0;
-  m[tid].running          = 0;
-  m[tid].ready            = 0;
-  m[tid].pde              = 0;
-  m[tid].ipc_header.now   = 0;
-  m[tid].sigint_up        = 0;
-  m[tid].train            = 0;
-  m[tid].times            = 0;
-  m[tid].signal_disable   = 0;
-  m[tid].keyboard_press   = NULL;
-  m[tid].keyboard_release = NULL;
-  m[tid].keyfifo          = NULL;
-  m[tid].mousefifo        = NULL;
-  lock_init(&(m[tid].ipc_header.l));
-  for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
-    m[tid].ipc_header.messages[k].from_tid = -1;
-    m[tid].ipc_header.messages[k].flag1    = 0;
-    m[tid].ipc_header.messages[k].flag2    = 0;
-  }
-  for (int k = 0; k < 30; k++) {
-    m[tid].handler[k] = 0;
-  }
-  if (m[tid].ptid != -1 && m[m[tid].ptid].waittid == tid) { m[m[tid].ptid].state = RUNNING; }
-
-  m[tid].ptid = -1;
   asm_cli;
+  rbtree_delete_with(tasks, tid, free);
+  asm_sti;
   if (get_task(tid) == current_task())
     while (true)
       ;
@@ -345,7 +342,7 @@ void into_mtask() {
   idle_task = create_task((u32)idle_loop, 0, 1, 3);
   create_task((u32)init, 0, 5, 1);
   asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
-  task_start(&(m[0]));
+  task_start(task_by_id(0));
 }
 
 void task_set_fifo(mtask *task, cir_queue8_t kfifo, cir_queue8_t mfifo) {
@@ -384,43 +381,31 @@ cir_queue8_t task_get_mouse_fifo(mtask *task) {
 
 void task_lock() {
   if (current_task()->ptid == -1) {
-    for (int i = 0; i < 255; i++) {
-      if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-      if (m[i].tid == get_tid(current_task())) continue;
-      if (m[i].ptid == get_tid(current_task()) && m[i].state == 1) {
-        m[i].state = WAITING; // WAITING
-      }
-    }
+    return;
   } else {
-    for (int i = 0; i < 255; i++) {
-      if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-      if (m[i].tid == get_tid(current_task())) continue;
-      if ((m[i].tid == current_task()->ptid || m[i].ptid == current_task()->ptid) &&
-          m[i].state == RUNNING) {
-        m[i].state = WAITING; // WAITING
-      }
-    }
+    // for (int i = 0; i < 255; i++) {
+    //   if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
+    //   if (m[i].tid == get_tid(current_task())) continue;
+    //   if ((m[i].tid == current_task()->ptid || m[i].ptid == current_task()->ptid) &&
+    //       m[i].state == RUNNING) {
+    //     m[i].state = WAITING; // WAITING
+    //   }
+    // }
   }
 }
 
 void task_unlock() {
   if (current_task()->ptid == -1) {
-    for (int i = 0; i < 255; i++) {
-      if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-      if (m[i].tid == get_tid(current_task())) continue;
-      if (m[i].ptid == get_tid(current_task()) && m[i].state == 2) {
-        m[i].state = RUNNING; // RUNNING
-      }
-    }
+    return;
   } else {
-    for (int i = 0; i < 255; i++) {
-      if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-      if (m[i].tid == get_tid(current_task())) continue;
-      if ((m[i].tid == current_task()->ptid || m[i].ptid == current_task()->ptid) &&
-          m[i].state == WAITING) {
-        m[i].state = RUNNING; // RUNNING
-      }
-    }
+    // for (int i = 0; i < 255; i++) {
+    //   if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
+    //   if (m[i].tid == get_tid(current_task())) continue;
+    //   if ((m[i].tid == current_task()->ptid || m[i].ptid == current_task()->ptid) &&
+    //       m[i].state == WAITING) {
+    //     m[i].state = RUNNING; // RUNNING
+    //   }
+    // }
   }
 }
 
@@ -444,69 +429,38 @@ extern struct PAGE_INFO *pages;
 
 void task_exit(u32 status) {
   if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
-  u32 tid = current_task()->tid;
+  u32    tid  = current_task()->tid;
+  mtask *task = current_task();
   for (int i = 0; i < 255; i++) {
-    if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-    if (m[i].tid == tid) continue;
-    if (m[i].ptid == tid) { task_kill(m[i].tid); }
+    if (task->state == EMPTY || task->state == WILL_EMPTY || task->state == READY) continue;
+    if (task->tid == tid) continue;
+    if (task->ptid == tid) { task_kill(task->tid); }
   }
   asm_cli;
+  task->status = status;
+  task->state  = DIED;
   asm_set_cr3(PDE_ADDRESS);
-  free_pde(m[tid].pde);
+  free_pde(task->pde);
   gc(tid); // 释放内存
-  if (m[tid].press_key_fifo) {
-    page_free(m[tid].press_key_fifo->buf, 4096);
-    free(m[tid].press_key_fifo);
+  if (task->press_key_fifo) {
+    page_free(task->press_key_fifo->buf, 4096);
+    free(task->press_key_fifo);
   }
-  if (m[tid].release_keyfifo) {
-    page_free(m[tid].release_keyfifo->buf, 4096);
-    free(m[tid].release_keyfifo);
-  }
-  m[tid].urgent     = 0;
-  m[tid].fpu_flag   = 0;
-  m[tid].fifosleep  = 0;
-  m[tid].mx         = 0;
-  m[tid].my         = 0;
-  m[tid].line       = NULL;
-  m[tid].jiffies    = 0;
-  m[tid].timer      = NULL;
-  m[tid].waittid    = -1;
-  m[tid].state      = DIED;
-  m[tid].alloc_addr = 0;
-  if (m[tid].alloced) {
-    free(m[tid].alloc_size);
-    m[tid].alloced = 0;
-  }
-  m[tid].alloc_size       = 0;
-  m[tid].running          = 0;
-  m[tid].ready            = 0;
-  m[tid].pde              = 0;
-  m[tid].ipc_header.now   = 0;
-  m[tid].sigint_up        = 0;
-  m[tid].train            = 0;
-  m[tid].status           = status;
-  m[tid].times            = 0;
-  m[tid].signal_disable   = 0;
-  m[tid].keyboard_press   = NULL;
-  m[tid].keyboard_release = NULL;
-  m[tid].keyfifo          = NULL;
-  m[tid].mousefifo        = NULL;
-  lock_init(&(m[tid].ipc_header.l));
-  for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
-    m[tid].ipc_header.messages[k].from_tid = -1;
-    m[tid].ipc_header.messages[k].flag1    = 0;
-    m[tid].ipc_header.messages[k].flag2    = 0;
+  if (task->release_keyfifo) {
+    page_free(task->release_keyfifo->buf, 4096);
+    free(task->release_keyfifo);
   }
   for (int k = 0; k < 30; k++) {
-    m[tid].handler[k] = 0;
+    task->handler[k] = 0;
   }
-  if (m[tid].ptid != -1 && m[m[tid].ptid].waittid == tid) { task_run(&(m[m[tid].ptid])); }
+  if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
+    task_run(task_by_id(task->ptid));
+  }
 
-  m[tid].ptid = -1;
+  task->ptid = -1;
   asm_sti;
   task_next();
-  while (true)
-    ;
+  infinite_loop;
 }
 
 int waittid(u32 tid) {
@@ -515,13 +469,13 @@ int waittid(u32 tid) {
   if (t->ptid != current_task()->tid) return -1;
   current_task()->waittid = tid;
   while (t->state != DIED && t->ptid == current_task()->tid) {
-    //  klogd("waiting for the fucking task");
     task_fall_blocked(WAITING);
   }
-  klogd("here");
+  klogd("here %d %d %d", t->ptid, current_task()->tid, t->tid);
   u32 status = t->status;
   klogd("task exit with code %d\n", status);
   t->state = EMPTY;
+  rbtree_delete_with(tasks, tid, free);
   return status;
 }
 
@@ -547,15 +501,8 @@ void mtask_run_now(mtask *obj) {
 // }
 
 mtask *mtask_get_free() {
-  mtask *t = NULL;
-  for (int i = 1; i < 255; i++) {
-    if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) {
-      klogd("f:%d\n", i);
-      t = &m[i];
-      klogd("%d\n", t->tid);
-      break;
-    }
-  }
+  mtask *t = page_malloc_one_no_mark();
+  init_task(t, alloc_tid());
   return t;
 }
 

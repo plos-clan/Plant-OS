@@ -26,7 +26,7 @@ finline void allocarea_init(void *addr, size_t size, void *pdata) {
   }
 }
 
-// 对多分配取无效 (会损坏分配区)
+// 对多分配区无效 (会损坏分配区)
 finline void *allocarea_reinit(void *addr, size_t oldsize, size_t newsize) {
   if (newsize == oldsize) return null;
 

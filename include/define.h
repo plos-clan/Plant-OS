@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "define/config/alloc.h"
 #include "define/config/check.h"
 #include "define/config/data-structure.h"
 #include "define/config/log.h"
@@ -28,6 +29,7 @@ extern "C" {
 #include "define/type/complex.h"
 #include "define/type/const.h"
 #include "define/type/ex.h"
+#include "define/type/func.h"
 #include "define/type/int.h"
 #include "define/type/limit.h"
 #include "define/type/vector.h"
