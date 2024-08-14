@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include <libc.h>
 
 static struct mman mman;

@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include "../../../fs/fatfs/ff.h"
 #include "data-structure/circular-queue.h"
 #include "kernel/mtask.h"
@@ -76,8 +78,7 @@ ssize_t input(char *ptr, size_t len) {
       if (p == 0) continue;
       p--;
       ptr[p] = '\0';
-      auto x = get_x() - 1;
-      auto y = get_y();
+      int x = get_x() - 1, y = get_y();
       gotoxy(x, y);
       putchar(' ');
       gotoxy(x, y);

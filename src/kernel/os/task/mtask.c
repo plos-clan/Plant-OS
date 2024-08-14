@@ -161,7 +161,7 @@ H:
     asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
   next->jiffies = global_time;
   fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
-  if (current_task()->state == WILL_EMPTY) { current_task()->state = READY; }
+  if (current_task()->state == WILL_EMPTY) current_task()->state = READY;
 
   task_switch(next); // 调度
 }
@@ -274,19 +274,15 @@ void task_to_user_mode(u32 eip, u32 esp) {
   current->user_mode = 1;
   tss.esp0           = current->top;
   klogd("tid: %d\n", current_task()->tid);
-  // task_exit(0);
-  // change_page_task_id(current_task()->tid, iframe->esp - 64 * 1024, 64 *
-  // 1024);
   asm_cli;
-  asm volatile("movl %0, %%esp\n"
-               "popa\n"
-               "pop %%gs\n"
-               "pop %%fs\n"
-               "pop %%es\n"
-               "pop %%ds\n"
-               "iret" ::"m"(iframe)
+  asm volatile("movl %0, %%esp\n\t"
+               "popa\n\t"
+               "pop %%gs\n\t"
+               "pop %%fs\n\t"
+               "pop %%es\n\t"
+               "pop %%ds\n\t"
+               "iret\n\t" ::"m"(iframe)
                : "memory");
-  infinite_loop;
   __builtin_unreachable();
 }
 

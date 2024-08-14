@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include <libc.h>
 
 int printf(cstr _rest fmt, ...) {
