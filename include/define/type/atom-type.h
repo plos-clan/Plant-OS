@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #pragma once
 #include "bool.h"
 #include "int.h"

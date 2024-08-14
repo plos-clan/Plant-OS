@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include <libc-base.h>
 
 #define isdigit2(c)  ((c) == '0' || (c) == '1')

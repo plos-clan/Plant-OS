@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include <libc-base.h>
 
 // 在 32 位下支持 64 位整数除法

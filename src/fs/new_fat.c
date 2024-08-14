@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include "fatfs/ff.h"
 #include <fs.h>
 

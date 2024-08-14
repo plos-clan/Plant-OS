@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 // #include <fs.h>
 
 // #define L9660_SEEK_END -1

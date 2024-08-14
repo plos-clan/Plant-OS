@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include <libc-base.h>
 
 #define vsprintf_bufsize 1024

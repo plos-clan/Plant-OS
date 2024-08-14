@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include <kernel.h>
 
 #define STACK_SIZE 1024 * 1024

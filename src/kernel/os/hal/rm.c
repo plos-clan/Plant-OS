@@ -1,4 +1,5 @@
-// Resource Manager 资源管理器
+// This code is released under the MIT License
+
 #include <kernel.h>
 
 rbtree_t fds = NULL;

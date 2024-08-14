@@ -1,3 +1,5 @@
+// This code is released under the MIT License
+
 #include <fs.h>
 
 vfs_node_t rootdir = null;
