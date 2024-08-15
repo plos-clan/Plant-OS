@@ -16,6 +16,13 @@ macro(add_binary_asm_no_elf name file)
   add_custom_target(${name} ALL COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && nasm -f bin ${absolute_path} -o ${EXECUTABLE_OUTPUT_PATH}/${name}.bin)
 endmacro(add_binary_asm_no_elf)
 
+macro(add_efi name)
+  add_custom_target(
+    ${name}-efi ALL #
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && x86_64-w64-mingw32-gcc -I${PROJECT_SOURCE_DIR}/include -nostdinc -nostdlib -fno-builtin -Wl,--subsystem,10 -fshort-wchar -o
+            "${EXECUTABLE_OUTPUT_PATH}/${name}.efi" ${ARGN})
+endmacro(add_efi)
+
 macro(add_binary_exclude name)
   set(without_files)
   foreach(file ${ARGN})
