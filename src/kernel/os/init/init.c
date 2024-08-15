@@ -84,7 +84,7 @@ void sysinit() {
   init_page();
   IVT = page_malloc(0x10000);
   memcpy(IVT, null, 0x10000);
-  // init_gdtidt();
+  init_gdtidt();
   init_pic();
 
   asm_sti;

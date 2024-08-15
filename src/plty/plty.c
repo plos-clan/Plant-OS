@@ -321,60 +321,6 @@ void plty_putc(plty_t tty, u32 c) {
   plty_putc_raw(tty, c);
 }
 
-static u32 utf8to32c(cstr *_s) {
-  cstr s = *_s;
-  if (*s == '\0') return '\0';
-  size_t r;
-  if ((*s & 0x80) == 0) {
-    r = *s++;
-  } else if ((*s & 0xe0) == 0xc0) {
-    r  = (*s++ & 0x1f) << 6;
-    r |= *s++ & 0x3f;
-  } else if ((*s & 0xf0) == 0xe0) {
-    r  = (*s++ & 0x0f) << 12;
-    r |= (*s++ & 0x3f) << 6;
-    r |= *s++ & 0x3f;
-  } else if ((*s & 0xf8) == 0xf0) {
-    r  = (*s++ & 0x07) << 18;
-    r |= (*s++ & 0x3f) << 12;
-    r |= (*s++ & 0x3f) << 6;
-    r |= *s++ & 0x3f;
-  } else {
-    r = 0xfffd;
-    s++;
-  }
-  *_s = s;
-  return r;
-}
-
-static u32 *utf8to32(cstr s) {
-  u32 *r = malloc((strlen(s) + 1) * 4);
-  if (r == null) return null;
-  size_t i = 0;
-  for (; *s != '\0'; i++) {
-    if ((*s & 0x80) == 0) {
-      r[i] = *s++;
-    } else if ((*s & 0xe0) == 0xc0) {
-      r[i]  = (*s++ & 0x1f) << 6;
-      r[i] |= *s++ & 0x3f;
-    } else if ((*s & 0xf0) == 0xe0) {
-      r[i]  = (*s++ & 0x0f) << 12;
-      r[i] |= (*s++ & 0x3f) << 6;
-      r[i] |= *s++ & 0x3f;
-    } else if ((*s & 0xf8) == 0xf0) {
-      r[i]  = (*s++ & 0x07) << 18;
-      r[i] |= (*s++ & 0x3f) << 12;
-      r[i] |= (*s++ & 0x3f) << 6;
-      r[i] |= *s++ & 0x3f;
-    } else {
-      r[i] = 0xfffd;
-      s++;
-    }
-  }
-  r[i] = '\0';
-  return r;
-}
-
 void plty_pututf8c(plty_t tty, byte c) {
   static u32 ch;
   static i32 nneed = -1;
@@ -411,6 +357,6 @@ void plty_pututf8c(plty_t tty, byte c) {
 void plty_puts(plty_t tty, cstr _s) {
   cstr s = _s;
   for (; *s != '\0';) {
-    plty_putc_raw(tty, utf8to32c(&s));
+    plty_putc_raw(tty, utf8to32c((cstr8 *)&s));
   }
 }

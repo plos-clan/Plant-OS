@@ -418,8 +418,37 @@ finline int isupper(int c) {
 
 #endif
 
-u32  utf8_to_32(cstr *s_p);
-void utf8_to_32s(u32 *d, cstr s);
+finline size_t strlen8(cstr8 s) {
+  size_t len = 0;
+  while (*s++ != '\0')
+    len++;
+  return len;
+}
+finline size_t strlen16(cstr16 s) {
+  size_t len = 0;
+  while (*s++ != '\0')
+    len++;
+  return len;
+}
+finline size_t strlen32(cstr32 s) {
+  size_t len = 0;
+  while (*s++ != '\0')
+    len++;
+  return len;
+}
+
+u32    utf8to32c(cstr8 *sp);
+size_t utf8to32s(u32 *d, cstr8 s);
+u32   *utf8to32a(cstr8 s);
+u32    utf16to32c(cstr16 *sp);
+size_t utf16to32s(u32 *d, cstr16 s);
+u32   *utf16to32a(cstr16 s);
+size_t utf32to8c(u32 c, u8 *s);
+size_t utf32to8s(u8 *d, cstr32 s);
+u8    *utf32to8a(cstr32 s);
+size_t utf32to16c(u32 c, u16 *s);
+size_t utf32to16s(u16 *d, cstr32 s);
+u16   *utf32to16a(cstr32 s);
 
 finline void str2upper(char *str) {
   for (; *str != '\0'; str++) {

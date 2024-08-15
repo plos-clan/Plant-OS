@@ -11,6 +11,7 @@ extern "C" {
 #include "type/atom.h"
 #include "type/base.h"
 #include "type/bool.h"
+#include "type/char.h"
 #include "type/complex.h"
 #include "type/const.h"
 #include "type/ex.h"

@@ -19,6 +19,4 @@ static const auto null = nullptr;
 typedef __INT8_TYPE__  sbyte;
 typedef __UINT8_TYPE__ byte;
 
-typedef const char *cstr;
-
 typedef int errno_t;
