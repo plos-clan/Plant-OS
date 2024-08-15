@@ -81,8 +81,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 # 删除重复代码
-add_compile_flag("-ffunction-sections -fdata-sections")
-add_link_flag("-Wl,--gc-sections")
+# add_compile_flag("-ffunction-sections -fdata-sections")
+# add_link_flag("-Wl,--gc-sections")
 
 add_compile_flag("-fno-optimize-sibling-calls") # 关闭尾递归优化
 add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查 (gcc 默认关闭)

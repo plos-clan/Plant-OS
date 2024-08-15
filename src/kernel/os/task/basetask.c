@@ -139,8 +139,8 @@ void init() {
 
   klogd("Set Mode");
   byte *vram = (void *)set_mode(1024, 768, 32);
+  klogd("ok vram = %p", vram);
   memset(vram, 0, 1024 * 768 * 4);
-
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
 

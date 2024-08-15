@@ -84,7 +84,7 @@ void sysinit() {
   init_page();
   IVT = page_malloc(0x10000);
   memcpy(IVT, null, 0x10000);
-  init_gdtidt();
+  // init_gdtidt();
   init_pic();
 
   asm_sti;
@@ -105,7 +105,7 @@ void sysinit() {
   // init_vfs();
   // register_fat();
 
-  if (memsize / (1024 * 1024) < 256) {
+  if (memsize < 256 * 1024 * 1024) {
     fatal("You should have at least 256MB memory in your pc to start Plant-OS.");
   } else {
     info("the memory test has been passed! Your PC has %dMB memory", memsize / (1024 * 1024));

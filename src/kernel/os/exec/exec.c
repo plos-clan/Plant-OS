@@ -258,12 +258,12 @@ void task_to_user_mode_elf(char *filename) {
     infinite_loop;
   }
   u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + 0x1000;
-  u32 pg         = padding_up(*(current_task()->alloc_size), 0x1000);
+  u32 pg         = padding_up(*(current_task()->alloc_size), PAGE_SIZE);
   for (int i = 0; i < pg + 128 * 4; i++) {
-    page_link(alloc_addr + i * 0x1000);
+    page_link(alloc_addr + i * PAGE_SIZE);
   }
-  u32 alloced_esp  = alloc_addr + 128 * 0x1000 * 4;
-  alloc_addr      += 128 * 0x1000 * 4;
+  u32 alloced_esp  = alloc_addr + 128 * PAGE_SIZE * 4;
+  alloc_addr      += 128 * PAGE_SIZE * 4;
   iframe->esp      = alloced_esp;
   if (current_task()->ptid != -1) { *(u8 *)(0xf0000000) = 0; }
   //  strcpy((char *)0xf0000001, current_task()->line);
