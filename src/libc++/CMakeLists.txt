@@ -1,5 +1,3 @@
-file(GLOB_RECURSE c_files "*.c")
-file(GLOB_RECURSE cpp_files "*.cpp")
-add_library(c++ STATIC ${c_files} ${cpp_files})
-target_link_libraries(c++ c sys c-base)
-target_compile_definitions(c++ PRIVATE RING3=1 LIBCPP=1)
+mklib(c++)
+tgtlib(c++ c-base sys c)
+libdef(c++ RING3=1 LIBCPP=1)

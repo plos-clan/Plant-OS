@@ -35,6 +35,7 @@ set_optim_flag("-g -O1")
 message("本机 环境")
 include(cmake/show-flags)
 
+add_subdirectory(test)
 add_subdirectory(util)
 
 # ----------------------------------------------------------------------------------------------------

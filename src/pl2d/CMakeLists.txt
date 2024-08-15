@@ -1,6 +1,4 @@
-file(GLOB_RECURSE c_files "*.c")
-file(GLOB_RECURSE cpp_files "*.cpp")
-addlib(pl2d ${c_files} ${cpp_files})
+mklib(pl2d)
 tgtlib(pl2d misc)
-libdef(pl2d PRIVATE RING3=1)
+libdef(pl2d RING3=1)
 mkheader_hpp(fb)
