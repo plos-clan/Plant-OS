@@ -6,3 +6,6 @@ dlexport const char _plos_lut_alnum_lower[62] =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 dlexport const char _plos_lut_alnum_upper[62] =
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+u32  error_num = 0;
+cstr error_msg = null;

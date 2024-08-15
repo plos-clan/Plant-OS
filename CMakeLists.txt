@@ -16,8 +16,12 @@ project(Plant-OS VERSION 0.0.0)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+enable_testing()
+include(GoogleTest)
+
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+include(cmake/gtest)
 include(cmake/mklib)
 include(cmake/util)
 include(cmake/add_binary)

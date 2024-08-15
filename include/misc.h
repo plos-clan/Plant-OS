@@ -16,4 +16,5 @@ extern "C" {
 #include "misc/00-include.hpp"
 #include "misc/math/fft.hpp"
 #include "misc/math/gaussian-blur.hpp"
+#include "misc/string.hpp"
 #endif

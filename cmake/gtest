@@ -1,0 +1,5 @@
+macro(gtest arg1)
+  testexec(${arg1} ${ARGN})
+  testlib(${arg1} gtest gtest_main)
+  gtest_discover_tests(${arg1}-test)
+endmacro(gtest)

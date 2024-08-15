@@ -114,7 +114,7 @@ typedef _Atomic bool atomic_flag_t;
 #  define atomic_is_lock_free(obj) __atomic_is_lock_free(sizeof(*(obj)), (obj))
 #endif
 
-#if !(defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__))
+#if NO_STD && !(defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__))
 #  define ATOMIC_FLAG_INIT false
 #endif
 

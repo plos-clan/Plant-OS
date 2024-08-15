@@ -189,7 +189,7 @@ void recalibrate() {
   motoroff();
 }
 
-int seek(int track) {
+static int fdc_seek(int track) {
   if (fdc_track == track) /* 目前的磁道和需要seek的磁道一样吗 */
   {
     // 一样的话就不用seek了
@@ -309,14 +309,14 @@ int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
     if (asm_in8(FDC_DIR) & 0x80) {
       waiter  = NULL;
       dchange = 1;
-      seek(1); /* 清除磁盘更改 */
+      fdc_seek(1); /* 清除磁盘更改 */
       recalibrate();
       motoroff();
       return fdc_rw(block, blockbuff, read, nosectors);
     }
     waiter = NULL;
     /* seek到track的位置*/
-    if (!seek(track)) {
+    if (!fdc_seek(track)) {
       motoroff();
       waiter = NULL;
       return 0;
@@ -392,13 +392,13 @@ int fdc_rw_ths(int track, int head, int sector, byte *blockbuff, int read, u64 n
   for (tries = 0; tries < 3; tries++) {
     if (asm_in8(FDC_DIR) & 0x80) {
       dchange = 1;
-      seek(1);
+      fdc_seek(1);
       recalibrate();
       motoroff();
 
       return fdc_rw_ths(track, head, sector, blockbuff, read, nosectors);
     }
-    if (!seek(track)) {
+    if (!fdc_seek(track)) {
       motoroff();
       return 0;
     }

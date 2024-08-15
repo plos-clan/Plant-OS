@@ -25,6 +25,10 @@ finline char *strndup(cstr s, size_t n) {
   return ptr;
 }
 
+#else
+
+#  include <string.h>
+
 #endif
 
 finline void *memdup(const void *s, size_t n) {

@@ -37,3 +37,13 @@
 #undef SSIZE_MAX
 #undef SSIZE_MIN
 #undef SIZE_MAX
+
+#undef assert
+
+#undef __THROW
+#undef __THROWNL
+#undef __NTH
+#undef __NTHNL
+#undef __wur
+#undef __nonnull
+#undef __attr_dealloc

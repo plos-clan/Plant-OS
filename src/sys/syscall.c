@@ -30,6 +30,7 @@ dlexport void *mmap(void *addr, size_t size) {
   return (void *)__syscall(SYSCALL_MMAP, addr, size);
 }
 
-dlexport void munmap(void *addr, size_t size) {
+dlexport int munmap(void *addr, size_t size) {
   __syscall(SYSCALL_MUNMAP, addr, size);
+  return 0;
 }

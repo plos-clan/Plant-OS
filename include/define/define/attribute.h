@@ -13,12 +13,6 @@
 
 #define _rest __restrict
 
-#undef __THROW
-#undef __wur
-#undef __nonnull
-#undef __attr_dealloc
-
-#define __THROW           __attribute__((nothrow, leaf))
 #define __wur             __attribute__((warn_unused_result))
 #define __nonnull(params) __attribute__((nonnull params))
 #define __attr(...)       __attribute__((__VA_ARGS__))
@@ -32,8 +26,21 @@
 #else
 #  define __attr_dealloc(func, nparam) __attr(warn_unused_result, malloc(func, nparam))
 #endif
+#define __attr_allocsize(...) __attr(alloc_size(__VA_ARGS__))
 
-#define deprecated __attr_deprecated
+#ifdef __cplusplus
+#  define __THROW      noexcept(true)
+#  define __THROWNL    noexcept(true)
+#  define __NTH(fct)   __LEAF_ATTR fct __THROW
+#  define __NTHNL(fct) fct __THROW
+#else
+#  define __THROW      __attr(nothrow, leaf)
+#  define __THROWNL    __attr(nothrow)
+#  define __NTH(fct)   __attr(nothrow, leaf) fct
+#  define __NTHNL(fct) __attr(nothrow) fct
+#endif
+
+#define __nnull(...) __attr(nonnull(__VA_ARGS__))
 
 // __attribute__((overloadable)) 是 clang 扩展，使 C 函数可以被重载
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <sys/syscall.h>
+#include <sys/plos-syscall.h>
 
 void    syscall_exit(int status);
 int     syscall_fork();

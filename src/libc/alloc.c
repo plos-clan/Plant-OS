@@ -98,7 +98,8 @@ static void wrap_munmap(void *addr, size_t size) {
       mmap_buf_2M = addr;
       return;
     }
-    return munmap(addr, size);
+    munmap(addr, size);
+    return;
   }
   if (size == SIZE_4k) {
 #pragma unroll
@@ -108,9 +109,10 @@ static void wrap_munmap(void *addr, size_t size) {
         return;
       }
     }
-    return munmap(addr, size);
+    munmap(addr, size);
+    return;
   }
-  return munmap(addr, size);
+  munmap(addr, size);
 }
 
 bool __libc_init_mman() {

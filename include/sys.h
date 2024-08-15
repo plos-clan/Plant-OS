@@ -4,7 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "sys/syscall.h"
+#include "sys/osapi.h"
+#include "sys/plos-syscall.h"
 #ifdef __cplusplus
 }
 #endif

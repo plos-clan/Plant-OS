@@ -2,7 +2,9 @@
 
 #include <libc-base.h>
 
-#define vsprintf_bufsize 1024
+#if NO_STD
+
+#  define vsprintf_bufsize 1024
 static char vsprintf_buf[vsprintf_bufsize];
 
 enum fmtalign {
@@ -59,7 +61,9 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
   fmtarg_clear(arg);
   cstr fmt = *_fmt + 1;
 
-  va_list va = *_va;
+  // va_list va = *_va;
+  va_list va;
+  va_copy(va, *_va); // WTF
 
   if (*fmt == '%') {
     arg->text    = arg->buf;
@@ -144,18 +148,18 @@ next_char:
     arg->fill_zero = false; // 字符不应该使用 0 填充
     goto end;
 
-#define tostr_arg(type)     arg->buf, arg->bufsize, va_arg(va, type)
-#define tostr_arg2(t, type) arg->buf, arg->bufsize, (t)va_arg(va, type)
+#  define tostr_arg(type)     arg->buf, arg->bufsize, va_arg(va, type)
+#  define tostr_arg2(t, type) arg->buf, arg->bufsize, (t)va_arg(va, type)
 
-#define format_in_bn(_n_, _u_)                                                                     \
-  switch (_size) {                                                                                 \
-  case 1: arg->text = _u_##hhtostr##_n_(tostr_arg2(_u_##char, _u_##int)); break;                   \
-  case 2: arg->text = _u_##htostr##_n_(tostr_arg2(_u_##short, _u_##int)); break;                   \
-  case 3: arg->text = _u_##itostr##_n_(tostr_arg(_u_##int)); break;                                \
-  case 4: arg->text = _u_##ltostr##_n_(tostr_arg(_u_##long)); break;                               \
-  case 5: arg->text = _u_##lltostr##_n_(tostr_arg(_u_##llong)); break;                             \
-  }                                                                                                \
-  goto end;
+#  define format_in_bn(_n_, _u_)                                                                   \
+    switch (_size) {                                                                               \
+    case 1: arg->text = _u_##hhtostr##_n_(tostr_arg2(_u_##char, _u_##int)); break;                 \
+    case 2: arg->text = _u_##htostr##_n_(tostr_arg2(_u_##short, _u_##int)); break;                 \
+    case 3: arg->text = _u_##itostr##_n_(tostr_arg(_u_##int)); break;                              \
+    case 4: arg->text = _u_##ltostr##_n_(tostr_arg(_u_##long)); break;                             \
+    case 5: arg->text = _u_##lltostr##_n_(tostr_arg(_u_##llong)); break;                           \
+    }                                                                                              \
+    goto end;
 
   case 'b':
   case 'B': format_in_bn(b2, u);
@@ -174,25 +178,25 @@ next_char:
   case 'x': format_in_bn(b16, u);
   case 'X': format_in_bn(B16, u);
 
-#undef format_in_bn
+#  undef format_in_bn
 
   case 'p':
     if (_size != 3) goto err;
     arg->print_ptr = true;
-#ifdef __x86_64__
+#  ifdef __x86_64__
     arg->text = u64tostrb16(tostr_arg(u64));
-#else
+#  else
     arg->text = u32tostrb16(tostr_arg(u32));
-#endif
+#  endif
     goto end;
   case 'P':
     if (_size != 3) goto err;
     arg->print_ptr = true;
-#ifdef __x86_64__
+#  ifdef __x86_64__
     arg->text = u64tostrB16(tostr_arg(u64));
-#else
+#  else
     arg->text = u32tostrB16(tostr_arg(u32));
-#endif
+#  endif
     goto end;
 
   case 'f':
@@ -206,8 +210,8 @@ next_char:
     }
     goto end;
 
-#undef tostr_arg
-#undef tostr_arg2
+#  undef tostr_arg
+#  undef tostr_arg2
 
   case 'n':
   case 'N':
@@ -231,7 +235,9 @@ next_char:
 
 end:
   *_fmt = fmt;
-  *_va  = va;
+  // *_va = va;
+  va_end(*_va);
+  va_copy(*_va, va); // WTF
   return true;
 
 err:
@@ -312,6 +318,7 @@ dlexport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) {
   static fmtarg arg = {.buf = vsprintf_buf, .bufsize = vsprintf_bufsize};
 
   while (*fmt != '\0') {
+    // Warning in x64 ??? WTF
     if (vsprintf_tryfmt(&s, s_begin, &fmt, &arg, &va)) continue;
     *s++ = *fmt++;
   }
@@ -345,3 +352,5 @@ dlexport ssize_t sformat(char *_rest s, cstr _rest fmt, ...) {
 int vsnprintf(char *_rest s, size_t maxlen, const char *_rest fmt, va_list va) {
   return 0;
 }
+
+#endif

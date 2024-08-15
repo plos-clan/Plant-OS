@@ -41,7 +41,7 @@ dlimport void  fftf_2d_r2r(f32 *x, f32 *s, size_t w, size_t h, bool r);
 dlimport f32  *fftf_2d_r2r_ap(f32 *s, size_t w, size_t h, size_t p, bool r);
 dlimport f32  *fftf_2d_r2r_a(f32 *s, size_t w, size_t h, bool r);
 
-#if defined(__clang__) && defined(__x86_64__)
+#if defined(__clang__) && defined(__x86_64__) && !NO_EXTFLOAT
 dlimport void   fftl_p(cf128 *x, cf128 *s, size_t l, size_t p, bool r);
 dlimport void   fftl(cf128 *x, cf128 *s, size_t l, bool r);
 dlimport cf128 *fftl_a(cf128 *s, size_t l, bool r);

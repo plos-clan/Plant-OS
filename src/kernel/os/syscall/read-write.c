@@ -1,12 +1,12 @@
 #include <kernel.h>
 
-enum {
-  read,
-  write,
-  seek,
-  open,
-  close,
-};
+// enum {
+//   read,
+//   write,
+//   seek,
+//   open,
+//   close,
+// };
 
 ssize_t syscall_read(int fd, void *addr, size_t size) {
   if (fd < 0) return -1;

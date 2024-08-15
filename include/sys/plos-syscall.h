@@ -13,14 +13,14 @@
 #define SYSCALL_WRITE   9
 #define MAX_SYSCALLS    256
 
-#ifndef RING0
+#if !RING0 && NO_STD
 dlimport ssize_t syscall(ssize_t id, ...);
 
 dlimport void exit(int status) __attr(noreturn);
 
 dlimport int print(cstr s);
 
-dlimport void *mmap(void *addr, size_t size);
+dlimport void *mmap(void *addr, size_t size) __THROW;
 
-dlimport void munmap(void *addr, size_t size);
+dlimport int munmap(void *addr, size_t size) __THROW;
 #endif

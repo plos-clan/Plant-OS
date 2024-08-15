@@ -48,6 +48,10 @@ finline int    strverscmp(cstr __s1, cstr __s2);
 finline char  *strfry(char *__string);
 finline char  *basename(cstr __filename);
 
+#else
+
+#  include <string.h>
+
 #endif
 
 #define streq(s1, s2)                                                                              \

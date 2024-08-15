@@ -96,7 +96,9 @@ enum {
 #  endif
 #endif
 
-#define ATOMIC_VAR_INIT(val) (val)
+#if NO_STD
+#  define ATOMIC_VAR_INIT(val) (val)
+#endif
 
 #if NO_STD || !defined(__cplusplus)
 // 用VAL初始化由PTR指向的原子对象。
