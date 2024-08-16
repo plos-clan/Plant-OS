@@ -12,8 +12,8 @@
 #endif
 #include "slist-strptr.h"
 
-#ifndef __RBTREE
-#  define __RBTREE
+#ifndef _RBTREE_ENUM_
+#  define _RBTREE_ENUM_
 enum {
   RBT_RED,  // 红色节点
   RBT_BLACK // 黑色节点

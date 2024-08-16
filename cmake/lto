@@ -1,0 +1,5 @@
+# 开启 lto
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_compile_flag("-flto=16 -ffat-lto-objects")
+endif()
+add_link_flag("-Wl,-O1 -fuse-linker-plugin")

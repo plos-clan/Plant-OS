@@ -36,6 +36,12 @@ set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 
 set_optim_flag("-g -O1")
 
+include(cmake/optim) # 优化选项
+include(cmake/lto) # 链接时优化
+include(cmake/code-gc) # 删除重复代码
+
+include(cmake/disable-warning)
+
 message("本机 环境")
 include(cmake/show-flags)
 
@@ -59,31 +65,11 @@ set_optim_flag("-g -O1")
 # 告诉编译器没有标准库 (但似乎不需要这个)
 # set_link_flag("-nolibc -Qn")
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  add_compile_flag("-fmodulo-sched") # 在第一次调度过程之前立即执行摇摆模调度 (gcc 默认关闭)
-  add_compile_flag("-fsplit-loops") # 对于循环内的 if 语句，将其分割为两个循环 (gcc 默认关闭)
-  add_compile_flag("-funswitch-loops") # 将具有循环不变条件的分支移出循环 (gcc 默认关闭)
-  add_compile_flag("-fversion-loops-for-strides") # 迭代的步幅为变量时创建另一个版本的循环，该循环假定步幅始终为 1 (gcc 默认关闭)
-  add_compile_flag("-fstdarg-opt") # 对于可变参数函数，优化这些参数的使用 (gcc 默认关闭)
-  add_compile_flag("-fgcse") # 全局公共子表达式消除 (gcc O2)
-  add_compile_flag("-fgcse-sm") #
-  add_compile_flag("-fipa-icf") # 对函数和只读变量执行相同的代码折叠 (gcc O2)
-  add_compile_flag("-fipa-pta") # 过程间指针分析 (gcc 默认关闭)
-endif()
-add_compile_flag("-fmerge-all-constants") # 合并所有常量
-add_compile_flag("-fno-keep-static-consts") # 不保留 static 常量
-add_compile_flag("-fomit-frame-pointer") # 删除小函数的栈帧 (gcc O1)
+include(cmake/optim) # 优化选项
+include(cmake/lto) # 链接时优化
+# include(cmake/code-gc) # 删除重复代码
 
-# 开启 lto
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  add_compile_flag("-flto=16 -ffat-lto-objects")
-  add_link_flag("-Wl,-O1 -fuse-linker-plugin")
-endif()
-
-# 删除重复代码
-# add_compile_flag("-ffunction-sections -fdata-sections")
-# add_link_flag("-Wl,--gc-sections")
-
+# 其它选项
 add_compile_flag("-fno-optimize-sibling-calls") # 关闭尾递归优化
 add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查 (gcc 默认关闭)
 add_compile_flag("-fno-strict-aliasing") # 禁用严格别名规则 (gcc 默认关闭)
@@ -97,13 +83,7 @@ add_compile_flag("-fno-pic -fno-pie") # 不使用 pic 和 pie
 add_compile_flag("-fno-asynchronous-unwind-tables")
 add_compile_flag("-fno-exceptions")
 
-# 禁用部分 warning
-# 这是我们希望的特性，但默认情况下会报 warning
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  add_compile_flag("-Wno-compound-token-split-by-macro")
-  add_compile_flag("-Wno-pointer-integer-compare")
-endif()
-add_compile_flag("-Wno-address-of-packed-member")
+include(cmake/disable-warning)
 
 message("PLOS 环境")
 include(cmake/show-flags)

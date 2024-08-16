@@ -1,0 +1,3 @@
+# 删除重复代码
+add_compile_flag("-ffunction-sections -fdata-sections")
+add_link_flag("-Wl,--gc-sections")

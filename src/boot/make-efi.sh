@@ -1,5 +1,5 @@
-objcopy --only-keep-debug kernel.bin kernel.sym
-objcopy --strip-debug kernel.bin
+# objcopy --only-keep-debug kernel.bin kernel.sym
+# objcopy --strip-debug kernel.bin
 
 rm -r plos-efi || true
 mkdir -p plos-efi/EFI/Boot

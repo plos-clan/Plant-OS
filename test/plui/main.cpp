@@ -79,7 +79,9 @@ void flush() {
   p.LAB2RGB();
   tex.fill(p);
   tex.transform([](auto &pix, i32 x, i32 y) {
-    if ((x + y) / 25 % 2 == 0) pix.mix_ratio(0xffffffff, 64);
+    // if ((x + y) / 25 % 2 == 0) pix.mix_ratio(0xffffffff, 64);
+    f32 k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
+    if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 64);
   });
   frame_tex[nframe / 60 % 19].paste_to_mix(tex, 20, 20);
   image_tex.paste_to_mix(tex, 900, 0);
