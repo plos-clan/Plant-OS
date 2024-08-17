@@ -40,7 +40,24 @@
 #  define __NTHNL(fct) __attr(nothrow) fct
 #endif
 
+#define __attribute_pure__ __attr(pure)
+#define __attr_pure        __attr(pure)
+#ifdef __clang__
+#  define __attr_access(x)
+#  define __attr_readonly(...)
+#else
+#  define __attr_access(x)     __attr(access x)
+#  define __attr_readonly(...) __attr(access(read_only, ##__VA_ARGS__))
+#endif
+
 #define __nnull(...) __attr(nonnull(__VA_ARGS__))
+
+// C++ 属性
+#ifndef __cplusplus
+#  define noexcept
+#endif
+
+#define __deprecated __attr(deprecated)
 
 // __attribute__((overloadable)) 是 clang 扩展，使 C 函数可以被重载
 

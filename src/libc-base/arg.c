@@ -52,8 +52,6 @@ err:
   return null;
 }
 
-#undef isspace
-
 #if ARGS_NOT_IN_STACK
 #  define PUSH(val)                                                                                \
     ({                                                                                             \
@@ -127,3 +125,5 @@ dlexport void *parse_args(args_t args) {
 #undef PUSHSTR
 #undef PUSHMEM
 #undef PUSH
+
+#undef isspace

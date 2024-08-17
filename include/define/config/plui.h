@@ -2,7 +2,9 @@
 
 // 是否没有标准库
 // 没有标准库你也需要提供一部分函数
-#define NO_STD 1
+#ifndef NO_STD
+#  define NO_STD 1
+#endif
 
 // 不包含 16 位和 128 位浮点
 #define NO_EXTFLOAT 1

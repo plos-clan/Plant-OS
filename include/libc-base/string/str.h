@@ -4,6 +4,14 @@
 // 声明
 
 #if NO_STD
+#  define IAPI finline
+#  define OAPI dlimport
+#  define SAPI static
+#else
+#  define IAPI dlimport
+#  define OAPI dlimport
+#  define SAPI dlimport
+#endif
 
 /**
  *\brief 复制字符串
@@ -12,47 +20,69 @@
  *\param s 源字符串
  *\return 目标字符串
  */
-finline char  *strcpy(char *_rest d, cstr _rest s);
-finline char  *strncpy(char *_rest d, cstr _rest s, size_t n);
-finline char  *strcat(char *_rest _d, cstr _rest _s);
-finline char  *strncat(char *_rest _d, cstr _rest _s, size_t _n);
-finline int    strcmp(cstr _s1, cstr _s2);
-finline int    tolower(int c);
-finline int    toupper(int c);
-finline int    strncmp(cstr _s1, cstr _s2, size_t n);
-finline char  *strdup(cstr s);
-finline char  *strndup(cstr s, size_t n);
-finline char  *strchr(cstr _s, int _c);
-finline char  *strrchr(cstr _s, int _c);
-finline char  *strchrnul(cstr _s, int _c);
-finline size_t strcspn(cstr s, cstr reject);
-finline size_t strspn(cstr s, cstr accept);
-finline char  *strpbrk(cstr _s, cstr accept);
-finline char  *strstr(cstr _s, cstr _t);
-finline char  *strtok(char *_rest _s, cstr _rest delim);
-finline char  *strtok_r(char *_rest _s, cstr _rest delim, char **_rest save_ptr);
-finline char  *strcasestr(cstr _s, cstr _t);
-finline size_t strlen(cstr _s);
-finline size_t strnlen(cstr _s, size_t _l);
-dlimport char *strerror(int e);
-dlimport char *strerror_r(int e, char *buf, size_t n);
-dlimport cstr  strerrordesc_np(int __err);
-dlimport cstr  strerrorname_np(int __err);
-finline char  *strsep(char **_rest _sp, cstr _rest delim);
-dlimport char *strsignal(int __sig);
-finline cstr   sigabbrev_np(int __sig);
-finline cstr   sigdescr_np(int __sig);
-finline char  *stpcpy(char *_rest _d, cstr _rest _s);
-finline char  *stpncpy(char *_rest _d, cstr _rest _s, size_t _n);
-finline int    strverscmp(cstr __s1, cstr __s2);
-finline char  *strfry(char *__string);
-finline char  *basename(cstr __filename);
-
+IAPI char *strcpy(char *_rest d, cstr _rest s) __THROW __nnull(1, 2);
+IAPI char *strncpy(char *_rest d, cstr _rest s, size_t n) __THROW __nnull(1, 2);
+IAPI char *strcat(char *_rest _d, cstr _rest _s) __THROW __nnull(1, 2);
+IAPI char *strncat(char *_rest _d, cstr _rest _s, size_t _n) __THROW __nnull(1, 2);
+IAPI int   strcmp(cstr _s1, cstr _s2) __THROW;
+IAPI int   tolower(int c) __THROW;
+IAPI int   toupper(int c) __THROW;
+IAPI int   strncmp(cstr _s1, cstr _s2, size_t n) __THROW;
+IAPI char *strdup(cstr s) __THROW;
+IAPI char *strndup(cstr s, size_t n) __THROW;
+#ifdef __cplusplus
+extern "C++" {
+IAPI cstr  strchr(cstr _s, int _c) __THROW;
+IAPI char *strchr(char *_s, int _c) __THROW;
+IAPI cstr  strrchr(cstr _s, int _c) __THROW;
+IAPI char *strrchr(char *_s, int _c) __THROW;
+IAPI cstr  strchrnul(cstr _s, int _c) __THROW;
+IAPI char *strchrnul(char *_s, int _c) __THROW;
+IAPI cstr  strpbrk(cstr _s, cstr accept) __THROW;
+IAPI char *strpbrk(char *_s, cstr accept) __THROW;
+IAPI cstr  strstr(cstr _s, cstr _t) __THROW;
+IAPI char *strstr(char *_s, cstr _t) __THROW;
+IAPI cstr  strcasestr(cstr _s, cstr _t) __THROW;
+IAPI char *strcasestr(char *_s, cstr _t) __THROW;
+IAPI cstr  basename(cstr __filename) __THROW;
+IAPI char *basename(char *__filename) __THROW;
+}
 #else
-
-#  include <string.h>
-
+IAPI char *strchr(cstr _s, int _c) __THROW;
+IAPI char *strrchr(cstr _s, int _c) __THROW;
+IAPI char *strchrnul(cstr _s, int _c) __THROW;
+IAPI char *strpbrk(cstr _s, cstr accept) __THROW;
+IAPI char *strstr(cstr _s, cstr _t) __THROW;
+IAPI char *strcasestr(cstr _s, cstr _t) __THROW;
+IAPI char *basename(cstr __filename) __THROW;
 #endif
+IAPI size_t strcspn(cstr s, cstr reject) __THROW;
+IAPI size_t strspn(cstr s, cstr accept) __THROW;
+IAPI char  *strtok(char *_rest _s, cstr _rest delim) __THROW;
+IAPI char  *strtok_r(char *_rest _s, cstr _rest delim, char **_rest save_ptr) __THROW;
+IAPI size_t strlen(cstr _s) __THROW;
+IAPI size_t strnlen(cstr _s, size_t _l) __THROW;
+OAPI char  *strerror(int e) __THROW;
+OAPI cstr   strerrordesc_np(int __err) __THROW;
+OAPI cstr   strerrorname_np(int __err) __THROW;
+IAPI char  *strsep(char **_rest _sp, cstr _rest delim) __THROW;
+OAPI char  *strsignal(int __sig) __THROW;
+IAPI cstr   sigabbrev_np(int __sig) __THROW;
+IAPI cstr   sigdescr_np(int __sig) __THROW;
+IAPI char  *stpcpy(char *_rest _d, cstr _rest _s) __THROW;
+IAPI char  *stpncpy(char *_rest _d, cstr _rest _s, size_t _n) __THROW;
+IAPI int    strverscmp(cstr __s1, cstr __s2) __THROW;
+IAPI char  *strfry(char *__string) __THROW;
+
+#if defined __USE_XOPEN2K && !defined __USE_GNU
+OAPI int strerror_r(int e, char *buf, size_t n) __THROW; // POSIX 版本
+#else
+OAPI char *strerror_r(int e, char *buf, size_t n) __THROW; // GNU 版本
+#endif
+
+#undef IAPI
+#undef OAPI
+#undef SAPI
 
 #define streq(s1, s2)                                                                              \
   ({                                                                                               \
@@ -88,7 +118,7 @@ typedef struct _xstr {
 
 #if NO_STD
 
-finline char *strcpy(char *_rest d, cstr _rest s) {
+finline char *strcpy(char *_rest d, cstr _rest s) noexcept {
 #  if __has(strcpy)
   return __builtin_strcpy(d, s);
 #  else
@@ -98,7 +128,7 @@ finline char *strcpy(char *_rest d, cstr _rest s) {
 #  endif
 }
 
-finline char *strncpy(char *_rest d, cstr _rest s, size_t n) {
+finline char *strncpy(char *_rest d, cstr _rest s, size_t n) noexcept {
 #  if __has(strncpy)
   return __builtin_strncpy(d, s, n);
 #  else
@@ -109,7 +139,7 @@ finline char *strncpy(char *_rest d, cstr _rest s, size_t n) {
 #  endif
 }
 
-finline char *strcat(char *_rest _d, cstr _rest _s) {
+finline char *strcat(char *_rest _d, cstr _rest _s) noexcept {
 #  if __has(strcat)
   return __builtin_strcat(_d, _s);
 #  else
@@ -119,12 +149,12 @@ finline char *strcat(char *_rest _d, cstr _rest _s) {
 #  endif
 }
 
-finline char *strncat(char *_rest _d, cstr _rest _s, size_t _n) {
+finline char *strncat(char *_rest _d, cstr _rest _s, size_t _n) noexcept {
   // 未完成
   return null;
 }
 
-finline int strcmp(cstr _s1, cstr _s2) {
+finline int strcmp(cstr _s1, cstr _s2) noexcept {
 #  if __has(strcmp)
   return __builtin_strcmp(_s1, _s2);
 #  else
@@ -145,16 +175,16 @@ finline int strcmp(cstr _s1, cstr _s2) {
 #  endif
 }
 
-finline int tolower(int c) {
+finline int tolower(int c) noexcept {
   return ('A' <= c && c <= 'Z') ? c - 'A' + 'a' : c;
 }
 
-finline int toupper(int c) {
+finline int toupper(int c) noexcept {
   return ('a' <= c && c <= 'a') ? c - 'a' + 'A' : c;
 }
 
 // case-insensitive
-finline int strcmp_ci(cstr _s1, cstr _s2) {
+finline int strcmp_ci(cstr _s1, cstr _s2) noexcept {
   const byte *s1 = (const byte *)_s1;
   const byte *s2 = (const byte *)_s2;
   int         c1, c2;
@@ -167,7 +197,7 @@ finline int strcmp_ci(cstr _s1, cstr _s2) {
 }
 
 // case-insensitive
-finline int strncmp_ci(cstr _s1, cstr _s2, size_t n) {
+finline int strncmp_ci(cstr _s1, cstr _s2, size_t n) noexcept {
   const byte *s1 = (const byte *)_s1;
   const byte *e1 = (const byte *)_s1 + n;
   const byte *s2 = (const byte *)_s2;
@@ -181,7 +211,7 @@ finline int strncmp_ci(cstr _s1, cstr _s2, size_t n) {
   return c1 - c2;
 }
 
-finline int strncmp(cstr _s1, cstr _s2, size_t n) {
+finline int strncmp(cstr _s1, cstr _s2, size_t n) noexcept {
 #  if __has(strncmp)
   return __builtin_strncmp(_s1, _s2, n);
 #  else
@@ -199,41 +229,232 @@ finline int strncmp(cstr _s1, cstr _s2, size_t n) {
 #  endif
 }
 
-finline char *strchr(cstr _s, int _c) {
-#  if __has(strchr)
+#  ifdef __cplusplus // 参考 C 的实现，复制粘贴而已，C++标准非得要重载
+extern "C++" {
+finline cstr strchr(cstr _s, int _c) noexcept {
+#    if __has(strchr)
   return __builtin_strchr(_s, _c);
-#  else
+#    else
   for (; *_s != '\0'; _s++) {
     if (*_s == _c) return (char *)_s;
   }
   return null;
-#  endif
+#    endif
+}
+finline char *strchr(char *_s, int _c) noexcept {
+#    if __has(strchr)
+  return __builtin_strchr(_s, _c);
+#    else
+  for (; *_s != '\0'; _s++) {
+    if (*_s == _c) return (char *)_s;
+  }
+  return null;
+#    endif
 }
 
-finline char *strrchr(cstr _s, int _c) {
-#  if __has(strrchr)
+finline cstr strrchr(cstr _s, int _c) noexcept {
+#    if __has(strrchr)
   return __builtin_strrchr(_s, _c);
-#  else
+#    else
   cstr finded = null;
   for (; *_s != '\0'; _s++) {
     if (*_s == _c) finded = _s;
   }
   return (char *)finded;
-#  endif
+#    endif
 }
 
-finline char *strchrnul(cstr _s, int _c) {
-#  if __has(strchrnul)
+finline char *strrchr(char *_s, int _c) noexcept {
+#    if __has(strrchr)
+  return __builtin_strrchr(_s, _c);
+#    else
+  cstr finded = null;
+  for (; *_s != '\0'; _s++) {
+    if (*_s == _c) finded = _s;
+  }
+  return (char *)finded;
+#    endif
+}
+
+finline cstr strchrnul(cstr _s, int _c) noexcept {
+#    if __has(strchrnul)
   return __builtin_strchrnul(_s, _c);
-#  else
+#    else
   for (; *_s != '\0'; _s++) {
     if (*_s == _c) return (char *)_s;
   }
   return (char *)_s;
-#  endif
+#    endif
 }
 
-finline size_t strcspn(cstr s, cstr reject) {
+finline char *strchrnul(char *_s, int _c) noexcept {
+#    if __has(strchrnul)
+  return __builtin_strchrnul(_s, _c);
+#    else
+  for (; *_s != '\0'; _s++) {
+    if (*_s == _c) return (char *)_s;
+  }
+  return (char *)_s;
+#    endif
+}
+
+finline cstr strpbrk(cstr _s, cstr accept) noexcept {
+#    if __has(strpbrk)
+  return __builtin_strpbrk(_s, accept);
+#    else
+  for (; *_s != '\0'; _s++) {
+    if (strchr(accept, *_s) != null) return (char *)_s;
+  }
+  return null;
+#    endif
+}
+finline char *strpbrk(char *_s, cstr accept) noexcept {
+#    if __has(strpbrk)
+  return __builtin_strpbrk(_s, accept);
+#    else
+  for (; *_s != '\0'; _s++) {
+    if (strchr(accept, *_s) != null) return (char *)_s;
+  }
+  return null;
+#    endif
+}
+
+finline cstr strstr(cstr _s, cstr _t) noexcept {
+#    if __has(strstr)
+  return __builtin_strstr(_s, _t);
+#    else
+  size_t _sn = strlen(_s), _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s, t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#    endif
+}
+finline char *strstr(char *_s, cstr _t) noexcept {
+#    if __has(strstr)
+  return __builtin_strstr(_s, _t);
+#    else
+  size_t _sn = strlen(_s), _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s, t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#    endif
+}
+
+finline cstr strcasestr(cstr _s, cstr _t) noexcept {
+#    if __has(strcasestr)
+  return __builtin_strcasestr(_s, _t);
+#    else
+  size_t _sn = strlen(_s), _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s, t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#    endif
+}
+finline char *strcasestr(char *_s, cstr _t) noexcept {
+#    if __has(strcasestr)
+  return __builtin_strcasestr(_s, _t);
+#    else
+  size_t _sn = strlen(_s), _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s, t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#    endif
+}
+}
+#  else
+finline char *strchr(cstr _s, int _c) noexcept {
+#    if __has(strchr)
+  return __builtin_strchr(_s, _c);
+#    else
+  for (; *_s != '\0'; _s++) {
+    if (*_s == _c) return (char *)_s;
+  }
+  return null;
+#    endif
+}
+
+finline char *strrchr(cstr _s, int _c) noexcept {
+#    if __has(strrchr)
+  return __builtin_strrchr(_s, _c);
+#    else
+  cstr finded = null;
+  for (; *_s != '\0'; _s++) {
+    if (*_s == _c) finded = _s;
+  }
+  return (char *)finded;
+#    endif
+}
+
+finline char *strchrnul(cstr _s, int _c) noexcept {
+#    if __has(strchrnul)
+  return __builtin_strchrnul(_s, _c);
+#    else
+  for (; *_s != '\0'; _s++) {
+    if (*_s == _c) return (char *)_s;
+  }
+  return (char *)_s;
+#    endif
+}
+
+finline char *strpbrk(cstr _s, cstr accept) noexcept {
+#    if __has(strpbrk)
+  return __builtin_strpbrk(_s, accept);
+#    else
+  for (; *_s != '\0'; _s++) {
+    if (strchr(accept, *_s) != null) return (char *)_s;
+  }
+  return null;
+#    endif
+}
+
+finline char *strstr(cstr _s, cstr _t) noexcept {
+#    if __has(strstr)
+  return __builtin_strstr(_s, _t);
+#    else
+  size_t _sn = strlen(_s), _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s, t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#    endif
+}
+
+finline char *strcasestr(cstr _s, cstr _t) noexcept {
+#    if __has(strcasestr)
+  return __builtin_strcasestr(_s, _t);
+#    else
+  size_t _sn = strlen(_s), _tn = strlen(_t);
+  if (_tn == 0) return (char *)_s;
+  if (_sn < _tn) return null;
+  cstr s = _s, t = _t;
+  for (size_t i = 0; i <= _sn - _tn; i++) {
+    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
+  }
+  return null;
+#    endif
+}
+#  endif
+
+finline size_t strcspn(cstr s, cstr reject) noexcept {
 #  if __has(strcspn)
   return __builtin_strcspn(s, reject);
 #  else
@@ -243,7 +464,7 @@ finline size_t strcspn(cstr s, cstr reject) {
 #  endif
 }
 
-finline size_t strspn(cstr s, cstr accept) {
+finline size_t strspn(cstr s, cstr accept) noexcept {
 #  if __has(strspn)
   return __builtin_strspn(s, accept);
 #  else
@@ -253,33 +474,7 @@ finline size_t strspn(cstr s, cstr accept) {
 #  endif
 }
 
-finline char *strpbrk(cstr _s, cstr accept) {
-#  if __has(strpbrk)
-  return __builtin_strpbrk(_s, accept);
-#  else
-  for (; *_s != '\0'; _s++) {
-    if (strchr(accept, *_s) != null) return (char *)_s;
-  }
-  return null;
-#  endif
-}
-
-finline char *strstr(cstr _s, cstr _t) {
-#  if __has(strstr)
-  return __builtin_strstr(_s, _t);
-#  else
-  size_t _sn = strlen(_s), _tn = strlen(_t);
-  if (_tn == 0) return (char *)_s;
-  if (_sn < _tn) return null;
-  cstr s = _s, t = _t;
-  for (size_t i = 0; i <= _sn - _tn; i++) {
-    if (strncmp(s + i, t, _tn) == 0) return (char *)(s + i);
-  }
-  return null;
-#  endif
-}
-
-finline char *strtok(char *_rest _s, cstr _rest delim) {
+finline char *strtok(char *_rest _s, cstr _rest delim) noexcept {
 #  if __has(strtok)
   return __builtin_strtok(_s, delim);
 #  else
@@ -288,7 +483,7 @@ finline char *strtok(char *_rest _s, cstr _rest delim) {
 #  endif
 }
 
-finline char *strtok_r(char *_rest _s, cstr _rest delim, char **_rest save_ptr) {
+finline char *strtok_r(char *_rest _s, cstr _rest delim, char **_rest save_ptr) noexcept {
 #  if __has(strtok_r)
   return __builtin_strtok_r(_s, delim, save_ptr);
 #  else
@@ -308,22 +503,7 @@ finline char *strtok_r(char *_rest _s, cstr _rest delim, char **_rest save_ptr) 
 #  endif
 }
 
-finline char *strcasestr(cstr _s, cstr _t) {
-#  if __has(strcasestr)
-  return __builtin_strcasestr(_s, _t);
-#  else
-  size_t _sn = strlen(_s), _tn = strlen(_t);
-  if (_tn == 0) return (char *)_s;
-  if (_sn < _tn) return null;
-  cstr s = _s, t = _t;
-  for (size_t i = 0; i <= _sn - _tn; i++) {
-    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
-  }
-  return null;
-#  endif
-}
-
-finline size_t strlen(cstr _s) {
+finline size_t strlen(cstr _s) noexcept {
 #  if __has(strlen)
   return __builtin_strlen(_s);
 #  else
@@ -334,7 +514,7 @@ finline size_t strlen(cstr _s) {
 #  endif
 }
 
-finline size_t strnlen(cstr _s, size_t _l) {
+finline size_t strnlen(cstr _s, size_t _l) noexcept {
 #  if __has(strnlen)
   return __builtin_strnlen(_s, _l);
 #  else
@@ -346,15 +526,15 @@ finline size_t strnlen(cstr _s, size_t _l) {
 #  endif
 }
 
-char *strerror(int e);
+// char *strerror(int e);
 
-char *strerror_r(int e, char *buf, size_t n);
+// int strerror_r(int e, char *buf, size_t n);
 
-extern cstr strerrordesc_np(int __err);
+// extern cstr strerrordesc_np(int __err);
 
-extern cstr strerrorname_np(int __err);
+// extern cstr strerrorname_np(int __err);
 
-finline char *strsep(char **_rest _sp, cstr _rest delim) {
+finline char *strsep(char **_rest _sp, cstr _rest delim) noexcept {
 #  if __has(strsep)
   return __builtin_strsep(_sp, delim);
 #  else
@@ -371,13 +551,13 @@ finline char *strsep(char **_rest _sp, cstr _rest delim) {
 #  endif
 }
 
-extern char *strsignal(int __sig);
+// extern char *strsignal(int __sig);
 
-extern cstr sigabbrev_np(int __sig);
+// extern cstr sigabbrev_np(int __sig);
 
-extern cstr sigdescr_np(int __sig);
+// extern cstr sigdescr_np(int __sig);
 
-finline char *stpcpy(char *_rest d, cstr _rest s) {
+finline char *stpcpy(char *_rest d, cstr _rest s) noexcept {
 #  if __has(stpcpy)
   return __builtin_stpcpy(d, s);
 #  else
@@ -387,7 +567,7 @@ finline char *stpcpy(char *_rest d, cstr _rest s) {
 #  endif
 }
 
-finline char *stpncpy(char *_rest d, cstr _rest s, size_t n) {
+finline char *stpncpy(char *_rest d, cstr _rest s, size_t n) noexcept {
 #  if __has(stpncpy)
   return __builtin_stpncpy(d, s, n);
 #  else
@@ -398,11 +578,11 @@ finline char *stpncpy(char *_rest d, cstr _rest s, size_t n) {
 #  endif
 }
 
-extern int strverscmp(cstr __s1, cstr __s2);
+// extern int strverscmp(cstr __s1, cstr __s2);
 
-extern char *strfry(char *__string);
+// extern char *strfry(char *__string);
 
-extern char *basename(cstr __filename);
+// extern char *basename(cstr __filename);
 
 finline int isspace(int c) {
   return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';

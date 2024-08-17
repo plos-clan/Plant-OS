@@ -8,7 +8,7 @@ extern byte *IVT;
 
 void asm16_int(u8 intnum, regs16 *regs) {
   asm_set_cr3(PDE_ADDRESS);
-  memcpy(null, IVT, 0x1000);
+  memcpy(null, IVT, 0x1000); // 这是正确的，忽略这个 warning
   int32(intnum, regs);
   asm_set_cr3(current_task()->pde);
   init_pic();

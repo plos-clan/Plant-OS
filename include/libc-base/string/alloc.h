@@ -7,7 +7,7 @@
 
 #if NO_STD
 
-finline char *strdup(cstr s) {
+finline char *strdup(cstr s) noexcept {
   size_t len = strlen(s);
   auto   ptr = (char *)malloc(len + 1);
   if (ptr == null) return null;
@@ -15,7 +15,7 @@ finline char *strdup(cstr s) {
   return ptr;
 }
 
-finline char *strndup(cstr s, size_t n) {
+finline char *strndup(cstr s, size_t n) noexcept {
   size_t len = strlen(s);
   if (n > len) n = len;
   auto ptr = (char *)malloc(n + 1);
@@ -24,10 +24,6 @@ finline char *strndup(cstr s, size_t n) {
   ptr[n] = '\0';
   return ptr;
 }
-
-#else
-
-#  include <string.h>
 
 #endif
 

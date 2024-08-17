@@ -1,22 +1,18 @@
 #pragma once
 #include <define.h>
 
-#if NO_STD
-#  define INFINITY (__builtin_inff())
-#  define NAN      (__builtin_nanf(""))
-#else
-#  ifdef __cplusplus
-#    include <cmath>
-#  else
-#    include <math.h>
-#  endif
-#endif
-#define INF (__builtin_inff())
+#define INFINITY (__builtin_inff())
+#define NAN      (__builtin_nanf(""))
+#define INF      (__builtin_inff())
 
 #if NO_STD
 finline double isfinite(double v) {
   return __builtin_isfinite(v);
 }
+#else
+#  ifndef isfinite
+dlimport double isfinite(double v);
+#  endif
 #endif
 
 #if NO_STD

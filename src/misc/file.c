@@ -4,11 +4,12 @@
 
 #else
 #  include <fcntl.h>
+#  include <stdio.h>
 #  include <sys/mman.h>
 #  include <sys/stat.h>
 #  include <unistd.h>
 
-dlexort void *read_from_file(const char *filename, size_t *size) {
+dlexport void *read_from_file(const char *filename, size_t *size) {
   if (filename == NULL) return NULL;
 
   int fd = open(filename, O_RDONLY);
@@ -36,7 +37,7 @@ dlexort void *read_from_file(const char *filename, size_t *size) {
   return data;
 }
 
-dlexort int write_to_file(const char *filename, const void *data, size_t size) {
+dlexport int write_to_file(const char *filename, const void *data, size_t size) {
   if (filename == NULL || data == NULL) return -1;
 
   int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -53,7 +54,7 @@ dlexort int write_to_file(const char *filename, const void *data, size_t size) {
   return 0;
 }
 
-dlexort void *map_file(const char *filename, size_t *size, int flags) {
+dlexport void *map_file(const char *filename, size_t *size, int flags) {
   if (filename == NULL) return NULL;
 
   int prot;
@@ -81,7 +82,7 @@ dlexort void *map_file(const char *filename, size_t *size, int flags) {
   return mapped_data;
 }
 
-dlexort void unmap_file(void *ptr, size_t size) {
+dlexport void unmap_file(void *ptr, size_t size) {
   munmap(ptr, size + 1);
 }
 #endif

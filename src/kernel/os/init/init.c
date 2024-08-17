@@ -8,9 +8,8 @@ size_t           memsize;
 byte            *IVT;
 
 void abort() {
-  while (true) {
-    asm_cli;
-    asm_hlt;
+  infinite_loop {
+    asm_cli, asm_hlt;
   }
 }
 
@@ -83,7 +82,7 @@ void sysinit() {
   memsize = memtest(0x00400000, 0xbfffffff);
   init_page();
   IVT = page_malloc(0x10000);
-  memcpy(IVT, null, 0x10000);
+  memcpy(IVT, null, 0x10000); // 这是正确的，忽略这个 warning
   // init_gdtidt();
   init_pic();
 
@@ -102,8 +101,6 @@ void sysinit() {
   sb16_init();
   vdisk_init();
   vfs_init();
-  // init_vfs();
-  // register_fat();
 
   if (memsize < 256 * 1024 * 1024) {
     fatal("You should have at least 256MB memory in your pc to start Plant-OS.");

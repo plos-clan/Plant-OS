@@ -4,31 +4,44 @@
 // 声明
 
 #if NO_STD
-
-finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n);
-finline void *memmove(void *_d, const void *_s, size_t _n);
-finline void *memset(void *_s, int _c, size_t _n);
-finline int   memcmp(const void *_s1, const void *_s2, size_t _n);
-finline void *memchr(const void *_s, int _c, size_t _n);
-finline void *memccpy(void *_rest _d, const void *_rest _s, int _c, size_t _n);
-finline void *rawmemchr(const void *_s, int _c);
-finline void *memrchr(const void *_s, int _c, size_t _n);
-finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn);
-finline void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n);
-finline void  bzero(void *_s, size_t _n);
-static void   explicit_bzero(void *_s, size_t _n);
-finline void *memfrob(void *_s, size_t _n) __attr_deprecated;
-
-finline int bcmp(const void *s1, const void *s2, size_t n) __attr_deprecated;
-finline int bcmp(const void *s1, const void *s2, size_t n) {
-  return memcmp(s1, s2, n);
-}
-
+#  define IAPI finline
+#  define OAPI dlimport
+#  define SAPI static
 #else
-
-#  include <string.h>
-
+#  define IAPI dlimport
+#  define OAPI dlimport
+#  define SAPI dlimport
 #endif
+
+IAPI void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) __THROW __nnull(1, 2);
+IAPI void *memmove(void *_d, const void *_s, size_t _n) __THROW __nnull(1, 2);
+IAPI void *memset(void *_s, int _c, size_t _n) __THROW __nnull(1);
+IAPI int   memcmp(const void *_s1, const void *_s2, size_t _n) __THROW __attr_pure __nnull(1, 2);
+#ifdef __cplusplus
+extern "C++" {
+IAPI const void *memchr(const void *_s, int _c, size_t _n) __THROW __attr_pure __nnull(1);
+IAPI void       *memchr(void *_s, int _c, size_t _n) __THROW __attr_pure __nnull(1);
+IAPI const void *memrchr(const void *_s, int _c, size_t _n) __THROW __attr_pure __nnull(1);
+IAPI void       *memrchr(void *_s, int _c, size_t _n) __THROW __attr_pure __nnull(1);
+IAPI const void *rawmemchr(const void *_s, int _c) __THROW;
+IAPI void       *rawmemchr(void *_s, int _c) __THROW;
+}
+#else
+IAPI void *memchr(const void *_s, int _c, size_t _n) __THROW __attr_pure __nnull(1);
+IAPI void *memrchr(const void *_s, int _c, size_t _n) __THROW __attr_pure __nnull(1);
+IAPI void *rawmemchr(const void *_s, int _c) __THROW;
+#endif
+IAPI void *memccpy(void *_rest _d, const void *_rest _s, int _c, size_t _n) __THROW __nnull(1, 2);
+IAPI void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn) __THROW;
+IAPI void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n) __THROW;
+IAPI void  bzero(void *_s, size_t _n) __THROW;
+SAPI void  explicit_bzero(void *_s, size_t _n) __THROW;
+IAPI void *memfrob(void *_s, size_t _n) __THROW __deprecated;
+IAPI int   bcmp(const void *s1, const void *s2, size_t n) __THROW __deprecated;
+
+#undef IAPI
+#undef OAPI
+#undef SAPI
 
 // 非标准库函数
 finline void *memdup(const void *s, size_t n);
@@ -37,7 +50,7 @@ finline void *memdup(const void *s, size_t n);
 
 #if NO_STD
 
-finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) {
+finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) noexcept {
 #  if __has(memcpy)
   return __builtin_memcpy(_d, _s, _n);
 #  else
@@ -55,7 +68,7 @@ finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) {
 #  endif
 }
 
-finline void *memmove(void *_d, const void *_s, size_t _n) {
+finline void *memmove(void *_d, const void *_s, size_t _n) noexcept {
 #  if __has(memmove)
   return __builtin_memmove(_d, _s, _n);
 #  else
@@ -79,7 +92,7 @@ finline void *memmove(void *_d, const void *_s, size_t _n) {
 #  endif
 }
 
-finline void *memset(void *_s, int _c, size_t _n) {
+finline void *memset(void *_s, int _c, size_t _n) noexcept {
 #  if __has(memset)
   return __builtin_memset(_s, _c, _n);
 #  else
@@ -96,7 +109,7 @@ finline void *memset(void *_s, int _c, size_t _n) {
 #  endif
 }
 
-finline int memcmp(const void *_s1, const void *_s2, size_t _n) {
+finline int memcmp(const void *_s1, const void *_s2, size_t _n) noexcept {
 #  if __has(memcmp)
   return __builtin_memcmp(_s1, _s2, _n);
 #  else
@@ -111,55 +124,37 @@ finline int memcmp(const void *_s1, const void *_s2, size_t _n) {
 #  endif
 }
 
-finline void *memchr(const void *_s, int _c, size_t _n) {
-#  if __has(memchr)
+#  ifdef __cplusplus // 参考 C 的实现，复制粘贴而已，C++标准非得要重载
+extern "C++" {
+finline const void *memchr(const void *_s, int _c, size_t _n) noexcept {
+#    if __has(memchr)
   return __builtin_memchr(_s, _c, _n);
-#  else
+#    else
   auto       s = (const byte *)_s;
   auto       e = (const byte *)((byte *)_s + _n);
   const byte c = _c;
   for (; s < e; s++)
     if (*s == c) return (void *)s;
   return null;
-#  endif
+#    endif
 }
-
-finline void *memccpy(void *_rest _d, const void *_rest _s, int _c, size_t _n) {
-#  if __has(memccpy)
-  return __builtin_memccpy(_d, _s, _c, _n);
-#  else
-  auto d = (byte *)_d;
-  auto s = (const byte *)_s;
-  auto e = (const byte *)((byte *)_s + _n);
-  __std_safe__({
-    if (!d || !s) return null;
-    if (d + _n < d || e < s) return null;
-  });
-  if (d == s) return memchr(_s, _c, _n);
-  while (s != e) {
-    int c = *d++ = *s++;
-    if (c == _c) return d;
-  }
-  return null;
-#  endif
-}
-
-finline void *rawmemchr(const void *_s, int _c) {
+finline void *memchr(void *_s, int _c, size_t _n) noexcept {
+#    if __has(memchr)
+  return __builtin_memchr(_s, _c, _n);
+#    else
   auto       s = (const byte *)_s;
+  auto       e = (const byte *)((byte *)_s + _n);
   const byte c = _c;
-  __std_safe__({
-    if (!s) return null;
-  });
-  for (; *s != '\0'; s++) {
+  for (; s < e; s++)
     if (*s == c) return (void *)s;
-  }
   return null;
+#    endif
 }
 
-finline void *memrchr(const void *_s, int _c, size_t _n) {
-#  if __has(memrchr)
+finline const void *memrchr(const void *_s, int _c, size_t _n) noexcept {
+#    if __has(memrchr)
   return __builtin_memrchr(_s, _c, _n);
-#  else
+#    else
   auto       s = (const byte *)_s;
   auto       e = (const byte *)((byte *)_s + _n - 1);
   const byte c = _c;
@@ -170,10 +165,113 @@ finline void *memrchr(const void *_s, int _c, size_t _n) {
     if (*e == c) return (void *)e;
   }
   return null;
+#    endif
+}
+finline void *memrchr(void *_s, int _c, size_t _n) noexcept {
+#    if __has(memrchr)
+  return __builtin_memrchr(_s, _c, _n);
+#    else
+  auto       s = (const byte *)_s;
+  auto       e = (const byte *)((byte *)_s + _n - 1);
+  const byte c = _c;
+  __std_safe__({
+    if (!s) return null;
+  });
+  for (; s <= e; e--) {
+    if (*e == c) return (void *)e;
+  }
+  return null;
+#    endif
+}
+
+finline const void *rawmemchr(const void *_s, int _c) noexcept {
+  auto       s = (const byte *)_s;
+  const byte c = _c;
+  __std_safe__({
+    if (!s) return null;
+  });
+  for (; *s != '\0'; s++) {
+    if (*s == c) return (void *)s;
+  }
+  return null;
+}
+finline void *rawmemchr(void *_s, int _c) noexcept {
+  auto       s = (const byte *)_s;
+  const byte c = _c;
+  __std_safe__({
+    if (!s) return null;
+  });
+  for (; *s != '\0'; s++) {
+    if (*s == c) return (void *)s;
+  }
+  return null;
+}
+}
+#  else
+finline void *memchr(const void *_s, int _c, size_t _n) noexcept {
+#    if __has(memchr)
+  return __builtin_memchr(_s, _c, _n);
+#    else
+  auto       s = (const byte *)_s;
+  auto       e = (const byte *)((byte *)_s + _n);
+  const byte c = _c;
+  for (; s < e; s++)
+    if (*s == c) return (void *)s;
+  return null;
+#    endif
+}
+
+finline void *memrchr(const void *_s, int _c, size_t _n) noexcept {
+#    if __has(memrchr)
+  return __builtin_memrchr(_s, _c, _n);
+#    else
+  auto       s = (const byte *)_s;
+  auto       e = (const byte *)((byte *)_s + _n - 1);
+  const byte c = _c;
+  __std_safe__({
+    if (!s) return null;
+  });
+  for (; s <= e; e--) {
+    if (*e == c) return (void *)e;
+  }
+  return null;
+#    endif
+}
+
+finline void *rawmemchr(const void *_s, int _c) noexcept {
+  auto       s = (const byte *)_s;
+  const byte c = _c;
+  __std_safe__({
+    if (!s) return null;
+  });
+  for (; *s != '\0'; s++) {
+    if (*s == c) return (void *)s;
+  }
+  return null;
+}
+#  endif
+
+finline void *memccpy(void *_rest _d, const void *_rest _s, int _c, size_t _n) noexcept {
+#  if __has(memccpy)
+  return __builtin_memccpy(_d, _s, _c, _n);
+#  else
+  auto d = (byte *)_d;
+  auto s = (const byte *)_s;
+  auto e = (const byte *)((byte *)_s + _n);
+  __std_safe__({
+    if (!d || !s) return null;
+    if (d + _n < d || e < s) return null;
+  });
+  if (d == s) return (void *)memchr(_s, _c, _n);
+  while (s != e) {
+    int c = *d++ = *s++;
+    if (c == _c) return d;
+  }
+  return null;
 #  endif
 }
 
-finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn) {
+finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn) noexcept {
 #  if __has(memmem)
   return __builtin_memmem(_s, _sn, _d, _dn);
 #  else
@@ -188,7 +286,7 @@ finline void *memmem(const void *_s, size_t _sn, const void *_t, size_t _tn) {
 #  endif
 }
 
-finline void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n) {
+finline void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n) noexcept {
 #  if __has(mempcpy)
   return __builtin_mempcpy(_d, _s, _n);
 #  else
@@ -197,7 +295,7 @@ finline void *mempcpy(void *_rest _d, const void *_rest _s, size_t _n) {
 #  endif
 }
 
-finline void bzero(void *_s, size_t _n) {
+finline void bzero(void *_s, size_t _n) noexcept {
 #  if __has(bzero)
   return __builtin_bzero(_s, _n);
 #  elif __has(memset)
@@ -217,7 +315,7 @@ finline void bzero(void *_s, size_t _n) {
 #      pragma GCC optimize("O0")
 #    endif
 #  endif
-static void explicit_bzero(void *_s, size_t _n) {
+static void explicit_bzero(void *_s, size_t _n) noexcept {
 #  if __has(explicit_bzero)
   return __builtin_explicit_bzero(_s, _n);
 #  else
@@ -234,11 +332,15 @@ static void explicit_bzero(void *_s, size_t _n) {
 #    endif
 #  endif
 
-finline void *memfrob(void *_s, size_t _n) {
+finline void *memfrob(void *_s, size_t _n) noexcept {
   for (size_t i = 0; i < _n; i++) {
     ((byte *)_s)[i] ^= 42;
   }
   return _s;
+}
+
+finline int bcmp(const void *s1, const void *s2, size_t n) noexcept {
+  return memcmp(s1, s2, n);
 }
 
 #endif

@@ -28,7 +28,7 @@
 #    define __(TYPE, NAME)                                                                         \
       static int _##NAME(TYPE x) {                                                                 \
         int  count = 0;                                                                            \
-        TYPE mask  = (TYPE)1 << (sizeof(TYPE) - 1);                                                \
+        TYPE mask  = (TYPE)1 << (sizeof(TYPE) * 8 - 1);                                            \
         for (; mask && (x & mask) == 0; count++, mask = mask >> 1) {}                              \
         return count;                                                                              \
       }
