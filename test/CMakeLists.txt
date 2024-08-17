@@ -7,3 +7,6 @@ gtest(pow pow.cpp)
 testexec(gaussian-kernel gaussian-kernel.cpp)
 
 add_subdirectory(plui)
+
+testexec(audio audio.c)
+testlib(audio util-misc asound avcodec avformat avutil)
