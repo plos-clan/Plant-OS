@@ -1,5 +1,8 @@
 #include <kernel.h>
-#define buffer_len 32768
+
+#if 0 // plos 启动音效
+
+#  define buffer_len 32768
 static const char l[] = "  QQffQQLLLfLLDDQQQfff  rrff``UU  QQDDQQLLLfLLDD<<f333  r\x98rf`r`U  "
                         "<<<9<LUUU\x80U\x80UL[[rLLL  rrff`frr  <<<93U999`9U3+--9&&&  rrff``UU";
 
@@ -77,3 +80,45 @@ void sound_test() {
   sb16_close();
   syscall_exit(0);
 }
+
+#else // plac 测试
+
+#  include <plac.h>
+
+void play_audio(f32 *block, size_t len, void *userdata) {
+  byte *data = malloc(len);
+  for (size_t i = 0; i < len; i++) {
+    f32 x = block[i] * 127 + 128;
+    if (x > 255) x = 255;
+    if (x < 0) x = 0;
+    data[i] = x;
+  }
+  sb16_write(data, len);
+  free(data);
+}
+
+void sound_test() {
+  klogd("sound test has been started");
+
+  auto  file = vfs_open("/fatfs1/audio.plac");
+  byte *buf  = malloc(file->size);
+  vfs_read(file, buf, 0, file->size);
+
+  sb16_open();
+  sb16_set_volume(128);
+
+  plac_decompress_t dctx = plac_decompress_alloc(buf, file->size, 1024);
+  dctx->callback         = play_audio;
+  dctx->userdata         = dctx;
+
+  u16 samplerate;
+  u32 nsamples;
+  plac_read_header(dctx, &samplerate, &nsamples);
+
+  while (plac_decompress_block(dctx)) {}
+
+  sb16_close();
+  syscall_exit(0);
+}
+
+#endif

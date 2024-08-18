@@ -58,12 +58,88 @@ finline f64 log2(f64 x) {
   return r;
 }
 
-finline float powf(float a, float b) {
-  return exp2f(b * log2f(a));
+finline float expf(float x) {
+  return exp2f(x * 1.442695040888963f);
 }
 
-finline double pow(double a, double b) {
-  return exp2(b * log2(a));
+finline double exp(double x) {
+  return exp2(x * 1.442695040888963);
+}
+
+finline f32 powfu(f32 a, u32 b) {
+  f32 r = 1;
+  while (b > 0) {
+    if (b & 1) r *= a;
+    a  *= a;
+    b >>= 1;
+  }
+  return r;
+}
+
+finline f32 powfi(f32 a, i32 b) {
+  return b < 0 ? 1 / powfu(a, -b) : powfu(a, b);
+}
+
+finline i32 powi32(i32 a, u32 b) {
+  i32 r = 1;
+  while (b > 0) {
+    if (b & 1) r *= a;
+    a  *= a;
+    b >>= 1;
+  }
+  return r;
+}
+
+finline f64 powu(f64 a, u64 b) {
+  f64 r = 1;
+  while (b > 0) {
+    if (b & 1) r *= a;
+    a  *= a;
+    b >>= 1;
+  }
+  return r;
+}
+
+finline f64 powi(f64 a, i64 b) {
+  return b < 0 ? 1 / powu(a, -b) : powu(a, b);
+}
+
+finline i64 powi64(i64 a, u64 b) {
+  i64 r = 1;
+  while (b > 0) {
+    if (b & 1) r *= a;
+    a  *= a;
+    b >>= 1;
+  }
+  return r;
+}
+
+#  if __has(pow)
+finline f32 powf(f32 a, f32 b) {
+  return __builtin_powf(a, b);
+}
+finline f64 pow(f64 a, f64 b) {
+  return __builtin_pow(a, b);
+}
+#  else
+finline f32 powf(f32 a, f32 b) {
+  i32 c  = b;
+  b     -= c;
+  return exp2(b * log2(a)) * powfi(a, c);
+}
+finline f64 pow(f64 a, f64 b) {
+  i64 c  = b;
+  b     -= c;
+  return exp2(b * log2(a)) * powi(a, c);
+}
+#  endif
+
+finline float logf(float x) {
+  return log2f(x) * 0.693147180559945f;
+}
+
+finline double log(double x) {
+  return log2(x) * 0.693147180559945;
 }
 
 #endif

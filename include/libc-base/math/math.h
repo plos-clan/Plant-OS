@@ -17,12 +17,28 @@
 
 #  endif
 
+finline float fmodf(float x, float y) {
+  return x - (int)(x / y) * y;
+}
+
 finline double fmod(double x, double y) {
   return x - (long)(x / y) * y;
 }
 
-finline float fmodf(float x, float y) {
-  return x - (int)(x / y) * y;
+finline float floorf(float x) {
+  return (float)((int)x);
+}
+
+finline double floor(double x) {
+  return (double)((long)x);
+}
+
+finline float ceilf(float x) {
+  return (float)((int)x + 1);
+}
+
+finline double ceil(double x) {
+  return (double)((long)x + 1);
 }
 
 #endif

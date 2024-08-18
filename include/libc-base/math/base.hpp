@@ -14,3 +14,8 @@ inline constexpr f64 SQRT2 = 1.41421356237309504880168872420969807;
 inline constexpr f64 PHI = 1.61803398874989484820458683436563811772030917980576;
 
 } // namespace cpp
+
+using cpp::E;
+using cpp::F32_EPSILON;
+using cpp::F64_EPSILON;
+using cpp::PI;

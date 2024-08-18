@@ -1,14 +1,4 @@
-#include <misc.h>
-
-typedef struct quantized {
-  i16    max;
-  i16    min;
-  i16    mid;
-  i16    nbit;
-  size_t len;
-  f32   *dataf;
-  i16   *datai;
-} *quantized_t;
+#include <plac.h>
 
 void quantize(quantized_t q) {
   if (q->nbit == 0) goto zero;
