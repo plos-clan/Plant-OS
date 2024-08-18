@@ -8,6 +8,7 @@ extern "C" {
 #include "misc/color.h"
 #include "misc/file.h"
 #include "misc/math/fft.h"
+#include "misc/math/mdct.h"
 #include "misc/stdio/print.h"
 #ifdef __cplusplus
 }

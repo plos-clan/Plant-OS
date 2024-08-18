@@ -7,191 +7,38 @@
 
 snd_pcm_t *pcm_out;
 
-float *mdctf_a(float *s, size_t l, bool r);
-
-typedef struct mdctf {
-  bool   inverse;
-  size_t len;
-  f32   *buf;
-  f32   *block;
-  size_t bufp;
-  f32   *output;
-  void (*callback)(f32 *block, void *userdata);
-  void *userdata;
-} *mdctf_t;
-
-mdctf_t mdctf_alloc(size_t length, bool inverse, void (*callback)(f32 *, void *));
-void    mdctf_free(mdctf_t mdct);
-void    mdctf_put(mdctf_t mdct, f32 *data, size_t length);
-f32    *mdctf_final(mdctf_t mdct);
-
 mdctf_t mdct, imdct;
-
-typedef struct quantized {
-  f32    max;
-  f32    min;
-  size_t nbit;
-  size_t len;
-  f32   *dataf;
-  i32   *datai;
-} *quantized_t;
-
-void quantize(quantized_t q) {
-  if (q->nbit == 0) goto zero;
-  q->max = q->dataf[0];
-  q->min = q->dataf[0];
-  for (size_t i = 1; i < q->len; i++) {
-    if (q->dataf[i] > q->max) q->max = q->dataf[i];
-    if (q->dataf[i] < q->min) q->min = q->dataf[i];
-  }
-  if (q->max == q->min) goto zero;
-  const f32 k = ((1 << q->nbit) - 1) / (q->max - q->min);
-  for (size_t i = 0; i < q->len; i++) {
-    q->datai[i] = (i32)((q->dataf[i] - q->min) * k);
-  }
-  return;
-
-zero:
-  for (size_t i = 0; i < q->len; i++) {
-    q->datai[i] = 0;
-  }
-}
-
-void dequantize(quantized_t q) {
-  if (q->nbit == 0) {
-    for (size_t i = 0; i < q->len; i++) {
-      q->dataf[i] = q->min;
-    }
-    return;
-  }
-  f32 k = (q->max - q->min) / ((1 << q->nbit) - 1);
-  for (size_t i = 0; i < q->len; i++) {
-    q->dataf[i] = q->datai[i] * k + q->min;
-  }
-}
-
-f32 quantize_diff(quantized_t q) {
-  if (q->nbit == 0) {
-    f32 diff = 0;
-    for (size_t i = 0; i < q->len; i++) {
-      diff += (q->dataf[i] - q->min) * (q->dataf[i] - q->min);
-    }
-    return diff / q->len;
-  }
-  f32       diff = 0;
-  const f32 k    = (q->max - q->min) / ((1 << q->nbit) - 1);
-  for (size_t i = 0; i < q->len; i++) {
-    f32 d  = q->datai[i] * k + q->min;
-    diff  += (q->dataf[i] - d) * (q->dataf[i] - d);
-  }
-  return diff / q->len;
-}
-
-void best_quantize(quantized_t q, size_t from, size_t to, f32 target) {
-  for (size_t nbit = from; nbit <= to; nbit++) {
-    q->nbit = nbit;
-    quantize(q);
-    f32 diff = quantize_diff(q);
-    if (diff < target) {
-      printf("nbit: %d, diff: %f\n", nbit, diff);
-      break;
-    }
-  }
-}
-
-f32 diff(f32 *a, f32 *b, size_t len) {
-  f32 d = 0;
-  for (size_t i = 0; i < len; i++) {
-    d += (a[i] - b[i]) * (a[i] - b[i]);
-  }
-  return d / len;
-}
 
 #define N 1024
 
-i32 buf[N];
+i16 buf[N];
+
+#include "../src/plac/quantize.h"
+#include "../src/plac/volume.h"
 
 struct quantized q;
 
-#define MU 1023
+void mulaw_compress(f32 *data, size_t len);
+void mulaw_expand(f32 *data, size_t len);
 
-f32 mulaw_compress(f32 x) {
-  bool sign = x < 0;
-  if (sign) x = -x;
-  x = log(1 + MU * x) / log(1 + MU);
-  return sign ? -x : x;
-}
-
-f32 mulaw_expand(f32 x) {
-  bool sign = x < 0;
-  if (sign) x = -x;
-  x = (pow(1 + MU, x) - 1) / MU;
-  return sign ? -x : x;
-}
-
-cstr url = "audio.mp3";
+cstr url = "机巧少女不会受伤_片尾_旋转吧！雪花.mp3";
 
 f32 vol = 0;
 
 void do_imdct(f32 *block, void *userdata) {
-  f32 max = 0;
-  for (size_t i = 0; i < N; i++) {
-    f32 x = fabsf(block[i]);
-    if (x > max) max = x;
-  }
-  vol = vol * .9 + max * .1;
-  if (fabsf(block[0]) < 0.01 * vol) block[0] = 0;
-  for (size_t i = 1; i < N - 1; i++) {
-    bool s = block[i] < 0;
-    f32  x = fabsf(block[i]);
-    if (x < 0.01 * vol) {
-      block[i] = 0;
-      continue;
-    }
-    f32 p = fabsf(block[i - 1]);
-    f32 n = fabsf(block[i + 1]);
-    if (x > p * 10) {
-      x            += p;
-      block[i - 1]  = 0;
-    }
-    if (x > n * 10) {
-      x            += n;
-      block[i + 1]  = 0;
-    }
-    block[i] = s ? -x : x;
-  }
-  if (fabsf(block[N - 1]) < 0.01 * vol) block[N - 1] = 0;
+  volume_fine_tuning(block, N, &vol);
 
-  for (size_t i = 0; i < N; i++) {
-    block[i] = mulaw_compress(block[i]);
-  }
+  mulaw_compress(block, N);
 
   q.nbit  = 6;
   q.len   = N;
   q.dataf = block;
   q.datai = buf;
-  quantize(&q);
   best_quantize(&q, 0, 16, 0.001);
-
-  // static i32 cnt[256];
-  // for (size_t i = 0; i < 256; i++) {
-  //   cnt[i] = 1;
-  // }
-  // for (size_t i = 0; i < N; i++) {
-  //   cnt[q.datai[i]]++;
-  // }
-  // for (size_t i = 0; i < 256; i++) {
-  //   printf("%c", cnt[i] > 1 ? '*' : ' ');
-  // }
-  // printf("\n");
-
-  // printf("%f\n", quantize_diff(&q));
 
   dequantize(&q);
 
-  for (size_t i = 0; i < N; i++) {
-    block[i] = mulaw_expand(block[i]);
-  }
+  mulaw_expand(block, N);
 
   mdctf_put(imdct, block, N);
 }
