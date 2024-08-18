@@ -2,7 +2,7 @@
 
 #define MU 1023
 
-void mulaw_compress(f32 *data, size_t len) {
+static void mulaw_compress(f32 *data, size_t len) {
   for (size_t i = 0; i < len; i++) {
     f32  x    = data[i];
     bool sign = x < 0;
@@ -12,7 +12,7 @@ void mulaw_compress(f32 *data, size_t len) {
   }
 }
 
-void mulaw_expand(f32 *data, size_t len) {
+static void mulaw_expand(f32 *data, size_t len) {
   for (size_t i = 0; i < len; i++) {
     f32  x    = data[i];
     bool sign = x < 0;
@@ -21,3 +21,5 @@ void mulaw_expand(f32 *data, size_t len) {
     data[i] = sign ? -x : x;
   }
 }
+
+#undef MU

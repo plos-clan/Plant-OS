@@ -3,53 +3,68 @@
 #include <libavformat/avformat.h>
 
 #define NO_STD 0
+#include <data-structure.h>
 #include <misc.h>
 
 snd_pcm_t *pcm_out;
 
-mdctf_t mdct, imdct;
-
 #define N 1024
 
-i16 buf[N];
+typedef struct quantized {
+  i16    max;
+  i16    min;
+  i16    mid;
+  i16    nbit;
+  size_t len;
+  f32   *dataf;
+  i16   *datai;
+} *quantized_t;
 
-#include "../src/plac/quantize.h"
-#include "../src/plac/volume.h"
+typedef void (*cb_plac_compress_t)(const void *data, size_t size, void *userdata);
+typedef void (*cb_plac_decompress_t)(f32 *block, size_t len, void *userdata);
 
-struct quantized q;
+typedef struct plac_compress {
+  size_t           block_len;
+  f32              vol;
+  mdctf_t          mdct;
+  struct quantized q;
+  mostream_t       stream;
+} *plac_compress_t;
 
-void mulaw_compress(f32 *data, size_t len);
-void mulaw_expand(f32 *data, size_t len);
+typedef struct plac_decompress {
+  size_t               block_len;
+  mdctf_t              mdct;
+  struct quantized     q;
+  mistream_t           stream;
+  cb_plac_decompress_t callback;
+  void                *userdata;
+} *plac_decompress_t;
 
-cstr url = "机巧少女不会受伤_片尾_旋转吧！雪花.mp3";
+plac_compress_t plac_compress_alloc(size_t block_len);
+void            plac_compress_free(plac_compress_t plac);
+void            plac_write_header(plac_compress_t plac, u16 samplerate, u32 nsamples);
+void            plac_write_data(plac_compress_t plac, quantized_t q);
+void            _plac_compress_block(f32 *block, void *_plac);
+void            plac_compress_block(plac_compress_t plac, f32 *block, size_t len);
+void            plac_compress_final(plac_compress_t plac);
 
-f32 vol = 0;
+plac_decompress_t plac_decompress_alloc(const void *buffer, size_t size, size_t block_len);
+void              plac_decompress_free(plac_decompress_t plac);
+bool              plac_read_header(plac_decompress_t plac, u16 *samplerate, u32 *nsamples);
+void              plac_read_data(plac_decompress_t plac, quantized_t q);
+void              _plac_decompress_block(f32 *block, void *_plac);
+bool              plac_decompress_block(plac_decompress_t plac);
 
-void do_imdct(f32 *block, void *userdata) {
-  volume_fine_tuning(block, N, &vol);
-
-  mulaw_compress(block, N);
-
-  q.nbit  = 6;
-  q.len   = N;
-  q.dataf = block;
-  q.datai = buf;
-  best_quantize(&q, 0, 16, 0.001);
-
-  dequantize(&q);
-
-  mulaw_expand(block, N);
-
-  mdctf_put(imdct, block, N);
-}
-
-void play_audio(f32 *block, void *userdata) {
+void play_audio(f32 *block, size_t len, void *userdata) {
+  for (size_t i = 0; i < len; i++)
+    block[i] *= 0.4;
   snd_pcm_writei(pcm_out, block, N);
 }
 
 int main() {
-  mdct  = mdctf_alloc(2 * N, false, do_imdct);
-  imdct = mdctf_alloc(2 * N, true, play_audio);
+  cstr url = "audio.mp3";
+
+  plac_compress_t cctx = plac_compress_alloc(N);
 
   AVFormatContext *formatContext = null;
   if (avformat_open_input(&formatContext, url, null, null) < 0) return 1;
@@ -88,24 +103,34 @@ int main() {
   // snd_pcm_set_params(pcm_out, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, 44100, 0, .5e6);
   snd_pcm_set_params(pcm_out, SND_PCM_FORMAT_FLOAT, SND_PCM_ACCESS_RW_INTERLEAVED, 1, 44100, 0,
                      .5e6);
+  plac_write_header(cctx, 44100, 0);
   for (AVPacket packet; av_read_frame(formatContext, &packet) >= 0; av_packet_unref(&packet)) {
     if (packet.stream_index != sid) continue;
     if (avcodec_send_packet(codecContext, &packet) < 0) break;
     while (avcodec_receive_frame(codecContext, frame) >= 0) {
       size_t l = frame->linesize[0] / 4;
-      mdctf_put(mdct, frame->data[0], l);
-      // f32   *x = fftf_r2r_a(frame->data[0], l, false);
-      // fftf_r2r(frame->data[0], x, l, true);
-      // f32   *x = mdctf_a(frame->data[0], l, false);
-      // f32   *y = mdctf_a(x, l, true);
-      // snd_pcm_writei(pcm_out, y, l);
-      // free(x);
-      // free(y);
+      plac_compress_block(cctx, (f32 *)frame->data[0], l);
       av_frame_unref(frame);
     }
   }
+  plac_compress_final(cctx);
   av_frame_free(&frame);
   avcodec_free_context(&codecContext);
   avformat_close_input(&formatContext);
+
+  FILE *fp = fopen("output", "wb");
+  fwrite(cctx->stream->buf, cctx->stream->size, 1, fp);
+  fclose(fp);
+
+  plac_decompress_t dctx = plac_decompress_alloc(cctx->stream->buf, cctx->stream->size, N);
+  dctx->callback         = play_audio;
+  dctx->userdata         = dctx;
+
+  u16 samplerate;
+  u32 nsamples;
+  plac_read_header(dctx, &samplerate, &nsamples);
+
+  while (plac_decompress_block(dctx)) {}
+
   return 0;
 }

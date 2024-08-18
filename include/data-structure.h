@@ -12,6 +12,8 @@ extern "C" {
 #include "data-structure/circular-queue.h"
 #include "data-structure/event.h"
 #include "data-structure/list.h"
+#include "data-structure/mbitstream.h"
+#include "data-structure/mstream.h"
 #include "data-structure/queue-mt.h"
 #include "data-structure/queue.h"
 #include "data-structure/rbtree-strptr.h"
