@@ -1,3 +1,4 @@
+#include "libc-base/asm/asm.h"
 #include <kernel.h>
 
 #pragma GCC optimize("O0")

@@ -1,5 +1,8 @@
+#include "define/define/base.h"
+#include "libc-base/stdlib/alloc.h"
 #include <kernel.h>
-
+extern void *ram_disk_addr __attribute__(( section( "ram_disk")));
+extern void *ram_disk_end __attribute__(( section( "ram_disk")));
 #define IDX(addr)  ((u32)(addr) >> 12)           // 获取 addr 的页索引
 #define DIDX(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
 #define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
@@ -310,9 +313,13 @@ void C_init_page() {
   init_page_manager(pages);
   // kernel 加载到0x280000
   // 保留 0 到 0xb00000 (不含)
-  page_set_alloced(pages, 0, 0xb00000);
+
+  klogd("%p",PADDING_UP(ram_disk_end,PAGE_SIZE ));
+
+  page_set_alloced(pages, 0, PADDING_UP(ram_disk_end,PAGE_SIZE ));
   // 0xc0000000 到 0xffffffff 物理内存保留地址
   page_set_alloced(pages, 0xc0000000, 0xffffffff);
+    //for(;;);
 }
 
 void pf_set(u32 memsize) {
@@ -393,16 +400,16 @@ void *page_malloc_one_mark(u32 tid) {
 }
 
 void *page_malloc_one_count_from_4gb() {
-  int i = 0;
-  for (i = IDX(memsize) - 1; i >= 0; i--) {
-    if (pages[i].count == 0) {
-      u32 addr         = PAGE(i);
-      pages[i].task_id = get_tid(current_task());
-      pages[i].count++;
-      return (void *)addr;
-    }
-  }
-  return NULL;
+  // int i = 0;
+  // for (i = IDX(memsize) - 1; i >= 0; i--) {
+  //   if (pages[i].count == 0) {
+  //     u32 addr         = PAGE(i);
+  //     pages[i].task_id = get_tid(current_task());
+  //     pages[i].count++;
+  //     return (void *)addr;
+  //   }
+  // }
+  return page_malloc_one();
 }
 
 void gc(u32 tid) {

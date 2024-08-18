@@ -94,7 +94,7 @@ int input_char_inSM() {
       // 1.没有输入
       // 2.窗口未处于顶端
       // 3.正在运行的控制台并不是函数发起的控制台（TTY）
-      task_next();
+      //task_next();
     } else {
       // 返回扫描码
       i = tty_fifo_get(); // 从FIFO缓冲区中取出扫描码

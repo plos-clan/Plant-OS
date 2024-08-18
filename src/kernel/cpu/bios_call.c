@@ -1,3 +1,4 @@
+#include "kernel/8295a.h"
 #include <kernel.h>
 
 extern byte *IVT;

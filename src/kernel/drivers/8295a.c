@@ -1,6 +1,6 @@
 #include <kernel.h>
-u8 value_pic0 = 0xfb;
-u8 value_pic1 = 0xff;
+static u8 value_pic0 = 0xfb;
+static u8 value_pic1 = 0xff;
 
 void init_pic() {
   asm_out8(PIC0_IMR, 0xff); /* 初始化，所有中断均被屏蔽 */
@@ -15,8 +15,8 @@ void init_pic() {
   asm_out8(PIC1_ICW3, 2);
   asm_out8(PIC1_ICW4, 0x01);
 
-  asm_out8(PIC0_IMR, 0xfb);
-  asm_out8(PIC1_IMR, 0xff); /* 禁止所有中断 */
+  asm_out8(PIC0_IMR, value_pic0);
+  asm_out8(PIC1_IMR, value_pic1); /* 禁止所有中断 */
 }
 
 void send_eoi(int irq) {
@@ -39,6 +39,7 @@ void irq_mask_clear(u8 irq) {
     port  = PIC1_IMR;
     irq  -= 8;
   }
+  
   *value = *value & ~(1 << irq);
   asm_out8(port, *value);
 }

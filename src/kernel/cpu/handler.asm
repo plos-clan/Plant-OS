@@ -233,62 +233,62 @@ asm_net_api:
   pop ds
 	IRETD
 asm_inthandler20:
-  push ds
+;   push ds
+;   push es
+;   push fs
+;   push gs
+;   pusha
+; 	PUSH	ES
+; 	PUSH	DS
+; 	PUSHAD
+; 	MOV		EAX,ESP
+; 	add EAX,32
+; 	PUSH	EAX
+; 	MOV		AX,SS
+; 	MOV		DS,AX
+; 	MOV		ES,AX
+; 	MOV EAX,0
+; 	MOV   AX,CS
+; 	PUSH  EAX
+; 	CALL	inthandler20
+; 	pop eax
+; 	POP		EAX
+; 	call signal_deal
+; 	POPAD
+; 	POP		DS
+; 	POP		ES
+;   popa
+;   pop gs
+;   pop fs
+;   pop es
+;   pop ds
+; IRETD
+	push ds
   push es
   push fs
   push gs
   pusha
-	PUSH	ES
-	PUSH	DS
-	PUSHAD
-	MOV		EAX,ESP
-	add EAX,32
-	PUSH	EAX
-	MOV		AX,SS
-	MOV		DS,AX
-	MOV		ES,AX
-	MOV EAX,0
-	MOV   AX,CS
-	PUSH  EAX
-	CALL	inthandler20
-	pop eax
-	POP		EAX
-	call signal_deal
-	POPAD
-	POP		DS
-	POP		ES
+  call inthandler20
+	;call rtc_irq
   popa
   pop gs
   pop fs
   pop es
   pop ds
-IRETD
+		IRETD
 asm_inthandler21:
-  push ds
+push ds
   push es
   push fs
   push gs
   pusha
-	PUSH	ES
-	PUSH	DS
-	PUSHAD
-	MOV		EAX,ESP
-	PUSH	EAX
-	MOV		AX,SS
-	MOV		DS,AX
-	MOV		ES,AX
-	CALL	inthandler21
-	POP		EAX
-	call signal_deal
-	POPAD
-	POP		DS
-	POP		ES
+  CALL	inthandler21
   popa
   pop gs
   pop fs
   pop es
   pop ds
-	IRETD
+  IRETD
 asm_inthandler2c:
 	push ds
   push es

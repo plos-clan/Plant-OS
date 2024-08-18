@@ -1,4 +1,4 @@
-add_exe_link_flag("-static -Wl,-Ttext -Wl,0x288000 -Wl,--section-start=.multiboot2=0x280000 -e _start")
+add_exe_link_flag("-static -Wl,-Ttext -Wl,0x288000 -Wl,--section-start=.multiboot2=0x280000 -Wl,--section-start=.ram_disk=0xb00000 -Wl,--build-id=none -e _start")
 add_binary_exclude(kernel)
 target_link_libraries(kernel c-base data-structure fs elf)
 target_link_libraries(kernel font plty)

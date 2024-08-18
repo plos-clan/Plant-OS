@@ -2,12 +2,16 @@
 
 #include "../../../fs/fatfs/ff.h"
 #include "data-structure/circular-queue.h"
+#include "data-structure/trie.h"
 #include "kernel/mtask.h"
+#include "kernel/vdisk.h"
+#include "libc-base/string/str.h"
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
 #include <plty.h>
-
+// extern int globalmemory __attribute__(( section( "ram_disk")));
+extern void *ram_disk_addr __attribute__(( section( "ram_disk")));
 u8  *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
@@ -132,32 +136,46 @@ plff_t load_font(cstr path) {
 }
 
 void plty_set_default(plty_t plty);
+void ram_disk_read(int drive, u8 *buffer, u32 number, u32 lba) {
 
+  memcpy(buffer,ram_disk_addr + lba * 512 ,number * 512);
+}
+void ram_disk_write(int drive, u8 *buffer, u32 number, u32 lba) {
+  memcpy(ram_disk_addr + lba * 512 ,buffer,number * 512);
+}
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-
   klogd("Set Mode");
-  byte *vram = (void *)set_mode(1024, 768, 32);
-  klogd("ok vram = %p", vram);
-  memset(vram, 0, 1024 * 768 * 4);
-  floppy_init();
-  ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
+  vdisk vd;
+  strcpy(vd.DriveName, "RAMDISK");
+  vd.flag = 1;
+  vd.Read = ram_disk_read;
+  vd.Write = ram_disk_write;
+  vd.size = 128 * 1024 * 1024;
+  register_vdisk(vd);
+ // for(;;);
+  // byte *vram = (void *)set_mode(1024, 768, 32);
+  // klogd("ok vram = %p", vram);
+  // memset(vram, 0xff, 1024 * 768 * 4);
+//for(;;);
+  // floppy_init();
+  // ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
 
   int s = 0x41;
   vfs_mkdir("/fatfs0");
   vfs_mount((cstr)&s, vfs_open("/fatfs0"));
-  s++;
-  vfs_mkdir("/fatfs1");
-  vfs_mount((cstr)&s, vfs_open("/fatfs1"));
+  // s++;
+  // vfs_mkdir("/fatfs1");
+  // vfs_mount((cstr)&s, vfs_open("/fatfs1"));
 
-  auto font1 = load_font("/fatfs1/font1.plff");
-  // auto font2 = load_font("/fatfs1/font2.plff");
+//   auto font1 = load_font("/fatfs0/font1.plff");
+//   // auto font2 = load_font("/fatfs1/font2.plff");
 
-  auto tty = plty_alloc(vram, 1024, 768, font1);
-  // plty_addfont(tty, font2);
+//   auto tty = plty_alloc(vram, 1024, 768, font1);
+// //  plty_addfont(tty, font2);
 
-  plty_set_default(tty);
+//   plty_set_default(tty);
 
   // info("Plant-OS 终端现在支持中文啦！");
 
@@ -198,10 +216,10 @@ void init() {
   // }
 
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
+  // create_task((u32)sound_test, 0, 1, 1);
 
   printi("%d alloced pages", page_get_alloced());
-  int status = os_execute("/fatfs1/testapp-cpp.bin", "/fatfs1/testapp-cpp.bin 1 2 3");
+  int status = os_execute("/fatfs0/testapp-cpp.bin", "/fatfs0/testapp-cpp.bin 1 2 3");
   printi("TESTAPP-CPP.BIN exit with code %d", status);
   printi("%d alloced pages", page_get_alloced());
 

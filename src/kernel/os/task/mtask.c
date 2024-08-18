@@ -419,7 +419,6 @@ void task_fall_blocked(enum STATE state) {
   }
   current_task()->state = state;
   current_task()->ready = 0;
-  asm_cli;
   task_next();
 }
 

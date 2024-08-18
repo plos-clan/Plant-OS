@@ -14,7 +14,7 @@ void abort() {
   }
 }
 
-#if 0
+#if 1
 #  define klogd(...) ((void)0)
 
 void malloc_test() {
@@ -111,7 +111,7 @@ void sysinit() {
     info("the memory test has been passed! Your PC has %dMB memory", memsize / (1024 * 1024));
   }
 
-  // malloc_test();
+  //malloc_test();
 
   init_keyboard();
   into_mtask();

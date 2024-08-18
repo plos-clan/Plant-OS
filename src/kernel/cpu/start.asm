@@ -21,6 +21,16 @@ header_start:
     dw 0    ; flags
     dd 8    ; size
 header_end:
+section .ram_disk
+global ram_disk_addr,ram_disk_end
+ram_disk_addr: dd _raw_ram_disk_addr
+ram_disk_end: dd _raw_ram_disk_end
+_raw_ram_disk_addr:
+; 先编译一遍 然后改成你的hd.img
+;incbin "/home/min0911/Plant-OS/bin/hd.img"
+_raw_ram_disk_end:
+
+
 
 global _start
 extern kernel_main,init_gdtidt

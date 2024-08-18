@@ -288,6 +288,7 @@ void task_to_user_mode_elf(char *filename) {
 }
 
 int os_execute(char *filename, char *line) {
+ 
   extern mtask *mouse_use_task;
   mtask        *backup = mouse_use_task;
   char         *fm     = (char *)malloc(strlen(filename) + 1);
@@ -296,6 +297,7 @@ int os_execute(char *filename, char *line) {
   klogd("execute: %s %s", filename, line);
 
   mtask *t = create_task((u32)task_app, 0, 1, 1);
+  
   // 轮询
   t->train = 0;
 
