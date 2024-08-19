@@ -172,19 +172,18 @@ static void MDCT(_do_imdct)(MDCT(_t) mdct) {
     mdct->buf[i] = 0;
   }
 
-  if (mdct->output != null) {
+  bool first = mdct->output == null;
+  if (!first) {
     for (size_t i = 0; i < mdct->len / 2; i++) {
       mdct->block[i] = mdct->output[i + mdct->len / 2];
-    }
-  } else {
-    for (size_t i = 0; i < mdct->len / 2; i++) {
-      mdct->block[i] = 0;
     }
   }
 
   free(mdct->output);
   mdct->output = MDCT(_a)(mdct->buf, mdct->len, true);
   mdct->bufp   = 0;
+
+  if (first) return;
 
   for (size_t i = 0; i < mdct->len / 2; i++) {
     mdct->block[i] += mdct->output[i];
@@ -210,7 +209,7 @@ dlexport void MDCT(_put)(MDCT(_t) mdct, FT *data, size_t length) {
 
 dlexport void MDCT(_final)(MDCT(_t) mdct) {
   if (mdct->bufp > 0) MDCT(_do)(mdct);
-  MDCT(_do)(mdct);
+  if (!mdct->inverse) MDCT(_do)(mdct);
 }
 
 dlexport FT *MDCT(_block)(MDCT(_t) mdct) {
