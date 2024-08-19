@@ -9,5 +9,15 @@ testlib(
   avutil
   swresample)
 
+testexec(plac-encoder plac-encoder.c)
+testlib(
+  plac-encoder
+  util-misc
+  util-plac
+  avcodec
+  avformat
+  avutil
+  swresample)
+
 testexec(plac-player plac-player.c)
 testlib(plac-player util-misc util-plac asound)
