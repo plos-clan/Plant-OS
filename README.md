@@ -39,8 +39,9 @@
   - author: ~~copi143~~
 - fs
   - state: `In progress`
-  - author: copi143 & min0911Y
+  - author: copi143 & min0911Y & XIAOYI12
   - remark: The fatfs part comes from [abbrev/fatfs](https://github.com/abbrev/fatfs).
+  - remark: The iso9660 part comes from [xiaoyi1212/CoolPotOS/src/fs](https://github.com/xiaoyi1212/CoolPotOS/blob/main/src/fs/iso9660.c)
 - sys
   - state: `In progress`
   - author: copi143
@@ -74,6 +75,9 @@
 - plac
   - state: `Final`
   - author: copi143
+- usersystem
+  - state: `TODO`
+  - author XIAOYI12
 
 **state** 解释
 
