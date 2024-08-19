@@ -4,8 +4,8 @@
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
-#include <plty.h>
 #include <pl_readline.h>
+#include <plty.h>
 u8  *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
@@ -17,6 +17,7 @@ void idle_loop() {
 void insert_char(char *str, int pos, char ch);
 void delete_char(char *str, int pos);
 
+#if 0
 ssize_t input(char *ptr, size_t len) {
   size_t p = 0;
   ptr[p]   = '\0';
@@ -56,6 +57,7 @@ ssize_t input(char *ptr, size_t len) {
 
   return p;
 }
+#endif
 
 void list_files(char *path) {
   klogd("%s", path);
@@ -68,47 +70,34 @@ void list_files(char *path) {
   }
   printf("\n");
 }
+
 int readline_getch() {
   int ch;
-  while((ch= getch()) == 0);
-  if (ch == -1) {
-    // up
-    return PL_READLINE_KEY_UP;
-  } else if (ch == -2) {
-    // down
-    return PL_READLINE_KEY_DOWN;
-  } else if (ch == -3) {
-    // left
-    return PL_READLINE_KEY_LEFT;
-  } else if (ch == -4) {
-    // right
-    return PL_READLINE_KEY_RIGHT;
-  }
-  if(ch == '\n') {
-    return PL_READLINE_KEY_ENTER;
-  }
-  if(ch == '\b') {
-    return PL_READLINE_KEY_BACKSPACE;
-  }
-  if(ch == '\t') {
-    return PL_READLINE_KEY_TAB;
-  }
+  while ((ch = getch()) == 0) {}
+  if (ch == -1) return PL_READLINE_KEY_UP;
+  if (ch == -2) return PL_READLINE_KEY_DOWN;
+  if (ch == -3) return PL_READLINE_KEY_LEFT;
+  if (ch == -4) return PL_READLINE_KEY_RIGHT;
+  if (ch == '\n') return PL_READLINE_KEY_ENTER;
+  if (ch == '\b') return PL_READLINE_KEY_BACKSPACE;
+  if (ch == '\t') return PL_READLINE_KEY_TAB;
   return ch;
 }
+
 void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
   void *kbuf  = page_malloc_one();
   cir_queue8_init(kfifo, 0x1000, kbuf);
   current_task()->keyfifo = (cir_queue8_t)kfifo;
-  char *path              = malloc(1024);
-  char *ch                = malloc(255);
+  char         *path      = malloc(1024);
+  char         *ch        = malloc(255);
   pl_readline_t n;
   n = pl_readline_init(readline_getch, putchar);
   sprintf(path, "/");
   while (true) {
     printf("%s# ", path);
-    pl_readline(n,ch,255);
+    pl_readline(n, ch, 255);
 
     if (strneq(ch, "cd ", 3)) {
       char *s = ch + 3;

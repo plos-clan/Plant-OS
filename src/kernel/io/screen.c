@@ -364,7 +364,7 @@ void t_putchar(struct tty *res, char ch) {
   res->putchar(res, ch);
 }
 
-void putchar(char ch) {
+void putchar(int ch) {
   mtask *task = current_task();
   if (task->TTY->is_using != 1) {
     t_putchar(tty_default, ch);
