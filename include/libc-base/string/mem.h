@@ -83,7 +83,7 @@ finline void *memmove(void *_d, const void *_s, size_t _n) noexcept {
   if (d > s && d < e) { // 重叠字符串，反向遍历
     d += _n;
     while (s != e)
-      *d-- = *e--;
+      *--d = *--e;
   } else { // 非重叠，正常遍历
     while (s != e)
       *d++ = *s++;
