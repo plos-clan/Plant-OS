@@ -7,8 +7,6 @@
 
 snd_pcm_t *pcm_out;
 
-#define N 1024
-
 f32 volume = 1;
 
 void play_audio(f32 *block, size_t len, void *userdata) {
@@ -41,7 +39,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  plac_decompress_t dctx = plac_decompress_alloc(buf, bufsize, N);
+  plac_decompress_t dctx = plac_decompress_alloc(buf, bufsize);
   dctx->callback         = play_audio;
   dctx->userdata         = dctx;
 

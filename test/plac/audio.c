@@ -10,16 +10,14 @@
 
 snd_pcm_t *pcm_out;
 
-#define N 1024
-
 void play_audio(f32 *block, size_t len, void *userdata) {
   snd_pcm_writei(pcm_out, block, len);
 }
 
 int main() {
-  cstr url = "audio.mp3";
+  cstr url = "魔女之旅_片头_リテラチュア.mp3";
 
-  plac_compress_t cctx = plac_compress_alloc(N);
+  plac_compress_t cctx = plac_compress_alloc();
 
   AVFormatContext *formatContext = null;
   if (avformat_open_input(&formatContext, url, null, null) < 0) return 1;
@@ -92,6 +90,7 @@ int main() {
       }
       int out_samples = swr_convert(swr_ctx, (uint8_t *const *)&buf, frame->nb_samples,
                                     (const uint8_t **)frame->data, frame->nb_samples);
+      if (out_samples <= 0) continue;
       plac_compress_block(cctx, buf, out_samples);
       av_frame_unref(frame);
     }
@@ -105,7 +104,7 @@ int main() {
 
   write_to_file("output.plac", cctx->stream->buf, cctx->stream->size);
 
-  plac_decompress_t dctx = plac_decompress_alloc(cctx->stream->buf, cctx->stream->size, N);
+  plac_decompress_t dctx = plac_decompress_alloc(cctx->stream->buf, cctx->stream->size);
   dctx->callback         = play_audio;
   dctx->userdata         = dctx;
 
