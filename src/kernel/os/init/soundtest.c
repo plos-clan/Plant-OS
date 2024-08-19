@@ -107,7 +107,7 @@ void sound_test() {
   sb16_open();
   sb16_set_volume(128);
 
-  plac_decompress_t dctx = plac_decompress_alloc(buf, file->size, 1024);
+  plac_decompress_t dctx = plac_decompress_alloc(buf, file->size);
   dctx->callback         = play_audio;
   dctx->userdata         = dctx;
 
