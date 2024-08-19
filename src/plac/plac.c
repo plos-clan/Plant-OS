@@ -12,7 +12,6 @@ plac_compress_t plac_compress_alloc(size_t block_len) {
   plac_compress_t plac = malloc(sizeof(struct plac_compress));
   if (plac == null) return null;
   plac->block_len      = block_len;
-  plac->vol            = 0;
   plac->mdct           = mdctf_alloc(2 * block_len, false, _plac_compress_block);
   plac->mdct->userdata = plac;
   plac->q.max          = 0;
@@ -70,7 +69,7 @@ void plac_write_data(plac_compress_t plac, quantized_t q) {
 
 void _plac_compress_block(f32 *block, void *_plac) {
   plac_compress_t plac = _plac;
-  volume_fine_tuning(block, plac->block_len, &plac->vol);
+  volume_fine_tuning(block, plac->block_len);
   mulaw_compress(block, plac->block_len);
   plac->q.dataf = block;
   best_quantize(&plac->q, 0, 15, .001953125);

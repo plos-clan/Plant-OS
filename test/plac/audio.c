@@ -92,6 +92,7 @@ int main() {
       }
       int out_samples = swr_convert(swr_ctx, (uint8_t *const *)&buf, frame->nb_samples,
                                     (const uint8_t **)frame->data, frame->nb_samples);
+      if (out_samples <= 0) continue;
       plac_compress_block(cctx, buf, out_samples);
       av_frame_unref(frame);
     }

@@ -17,7 +17,6 @@ typedef void (*cb_plac_decompress_t)(f32 *block, size_t len, void *userdata);
 
 typedef struct plac_compress {
   size_t           block_len;
-  f32              vol;
   mdctf_t          mdct;
   struct quantized q;
   mostream_t       stream;
