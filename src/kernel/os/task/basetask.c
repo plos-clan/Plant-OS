@@ -1,11 +1,13 @@
 // This code is released under the MIT License
 
 #include "kernel/logging.h"
+#include "libc-base/string/str.h"
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
 #include <pl_readline.h>
 #include <plty.h>
+
 u8  *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
@@ -114,8 +116,20 @@ void shell() {
         sprintf(path, "%s%s", path, s);
       else
         sprintf(path, "%s/%s", path, s);
-    } else if (streq(ch, "ls")) {
+    } else if (strneq(ch,"exec ", 5)) {
+      char *s = ch + 5;
+      char *s2 = strchr(s, ' ');
+      if (s2) *s2 = '\0';
+      char *s3 = strdup(s);
+      *s2 = ' ';
+      int status = os_execute(s3, s);
+      printf("%s exited with code %d\n", s3, status);
+      free(s3);
+    } 
+    else if (streq(ch, "ls")) {
       list_files(path);
+    } else {
+      printf("bad command\n");
     }
   }
 }
@@ -152,7 +166,7 @@ void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
 
-  klogd("Set Mode");
+  // klogd("Set Mode");
   byte *vram = (void *)set_mode(1024, 768, 32);
   klogd("ok vram = %p", vram);
   memset(vram, 0, 1024 * 768 * 4);
@@ -167,7 +181,7 @@ void init() {
   vfs_mount((cstr)&s, vfs_open("/fatfs1"));
 
   auto font1 = load_font("/fatfs1/font1.plff");
-  // auto font2 = load_font("/fatfs1/font2.plff");
+  // // auto font2 = load_font("/fatfs1/font2.plff");
 
   auto tty = plty_alloc(vram, 1024, 768, font1);
   // plty_addfont(tty, font2);
@@ -213,7 +227,7 @@ void init() {
   // }
 
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
+  //create_task((u32)sound_test, 0, 1, 1);
 
   printi("%d alloced pages", page_get_alloced());
   int status = os_execute("/fatfs1/testapp-cpp.bin", "/fatfs1/testapp-cpp.bin 1 2 3");

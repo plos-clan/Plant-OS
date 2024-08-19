@@ -16,8 +16,8 @@ void init_pic() {
   asm_out8(PIC1_ICW3, 2);
   asm_out8(PIC1_ICW4, 0x01);
 
-  asm_out8(PIC0_IMR, 0xfb);
-  asm_out8(PIC1_IMR, 0xff); /* 禁止所有中断 */
+  asm_out8(PIC0_IMR, value_pic0);
+  asm_out8(PIC1_IMR, value_pic1); /* 禁止所有中断 */
 }
 
 void send_eoi(int irq) {
