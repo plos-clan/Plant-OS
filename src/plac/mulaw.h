@@ -1,3 +1,7 @@
+// This code is released under the MIT License
+
+// author: copi143
+
 #include <libc-base.h>
 
 #if 0

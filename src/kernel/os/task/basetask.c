@@ -1,7 +1,5 @@
 // This code is released under the MIT License
 
-#include "kernel/logging.h"
-#include "libc-base/string/str.h"
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
@@ -116,17 +114,16 @@ void shell() {
         sprintf(path, "%s%s", path, s);
       else
         sprintf(path, "%s/%s", path, s);
-    } else if (strneq(ch,"exec ", 5)) {
-      char *s = ch + 5;
+    } else if (strneq(ch, "exec ", 5)) {
+      char *s  = ch + 5;
       char *s2 = strchr(s, ' ');
       if (s2) *s2 = '\0';
-      char *s3 = strdup(s);
-      *s2 = ' ';
+      char *s3   = strdup(s);
+      *s2        = ' ';
       int status = os_execute(s3, s);
       printf("%s exited with code %d\n", s3, status);
       free(s3);
-    } 
-    else if (streq(ch, "ls")) {
+    } else if (streq(ch, "ls")) {
       list_files(path);
     } else {
       printf("bad command\n");
@@ -227,7 +224,7 @@ void init() {
   // }
 
   create_task((u32)shell, 0, 1, 1);
-  //create_task((u32)sound_test, 0, 1, 1);
+  create_task((u32)sound_test, 0, 1, 1);
 
   printi("%d alloced pages", page_get_alloced());
   int status = os_execute("/fatfs1/testapp-cpp.bin", "/fatfs1/testapp-cpp.bin 1 2 3");

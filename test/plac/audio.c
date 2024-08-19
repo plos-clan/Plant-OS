@@ -1,3 +1,7 @@
+// This code is released under the MIT License
+
+// author: copi143
+
 #include <alsa/asoundlib.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>

@@ -1,3 +1,7 @@
+// This code is released under the MIT License
+
+// author: copi143
+
 #include <alsa/asoundlib.h>
 
 #define NO_STD 0

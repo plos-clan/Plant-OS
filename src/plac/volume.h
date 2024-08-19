@@ -1,3 +1,7 @@
+// This code is released under the MIT License
+
+// author: copi143
+
 #include <misc.h>
 
 static void _volume_fine_tuning2(f32 *data, size_t len, size_t k) {

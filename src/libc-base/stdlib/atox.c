@@ -37,7 +37,7 @@
     for (; isdigit(*s); s++)                                                                       \
       f = f * 10 + (*s - '0');                                                                     \
                                                                                                    \
-    if (!isfinite(f)) return neg ? -f : f;                                                         \
+    if (!__builtin_isfinite(f)) return neg ? -f : f;                                               \
                                                                                                    \
     if (*s == '.') {                                                                               \
       s++;                                                                                         \

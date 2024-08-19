@@ -1,3 +1,7 @@
+// This code is released under the MIT License
+
+// author: copi143
+
 #include <plac.h>
 
 #include "mulaw.h"
