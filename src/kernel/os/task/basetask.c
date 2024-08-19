@@ -1,10 +1,11 @@
 // This code is released under the MIT License
 
+#include "kernel/logging.h"
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
 #include <plty.h>
-
+#include <pl_readline.h>
 u8  *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
@@ -67,7 +68,33 @@ void list_files(char *path) {
   }
   printf("\n");
 }
-
+int readline_getch() {
+  int ch;
+  while((ch= getch()) == 0);
+  if (ch == -1) {
+    // up
+    return PL_READLINE_KEY_UP;
+  } else if (ch == -2) {
+    // down
+    return PL_READLINE_KEY_DOWN;
+  } else if (ch == -3) {
+    // left
+    return PL_READLINE_KEY_LEFT;
+  } else if (ch == -4) {
+    // right
+    return PL_READLINE_KEY_RIGHT;
+  }
+  if(ch == '\n') {
+    return PL_READLINE_KEY_ENTER;
+  }
+  if(ch == '\b') {
+    return PL_READLINE_KEY_BACKSPACE;
+  }
+  if(ch == '\t') {
+    return PL_READLINE_KEY_TAB;
+  }
+  return ch;
+}
 void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
@@ -76,10 +103,12 @@ void shell() {
   current_task()->keyfifo = (cir_queue8_t)kfifo;
   char *path              = malloc(1024);
   char *ch                = malloc(255);
+  pl_readline_t n;
+  n = pl_readline_init(readline_getch, putchar);
   sprintf(path, "/");
   while (true) {
     printf("%s# ", path);
-    input(ch, 255);
+    pl_readline(n,ch,255);
 
     if (strneq(ch, "cd ", 3)) {
       char *s = ch + 3;
