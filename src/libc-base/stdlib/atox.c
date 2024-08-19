@@ -68,9 +68,11 @@
     return neg ? -f : f;                                                                           \
   }
 
+#if NO_STD
 __atof(ff, float);
 __atof(f, double);
 __atof(fl, long double);
+#endif
 
 #define _atof(t) __atof(t, t)
 

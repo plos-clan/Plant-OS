@@ -151,45 +151,53 @@ dlexport void MDCT(_free)(MDCT(_t) mdct) {
   free(mdct);
 }
 
+static void MDCT(_do_mdct)(MDCT(_t) mdct) {
+  for (size_t i = mdct->bufp; i < mdct->len; i++) {
+    mdct->buf[i] = 0;
+  }
+
+  free(mdct->output);
+  mdct->output = MDCT(_a)(mdct->buf, mdct->len, false);
+  mdct->bufp   = mdct->len / 2;
+
+  for (size_t i = 0; i < mdct->len / 2; i++) {
+    mdct->buf[i] = mdct->buf[i + mdct->len / 2];
+  }
+
+  if (mdct->callback) mdct->callback(mdct->output, mdct->userdata);
+}
+
+static void MDCT(_do_imdct)(MDCT(_t) mdct) {
+  for (size_t i = mdct->bufp; i < mdct->len / 2; i++) {
+    mdct->buf[i] = 0;
+  }
+
+  if (mdct->output != null) {
+    for (size_t i = 0; i < mdct->len / 2; i++) {
+      mdct->block[i] = mdct->output[i + mdct->len / 2];
+    }
+  } else {
+    for (size_t i = 0; i < mdct->len / 2; i++) {
+      mdct->block[i] = 0;
+    }
+  }
+
+  free(mdct->output);
+  mdct->output = MDCT(_a)(mdct->buf, mdct->len, true);
+  mdct->bufp   = 0;
+
+  for (size_t i = 0; i < mdct->len / 2; i++) {
+    mdct->block[i] += mdct->output[i];
+  }
+
+  if (mdct->callback) mdct->callback(mdct->block, mdct->userdata);
+}
+
 static void MDCT(_do)(MDCT(_t) mdct) {
   if (!mdct->inverse) {
-    for (size_t i = mdct->bufp; i < mdct->len; i++) {
-      mdct->buf[i] = 0;
-    }
-
-    free(mdct->output);
-    mdct->output = MDCT(_a)(mdct->buf, mdct->len, false);
-    mdct->bufp   = mdct->len / 2;
-
-    for (size_t i = 0; i < mdct->len / 2; i++) {
-      mdct->buf[i] = mdct->buf[i + mdct->len / 2];
-    }
-
-    if (mdct->callback) mdct->callback(mdct->output, mdct->userdata);
+    MDCT(_do_mdct)(mdct);
   } else {
-    for (size_t i = mdct->bufp; i < mdct->len / 2; i++) {
-      mdct->buf[i] = 0;
-    }
-
-    if (mdct->output != null) {
-      for (size_t i = 0; i < mdct->len / 2; i++) {
-        mdct->block[i] = mdct->output[i + mdct->len / 2];
-      }
-    } else {
-      for (size_t i = 0; i < mdct->len / 2; i++) {
-        mdct->block[i] = 0;
-      }
-    }
-
-    free(mdct->output);
-    mdct->output = MDCT(_a)(mdct->buf, mdct->len, true);
-    mdct->bufp   = 0;
-
-    for (size_t i = 0; i < mdct->len / 2; i++) {
-      mdct->block[i] += mdct->output[i];
-    }
-
-    if (mdct->callback) mdct->callback(mdct->block, mdct->userdata);
+    MDCT(_do_imdct)(mdct);
   }
 }
 
@@ -202,6 +210,7 @@ dlexport void MDCT(_put)(MDCT(_t) mdct, FT *data, size_t length) {
 
 dlexport void MDCT(_final)(MDCT(_t) mdct) {
   if (mdct->bufp > 0) MDCT(_do)(mdct);
+  MDCT(_do)(mdct);
 }
 
 dlexport FT *MDCT(_block)(MDCT(_t) mdct) {

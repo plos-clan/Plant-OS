@@ -8,12 +8,4 @@ testexec(gaussian-kernel gaussian-kernel.cpp)
 
 add_subdirectory(plui)
 
-testexec(audio audio.c)
-testlib(
-  audio
-  util-misc
-  util-plac
-  asound
-  avcodec
-  avformat
-  avutil)
+add_subdirectory(plac)
