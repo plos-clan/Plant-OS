@@ -42,13 +42,26 @@ void plac_compress_free(plac_compress_t plac) {
   free(plac);
 }
 
-void plac_write_header(plac_compress_t plac, u16 samplerate, u32 nsamples) {
+void plac_write_header_v0(plac_compress_t plac, u16 samplerate, u32 nsamples) {
   u32 magic = MAGIC32('p', 'l', 'a', 'c');
   mostream_write(plac->stream, &magic, 4);
   u16 version = 0;
   mostream_write(plac->stream, &version, 2);
   mostream_write(plac->stream, &samplerate, 2);
   mostream_write(plac->stream, &nsamples, 4);
+}
+
+void plac_write_header_v1(plac_compress_t plac, u32 samplerate, u64 nsamples) {
+  u32 magic = MAGIC32('p', 'l', 'a', 'c');
+  mostream_write(plac->stream, &magic, 4);
+  u16 version = 1;
+  mostream_write(plac->stream, &version, 2);
+  mostream_write(plac->stream, &samplerate, 4);
+  mostream_write(plac->stream, &nsamples, 8);
+}
+
+void plac_write_header(plac_compress_t plac, u32 samplerate, u64 nsamples) {
+  plac_write_header_v1(samplerate, nsamples);
 }
 
 void plac_write_data(plac_compress_t plac, quantized_t q) {
@@ -118,15 +131,21 @@ void plac_decompress_free(plac_decompress_t plac) {
   free(plac);
 }
 
-bool plac_read_header(plac_decompress_t plac, u16 *samplerate, u32 *nsamples) {
+bool plac_read_header(plac_decompress_t plac, u32 *samplerate, u64 *nsamples) {
   u32 magic;
   mistream_read(plac->stream, &magic, 4);
   if (magic != MAGIC32('p', 'l', 'a', 'c')) return false;
   u16 version;
   mistream_read(plac->stream, &version, 2);
-  if (version != 0) return false;
-  mistream_read(plac->stream, samplerate, 2);
-  mistream_read(plac->stream, nsamples, 4);
+  if (version >= 3) return false;
+  *samplerate = 0, *nsamples = 0;
+  if (version == 0) {
+    mistream_read(plac->stream, samplerate, 2);
+    mistream_read(plac->stream, nsamples, 4);
+  } else {
+    mistream_read(plac->stream, samplerate, 4);
+    mistream_read(plac->stream, nsamples, 8);
+  }
   return true;
 }
 

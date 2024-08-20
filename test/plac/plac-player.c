@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
   dctx->callback         = play_audio;
   dctx->userdata         = dctx;
 
-  u16 samplerate;
-  u32 nsamples;
+  u32 samplerate;
+  u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
   snd_pcm_open(&pcm_out, "default", SND_PCM_STREAM_PLAYBACK, 0);
