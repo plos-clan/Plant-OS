@@ -48,6 +48,9 @@
 // 目前并没有实现
 #define FAST_COLOR_INTERPOLATE   1
 
+#define COLOR_FASTIST_MIX 0 // 开启最快的颜色混合 (有误差)
+#define COLOR_FAST_MIX    0 // 开启更快的颜色混合 (不支持目标透明)
+
 //** 在没有标准库的情况下 OSAPI 宏才有效 **
 
 #define OSAPI_MALLOC 1 // 是否支持 malloc 函数

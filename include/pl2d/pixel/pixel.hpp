@@ -15,11 +15,11 @@ dlimport auto reverse_gamma(f64 x) -> f64; // 反向 gamma 矫正
 
 template <BasePixelTemplate>
 struct BasePixel {
-  using TYPE                       = T;
-  using TYPE2                      = T2;
-  using FLT_TYPE                   = FT;
-  static constexpr auto TYPE_MAX   = T_MAX;
-  static constexpr auto TYPE_MAX_2 = T_MAX_2;
+  using TYPE  = T; // 储存颜色值的类型（无符号整数或浮点，有符号当作无符号
+  using TYPE2 = T2;                    // 直接运算时的类型（至少大一倍防止溢出）
+  using FLT_TYPE                 = FT; // 转换成浮点数运算时的类型
+  static constexpr auto TYPE_MAX = T_MAX; // 最大值（浮点设置为 1）
+  static constexpr auto TYPE_MAX_2 = T_MAX_2; // 对应有符号类型的最大值（浮点设置为 1）
 
 #if COLOR_USE_BGR
   T b = 0, g = 0, r = 0, a = 0;
@@ -39,7 +39,7 @@ struct BasePixel {
   template <_BasePixelTemplate>
   BasePixel(const _BasePixelT &p);
 
-  operator u32();
+  operator u32() const;
 
   auto operator==(const BasePixel &p) const -> bool {
     return r == p.r && g == p.g && b == p.b && a == p.a;
@@ -52,16 +52,16 @@ struct BasePixel {
   auto operator-=(const BasePixel &s) -> BasePixel &;
   template <typename U>
   auto operator*(U s) const -> BasePixel
-  requires(std::is_floating_point_v<U>);
+  requires(cpp::is_float<U>);
   template <typename U>
   auto operator*=(U s) -> BasePixel &
-  requires(std::is_floating_point_v<U>);
+  requires(cpp::is_float<U>);
   template <typename U>
   auto operator/(U s) const -> BasePixel
-  requires(std::is_floating_point_v<U>);
+  requires(cpp::is_float<U>);
   template <typename U>
   auto operator/=(U s) -> BasePixel &
-  requires(std::is_floating_point_v<U>);
+  requires(cpp::is_float<U>);
 
   // 计算颜色的差值
   auto diff(const BasePixel &p) -> T;
@@ -71,7 +71,7 @@ struct BasePixel {
   static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, T k) -> BasePixel;
   template <typename U>
   static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, U k) -> BasePixel
-  requires(std::is_floating_point_v<U> && !std::is_same_v<T, U>);
+  requires(cpp::is_float<U> && !std::is_same_v<T, U>);
   // 背景色不透明的混合函数
   void        mix_opaque(const BasePixel &s);
   static auto mix_opaque(const BasePixel &c1, const BasePixel &c2) -> BasePixel;

@@ -6,9 +6,8 @@
   typename T /* 储存颜色值的类型（无符号整数或浮点，有符号当作无符号） */,                         \
       typename T2 /* 直接运算时的类型（至少大一倍防止溢出） */,                                    \
       typename FT /* 转换成浮点数运算时的类型 */,                                                  \
-      typename std::conditional_t<std::is_floating_point_v<T>, i32, T>                             \
-          T_MAX /* 最大值（浮点设置为 1） */,                                                      \
-      typename std::conditional_t<std::is_floating_point_v<T>, i32, T>                             \
+      typename std::conditional_t<cpp::is_float<T>, i32, T> T_MAX /* 最大值（浮点设置为 1） */,    \
+      typename std::conditional_t<cpp::is_float<T>, i32, T>                                        \
           T_MAX_2 /* 对应有符号类型的最大值（浮点设置为 1） */
 #define BasePixelT BasePixel<T, T2, FT, T_MAX, T_MAX_2>
 // 就是上面的加个下划线
@@ -16,9 +15,8 @@
   typename _T /* 储存颜色值的类型（无符号整数或浮点，有符号当作无符号） */,                        \
       typename _T2 /* 直接运算时的类型（至少大一倍防止溢出） */,                                   \
       typename _FT /* 转换成浮点数运算时的类型 */,                                                 \
-      typename std::conditional_t<std::is_floating_point_v<_T>, i32, _T>                           \
-          _T_MAX /* 最大值（浮点设置为 1） */,                                                     \
-      typename std::conditional_t<std::is_floating_point_v<_T>, i32, _T>                           \
+      typename std::conditional_t<cpp::is_float<_T>, i32, _T> _T_MAX /* 最大值（浮点设置为 1） */, \
+      typename std::conditional_t<cpp::is_float<_T>, i32, _T>                                      \
           _T_MAX_2 /* 对应有符号类型的最大值（浮点设置为 1） */
 #define _BasePixelT BasePixel<_T, _T2, _FT, _T_MAX, _T_MAX_2>
 

@@ -1,1 +1,0 @@
-#define unitest static inline __attribute__((always_inline)) int _unitest_##__COUNTER__()

@@ -5,26 +5,8 @@ namespace pl2d {
 
 template <BasePixelTemplate>
 BasePixelT::BasePixel(u32 c) {
-#if COLOR_READABLE_HEX
-#  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-  byte r = c >> 24, g = c >> 16, b = c >> 8, a = c;
-#  else
-  byte r = c, g = c >> 8, b = c >> 16, a = c >> 24;
-#  endif
-#elif COLOR_USE_BGR
-#  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-  byte b = c, g = c >> 8, r = c >> 16, a = c >> 24;
-#  else
-  byte b = c >> 24, g = c >> 16, r = c >> 8, a = c;
-#  endif
-#else
-#  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-  byte r = c, g = c >> 8, b = c >> 16, a = c >> 24;
-#  else
-  byte r = c >> 24, g = c >> 16, b = c >> 8, a = c;
-#  endif
-#endif
-  if constexpr (std::is_floating_point_v<T>) {
+  DESTRUCT_RGBA(c, r, g, b, a)
+  if constexpr (cpp::is_float<T>) {
     this->r = r / (T)255;
     this->g = g / (T)255;
     this->b = b / (T)255;
@@ -40,11 +22,15 @@ BasePixelT::BasePixel(u32 c) {
 template <BasePixelTemplate>
 template <_BasePixelTemplate>
 BasePixelT::BasePixel(const _BasePixelT &p) {
-  if constexpr (T_MAX == T_MAX_2 && _T_MAX == _T_MAX_2) {
-    r = p.r, g = p.g, b = p.b, a = p.a;
-  } else if constexpr (T_MAX == T_MAX_2 && _T_MAX != _T_MAX_2) {
-    r = p.r / (T)_T_MAX, g = p.g / (T)_T_MAX, b = p.b / (T)_T_MAX, a = p.a / (T)_T_MAX;
-  } else if constexpr (T_MAX != T_MAX_2 && _T_MAX == _T_MAX_2) {
+  if constexpr (cpp::is_float<T> && cpp::is_float<_T>) {
+    r = (T)p.r, g = (T)p.g, b = (T)p.b, a = (T)p.a;
+  } else if constexpr (cpp::is_float<T> && !cpp::is_float<_T>) {
+    if constexpr (sizeof(FT) >= sizeof(_FT)) {
+      r = p.r / (T)_T_MAX, g = p.g / (T)_T_MAX, b = p.b / (T)_T_MAX, a = p.a / (T)_T_MAX;
+    } else {
+      r = p.r / (_FT)_T_MAX, g = p.g / (_FT)_T_MAX, b = p.b / (_FT)_T_MAX, a = p.a / (_FT)_T_MAX;
+    }
+  } else if constexpr (!cpp::is_float<T> && cpp::is_float<_T>) {
     r = cpp::clamp((FT)p.r, (FT)0, (FT)1) * T_MAX, g = cpp::clamp((FT)p.g, (FT)0, (FT)1) * T_MAX;
     b = cpp::clamp((FT)p.b, (FT)0, (FT)1) * T_MAX, a = cpp::clamp((FT)p.a, (FT)0, (FT)1) * T_MAX;
   } else {
@@ -76,7 +62,7 @@ template BasePixelDT::BasePixel(const BasePixelIT &);
 template BasePixelDT::BasePixel(const BasePixelFT &);
 
 template <BasePixelTemplate>
-BasePixelT::operator u32() {
+BasePixelT::operator u32() const {
   const PixelB p = *this;
   return RGBA(p.r, p.g, p.b, p.a);
 }

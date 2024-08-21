@@ -13,3 +13,4 @@ endif()
 add_compile_flag("-fmerge-all-constants") # 合并所有常量
 add_compile_flag("-fno-keep-static-consts") # 不保留 static 常量
 add_compile_flag("-fomit-frame-pointer") # 删除小函数的栈帧 (gcc O1)
+add_compile_flag("-ffast-math") # 优化浮点运算 (gcc Ofast)

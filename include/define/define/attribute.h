@@ -59,6 +59,8 @@
 
 #define __deprecated __attr(deprecated)
 
+#define USED __attr(used)
+
 // __attribute__((overloadable)) 是 clang 扩展，使 C 函数可以被重载
 
 #ifdef __cplusplus

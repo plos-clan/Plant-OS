@@ -160,13 +160,11 @@ static auto pow(f64 a, f64 b) -> f64 {
 }
 #else
 static auto pow(f32 a, f32 b) -> f32 {
-  return __builtin_powf(a, b);
   i32 c  = b;
   b     -= c;
   return exp2(b * log2(a)) * pow(a, c);
 }
 static auto pow(f64 a, f64 b) -> f64 {
-  return __builtin_pow(a, b);
   i64 c  = b;
   b     -= c;
   return exp2(b * log2(a)) * pow(a, c);

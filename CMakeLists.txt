@@ -34,7 +34,10 @@ add_subdirectory(include)
 
 set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 
-set_optim_flag("-g -O1")
+# set_optim_flag("-g -O1") # 调试开 O1
+set_optim_flag("-g -Ofast") # 编译开 O3
+
+add_compile_flag("-march=native")
 
 include(cmake/optim) # 优化选项
 include(cmake/lto) # 链接时优化

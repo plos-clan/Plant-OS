@@ -61,7 +61,7 @@ void plac_write_header_v1(plac_compress_t plac, u32 samplerate, u64 nsamples) {
 }
 
 void plac_write_header(plac_compress_t plac, u32 samplerate, u64 nsamples) {
-  plac_write_header_v1(samplerate, nsamples);
+  plac_write_header_v1(plac, samplerate, nsamples);
 }
 
 void plac_write_data(plac_compress_t plac, quantized_t q) {

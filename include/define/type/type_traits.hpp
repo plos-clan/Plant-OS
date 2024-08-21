@@ -8,6 +8,9 @@ namespace cpp {
 template <bool cond>
 using enable_if = std::enable_if_t<cond>;
 
+template <typename T>
+inline constexpr bool is_float = std::is_floating_point_v<T>;
+
 template <typename base, typename derived>
 inline constexpr bool is_base_of = std::is_base_of_v<base, derived>;
 

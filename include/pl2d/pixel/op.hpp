@@ -44,7 +44,7 @@ auto BasePixelT::operator-=(const BasePixel &s) -> BasePixel & {
 template <BasePixelTemplate>
 template <typename U>
 auto BasePixelT::operator*(U s) const -> BasePixel
-requires(std::is_floating_point_v<U>)
+requires(cpp::is_float<U>)
 {
   return BasePixel{
       (T)(r * s),
@@ -57,7 +57,7 @@ requires(std::is_floating_point_v<U>)
 template <BasePixelTemplate>
 template <typename U>
 auto BasePixelT::operator*=(U s) -> BasePixel &
-requires(std::is_floating_point_v<U>)
+requires(cpp::is_float<U>)
 {
   r *= r;
   g *= s;
@@ -69,7 +69,7 @@ requires(std::is_floating_point_v<U>)
 template <BasePixelTemplate>
 template <typename U>
 auto BasePixelT::operator/(U s) const -> BasePixel
-requires(std::is_floating_point_v<U>)
+requires(cpp::is_float<U>)
 {
   return BasePixel{
       (T)(r / s),
@@ -82,7 +82,7 @@ requires(std::is_floating_point_v<U>)
 template <BasePixelTemplate>
 template <typename U>
 auto BasePixelT::operator/=(U s) -> BasePixel &
-requires(std::is_floating_point_v<U>)
+requires(cpp::is_float<U>)
 {
   r /= s;
   g /= s;

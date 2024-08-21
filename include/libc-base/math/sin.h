@@ -88,6 +88,24 @@ static f64 cos(f64 x) {
 }
 #  endif
 
+#  if __has(sincos)
+static void sincosf(f32 x, f32 *s, f32 *c) {
+  __builtin_sincosf(x, s, c);
+}
+static void sincos(f64 x, f64 *s, f64 *c) {
+  __builtin_sincos(x, s, c);
+}
+#  else
+static void sincosf(f32 x, f32 *s, f32 *c) {
+  *s = sinf(x);
+  *c = cosf(x);
+}
+static void sincos(f64 x, f64 *s, f64 *c) {
+  *s = sin(x);
+  *c = cos(x);
+}
+#  endif
+
 #  if __has(tan)
 static f32 tanf(f32 x) {
   return __builtin_tanf(x);
