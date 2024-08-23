@@ -1,19 +1,19 @@
 // This code is released under the MIT License
 
+#include "kernel/logging.h"
+#include "libc-base/string/str.h"
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
 #include <pl_readline.h>
 #include <plty.h>
 
-u8  *shell_data;
+u8 *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
-int  os_execute(char *filename, char *line);
+int os_execute(char *filename, char *line);
 
-void idle_loop() {
-  infinite_loop task_next();
-}
+void idle_loop() { infinite_loop task_next(); }
 void insert_char(char *str, int pos, char ch);
 void delete_char(char *str, int pos);
 
@@ -73,41 +73,92 @@ void list_files(char *path) {
 
 int readline_getch() {
   int ch;
-  while ((ch = getch()) == 0) {}
-  if (ch == -1) return PL_READLINE_KEY_UP;
-  if (ch == -2) return PL_READLINE_KEY_DOWN;
-  if (ch == -3) return PL_READLINE_KEY_LEFT;
-  if (ch == -4) return PL_READLINE_KEY_RIGHT;
-  if (ch == '\n') return PL_READLINE_KEY_ENTER;
-  if (ch == '\b') return PL_READLINE_KEY_BACKSPACE;
-  if (ch == '\t') return PL_READLINE_KEY_TAB;
+  while ((ch = getch()) == 0) {
+  }
+  if (ch == -1)
+    return PL_READLINE_KEY_UP;
+  if (ch == -2)
+    return PL_READLINE_KEY_DOWN;
+  if (ch == -3)
+    return PL_READLINE_KEY_LEFT;
+  if (ch == -4)
+    return PL_READLINE_KEY_RIGHT;
+  if (ch == '\n')
+    return PL_READLINE_KEY_ENTER;
+  if (ch == '\b')
+    return PL_READLINE_KEY_BACKSPACE;
+  if (ch == '\t')
+    return PL_READLINE_KEY_TAB;
   return ch;
 }
+void flush() { return; }
+void handle_tab(char *buf, pl_readline_words_t words) {
+  klogd("buf = %s", buf);
+  if(buf[0] != '/' && strlen(buf)) {
+    return;
+  }
+  char *s = malloc(strlen(buf) + 2);
+  memcpy(s, buf, strlen(buf) + 1);
+  if (strlen(s)) {
+    for(int i = strlen(s);i >= 0;i--) {
+      if(s[i] == '/') {
+        s[i + 1] = '\0';
+        klogw("%s", s);
+        break;
+      }
+    }
+  } else {
+    s[0] = '/';
+    s[1] = '\0';
+  }
+  
+  vfs_node_t p = vfs_open(s);
+  if (!p) {
+    free(s);
+    return;
+  }
+  // 使用pl_readline_word_maker_add(char *word, pl_readline_words_t words, bool
+  // is_first)
 
+  // 添加words中的单词
+  list_foreach(p->child, i) {
+    vfs_node_t c = (vfs_node_t)i->data;
+    klogd("%s", c->name);
+    char *new_path = pathcat(s, c->name);
+    pl_readline_word_maker_add(new_path, words, false);
+    free(new_path);
+  }
+  free(s);
+}
 void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
-  void *kbuf  = page_malloc_one();
+  void *kbuf = page_malloc_one();
   cir_queue8_init(kfifo, 0x1000, kbuf);
   current_task()->keyfifo = (cir_queue8_t)kfifo;
-  char         *path      = malloc(1024);
-  char         *ch        = malloc(255);
+  char *path = malloc(1024);
+  char *ch = malloc(255);
   pl_readline_t n;
-  n = pl_readline_init(readline_getch, putchar);
+  n = pl_readline_init(readline_getch, putchar, flush, handle_tab);
   sprintf(path, "/");
   while (true) {
-    printf("%s# ", path);
-    pl_readline(n, ch, 255);
+    char buf[255];
+    sprintf(buf, "%s# ", path);
+    pl_readline(n, buf, ch, 255);
 
     if (strneq(ch, "cd ", 3)) {
       char *s = ch + 3;
-      if (streq(s, ".")) continue;
+      if (streq(s, "."))
+        continue;
       if (streq(s, "..")) {
-        if (streq(s, "/")) continue;
+        if (streq(s, "/"))
+          continue;
         char *n = path + strlen(path);
-        while (*--n != '/' && n != path) {}
+        while (*--n != '/' && n != path) {
+        }
         *n = '\0';
-        if (strlen(path) == 0) strcpy(path, "/");
+        if (strlen(path) == 0)
+          strcpy(path, "/");
         continue;
       }
       if (streq(path, "/"))
@@ -115,11 +166,12 @@ void shell() {
       else
         sprintf(path, "%s/%s", path, s);
     } else if (strneq(ch, "exec ", 5)) {
-      char *s  = ch + 5;
+      char *s = ch + 5;
       char *s2 = strchr(s, ' ');
-      if (s2) *s2 = '\0';
-      char *s3   = strdup(s);
-      *s2        = ' ';
+      if (s2)
+        *s2 = '\0';
+      char *s3 = strdup(s);
+      *s2 = ' ';
       int status = os_execute(s3, s);
       printf("%s exited with code %d\n", s3, status);
       free(s3);
@@ -136,8 +188,8 @@ void scan_files(char *path) {
   assert(p, "open %s failed", path);
   assert(p->type == file_dir);
   list_foreach(p->child, i) {
-    vfs_node_t c        = (vfs_node_t)i->data;
-    char      *new_path = pathcat(path, c->name);
+    vfs_node_t c = (vfs_node_t)i->data;
+    char *new_path = pathcat(path, c->name);
     if (c->type == file_dir) {
       scan_files(new_path);
     } else {
@@ -148,8 +200,8 @@ void scan_files(char *path) {
 }
 
 plff_t load_font(cstr path) {
-  auto  file = vfs_open(path);
-  byte *buf  = malloc(file->size);
+  auto file = vfs_open(path);
+  byte *buf = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
   auto font = plff_load_from_mem(buf, file->size);
   klogi("font %s: %d %d %d", path, font->nchars, font->height, font->channels);
@@ -224,8 +276,6 @@ void init() {
   // }
 
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
-
 
   infinite_loop task_next();
 }
