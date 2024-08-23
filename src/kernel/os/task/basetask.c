@@ -226,10 +226,6 @@ void init() {
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);
 
-  printi("%d alloced pages", page_get_alloced());
-  int status = os_execute("/fatfs1/testapp-cpp.bin", "/fatfs1/testapp-cpp.bin 1 2 3");
-  printi("TESTAPP-CPP.BIN exit with code %d", status);
-  printi("%d alloced pages", page_get_alloced());
 
   infinite_loop task_next();
 }

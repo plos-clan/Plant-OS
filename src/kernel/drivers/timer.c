@@ -1,3 +1,4 @@
+#include "libc-base/string/mem.h"
 #include <kernel.h>
 
 #define PIT_CTRL 0x0043
