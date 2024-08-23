@@ -5,13 +5,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ----------------------------------------------------------------------------------------------------
 # 编译器配置
 
-enable_language(ASM_NASM)
 set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS asm ASM)
+set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
 
 # ----------------------------------------------------------------------------------------------------
 # 项目配置
 
 project(Plant-OS VERSION 0.0.0)
+
+enable_language(ASM_NASM)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
@@ -33,15 +35,16 @@ add_subdirectory(include)
 # 以下设定 本机 编译配置
 
 set_compile_flag("-std=gnu2x" "-std=gnu++2b")
+set_link_flag("")
 
 # set_optim_flag("-g -O1") # 调试开 O1
-set_optim_flag("-g -Ofast") # 编译开 O3
+set_optim_flag("-Ofast") # 编译开 O3
 
 add_compile_flag("-march=native")
 
 include(cmake/optim) # 优化选项
 include(cmake/lto) # 链接时优化
-# include(cmake/code-gc) # 删除重复代码
+include(cmake/code-gc) # 删除重复代码
 
 include(cmake/disable-warning)
 
@@ -55,6 +58,7 @@ add_subdirectory(util)
 # 以下设定 PLOS 编译配置
 
 set_compile_flag("-std=gnu2x" "-std=gnu++2b") # 使用新的 C/C++ 版本
+set_link_flag("")
 
 set_optim_flag("-g -O1")
 # set_optim_flag("-O1") # 测试通过
@@ -66,7 +70,7 @@ set_optim_flag("-g -O1")
 # endif()
 
 # 告诉编译器没有标准库 (但似乎不需要这个)
-# set_link_flag("-nolibc -Qn")
+# add_link_flag("-nolibc -Qn")
 
 include(cmake/optim) # 优化选项
 include(cmake/lto) # 链接时优化
