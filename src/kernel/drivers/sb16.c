@@ -58,8 +58,9 @@ struct __PACKED__ WAV16_HEADER {
 static void *const DMA_BUF_ADDR1 = (void *)0x90000;                // 不能跨越 64K 边界
 static void *const DMA_BUF_ADDR2 = (void *)0x90000 + DMA_BUF_SIZE; // 不能跨越 64K 边界
 
-#define SAMPLE_RATE 44100 // 采样率
-#define SB16_IRQ    5
+#define SB16_IRQ 5
+
+static int sample_rate = 44100;
 
 struct sb16 {
   mtask          *use_task;
@@ -96,8 +97,8 @@ static void sb_out(u8 cmd) {
 void sb16_do_dma() {
   // 设置采样率
   sb_out(CMD_SOSR);                  // 44100 = 0xAC44
-  sb_out((SAMPLE_RATE >> 8) & 0xFF); // 0xAC
-  sb_out(SAMPLE_RATE & 0xFF);        // 0x44
+  sb_out((sample_rate >> 8) & 0xFF); // 0xAC
+  sb_out(sample_rate & 0xFF);        // 0x44
 
   dma_send(sb.channel, (u32)(sb.addr2), sb.size2, 0);
   if (sb.mode == MODE_MONO8) {
@@ -176,11 +177,12 @@ void sb16_set_volume(u8 level) {
   asm_out8(SB_MIXER_DATA, level);
 }
 
-void sb16_open() {
+void sb16_open(int rate) {
   while (sb.use_task) {}
   asm_cli;
   sb.use_task = current_task();
   asm_sti;
+  sample_rate = rate;
   sb_reset();     // 重置 DSP
   sb_intr_irq();  // 设置中断
   sb_out(CMD_ON); // 打开声卡
