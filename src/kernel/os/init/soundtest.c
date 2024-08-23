@@ -68,7 +68,7 @@ void sound_test() {
   F               = g(0);
   G               = g(T);
   const int total = T + ((128 - F) + (128 - G)) * K;
-  sb16_open();
+  sb16_open(44100);
   sb16_set_volume(128);
   byte *buffer = malloc(buffer_len);
   for (int offset = 0;; offset++) {
@@ -104,16 +104,16 @@ void sound_test() {
   byte *buf  = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
 
-  sb16_open();
-  sb16_set_volume(128);
-
   plac_decompress_t dctx = plac_decompress_alloc(buf, file->size);
   dctx->callback         = play_audio;
   dctx->userdata         = dctx;
 
-  u16 samplerate;
-  u32 nsamples;
+  u32 samplerate;
+  u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
+
+  sb16_open(samplerate);
+  sb16_set_volume(128);
 
   while (plac_decompress_block(dctx)) {}
 
