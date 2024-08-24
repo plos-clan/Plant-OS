@@ -136,7 +136,7 @@ void pl_readline_next_line(_SELF, pl_readline_runtime *rt) {
 }
 
 // 处理输入的字符
-static int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
+int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
   if (ch != PL_READLINE_KEY_TAB) {
     rt->intellisense_mode = false;
     if (rt->intellisense_word) {

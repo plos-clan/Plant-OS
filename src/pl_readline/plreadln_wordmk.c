@@ -29,7 +29,7 @@ void pl_readline_word_maker_destroy(pl_readline_words_t words) {
   free(words);
 }
 int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
-                               bool is_first) {
+                               bool is_first, char sep) {
   if (words->len >= words->max_len) {
     words->max_len *= 2;
     words->words = realloc(words->words, words->max_len * sizeof(char *));
@@ -37,6 +37,7 @@ int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
   }
   words->words[words->len].first = is_first;
   words->words[words->len].word = strdup(word);
+  words->words[words->len].sep = sep;
   words->len++;
   return 0;
 }

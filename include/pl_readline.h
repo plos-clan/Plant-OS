@@ -23,6 +23,8 @@ typedef struct pl_readline_word {
     如果是“qwe ab”则不会补全"qwe abc"，除非first为false.
   */
   bool first;
+
+  char sep; // 分隔符
 } pl_readline_word;
 
 typedef struct pl_readline_words {
@@ -63,9 +65,10 @@ pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
 void pl_readline_insert_char_and_view(_SELF, char ch, pl_readline_runtime *rt);
 void pl_readline_insert_char(char *str, char ch, int idx);
 int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
-                               bool is_first);
+                               bool is_first, char sep);
 void pl_readline_print(_SELF, char *str);
 void pl_readline_intellisense_insert(_SELF, pl_readline_runtime *rt,
                                      pl_readline_word words);
 void pl_readline_word_maker_destroy(pl_readline_words_t words);
 void pl_readline_next_line(_SELF, pl_readline_runtime *rt);
+int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt);

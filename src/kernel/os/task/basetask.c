@@ -92,9 +92,9 @@ int readline_getch() {
 }
 void flush() { return; }
 void handle_tab(char *buf, pl_readline_words_t words) {
-  pl_readline_word_maker_add("cd", words, true);
-  pl_readline_word_maker_add("exec", words, true);
-  pl_readline_word_maker_add("ls", words, true);
+  pl_readline_word_maker_add("cd", words, true,' ');
+  pl_readline_word_maker_add("exec", words, true,' ');
+  pl_readline_word_maker_add("ls", words, true, ' ');
   
   if(buf[0] != '/' && strlen(buf)) {
     return;
@@ -127,7 +127,11 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     vfs_node_t c = (vfs_node_t)i->data;
     klogd("%s", c->name);
     char *new_path = pathcat(s, c->name);
-    pl_readline_word_maker_add(new_path, words, false);
+    if (c->type == file_dir) {
+    pl_readline_word_maker_add(new_path, words, false, '/');
+    } else {
+      pl_readline_word_maker_add(new_path, words, false,' ');
+    }
     free(new_path);
   }
   free(s);

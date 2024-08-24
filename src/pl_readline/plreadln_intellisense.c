@@ -69,7 +69,7 @@ pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
   }
   self->pl_readline_get_words(buf, words);
   int can_be_selected = 0;
-
+  char sep;
   for (int i = 0; i < words->len; i++) {
     if (strncmp(buf, words->words[i].word, idx) == 0 &&
         (is_first || !words->words[i].first)) {
@@ -80,6 +80,7 @@ pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
         buf1[rt->input_buf_ptr] = '\0';
         if (strcmp(words->words[i].word, buf1) == 0) {
           flag = 1;
+          sep = words->words[i].sep;
         } else {
           can_be_selected++;
         }
@@ -89,6 +90,8 @@ pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
   }
   if (can_be_selected == 0 && flag == 1) {
     pl_readline_word_maker_destroy(words);
+    if (sep)
+      pl_readline_handle_key(self, sep, rt);
     return (pl_readline_word){0};
   }
 
@@ -106,7 +109,7 @@ pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
         continue;
       }
       if (!rt->intellisense_mode) {
-        pl_readline_word_maker_add(words->words[i].word, words_temp, false);
+        pl_readline_word_maker_add(words->words[i].word, words_temp, false, 0);
         if (the_word == NULL || strlen(words->words[i].word) < strlen(the_word))
           the_word = words->words[i].word;
       } else {

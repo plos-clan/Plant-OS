@@ -29,7 +29,7 @@
   - state: `In progress`
   - author: copi143
 - pl_readline
-  - state: `In progress`
+  - state: `Final`
   - author: min0911Y
 - data-structure
   - state: `In progress`
