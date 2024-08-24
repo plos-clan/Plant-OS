@@ -73,6 +73,7 @@ static void pl_readline_to_the_end(_SELF, int n) {
   sprintf(buf, "\e[%dC", n);
   pl_readline_print(self, buf);
 }
+
 // 处理向上向下键
 static void pl_readline_handle_key_down_up(_SELF, pl_readline_runtime *rt,
                                            int n) {
@@ -125,7 +126,7 @@ void pl_readline_insert_char_and_view(_SELF, char ch, pl_readline_runtime *rt) {
 void pl_readline_next_line(_SELF, pl_readline_runtime *rt) {
   int n = rt->length - rt->p;
   char buf[255] = {0};
-  if(!n) {
+  if (!n) {
     pl_readline_print(self, "\n");
     return;
   }
@@ -280,7 +281,6 @@ static int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
       }
       self->pl_readline_hal_flush();
     }
-    pl_readline_word_maker_destroy(words);
     break;
   }
   case ' ': {

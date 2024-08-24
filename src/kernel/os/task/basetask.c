@@ -1,7 +1,6 @@
 // This code is released under the MIT License
 
-#include "kernel/logging.h"
-#include "libc-base/string/str.h"
+
 #include <font.h>
 #include <fs.h>
 #include <kernel.h>
@@ -93,7 +92,10 @@ int readline_getch() {
 }
 void flush() { return; }
 void handle_tab(char *buf, pl_readline_words_t words) {
-  klogd("buf = %s", buf);
+  pl_readline_word_maker_add("cd", words, true);
+  pl_readline_word_maker_add("exec", words, true);
+  pl_readline_word_maker_add("ls", words, true);
+  
   if(buf[0] != '/' && strlen(buf)) {
     return;
   }
