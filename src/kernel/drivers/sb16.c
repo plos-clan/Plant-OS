@@ -45,10 +45,10 @@ struct __PACKED__ WAV16_HEADER {
 #define CMD_RP16    0xD6 // Resume playback of 16 bit channel
 #define CMD_VERSION 0xE1 // Turn speaker off
 
-#define MODE_MONO8    0x00
-#define MODE_STEREO8  0x20
-#define MODE_MONO16   0x10
-#define MODE_STEREO16 0x30
+#define MODE_SMONO   (0b01 << 4)
+#define MODE_SSTEREO (0b11 << 4)
+#define MODE_UMONO   (0b00 << 4)
+#define MODE_USTEREO (0b10 << 4)
 
 #define STATUS_READ  0x80 // read buffer status
 #define STATUS_WRITE 0x80 // write buffer status
@@ -71,6 +71,7 @@ struct sb16 {
   volatile size_t size2;   //
   u8              mode;    // 模式
   u8              channel; // DMA 通道
+  byte            depth;   // 采样深度
 };
 
 struct sound_settings {
@@ -96,21 +97,17 @@ static void sb_out(u8 cmd) {
 
 void sb16_do_dma() {
   // 设置采样率
-  sb_out(CMD_SOSR);                  // 44100 = 0xAC44
-  sb_out((sample_rate >> 8) & 0xFF); // 0xAC
-  sb_out(sample_rate & 0xFF);        // 0x44
+  sb_out(CMD_SOSR);
+  sb_out((sample_rate >> 8) & 0xFF);
+  sb_out(sample_rate & 0xFF);
 
-  dma_send(sb.channel, (u32)(sb.addr2), sb.size2, 0);
-  if (sb.mode == MODE_MONO8) {
-    sb_out(CMD_SINGLE_OUT8);
-    sb_out(MODE_MONO8);
-  } else {
-    sb_out(CMD_SINGLE_OUT16);
-    sb_out(MODE_STEREO16);
-  }
+  dma_send(sb.channel, 1, (u32)(sb.addr2), sb.size2, 0, sb.depth == 16);
+  sb_out(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
+  sb_out(sb.mode);
 
-  sb_out((sb.size2 - 1) & 0xFF);
-  sb_out(((sb.size2 - 1) >> 8) & 0xFF);
+  size_t len = sb.depth == 8 ? sb.size2 : sb.size2 / 2;
+  sb_out((len - 1) & 0xFF);
+  sb_out(((len - 1) >> 8) & 0xFF);
 }
 
 void sb16_do_close() {
@@ -143,7 +140,8 @@ void sb16_handler(int *esp) {
 void sb16_init() {
   sb.addr1    = DMA_BUF_ADDR1;
   sb.addr2    = DMA_BUF_ADDR2;
-  sb.mode     = MODE_STEREO16;
+  sb.mode     = MODE_SMONO;
+  sb.depth    = 16;
   sb.channel  = 5;
   sb.use_task = NULL;
   sb.size1    = 0;
@@ -177,7 +175,7 @@ void sb16_set_volume(u8 level) {
   asm_out8(SB_MIXER_DATA, level);
 }
 
-void sb16_open(int rate) {
+void sb16_open(int rate, bool is_16bit) {
   while (sb.use_task) {}
   asm_cli;
   sb.use_task = current_task();
@@ -187,14 +185,18 @@ void sb16_open(int rate) {
   sb_intr_irq();  // 设置中断
   sb_out(CMD_ON); // 打开声卡
 
-  sb.mode    = MODE_MONO8;
-  sb.channel = 1;
-  sb.size1   = 0;
-  sb.size2   = 0;
-  sb.status  = 0;
-
-  // sb.mode    = MODE_STEREO16;
-  // sb.channel = 5;
+  if (is_16bit) {
+    sb.mode    = MODE_SMONO;
+    sb.depth   = 16;
+    sb.channel = 5;
+  } else {
+    sb.mode    = MODE_UMONO;
+    sb.depth   = 8;
+    sb.channel = 1;
+  }
+  sb.size1  = 0;
+  sb.size2  = 0;
+  sb.status = 0;
 }
 
 void sb16_close() {

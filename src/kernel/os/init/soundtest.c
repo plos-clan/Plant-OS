@@ -68,7 +68,7 @@ void sound_test() {
   F               = g(0);
   G               = g(T);
   const int total = T + ((128 - F) + (128 - G)) * K;
-  sb16_open(44100);
+  sb16_open(44100, false);
   sb16_set_volume(128);
   byte *buffer = malloc(buffer_len);
   for (int offset = 0;; offset++) {
@@ -85,15 +85,27 @@ void sound_test() {
 
 #  include <plac.h>
 
+// void play_audio(f32 *block, size_t len, void *userdata) {
+//   byte *data = malloc(len);
+//   for (size_t i = 0; i < len; i++) {
+//     f32 x = block[i] * 127 + 128;
+//     if (x > 255) x = 255;
+//     if (x < 0) x = 0;
+//     data[i] = x;
+//   }
+//   sb16_write(data, len);
+//   free(data);
+// }
+
 void play_audio(f32 *block, size_t len, void *userdata) {
-  byte *data = malloc(len);
+  i16 *data = malloc(len * 2);
   for (size_t i = 0; i < len; i++) {
-    f32 x = block[i] * 127 + 128;
-    if (x > 255) x = 255;
-    if (x < 0) x = 0;
+    f32 x = block[i] * 32767;
+    if (x > 32767) x = 32767;
+    if (x < -32768) x = -32768;
     data[i] = x;
   }
-  sb16_write(data, len);
+  sb16_write(data, len * 2);
   free(data);
 }
 
@@ -112,7 +124,7 @@ void sound_test() {
   u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
-  sb16_open(samplerate);
+  sb16_open(samplerate, true);
   sb16_set_volume(128);
 
   while (plac_decompress_block(dctx)) {}

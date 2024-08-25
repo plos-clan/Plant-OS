@@ -13,11 +13,11 @@ byte PagePort[8]  = {0x87, 0x83, 0x81, 0x82, 0x8F, 0x8B, 0x89, 0x8A};
 byte AddrPort[8]  = {0x00, 0x02, 0x04, 0x06, 0xC0, 0xC4, 0xC8, 0xCC};
 byte CountPort[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
-void dma_send(byte channel, u64 address, uint length, byte read) {
+void dma_send(byte channel, byte number, u64 address, uint length, byte read, bool is_16bit) {
   byte page = 0, mode = 0;
   uint offset = 0;
 
-  mode = (read ? 0x48 : 0x44) + channel;
+  mode = (read ? 0x48 : 0x44) + number;
 
   page   = address >> 16;
   offset = address & 0xFFFF;
@@ -28,7 +28,7 @@ void dma_send(byte channel, u64 address, uint length, byte read) {
 
   // 设置DMA通道，以便我们可以正确传输数据，这很简单，只要我们用I/O操作告诉DMA控制器就行了
   // 我们将使用这个通道（DMA_channel）
-  asm_out8(MaskReg[channel], 0x04 | channel);
+  asm_out8(MaskReg[channel], 0x04 | number);
 
   /* 我们先得解除DMA对这个通道的屏蔽，不然用不了 */
   asm_out8(ClearReg[channel], 0x00);
@@ -36,19 +36,20 @@ void dma_send(byte channel, u64 address, uint length, byte read) {
   /* 向DMA发送指定的模式 */
   asm_out8(ModeReg[channel], mode);
 
-  // 发送偏移量地址，先发送高八位，再发送低八位（因为一次性最多只能发送一个byte）
-  asm_out8(AddrPort[channel], LOW_BYTE(offset));
-  asm_out8(AddrPort[channel], HI_BYTE(offset));
-
   /* 发送数据所在的物理页 */
   asm_out8(PagePort[channel], page);
+
+  // 发送偏移量地址，先发送高八位，再发送低八位（因为一次性最多只能发送一个byte）
+  if (is_16bit) offset /= 2;
+  asm_out8(AddrPort[channel], LOW_BYTE(offset));
+  asm_out8(AddrPort[channel], HI_BYTE(offset));
 
   /* 发送数据的长度 跟之前一样，先发送低八位，再发送高八位*/
   asm_out8(CountPort[channel], LOW_BYTE(length));
   asm_out8(CountPort[channel], HI_BYTE(length));
 
   /* 现在我们该做的东西已经全部做完了，所以启用DMA_channel */
-  asm_out8(MaskReg[channel], channel);
+  asm_out8(MaskReg[channel], number);
 
   /* 重新让CPU能够接收到中断 */
   asm_sti;
