@@ -7,18 +7,24 @@ void init_serial();
 void write_serial(char a);
 
 void klog_raw(cstr s) {
+  asm_cli;
   for (size_t i = 0; s[i] != '\0'; i++) {
     write_serial(s[i]);
   }
+  asm_sti;
 }
 
 void klog(cstr _rest fmt, ...) {
+  asm_cli;
   static char buf[4096];
   va_list     va;
   va_start(va, fmt);
   vsprintf(buf, fmt, va);
   va_end(va);
-  klog_raw(buf);
+  for (size_t i = 0; buf[i] != '\0'; i++) {
+    write_serial(buf[i]);
+  }
+  asm_sti;
 }
 
 static char print_buf[4096];
