@@ -144,7 +144,7 @@ finline char *strcat(char *_rest _d, cstr _rest _s) noexcept {
   return __builtin_strcat(_d, _s);
 #  else
   while (*_d++ != '\0') {}
-  while ((*_d++ = *_s) != '\0') {}
+  while ((*_d++ = *_s++) != '\0') {}
   return _d;
 #  endif
 }
