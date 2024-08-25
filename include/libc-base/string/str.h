@@ -139,19 +139,29 @@ finline char *strncpy(char *_rest d, cstr _rest s, size_t n) noexcept {
 #  endif
 }
 
-finline char *strcat(char *_rest _d, cstr _rest _s) noexcept {
+finline char *strcat(char *_rest d, cstr _rest s) noexcept {
 #  if __has(strcat)
   return __builtin_strcat(_d, _s);
 #  else
-  while (*_d++ != '\0') {}
-  while ((*_d++ = *_s++) != '\0') {}
+  char *const _d = d;
+  while (*d++ != '\0') {}
+  d--;
+  while ((*d++ = *s++) != '\0') {}
   return _d;
 #  endif
 }
 
-finline char *strncat(char *_rest _d, cstr _rest _s, size_t _n) noexcept {
-  // 未完成
-  return null;
+finline char *strncat(char *_rest d, cstr _rest s, size_t n) noexcept {
+#  if __has(strncat)
+  return __builtin_strncat(d, _s, _n);
+#  else
+  char *const _d = d;
+  while (*d++ != '\0') {}
+  d--;
+  cstr e = s + n;
+  while (s < e && (*d++ = *s++) != '\0') {}
+  return _d;
+#  endif
 }
 
 finline int strcmp(cstr _s1, cstr _s2) noexcept {
