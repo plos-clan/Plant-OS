@@ -269,8 +269,6 @@ void init() {
   //   plty_flush(tty);
   // }
 
-  sound_test();
-
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);
 

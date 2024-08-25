@@ -101,7 +101,7 @@ void sb16_do_dma() {
   sb_out((sample_rate >> 8) & 0xFF);
   sb_out(sample_rate & 0xFF);
 
-  dma_send(sb.channel, 1, (u32)(sb.addr2), sb.size2, 0, sb.depth == 16);
+  dma_send(sb.channel, (u32)(sb.addr2), sb.size2, 0, sb.depth == 16);
   sb_out(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
   sb_out(sb.mode);
 
@@ -118,16 +118,13 @@ void sb16_do_close() {
 void sb16_handler(int *esp) {
   send_eoi(SB16_IRQ);
 
-  asm_in8(SB_INTR16);
-  u8 state = asm_in8(SB_STATE);
+  asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);
 
-  asm_cli;
   sb.size2 = 0;
   if (sb.size1 > 0) {
     sb_exch_dmaaddr();
     sb16_do_dma();
   }
-  asm_cli;
 
   if (sb.status > 0) {
     sb16_do_close();
