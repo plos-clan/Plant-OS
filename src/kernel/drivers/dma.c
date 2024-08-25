@@ -14,14 +14,11 @@ byte AddrPort[8]  = {0x00, 0x02, 0x04, 0x06, 0xC0, 0xC4, 0xC8, 0xCC};
 byte CountPort[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
 void dma_send(byte channel, u64 address, uint length, byte read, bool is_16bit) {
-  byte page = 0, mode = 0;
-  uint offset = 0;
+  byte mode = (read ? 0x48 : 0x44) | (channel % 4);
 
-  mode = (read ? 0x48 : 0x44) | (channel % 4);
-
-  page   = address >> 16;
-  offset = address & 0xFFFF;
-  length--;
+  byte page   = address >> 16;
+  u16  offset = (is_16bit ? address / 2 : address);
+  length      = (is_16bit ? length / 2 : length) - 1;
 
   /* 我们不想别的事情来打扰 */
   asm_cli;
@@ -40,7 +37,6 @@ void dma_send(byte channel, u64 address, uint length, byte read, bool is_16bit) 
   asm_out8(PagePort[channel], page);
 
   // 发送偏移量地址，先发送高八位，再发送低八位（因为一次性最多只能发送一个byte）
-  if (is_16bit) offset /= 2;
   asm_out8(AddrPort[channel], LOW_BYTE(offset));
   asm_out8(AddrPort[channel], HI_BYTE(offset));
 
