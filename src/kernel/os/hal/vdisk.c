@@ -18,7 +18,7 @@ int register_vdisk(vdisk vd) {
   for (int i = 0; i < 26; i++) {
     if (!vdisk_ctl[i].flag) {
       vdisk_ctl[i] = vd; // 找到了！
-      return i;  // 注册成功，返回drive
+      return i;          // 注册成功，返回drive
     }
   }
   printe("not found\n");
