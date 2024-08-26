@@ -16,7 +16,7 @@ pl_readline_words_t pl_readline_word_maker_init() {
   pl_readline_words_t words = malloc(sizeof(struct pl_readline_words));
   words->len = 0;      // initial length
   words->max_len = 16; // initial max length
-  words->words = malloc(words->max_len * sizeof(char *));
+  words->words = malloc(words->max_len * sizeof(pl_readline_word));
   assert(words->words != NULL);
   return words;
 }
@@ -32,7 +32,7 @@ int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
                                bool is_first, char sep) {
   if (words->len >= words->max_len) {
     words->max_len *= 2;
-    words->words = realloc(words->words, words->max_len * sizeof(char *));
+    words->words = realloc(words->words, words->max_len * sizeof(pl_readline_word));
     assert(words->words != NULL);
   }
   words->words[words->len].first = is_first;

@@ -177,7 +177,7 @@ err:
   free(path);
   return null;
 }
-
+void devfs_regist();
 bool vfs_init() {
   for (size_t i = 0; i < sizeof(struct vfs_callback) / sizeof(void *); i++) {
     ((void **)&vfs_empty_callback)[i] = empty_func;
@@ -185,7 +185,7 @@ bool vfs_init() {
 
   fatfs_regist();
   tmpfs_regist();
-
+  devfs_regist();
   rootdir       = vfs_node_alloc(null, null);
   rootdir->type = file_dir;
   return true;

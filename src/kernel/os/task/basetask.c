@@ -92,7 +92,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("ls", words, true, ' ');
   pl_readline_word_maker_add("pcils", words, true, ' ');
   pl_readline_word_maker_add("exit", words, true, ' ');
-  
+
   if (buf[0] != '/' && strlen(buf)) { return; }
   char *s = malloc(strlen(buf) + 2);
   memcpy(s, buf, strlen(buf) + 1);
@@ -226,7 +226,6 @@ void plty_set_default(plty_t plty);
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-  
   // klogd("Set Mode");
   byte *vram = (void *)set_mode(1024, 768, 32);
   klogd("ok vram = %p", vram);
@@ -234,6 +233,8 @@ void init() {
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
 
+  vfs_mkdir("/dev");
+  vfs_mount(NULL, vfs_open("/dev"));
   int s = 0;
   vfs_mkdir("/fatfs0");
   vfs_mount((cstr)&s, vfs_open("/fatfs0"));

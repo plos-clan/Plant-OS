@@ -107,6 +107,7 @@ void fatfs_close(file_t handle) {
 }
 
 int fatfs_mount(cstr src, vfs_node_t node) {
+  if(!src) return -1;
   int drive  = *(int *)src;
   assert(drive < 10 && drive >= 0);
   char *path = malloc(3);
