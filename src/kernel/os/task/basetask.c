@@ -216,7 +216,7 @@ void init() {
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
 
-  int s = 0x41;
+  int s = 0;
   vfs_mkdir("/fatfs0");
   vfs_mount((cstr)&s, vfs_open("/fatfs0"));
   s++;
@@ -270,7 +270,7 @@ void init() {
   // }
 
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
+  // create_task((u32)sound_test, 0, 1, 1);
 
   infinite_loop task_next();
 }

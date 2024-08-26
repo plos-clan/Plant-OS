@@ -51,6 +51,7 @@ void task_app() {
   u32 pde                       = current_task()->pde;
   asm_cli;
   asm_set_cr3(PDE_ADDRESS);
+  current_task()->pde = PDE_ADDRESS;
   klogd("P1 %08x", current_task()->pde);
   for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
@@ -81,6 +82,7 @@ void task_app() {
       }
     }
   }
+  current_task()->pde = pde;
   asm_sti;
   asm_set_cr3(pde);
   klogd("go to task_to_usermode_elf(%s)", filename);

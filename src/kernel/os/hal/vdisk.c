@@ -18,7 +18,7 @@ int register_vdisk(vdisk vd) {
   for (int i = 0; i < 26; i++) {
     if (!vdisk_ctl[i].flag) {
       vdisk_ctl[i] = vd; // 找到了！
-      return i + ('A');  // 注册成功，返回drive
+      return i;  // 注册成功，返回drive
     }
   }
   printe("not found\n");
@@ -26,7 +26,7 @@ int register_vdisk(vdisk vd) {
 }
 
 int logout_vdisk(int drive) {
-  int indx = drive - ('A');
+  int indx = drive;
   if (indx > 26) {
     return 0; // 失败
   }
@@ -39,7 +39,7 @@ int logout_vdisk(int drive) {
 }
 
 int rw_vdisk(int drive, u32 lba, u8 *buffer, u32 number, int read) {
-  int indx = drive - ('A');
+  int indx = drive;
   if (indx > 26) {
     return 0; // 失败
   }
@@ -56,7 +56,7 @@ int rw_vdisk(int drive, u32 lba, u8 *buffer, u32 number, int read) {
 }
 
 bool have_vdisk(int drive) {
-  int indx = drive - 'A';
+  int indx = drive;
   // printk("drive=%c\n",drive);
   if (indx > 26) {
     return 0; // 失败
@@ -130,7 +130,7 @@ void Disk_Read(u32 lba, u32 number, void *buffer, int drive) {
 u32 disk_Size(int drive) {
   u8 drive1 = drive;
   if (have_vdisk(drive1)) {
-    int indx = drive1 - 'A';
+    int indx = drive1;
     return vdisk_ctl[indx].size;
   } else {
     klog("Disk Not Ready.\n");
@@ -164,7 +164,7 @@ void Disk_Write(u32 lba, u32 number, const void *buffer, int drive) {
 
 bool CDROM_Read(u32 lba, u32 number, void *buffer, int drive) {
   if (have_vdisk(drive)) {
-    int indx = drive - ('A');
+    int indx = drive;
     if (vdisk_ctl[indx].flag != 2) {
       kloge("Not a cdrom");
       return false;

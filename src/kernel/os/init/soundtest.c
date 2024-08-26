@@ -124,7 +124,7 @@ void sound_test() {
   u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
-  sb16_open(samplerate, true);
+  sb16_open(44100, true);
   sb16_set_volume(128);
 
   while (plac_decompress_block(dctx)) {}
