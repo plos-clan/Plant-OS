@@ -92,7 +92,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("ls", words, true, ' ');
   pl_readline_word_maker_add("pcils", words, true, ' ');
   pl_readline_word_maker_add("exit", words, true, ' ');
-  
+
   if (buf[0] != '/' && strlen(buf)) { return; }
   char *s = malloc(strlen(buf) + 2);
   memcpy(s, buf, strlen(buf) + 1);
@@ -188,8 +188,7 @@ void shell() {
       pci_list();
     } else if (streq(ch, "exit")) {
       syscall_exit(0);
-    }
-    else {
+    } else {
       printf("bad command\n");
     }
   }
@@ -226,7 +225,7 @@ void plty_set_default(plty_t plty);
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-  
+
   // klogd("Set Mode");
   byte *vram = (void *)set_mode(1024, 768, 32);
   klogd("ok vram = %p", vram);
@@ -288,7 +287,7 @@ void init() {
   // }
 
   create_task((u32)shell, 0, 1, 1);
-  // create_task((u32)sound_test, 0, 1, 1);
+  create_task((u32)sound_test, 0, 1, 1);
 
   infinite_loop task_next();
 }

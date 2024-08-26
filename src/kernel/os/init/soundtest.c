@@ -97,14 +97,24 @@ void sound_test() {
 //   free(data);
 // }
 
+// void play_audio(f32 *block, size_t len, void *userdata) {
+//   i16 *data = malloc(len * 2);
+//   for (size_t i = 0; i < len; i++) {
+//     f32 x = block[i] * 32767;
+//     if (x > 32767) x = 32767;
+//     if (x < -32768) x = -32768;
+//     data[i] = x;
+//   }
+//   sb16_write(data, len * 2);
+//   free(data);
+// }
+
+#  include <sound.h>
+
 void play_audio(f32 *block, size_t len, void *userdata) {
   i16 *data = malloc(len * 2);
-  for (size_t i = 0; i < len; i++) {
-    f32 x = block[i] * 32767;
-    if (x > 32767) x = 32767;
-    if (x < -32768) x = -32768;
-    data[i] = x;
-  }
+  int  rets = sound_fmt_conv(data, sound_fmt_S16, block, sound_fmt_F32, len);
+  klogw("%d", rets);
   sb16_write(data, len * 2);
   free(data);
 }

@@ -81,7 +81,7 @@ enum class SoundFmt : i32 {
   FMT(F64)    = FMT(F64B),
 #endif
 #ifndef __cplusplus
-} sSound_pcmfmt_t;
+} sound_pcmfmt_t;
 #else
 };
 #endif
