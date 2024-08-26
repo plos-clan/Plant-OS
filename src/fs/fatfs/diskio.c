@@ -17,7 +17,6 @@
 
 DSTATUS disk_status(byte pdrv /* Physical drive nmuber to identify the drive */
 ) {
-  klogd();
   DSTATUS stat = STA_NOINIT;
   int     result;
   if (have_vdisk(pdrv)) stat &= ~STA_NOINIT;
@@ -46,7 +45,7 @@ DRESULT disk_read(byte  pdrv,   /* Physical drive nmuber to identify the drive *
                   LBA_t sector, /* Start sector in LBA */
                   uint  count   /* Number of sectors to read */
 ) {
-  DRESULT res  = RES_PARERR;
+  DRESULT res = RES_PARERR;
   if (!have_vdisk(pdrv)) return RES_PARERR;
   Disk_Read(sector, count, buff, pdrv);
   res = RES_OK;
@@ -64,7 +63,7 @@ DRESULT disk_write(byte        pdrv,   /* Physical drive nmuber to identify the 
                    LBA_t       sector, /* Start sector in LBA */
                    uint        count   /* Number of sectors to write */
 ) {
-  DRESULT res  = RES_PARERR;
+  DRESULT res = RES_PARERR;
   if (!have_vdisk(pdrv)) return RES_PARERR;
   Disk_Write(sector, count, buff, pdrv);
   res = RES_OK;

@@ -114,7 +114,6 @@ void sound_test() {
 void play_audio(f32 *block, size_t len, void *userdata) {
   i16 *data = malloc(len * 2);
   int  rets = sound_fmt_conv(data, sound_fmt_S16, block, sound_fmt_F32, len);
-  klogw("%d", rets);
   sb16_write(data, len * 2);
   free(data);
 }
