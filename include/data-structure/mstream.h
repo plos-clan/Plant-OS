@@ -29,6 +29,12 @@ typedef struct mostream {
   size_t capacity;
 } *mostream_t;
 
+// typedef struct mstream {
+//   void  *buf;
+//   size_t blksize;
+//   size_t size;
+// } *mstream_t;
+
 #ifdef MSTREAM_IMPLEMENTATION
 #  define extern static
 #endif

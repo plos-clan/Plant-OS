@@ -31,6 +31,10 @@ typedef struct queue {
   size_t       size; /**< 队列长度 */
 } *queue_t;
 
+extern void queue_init(queue_t queue);
+
+extern void queue_deinit(queue_t queue);
+
 /**
  *\brief 创建一个新的队列
  *\return 新的队列指针
@@ -83,12 +87,31 @@ extern void queue_print(queue_t queue);
 
 #ifdef QUEUE_IMPLEMENTATION
 
-static queue_t queue_alloc() {
-  queue_t queue = malloc(sizeof(*queue));
-  if (queue == null) return null;
+static void queue_init(queue_t queue) {
+  if (queue == null) return;
   queue->head = null;
   queue->tail = null;
   queue->size = 0;
+}
+
+static void queue_deinit(queue_t queue) {
+  if (queue == null) return;
+
+  queue_node_t current = queue->head;
+  while (current != null) {
+    queue_node_t temp = current;
+    current           = current->next;
+    free(temp);
+  }
+
+  queue->head = null;
+  queue->tail = null;
+  queue->size = 0;
+}
+
+static queue_t queue_alloc() {
+  queue_t queue = malloc(sizeof(*queue));
+  queue_init(queue);
   return queue;
 }
 
@@ -99,6 +122,20 @@ static void queue_free(queue_t queue) {
   while (current != null) {
     queue_node_t temp = current;
     current           = current->next;
+    free(temp);
+  }
+
+  free(queue);
+}
+
+static void queue_free_with(queue_t queue, free_t callback) {
+  if (queue == null) return;
+
+  queue_node_t current = queue->head;
+  while (current != null) {
+    queue_node_t temp = current;
+    if (callback) callback(current->data);
+    current = current->next;
     free(temp);
   }
 

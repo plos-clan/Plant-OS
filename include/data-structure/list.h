@@ -46,7 +46,7 @@ extern list_t list_free(list_t list);
  *\param[in] free_data 释放数据的 callback
  *\return 恒为 null
  */
-extern list_t list_free_with(list_t list, void (*free_data)(void *));
+extern list_t list_free_with(list_t list, free_t free_data);
 
 /**
  *\brief 在链表末尾插入节点
@@ -267,7 +267,7 @@ static list_t list_delete(list_t list, void *data) {
   return list;
 }
 
-static list_t list_delete_with(list_t list, void *data, void (*callback)(void *)) {
+static list_t list_delete_with(list_t list, void *data, free_t callback) {
   if (list == null) return null;
 
   if (list->data == data) {
@@ -307,7 +307,7 @@ static list_t list_delete_node(list_t list, list_t node) {
   return list;
 }
 
-static list_t list_delete_node_with(list_t list, list_t node, void (*callback)(void *)) {
+static list_t list_delete_node_with(list_t list, list_t node, free_t callback) {
   if (list == null || node == null) return list;
 
   if (list == node) {
