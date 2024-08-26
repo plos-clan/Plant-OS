@@ -77,6 +77,7 @@ void malloc_test() {
 #ifdef __clang__
 #  pragma clang optimize off
 #endif
+void *pci_addr_base;
 void sysinit() {
   do_init_seg_register();
   memsize = memtest(0x00400000, 0xbfffffff);
@@ -107,7 +108,8 @@ void sysinit() {
   } else {
     info("the memory test has been passed! Your PC has %dMB memory", memsize / (1024 * 1024));
   }
-
+  pci_addr_base = page_malloc(1 * 1024 * 1024);
+  init_pci(pci_addr_base);
   // malloc_test();
 
   init_keyboard();

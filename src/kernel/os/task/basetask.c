@@ -90,7 +90,9 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("cd", words, true, ' ');
   pl_readline_word_maker_add("exec", words, true, ' ');
   pl_readline_word_maker_add("ls", words, true, ' ');
-
+  pl_readline_word_maker_add("pcils", words, true, ' ');
+  pl_readline_word_maker_add("exit", words, true, ' ');
+  
   if (buf[0] != '/' && strlen(buf)) { return; }
   char *s = malloc(strlen(buf) + 2);
   memcpy(s, buf, strlen(buf) + 1);
@@ -128,6 +130,17 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     free(new_path);
   }
   free(s);
+}
+void pci_list() {
+  extern int pci_addr_base;
+  u8        *pci_drive = (u8 *)pci_addr_base;
+  //输出PCI表的内容
+  for (int line = 0;; pci_drive += 0x110 + 4, line++) {
+    if (pci_drive[0] == 0xff)
+      pci_classcode_print((struct pci_config_space_public *)(pci_drive + 12));
+    else
+      break;
+  }
 }
 void shell() {
   printi("shell has been started");
@@ -171,7 +184,12 @@ void shell() {
       free(s3);
     } else if (streq(ch, "ls")) {
       list_files(path);
-    } else {
+    } else if (streq(ch, "pcils")) {
+      pci_list();
+    } else if (streq(ch, "exit")) {
+      syscall_exit(0);
+    }
+    else {
       printf("bad command\n");
     }
   }
@@ -208,7 +226,7 @@ void plty_set_default(plty_t plty);
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-
+  
   // klogd("Set Mode");
   byte *vram = (void *)set_mode(1024, 768, 32);
   klogd("ok vram = %p", vram);

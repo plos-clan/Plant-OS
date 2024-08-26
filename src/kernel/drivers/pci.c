@@ -1,4 +1,6 @@
-#include <loader.h>
+#include <kernel.h>
+
+
 #define PCI_COMMAND_PORT 0xCF8
 #define PCI_DATA_PORT    0xCFC
 #define mem_mapping      0
@@ -69,42 +71,61 @@ u32 pci_get_port_base(u8 bus, u8 slot, u8 func) {
   }
   return io_port;
 }
+void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func) {
+  extern void * pci_addr_base;
+  u8        *pci_drive = (void *)pci_addr_base;
+  for (;; pci_drive += 0x110 + 4) {
+    if (pci_drive[0] == 0xff) {
+      struct pci_config_space_public *pci_config_space_puclic;
+      pci_config_space_puclic = (struct pci_config_space_public *)(pci_drive + 0x0c);
+      if (pci_config_space_puclic->VendorID == vendor_id &&
+          pci_config_space_puclic->DeviceID == device_id) {
+        *bus  = pci_drive[1];
+        *slot = pci_drive[2];
+        *func = pci_drive[3];
+        return;
+      }
+    } else {
+      break;
+    }
+  }
+}
 void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
   u32 cmd = 0;
   cmd     = 0x80000000 + (u32)adder + ((u32)f << 8) + ((u32)equipment << 11) + ((u32)bus << 16);
   // cmd = cmd | 0x01;
   asm_out32(PCI_COMMAND_PORT, cmd);
 }
-void init_pci(u32 adder_Base) {
+void init_pci(void *addr_base) {
   u32 i, BUS, Equipment, F, ADDER, *i1;
-  u8 *PCI_DATA = (u8 *)adder_Base, *PCI_DATA1;
-  for (BUS = 0; BUS < 256; BUS++) {                    // 查询总线
-    for (Equipment = 0; Equipment < 32; Equipment++) { // 查询设备
-      for (F = 0; F < 8; F++) {                        // 查询功能
+  u8 *PCI_DATA = (void *)addr_base, *PCI_DATA1;
+  for (BUS = 0; BUS < 256; BUS++) {                    //查询总线
+    for (Equipment = 0; Equipment < 32; Equipment++) { //查询设备
+      for (F = 0; F < 8; F++) {                        //查询功能
         pci_config(BUS, F, Equipment, 0);
         if (asm_in32(PCI_DATA_PORT) != 0xFFFFFFFF) {
-          // 当前插槽有设备
-          // 把当前设备信息映射到PCI数据区
+          //当前插槽有设备
+          //把当前设备信息映射到PCI数据区
           int key = 1;
           while (key) {
-            // 此配置表为空
-            //  printf("PCI_DATA:%x\n", PCI_DATA);
-            //  getch();
+            //此配置表为空
+            // printf("PCI_DATA:%x\n", PCI_DATA);
+            // getch();
             PCI_DATA1  = PCI_DATA;
-            *PCI_DATA1 = 0xFF; // 表占用标志
+            *PCI_DATA1 = 0xFF; //表占用标志
             PCI_DATA1++;
-            *PCI_DATA1 = BUS; // 总线号
+            *PCI_DATA1 = BUS; //总线号
             PCI_DATA1++;
-            *PCI_DATA1 = Equipment; // 设备号
+            *PCI_DATA1 = Equipment; //设备号
             PCI_DATA1++;
-            *PCI_DATA1 = F; // 功能号
+            *PCI_DATA1 = F; //功能号
             PCI_DATA1++;
             PCI_DATA1 = PCI_DATA1 + 8;
-            // 写入寄存器配置
+            //写入寄存器配置
             for (ADDER = 0; ADDER < 256; ADDER = ADDER + 4) {
               pci_config(BUS, F, Equipment, ADDER);
               i  = asm_in32(PCI_DATA_PORT);
-              i1 = (u32 *)i;
+              i1 = (void *)i;
               //*i1 = PCI_DATA1;
               memcpy(PCI_DATA1, &i, 4);
               PCI_DATA1 = PCI_DATA1 + 4;
@@ -187,121 +208,121 @@ void init_pci(u32 adder_Base) {
       }
     }
   }
-  // 函数执行完PCI_DATA就是PCI设备表的结束地址
+  //函数执行完PCI_DATA就是PCI设备表的结束地址
 }
 void pci_classcode_print(struct pci_config_space_public *pci_config_space_puclic) {
   u8 *pci_drive = (u8 *)pci_config_space_puclic - 12;
-  klogf("BUS:%02x ", pci_drive[1]);
-  klogf("EQU:%02x ", pci_drive[2]);
-  klogf("F:%02x ", pci_drive[3]);
-  klogf("IO Port:%08x ", pci_get_port_base(pci_drive[1], pci_drive[2], pci_drive[3]));
-  klogf("IRQ Line:%02x ", pci_get_drive_irq(pci_drive[1], pci_drive[2], pci_drive[3]));
+  printf("BUS:%02x ", pci_drive[1]);
+  printf("EQU:%02x ", pci_drive[2]);
+  printf("F:%02x ", pci_drive[3]);
+  printf("IO Port:%08x ", pci_get_port_base(pci_drive[1], pci_drive[2], pci_drive[3]));
+  printf("IRQ Line:%02x ", pci_get_drive_irq(pci_drive[1], pci_drive[2], pci_drive[3]));
   if (pci_config_space_puclic->BaseClass == 0x0) {
-    klogf("Nodefined ");
+    printf("Nodefined ");
     if (pci_config_space_puclic->SubClass == 0x0)
-      klogf("Non-VGA-Compatible Unclassified Device\n");
+      printf("Non-VGA-Compatible Unclassified Device\n");
     else if (pci_config_space_puclic->SubClass == 0x1)
-      klogf("VGA-Compatible Unclassified Device\n");
+      printf("VGA-Compatible Unclassified Device\n");
   } else if (pci_config_space_puclic->BaseClass == 0x1) {
-    klogf("Mass Storage Controller ");
+    printf("Mass Storage Controller ");
     if (pci_config_space_puclic->SubClass == 0x0)
-      klogf("SCSI Bus Controller\n");
+      printf("SCSI Bus Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x1)
-      klogf("IDE Controller\n");
+      printf("IDE Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x2)
-      klogf("Floppy Disk Controller\n");
+      printf("Floppy Disk Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x3)
-      klogf("IPI Bus Controller\n");
+      printf("IPI Bus Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x4)
-      klogf("RAID Controller\n");
+      printf("RAID Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x5)
-      klogf("ATA Controller\n");
+      printf("ATA Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x6)
-      klogf("Serial ATA Controller\n");
+      printf("Serial ATA Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x7)
-      klogf("Serial Attached SCSI Controller\n");
+      printf("Serial Attached SCSI Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x8)
-      klogf("Non-Volatile Memory Controller\n");
+      printf("Non-Volatile Memory Controller\n");
     else
-      klogf("\n");
+      printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x2) {
-    klogf("Network Controller ");
+    printf("Network Controller ");
     if (pci_config_space_puclic->SubClass == 0x0)
-      klogf("Ethernet Controller\n");
+      printf("Ethernet Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x1)
-      klogf("Token Ring Controller\n");
+      printf("Token Ring Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x2)
-      klogf("FDDI Controller\n");
+      printf("FDDI Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x3)
-      klogf("ATM Controller\n");
+      printf("ATM Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x4)
-      klogf("ISDN Controller\n");
+      printf("ISDN Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x5)
-      klogf("WorldFip Controller\n");
+      printf("WorldFip Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x6)
-      klogf("PICMG 2.14 Multi Computing Controller\n");
+      printf("PICMG 2.14 Multi Computing Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x7)
-      klogf("Infiniband Controller\n");
+      printf("Infiniband Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x8)
-      klogf("Fabric Controller\n");
+      printf("Fabric Controller\n");
     else
-      klogf("\n");
+      printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x3) {
-    klogf("Display Controller ");
+    printf("Display Controller ");
     if (pci_config_space_puclic->SubClass == 0x0)
-      klogf("VGA Compatible Controller\n");
+      printf("VGA Compatible Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x1)
-      klogf("XGA Controller\n");
+      printf("XGA Controller\n");
     else if (pci_config_space_puclic->SubClass == 0x2)
-      klogf("3D Controller (Not VGA-Compatible)\n");
+      printf("3D Controller (Not VGA-Compatible)\n");
     else
-      klogf("\n");
+      printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x4) {
-    klogf("Multimedia Controller ");
-    klogf("\n");
+    printf("Multimedia Controller ");
+    printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x5) {
-    klogf("Memory Controller ");
-    klogf("\n");
+    printf("Memory Controller ");
+    printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x6) {
-    klogf("Bridge ");
+    printf("Bridge ");
     if (pci_config_space_puclic->SubClass == 0x0)
-      klogf("Host Bridge\n");
+      printf("Host Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x1)
-      klogf("ISA Bridge\n");
+      printf("ISA Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x2)
-      klogf("EISA Bridge\n");
+      printf("EISA Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x3)
-      klogf("MCA Bridge\n");
+      printf("MCA Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x4 || pci_config_space_puclic->SubClass == 0x9)
-      klogf("PCI-to-PCI Bridge\n");
+      printf("PCI-to-PCI Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x5)
-      klogf("PCMCIA Bridge\n");
+      printf("PCMCIA Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x6)
-      klogf("NuBus Bridge\n");
+      printf("NuBus Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x7)
-      klogf("CardBus Bridge\n");
+      printf("CardBus Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0x8)
-      klogf("RACEway Bridge\n");
+      printf("RACEway Bridge\n");
     else if (pci_config_space_puclic->SubClass == 0xA)
-      klogf("InfiniBand-to-PCI Host Bridge\n");
+      printf("InfiniBand-to-PCI Host Bridge\n");
     else
-      klogf("\n");
+      printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x7) {
-    klogf("Simple Communication Controller ");
-    klogf("\n");
+    printf("Simple Communication Controller ");
+    printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x8) {
-    klogf("Base System Peripheral ");
-    klogf("\n");
+    printf("Base System Peripheral ");
+    printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0x9) {
-    klogf("Input Device Controller ");
-    klogf("\n");
+    printf("Input Device Controller ");
+    printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0xA) {
-    klogf("Docking Station ");
-    klogf("\n");
+    printf("Docking Station ");
+    printf("\n");
   } else if (pci_config_space_puclic->BaseClass == 0xB) {
-    klogf("Processor ");
-    klogf("\n");
+    printf("Processor ");
+    printf("\n");
   } else {
-    klogf("Unknow\n");
+    printf("Unknow\n");
   }
 }
