@@ -227,6 +227,7 @@ typedef ssize_t (*vsound_write_t)(vsound_t vsound, const void *addr, size_t size
 typedef ssize_t (*vsound_callback_t)(vsound_t vsound, const void *addr, size_t size);
 
 typedef struct vsound {
+  bool              is_using; //
   cstr              name;     //
   vsound_open_t     open;     //
   vsound_close_t    close;    //
@@ -245,7 +246,7 @@ typedef struct vsound {
 //     .write = sb16_write,
 // };
 
-rbtree_sp_t vsound_list;
+static rbtree_sp_t vsound_list;
 
 bool vsound_regist(vsound_t device) {
   if (device == null) return false;
@@ -254,9 +255,26 @@ bool vsound_regist(vsound_t device) {
   return true;
 }
 
-bool vsound_open() {
-  return true;
+vsound_t vsound_open(cstr name) {
+  vsound_t device = rbtree_sp_get(vsound_list, name);
+  if (device->is_using) return null;
+  device->open(device);
+  device->is_using = true;
+  return device;
 }
+
+void vsound_close(vsound_t device) {
+  if (device == null) return;
+  device->close(device);
+  device->is_using = false;
+}
+
+// vsound_play
+// vsound_pause
+// vsound_drop
+// vsound_drain
+// vsound_read
+// vsound_write
 
 // int sound_open(cstr device) {
 //   if (device == null) return open("/dev/sound/default");
