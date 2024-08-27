@@ -23,11 +23,8 @@ struct tm {
 #  endif
 };
 
-// mktime
-
-// tm_sec + tm_min*60 + tm_hour*3600 + tm_yday*86400 +  (tm_year-70)*31536000 + ((tm_year-69)/4)*86400 - ((tm_year-1)/100)*86400 + ((tm_year+299)/400)*86400
-
+time_t     mktime(struct tm *tp);
 struct tm *localtime(const time_t *time);
-struct tm *localtime_r(const time_t *time, struct tm *resultp);
+struct tm *localtime_r(const time_t *time, struct tm *tp);
 
 #endif
