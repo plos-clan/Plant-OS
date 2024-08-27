@@ -8,7 +8,6 @@ extern "C" {
 #include "loader/ELF/header.h"
 #include "loader/ELF/pt.h"
 #include "loader/ELF/sht.h"
-#include "loader/ctypes.h"
 #include "loader/dosldr/8295a.h"
 #include "loader/dosldr/ahci.h"
 #include "loader/dosldr/cmos.h"
@@ -30,9 +29,6 @@ extern "C" {
 #include "loader/dosldr/tsk.h"
 #include "loader/dosldr/vdisk.h"
 #include "loader/mstr.h"
-#include "loader/pfs.h"
-#include "loader/stddef.h"
-#include "loader/sys/types.h"
 #ifdef __cplusplus
 }
 #endif

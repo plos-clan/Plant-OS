@@ -1,5 +1,6 @@
 #pragma once
-#include "stddef.h"
+#include <define.h>
+
 typedef struct {
   char  *buf;         // save the data of the string
   size_t len;         // the length of the string
