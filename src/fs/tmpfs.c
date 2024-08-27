@@ -13,7 +13,7 @@ static file_t file_alloc(size_t size) {
   size_t mallocsize = PADDING_UP(size, FILE_BLKSIZE) * sizeof(void *);
   file->size        = size;
   file->blocks      = malloc(mallocsize);
-  memcpy(file->blocks, 0, mallocsize);
+  memset(file->blocks, 0, mallocsize);
   return file;
 }
 

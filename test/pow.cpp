@@ -1,8 +1,6 @@
 #include <cmath>
 #include <gtest/gtest.h>
 
-#include <define/config.h>
-#undef NO_STD
 #define NO_STD 0
 #include <libc++.hpp>
 

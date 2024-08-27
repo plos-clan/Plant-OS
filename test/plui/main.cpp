@@ -1,8 +1,6 @@
 #include <cmath>
 #include <string>
 
-#include <define/config.h>
-#undef NO_STD
 #define NO_STD 0
 #include <pl2d.hpp>
 #include <plds.hpp>
