@@ -226,7 +226,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
            (const char *[]){"ATA", "ATAPI"}[ide_devices[i].Type], /* Type */
            ide_devices[i].Size / 1024 / 2,                        /* Size */
            ide_devices[i].Model);
-      strcpy(vd.DriveName, (cstr)ide_devices[i].Model);
+      sprintf(vd.DriveName, "ide%d", i);
       if (ide_devices[i].Type == IDE_ATAPI) {
         vd.flag = 2;
       } else {

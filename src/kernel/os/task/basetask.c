@@ -228,9 +228,12 @@ void init() {
   printf("Hello Plant-OS!\n");
   
   // klogd("Set Mode");
-  byte *vram = (void *)set_mode(1024, 768, 32);
-  klogd("ok vram = %p", vram);
-  memset(vram, 0, 1024 * 768 * 4);
+
+
+
+  // byte *vram = (void *)set_mode(1024, 768, 32);
+  // klogd("ok vram = %p", vram);
+  // memset(vram, 0, 1024 * 768 * 4);
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
 
@@ -243,13 +246,23 @@ void init() {
   vfs_mkdir("/fatfs1");
   vfs_mount((cstr)&s, vfs_open("/fatfs1"));
 
-  auto font1 = load_font("/fatfs1/font1.plff");
-  // // auto font2 = load_font("/fatfs1/font2.plff");
 
-  auto tty = plty_alloc(vram, 1024, 768, font1);
-  // plty_addfont(tty, font2);
+  vfs_node_t p = vfs_open("/dev/floppy");
+  printf("p = %p\n", p);
+  assert(p, "open /dev/floppy failed");
+  u8 *buf = malloc(0x200);
+  vfs_read(p,buf,0,0x200);
+  for(int i=0;i<0x200;i++){ 
+    printf("%02x ", buf[i]);
+  }
+  for(;;);
+  // auto font1 = load_font("/fatfs1/font1.plff");
+  // // // auto font2 = load_font("/fatfs1/font2.plff");
 
-  plty_set_default(tty);
+  // auto tty = plty_alloc(vram, 1024, 768, font1);
+  // // plty_addfont(tty, font2);
+
+  // plty_set_default(tty);
 
   // info("Plant-OS 终端现在支持中文啦！");
 
