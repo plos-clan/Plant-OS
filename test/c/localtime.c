@@ -1,8 +1,9 @@
-#include <libc-base.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-#if NO_STD
-
-time_t mktime(struct tm *tp) {
+time_t my_mktime(struct tm *tp) {
   time_t time  = 0;
   time        += tp->tm_sec;
   time        += tp->tm_min * 60;
@@ -15,7 +16,7 @@ time_t mktime(struct tm *tp) {
   return time;
 }
 
-struct tm *localtime_r(const time_t *time, struct tm *tp) {
+struct tm *my_localtime_r(const time_t *time, struct tm *tp) {
   time_t t     = *time;
   tp->tm_sec   = t % 60;
   t           /= 60;
@@ -82,4 +83,45 @@ struct tm *localtime_r(const time_t *time, struct tm *tp) {
   return tp;
 }
 
-#endif
+int main() {
+  setenv("TZ", "UTC", 1);
+  tzset();
+
+  struct tm time;
+
+  while (1) {
+    printf("Enter a date (YYYY/MM/DD HH:MM:SS): ");
+    scanf("%d/%d/%d %d:%d:%d", &time.tm_year, &time.tm_mon, &time.tm_mday, &time.tm_hour,
+          &time.tm_min, &time.tm_sec);
+    time.tm_year -= 1900;
+    time.tm_mon  -= 1;
+
+    time_t timestamp = mktime(&time);
+    printf("Timestamp:   %ld\n", timestamp);
+    localtime_r(&timestamp, &time);
+    time_t my_timestamp = my_mktime(&time);
+    printf("MyTimestamp: %ld\n", my_timestamp);
+
+    if (timestamp != my_timestamp) printf("-- Error\n");
+
+    struct tm result;
+    localtime_r(&timestamp, &result);
+    printf("Date:   %d-%02d-%02d (%d) %d:%d:%d\n", result.tm_year + 1900, result.tm_mon + 1,
+           result.tm_mday, result.tm_wday, result.tm_hour, result.tm_min, result.tm_sec);
+    struct tm my_result;
+    my_localtime_r(&timestamp, &my_result);
+    printf("MyDate: %d-%02d-%02d (%d) %d:%d:%d\n", my_result.tm_year + 1900, my_result.tm_mon + 1,
+           my_result.tm_mday, my_result.tm_wday, my_result.tm_hour, my_result.tm_min,
+           my_result.tm_sec);
+
+    if (result.tm_year != my_result.tm_year || result.tm_mon != my_result.tm_mon ||
+        result.tm_mday != my_result.tm_mday || result.tm_wday != my_result.tm_wday ||
+        result.tm_hour != my_result.tm_hour || result.tm_min != my_result.tm_min ||
+        result.tm_sec != my_result.tm_sec)
+      printf("-- Error\n");
+
+    printf("\n");
+  }
+
+  return 0;
+}
