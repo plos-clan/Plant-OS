@@ -6,14 +6,12 @@
 #include <pl_readline.h>
 #include <plty.h>
 
-u8  *shell_data;
+u8 *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void sound_test();
-int  os_execute(char *filename, char *line);
+int os_execute(char *filename, char *line);
 
-void idle_loop() {
-  infinite_loop task_next();
-}
+void idle_loop() { infinite_loop task_next(); }
 void insert_char(char *str, int pos, char ch);
 void delete_char(char *str, int pos);
 
@@ -73,28 +71,36 @@ void list_files(char *path) {
 
 int readline_getch() {
   int ch;
-  while ((ch = getch()) == 0) {}
-  if (ch == -1) return PL_READLINE_KEY_UP;
-  if (ch == -2) return PL_READLINE_KEY_DOWN;
-  if (ch == -3) return PL_READLINE_KEY_LEFT;
-  if (ch == -4) return PL_READLINE_KEY_RIGHT;
-  if (ch == '\n') return PL_READLINE_KEY_ENTER;
-  if (ch == '\b') return PL_READLINE_KEY_BACKSPACE;
-  if (ch == '\t') return PL_READLINE_KEY_TAB;
+  while ((ch = getch()) == 0) {
+  }
+  if (ch == -1)
+    return PL_READLINE_KEY_UP;
+  if (ch == -2)
+    return PL_READLINE_KEY_DOWN;
+  if (ch == -3)
+    return PL_READLINE_KEY_LEFT;
+  if (ch == -4)
+    return PL_READLINE_KEY_RIGHT;
+  if (ch == '\n')
+    return PL_READLINE_KEY_ENTER;
+  if (ch == '\b')
+    return PL_READLINE_KEY_BACKSPACE;
+  if (ch == '\t')
+    return PL_READLINE_KEY_TAB;
   return ch;
 }
-void flush() {
-  return;
-}
+void flush() { return; }
 void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("cd", words, true, ' ');
   pl_readline_word_maker_add("exec", words, true, ' ');
   pl_readline_word_maker_add("ls", words, true, ' ');
   pl_readline_word_maker_add("pcils", words, true, ' ');
   pl_readline_word_maker_add("exit", words, true, ' ');
+  pl_readline_word_maker_add("clear", words, true, ' ');
 
-
-  if (buf[0] != '/' && strlen(buf)) { return; }
+  if (buf[0] != '/' && strlen(buf)) {
+    return;
+  }
   char *s = malloc(strlen(buf) + 2);
   memcpy(s, buf, strlen(buf) + 1);
   if (strlen(s)) {
@@ -134,7 +140,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 }
 void pci_list() {
   extern int pci_addr_base;
-  u8        *pci_drive = (u8 *)pci_addr_base;
+  u8 *pci_drive = (u8 *)pci_addr_base;
   //输出PCI表的内容
   for (int line = 0;; pci_drive += 0x110 + 4, line++) {
     if (pci_drive[0] == 0xff)
@@ -146,11 +152,11 @@ void pci_list() {
 void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
-  void *kbuf  = page_malloc_one();
+  void *kbuf = page_malloc_one();
   cir_queue8_init(kfifo, 0x1000, kbuf);
   current_task()->keyfifo = (cir_queue8_t)kfifo;
-  char         *path      = malloc(1024);
-  char         *ch        = malloc(255);
+  char *path = malloc(1024);
+  char *ch = malloc(255);
   pl_readline_t n;
   n = pl_readline_init(readline_getch, putchar, flush, handle_tab);
   sprintf(path, "/");
@@ -158,16 +164,21 @@ void shell() {
     char buf[255];
     sprintf(buf, "%s# ", path);
     pl_readline(n, buf, ch, 255);
-
+    if (!strlen(ch))
+      continue;
     if (strneq(ch, "cd ", 3)) {
       char *s = ch + 3;
-      if (streq(s, ".")) continue;
+      if (streq(s, "."))
+        continue;
       if (streq(s, "..")) {
-        if (streq(s, "/")) continue;
+        if (streq(s, "/"))
+          continue;
         char *n = path + strlen(path);
-        while (*--n != '/' && n != path) {}
+        while (*--n != '/' && n != path) {
+        }
         *n = '\0';
-        if (strlen(path) == 0) strcpy(path, "/");
+        if (strlen(path) == 0)
+          strcpy(path, "/");
         continue;
       }
       if (streq(path, "/"))
@@ -175,11 +186,12 @@ void shell() {
       else
         sprintf(path, "%s/%s", path, s);
     } else if (strneq(ch, "exec ", 5)) {
-      char *s  = ch + 5;
+      char *s = ch + 5;
       char *s2 = strchr(s, ' ');
-      if (s2) *s2 = '\0';
-      char *s3   = strdup(s);
-      *s2        = ' ';
+      if (s2)
+        *s2 = '\0';
+      char *s3 = strdup(s);
+      *s2 = ' ';
       int status = os_execute(s3, s);
       printf("%s exited with code %d\n", s3, status);
       free(s3);
@@ -189,6 +201,8 @@ void shell() {
       pci_list();
     } else if (streq(ch, "exit")) {
       syscall_exit(0);
+    } else if (streq(ch, "clear")) {
+      screen_clear();
     } else {
       printf("bad command\n");
     }
@@ -200,8 +214,8 @@ void scan_files(char *path) {
   assert(p, "open %s failed", path);
   assert(p->type == file_dir);
   list_foreach(p->child, i) {
-    vfs_node_t c        = (vfs_node_t)i->data;
-    char      *new_path = pathcat(path, c->name);
+    vfs_node_t c = (vfs_node_t)i->data;
+    char *new_path = pathcat(path, c->name);
     if (c->type == file_dir) {
       scan_files(new_path);
     } else {
@@ -212,8 +226,8 @@ void scan_files(char *path) {
 }
 
 plff_t load_font(cstr path) {
-  auto  file = vfs_open(path);
-  byte *buf  = malloc(file->size);
+  auto file = vfs_open(path);
+  byte *buf = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
   auto font = plff_load_from_mem(buf, file->size);
   klogi("font %s: %d %d %d", path, font->nchars, font->height, font->channels);
@@ -222,20 +236,31 @@ plff_t load_font(cstr path) {
 }
 
 void plty_set_default(plty_t plty);
-
+void stdout_read() {}
+void stdout_write(int drive, u8 *buffer, u32 number, u32 lba) {
+  for (int i = 0; i < number; i++) {
+    putchar(buffer[i]);
+  }
+}
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-  
+
   // klogd("Set Mode");
 
-
-
-  // byte *vram = (void *)set_mode(1024, 768, 32);
-  // klogd("ok vram = %p", vram);
-  // memset(vram, 0, 1024 * 768 * 4);
+  byte *vram = (void *)set_mode(1024, 768, 32);
+  klogd("ok vram = %p", vram);
+  memset(vram, 0, 1024 * 768 * 4);
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
+  vdisk vd;
+  strcpy(vd.DriveName, "stdout");
+  vd.flag = 1;
+  vd.sector_size = 1;
+  vd.size = 1;
+  vd.Read = (void *)stdout_read;
+  vd.Write = stdout_write;
+  register_vdisk(vd);
 
   vfs_mkdir("/dev");
   vfs_mount(NULL, vfs_open("/dev"));
@@ -246,24 +271,20 @@ void init() {
   vfs_mkdir("/fatfs1");
   vfs_mount((cstr)&s, vfs_open("/fatfs1"));
 
+  //
 
-  vfs_node_t p = vfs_open("/dev/floppy");
-  printf("p = %p\n", p);
-  assert(p, "open /dev/floppy failed");
-  u8 *buf = malloc(0x200);
-  vfs_read(p,buf,0,0x200);
-  for(int i=0;i<0x200;i++){ 
-    printf("%02x ", buf[i]);
-  }
-  for(;;);
-  // auto font1 = load_font("/fatfs1/font1.plff");
-  // // // auto font2 = load_font("/fatfs1/font2.plff");
+  auto font1 = load_font("/fatfs1/font1.plff");
+  auto font2 = load_font("/fatfs1/font2.plff");
 
-  // auto tty = plty_alloc(vram, 1024, 768, font1);
-  // // plty_addfont(tty, font2);
+  auto tty = plty_alloc(vram, 1024, 768, font1);
+  plty_addfont(tty, font2);
 
-  // plty_set_default(tty);
-
+  plty_set_default(tty);
+  vfs_node_t p = vfs_open("/dev/stdout");
+  assert(p, "open /dev/stdout failed");
+  while(1) vfs_write(p, "你妈，世界", 0, strlen("你妈，世界"));
+  for (;;)
+    ;
   // info("Plant-OS 终端现在支持中文啦！");
 
   // for (int i = 0;; i++) {
@@ -303,7 +324,7 @@ void init() {
   // }
 
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
+  // create_task((u32)sound_test, 0, 1, 1);
 
   infinite_loop task_next();
 }

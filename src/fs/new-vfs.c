@@ -233,3 +233,8 @@ int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) {
   if (file->type != file_block) return -1;
   return callbackof(file, read)(file->handle, addr, offset, size);
 }
+int vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size) {
+  do_update(file);
+  if (file->type != file_block) return -1;
+  return callbackof(file, write)(file->handle, addr, offset, size);
+}

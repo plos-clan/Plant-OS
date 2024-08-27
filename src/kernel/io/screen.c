@@ -9,6 +9,7 @@ void screen_clear() {
   } else {
     task->TTY->clear(task->TTY);
   }
+  gotoxy(0, 0);
 }
 
 void printchar(char ch) {

@@ -155,28 +155,10 @@ void Disk_Write(u32 lba, u32 number, const void *buffer, int drive) {
       // printk("*buffer(%d %d) = %02x\n",lba,number,*(u8 *)buffer);
       for (int i = 0; i < number; i += SECTORS_ONCE) {
         int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
-        rw_vdisk(drive, lba + i, (u8 *)((u32)buffer + i * 512), sectors, 0);
+        rw_vdisk(drive, lba + i, (u8 *)((u32)buffer + i * vdisk_ctl[drive].sector_size), sectors, 0);
       }
       drive_semaphore_give(get_drive_code((u8 *)"DISK_DRIVE"));
     }
   }
 }
 
-bool CDROM_Read(u32 lba, u32 number, void *buffer, int drive) {
-  if (have_vdisk(drive)) {
-    int indx = drive;
-    if (vdisk_ctl[indx].flag != 2) {
-      kloge("Not a cdrom");
-      return false;
-    }
-    if (drive_semaphore_take(get_drive_code((u8 *)"DISK_DRIVE"))) {
-      for (int i = 0; i < number; i += SECTORS_ONCE) {
-        int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
-        rw_vdisk(drive, lba + i, buffer + i * 2048, sectors, 1);
-      }
-      drive_semaphore_give(get_drive_code((u8 *)"DISK_DRIVE"));
-    }
-    return true;
-  }
-  return false;
-}

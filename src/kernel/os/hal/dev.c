@@ -17,16 +17,13 @@ static int devfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   return 0;
 }
 static void dummy() {}
+// offset 的单位应该是扇区
 static int devfs_read(void *file, void *addr, size_t offset, size_t size) {
   int dev_id = (int)file;
   int sector_size;
   if (vdisk_ctl[dev_id].flag == 0)
     return -1;
-  if (vdisk_ctl[dev_id].flag == 1)
-    sector_size = 512;
-  else
-    sector_size = 2048;
-  int sector_num = offset / sector_size;
+  sector_size = vdisk_ctl[dev_id].sector_size;
   int padding_up_to_sector_size = PADDING_UP(size, sector_size);
   void *buf;
   if (padding_up_to_sector_size == size) {
@@ -34,14 +31,33 @@ static int devfs_read(void *file, void *addr, size_t offset, size_t size) {
   } else {
     buf = page_malloc(padding_up_to_sector_size);
   }
-  int sectors_to_read = size / sector_size;
-  if (sector_size == 512) {
-    Disk_Read(sector_num, sectors_to_read, buf, dev_id);
-  } else {
-    CDROM_Read(sector_num, sectors_to_read, buf, dev_id);
-  }
+  int sectors_to_do = size / sector_size;
+  Disk_Read(offset, sectors_to_do, buf, dev_id);
   if (padding_up_to_sector_size != size) {
     memcpy(addr, buf, size);
+    page_free(buf, padding_up_to_sector_size);
+  }
+  return 0;
+}
+static int devfs_write(void *file, const void *addr, size_t offset, size_t size) {
+  int dev_id = (int)file;
+  int sector_size;
+  if (vdisk_ctl[dev_id].flag == 0)
+    return -1;
+  sector_size = vdisk_ctl[dev_id].sector_size;
+  int padding_up_to_sector_size = PADDING_UP(size, sector_size);
+  void *buf;
+  if (padding_up_to_sector_size == size) {
+    buf = (void *)addr;
+  } else {
+    buf = page_malloc(padding_up_to_sector_size);
+    memset(buf, 0, padding_up_to_sector_size);
+    memcpy(buf, addr, size);
+  }
+  int sectors_to_do = size / sector_size;
+  Disk_Write(offset, sectors_to_do, buf, dev_id);
+  if (padding_up_to_sector_size != size) {
+    memcpy(buf,addr, size);
     page_free(buf, padding_up_to_sector_size);
   }
   return 0;
@@ -60,7 +76,7 @@ static struct vfs_callback callbacks = {
     .close = (void *)dummy,
     .stat = (void *)dummy,
     .read = devfs_read,
-    .write = (void *)dummy,
+    .write = devfs_write,
 };
 
 void devfs_regist() { devfs_id = vfs_regist("devfs", &callbacks); }

@@ -89,3 +89,4 @@ int        vfs_mkdir(cstr name);
 
 int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size);
 int vfs_mkfile(cstr name);
+int vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size);
