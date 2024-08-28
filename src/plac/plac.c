@@ -27,8 +27,9 @@ plac_compress_t plac_compress_alloc() {
   plac->q.dataf        = null;
   plac->q.datai        = malloc(block_len * 2);
   plac->stream         = mostream_alloc(1024);
-  if (plac->q.datai == null) {
+  if (plac->q.datai == null || plac->stream == null) {
     free(plac);
+    mostream_free(plac->stream);
     return null;
   }
   return plac;
@@ -115,8 +116,12 @@ plac_decompress_t plac_decompress_alloc(const void *buffer, size_t size) {
   plac->q.dataf        = malloc(block_len * 4);
   plac->q.datai        = malloc(block_len * 2);
   plac->stream         = mistream_alloc(buffer, size);
-  if (plac->q.datai == null) {
+  plac->callback       = null;
+  plac->userdata       = null;
+  plac->cb_mdct_data   = null;
+  if (plac->q.datai == null || plac->stream == null) {
     free(plac);
+    mistream_free(plac->stream);
     return null;
   }
   return plac;
@@ -183,6 +188,7 @@ bool plac_decompress_block(plac_decompress_t plac) {
   plac_read_data(plac, &plac->q);
   dequantize(&plac->q);
   mulaw_expand(plac->q.dataf, block_len);
+  if (plac->cb_mdct_data) plac->cb_mdct_data(plac->q.dataf, block_len, plac->userdata);
   mdctf_put(plac->mdct, plac->q.dataf, block_len);
   return true;
 }

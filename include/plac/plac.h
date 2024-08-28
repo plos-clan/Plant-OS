@@ -27,6 +27,7 @@ typedef struct plac_decompress {
   mistream_t           stream;
   cb_plac_decompress_t callback;
   void                *userdata;
+  cb_plac_decompress_t cb_mdct_data;
 } *plac_decompress_t;
 
 // block_len 应为 1024

@@ -230,6 +230,9 @@ void stdout_write(int drive, u8 *buffer, u32 number, u32 lba) {
     putchar(buffer[i]);
   }
 }
+
+void *vram_addr;
+
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
@@ -258,6 +261,8 @@ void init() {
   s++;
   vfs_mkdir("/fatfs1");
   vfs_mount((cstr)&s, vfs_open("/fatfs1"));
+
+  vram_addr = vram;
 
   auto font1 = load_font("/fatfs1/font1.plff");
   // auto font2 = load_font("/fatfs1/font2.plff");

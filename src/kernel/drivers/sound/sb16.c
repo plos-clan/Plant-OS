@@ -86,16 +86,16 @@ static void sb_out(u8 cmd) {
 void sb16_do_dma() {
   // 设置采样率
   sb_out(CMD_SOSR);
-  sb_out((sample_rate >> 8) & 0xFF);
-  sb_out(sample_rate & 0xFF);
+  sb_out((sample_rate >> 8) & 0xff);
+  sb_out(sample_rate & 0xff);
 
   dma_send(sb.channel, (u32)(sb.addr2), sb.size2, 0, sb.depth == 16);
   sb_out(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
   sb_out(sb.mode);
 
   size_t len = sb.depth == 8 ? sb.size2 : sb.size2 / 2;
-  sb_out((len - 1) & 0xFF);
-  sb_out(((len - 1) >> 8) & 0xFF);
+  sb_out((len - 1) & 0xff);
+  sb_out(((len - 1) >> 8) & 0xff);
 }
 
 void sb16_do_close() {
@@ -113,6 +113,8 @@ void sb16_handler(int *esp) {
     sb_exch_dmaaddr();
     sb16_do_dma();
   }
+
+  asm_out8(0x20, 0x20);
 
   if (sb.status > 0) {
     sb16_do_close();
