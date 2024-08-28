@@ -27,6 +27,7 @@ extern "C" {
 #include "kernel/tty.h"
 #include "kernel/vbe.h"
 #include "kernel/vdisk.h"
+#include "kernel/vsound.h"
 #ifdef __cplusplus
 }
 #endif

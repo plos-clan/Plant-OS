@@ -108,8 +108,7 @@ void DOSLDR_MAIN() {
   int sz = vfs_filesize(path);
   if (sz == -1) {
     klogf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
-    while (true)
-      ;
+    infinite_loop;
   }
   // printf("fp = %08x\n%d\n",fp, fp->size);
   char *s = page_malloc(sz);

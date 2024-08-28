@@ -106,10 +106,10 @@ void floppy_init() {
 #endif
   vdisk vd;
   strcpy(vd.DriveName, "floppy");
-  vd.Read  = Read;
-  vd.Write = Write;
-  vd.size  = 1474560;
-  vd.flag  = 1;
+  vd.Read        = Read;
+  vd.Write       = Write;
+  vd.size        = 1474560;
+  vd.flag        = 1;
   vd.sector_size = 512;
   register_vdisk(vd);
 }
@@ -126,8 +126,7 @@ void flint(int *esp) {
 }
 
 void set_waiter(mtask *t) {
-  while (waiter)
-    ; // wait
+  waitif(waiter); // wait
   waiter = t;
 }
 
@@ -257,8 +256,7 @@ int getbyte() {
 void wait_floppy_interrupt() {
   // task_fall_blocked(WAITING);
   asm_sti;
-  while (!floppy_int_count)
-    ;
+  waitif(!floppy_int_count);
   statsz = 0; // 清空状态
   //  状态寄存器的低四位是1（TRUE，所以这里不用写==），说明软盘驱动器没发送完所有的数据，当我们获取完所有的数据（状态变量=7），就可以跳出循环了
   while ((statsz < 7) && (asm_in8(FDC_MSR) & (1 << 4))) {

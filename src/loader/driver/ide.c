@@ -418,7 +418,7 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
   dma = 0; // We don't support DMA
            // (III) Wait if the drive is busy;
   printk("III\n");
-  while (ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY) {} // Wait if busy.
+  waitif(ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY); // Wait if busy.
   // (IV) Select Drive from the controller;
   printk("IV\n");
   if (lba_mode == 0)
@@ -497,8 +497,7 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
   return 0; // Easy, isn't it?
 }
 void ide_wait_irq() {
-  while (!ide_irq_invoked)
-    ;
+  waitif(!ide_irq_invoked);
   ide_irq_invoked = 0;
 }
 void ide_irq() {
@@ -588,8 +587,7 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
 
   // (XI): Waiting for BSY & DRQ to clear:
   // ------------------------------------------------------------------
-  while (ide_read(channel, ATA_REG_STATUS) & (ATA_SR_BSY | ATA_SR_DRQ))
-    ;
+  waitif(ide_read(channel, ATA_REG_STATUS) & (ATA_SR_BSY | ATA_SR_DRQ));
 
   return 0; // Easy, ... Isn't it?
 }

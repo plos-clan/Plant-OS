@@ -249,10 +249,8 @@ void inthandler21(int *esp) {
       // 一般进程
     THROUGH:
 
-      if(task_get_key_queue(task)) {
-        if (e0_flag) {
-          cir_queue8_put(task_get_key_queue(task), 0xe0); 
-        }
+      if (task_get_key_queue(task)) {
+        if (e0_flag) { cir_queue8_put(task_get_key_queue(task), 0xe0); }
         cir_queue8_put(task_get_key_queue(task), data);
       }
     }

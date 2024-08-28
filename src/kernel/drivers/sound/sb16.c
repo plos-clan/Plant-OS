@@ -51,15 +51,15 @@ static void *const DMA_BUF_ADDR2 = (void *)0x90000 + DMA_BUF_SIZE; // 不能跨�
 static int sample_rate = 44100;
 
 struct sb16 {
-  mtask          *use_task;
-  int             status;
-  char           *addr1;   // DMA 地址
-  volatile size_t size1;   //
-  char           *addr2;   // DMA 地址
-  volatile size_t size2;   //
-  u8              mode;    // 模式
-  u8              channel; // DMA 通道
-  byte            depth;   // 采样深度
+  mtask          *use_task; //
+  int             status;   //
+  char           *addr1;    // DMA 地址
+  volatile size_t size1;    //
+  char           *addr2;    // DMA 地址
+  volatile size_t size2;    //
+  u8              mode;     // 模式
+  u8              channel;  // DMA 通道
+  byte            depth;    // 采样深度
 };
 
 struct sound_settings {
@@ -69,7 +69,7 @@ struct sound_settings {
 
 static struct sb16 sb;
 
-void sb_exch_dmaaddr() {
+static void sb_exch_dmaaddr() {
   char *addr  = sb.addr1;
   sb.addr1    = sb.addr2;
   sb.addr2    = addr;
@@ -78,29 +78,29 @@ void sb_exch_dmaaddr() {
   sb.size2    = size;
 }
 
-static void sb_out(u8 cmd) {
-  while (asm_in8(SB_WRITE) & 128) {}
+static void sb_send(u8 cmd) {
+  waitif(asm_in8(SB_WRITE) & MASK(7));
   asm_out8(SB_WRITE, cmd);
 }
 
-void sb16_do_dma() {
+static void sb16_do_dma() {
   // 设置采样率
-  sb_out(CMD_SOSR);
-  sb_out((sample_rate >> 8) & 0xff);
-  sb_out(sample_rate & 0xff);
+  sb_send(CMD_SOSR);
+  sb_send((sample_rate >> 8) & 0xff);
+  sb_send(sample_rate & 0xff);
 
   dma_send(sb.channel, (u32)(sb.addr2), sb.size2, 0, sb.depth == 16);
-  sb_out(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
-  sb_out(sb.mode);
+  sb_send(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
+  sb_send(sb.mode);
 
   size_t len = sb.depth == 8 ? sb.size2 : sb.size2 / 2;
-  sb_out((len - 1) & 0xff);
-  sb_out(((len - 1) >> 8) & 0xff);
+  sb_send((len - 1) & 0xff);
+  sb_send(((len - 1) >> 8) & 0xff);
 }
 
 void sb16_do_close() {
-  sb_out(CMD_OFF); // 关闭声卡
-  sb.use_task = NULL;
+  sb_send(CMD_OFF); // 关闭声卡
+  sb.use_task = null;
 }
 
 void sb16_handler(int *esp) {
@@ -125,11 +125,7 @@ void sb16_handler(int *esp) {
 }
 
 void sb16_init() {
-  sb.addr1    = DMA_BUF_ADDR1;
-  sb.addr2    = DMA_BUF_ADDR2;
-  sb.use_task = NULL;
-  sb.size1    = 0;
-  sb.size2    = 0;
+  sb.use_task = null;
   sb.status   = 0;
   irq_mask_clear(SB16_IRQ);
   register_intr_handler(SB16_IRQ + 0x20, (u32)asm_sb16_handler);
@@ -161,38 +157,53 @@ void sb16_set_volume(u8 level) {
 
 // 支持
 //  S8 U8 S16 U16
-void sb16_open(int rate, sound_pcmfmt_t fmt) {
-  while (sb.use_task) {}
+int sb16_open(int rate, int channels, sound_pcmfmt_t fmt) {
+  if (rate <= 0 || rate > 192000) return -1;
+  if (channels <= 0 || channels > 2) return -1;
+
   asm_cli;
+  if (sb.use_task != null) {
+    asm_sti;
+    return -1;
+  }
   sb.use_task = current_task();
   asm_sti;
+
   sample_rate = rate;
-  sb_reset();     // 重置 DSP
-  sb_intr_irq();  // 设置中断
-  sb_out(CMD_ON); // 打开声卡
+  sb_reset();      // 重置 DSP
+  sb_intr_irq();   // 设置中断
+  sb_send(CMD_ON); // 打开声卡
 
   if (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_U16) {
-    sb.mode    = fmt == SOUND_FMT_S16 ? MODE_SMONO : MODE_UMONO;
     sb.depth   = 16;
     sb.channel = 5;
   } else if (fmt == SOUND_FMT_U8 || fmt == SOUND_FMT_S8) {
-    sb.mode    = fmt == SOUND_FMT_S8 ? MODE_SMONO : MODE_UMONO;
     sb.depth   = 8;
     sb.channel = 1;
   }
+  if (channels == 1) {
+    sb.mode = (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_S8) ? MODE_SMONO : MODE_UMONO;
+  } else {
+    sb.mode = (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_S8) ? MODE_SSTEREO : MODE_USTEREO;
+  }
+  sb.addr1  = DMA_BUF_ADDR1;
+  sb.addr2  = DMA_BUF_ADDR2;
   sb.size1  = 0;
   sb.size2  = 0;
   sb.status = 0;
+
+  return 0;
 }
 
 void sb16_close() {
+  if (sb.use_task != current_task()) return;
   sb.status = 1;
   if (sb.size2 > 0) return;
   sb16_do_close();
 }
 
 int sb16_write(void *data, size_t size) {
-  while (sb.size1) {}
+  waitif(sb.size1 > 0);
 
   memcpy(sb.addr1, data, size);
   sb.size1 = size;
@@ -205,66 +216,9 @@ int sb16_write(void *data, size_t size) {
   return size;
 }
 
-// 未完成
-
-typedef struct vsound *vsound_t;
-
-typedef int (*vsound_open_t)(vsound_t vsound);
-typedef int (*vsound_close_t)(vsound_t vsound);
-typedef ssize_t (*vsound_read_t)(vsound_t vsound, void *addr, size_t size);
-typedef ssize_t (*vsound_write_t)(vsound_t vsound, const void *addr, size_t size);
-typedef ssize_t (*vsound_callback_t)(vsound_t vsound, const void *addr, size_t size);
-
-typedef struct vsound {
-  bool              is_using; //
-  cstr              name;     //
-  vsound_open_t     open;     //
-  vsound_close_t    close;    //
-  vsound_read_t     read;     //
-  vsound_write_t    write;    //
-  vsound_callback_t played;   // 音频播放完毕(前)，请求下一段音频
-  void             *buf;      // 音频缓冲区
-  size_t            bufsize;  //
-  void             *userdata; // 可自定义
-} *vsound_t;
-
 // struct vsound vsound = {
 //     .name  = "sb16",
 //     .open  = sb16_open,
 //     .close = sb16_close,
 //     .write = sb16_write,
 // };
-
-static rbtree_sp_t vsound_list;
-
-bool vsound_regist(vsound_t device) {
-  if (device == null) return false;
-  if (rbtree_sp_get(vsound_list, device->name)) return false;
-  rbtree_sp_insert(vsound_list, device->name, device);
-  return true;
-}
-
-vsound_t vsound_open(cstr name) {
-  vsound_t device = rbtree_sp_get(vsound_list, name);
-  if (device->is_using) return null;
-  device->open(device);
-  device->is_using = true;
-  return device;
-}
-
-void vsound_close(vsound_t device) {
-  if (device == null) return;
-  device->close(device);
-  device->is_using = false;
-}
-
-// vsound_play
-// vsound_pause
-// vsound_drop
-// vsound_drain
-// vsound_read
-// vsound_write
-
-// int sound_open(cstr device) {
-//   if (device == null) return open("/dev/sound/default");
-// }

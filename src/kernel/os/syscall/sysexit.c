@@ -13,6 +13,6 @@ void syscall_exit(int status) {
     // get_task(task->ptid)->nfs = task->nfs;
   }
   task_exit(status);
-  while (1) {}
+  infinite_loop;
   __builtin_unreachable();
 }

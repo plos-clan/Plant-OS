@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
   snd_pcm_set_params(pcm_out, SND_PCM_FORMAT_FLOAT, SND_PCM_ACCESS_RW_INTERLEAVED, 1, samplerate, 0,
                      .5e6);
 
-  while (plac_decompress_block(dctx)) {}
+  waitif(plac_decompress_block(dctx));
 
   snd_pcm_close(pcm_out);
 

@@ -315,9 +315,7 @@ void task_kill(u32 tid) {
   asm_cli;
   rbtree_delete_with(tasks, tid, free);
   asm_sti;
-  if (get_task(tid) == current_task())
-    while (true)
-      ;
+  if (get_task(tid) == current_task()) infinite_loop;
 }
 
 mtask *current_task() {
@@ -507,8 +505,7 @@ mtask *mtask_get_free() {
 void interrput_exit();
 void roc() {
   klogd("ROCT\n");
-  while (true)
-    ;
+  infinite_loop;
 }
 
 static void build_fork_stack(mtask *task) {

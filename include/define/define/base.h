@@ -50,3 +50,13 @@
 #define PADDING_UP(size, to)   PADDING_DOWN((size_t)(size) + (size_t)(to) - (size_t)1, to)
 
 #define infinite_loop while (true)
+
+#define waitif(cond)                                                                               \
+  ((void)({                                                                                        \
+    while (cond) {}                                                                                \
+  }))
+
+#define waituntil(cond)                                                                            \
+  ((void)({                                                                                        \
+    while (!(cond)) {}                                                                             \
+  }))

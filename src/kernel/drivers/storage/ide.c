@@ -111,7 +111,7 @@ static inline void insl(u32 port, u32 *addr, int cnt) {
                : "d"(port), "0"(addr), "1"(cnt)
                : "memory", "cc");
 }
-int drive_mapping[26] = {0};
+int         drive_mapping[26] = {0};
 static void Read(int drive, u8 *buffer, u32 number, u32 lba) {
   ide_read_sectors(drive_mapping[drive], number, lba, 1 * 8, (u32)buffer);
 }
@@ -233,11 +233,11 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
         vd.flag = 1;
       }
 
-      vd.Read  = Read;
-      vd.Write = Write;
-      vd.size  = ide_devices[i].Size;
-      vd.sector_size = vd.flag == 2 ? 2048 : 512;
-      int c    = register_vdisk(vd);
+      vd.Read          = Read;
+      vd.Write         = Write;
+      vd.size          = ide_devices[i].Size;
+      vd.sector_size   = vd.flag == 2 ? 2048 : 512;
+      int c            = register_vdisk(vd);
       drive_mapping[c] = i;
       info("disk %c detected", c);
     }
@@ -619,8 +619,7 @@ u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
 
   // (XI): Waiting for BSY & DRQ to clear:
   // ------------------------------------------------------------------
-  while (ide_read(channel, ATA_REG_STATUS) & (ATA_SR_BSY | ATA_SR_DRQ))
-    ;
+  waitif(ide_read(channel, ATA_REG_STATUS) & (ATA_SR_BSY | ATA_SR_DRQ));
 
   return 0; // Easy, ... Isn't it?
 }

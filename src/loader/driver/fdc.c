@@ -214,8 +214,7 @@ int getbyte() {
   return -1; /* 没读取到 */
 }
 void wait_floppy_interrupt() {
-  while (!floppy_int_count)
-    ;
+  waitif(!floppy_int_count);
   statsz = 0; // 清空状态
   while (
       (statsz < 7) &&

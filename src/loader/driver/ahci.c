@@ -57,8 +57,7 @@ void ahci_search_ports(HBA_MEM *abar) {
 // Start command engine
 void start_cmd(HBA_PORT *port) {
   // Wait until CR (bit15) is cleared
-  while (port->cmd & HBA_PxCMD_CR)
-    ;
+  waitif(port->cmd & HBA_PxCMD_CR);
 
   // Set FRE (bit4) and ST (bit0)
   port->cmd |= HBA_PxCMD_FRE;
