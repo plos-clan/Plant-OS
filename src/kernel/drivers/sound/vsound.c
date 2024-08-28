@@ -42,3 +42,11 @@ ssize_t vsound_read(vsound_t snd, void *buf, size_t len) { // 读取 (录音)
 ssize_t vsound_write(vsound_t snd, const void *buf, size_t len) { // 写入 (播放)
   return -1;
 }
+
+f32 vsound_getvol(vsound_t snd) {
+  return -1;
+}
+
+int vsound_setvol(vsound_t snd, f32 vol) {
+  return -1;
+}

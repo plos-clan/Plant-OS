@@ -12,16 +12,75 @@ static CT   fft_wn[64] = {};
 static CT   aft_wn[64] = {};
 static bool fft_inited = false;
 
+#if __has(cexp)
+#  define cexp(x) __builtin_cexp(x)
+#else
+finline f64 _fmod(f64 x, f64 y) __attr(nothrow, leaf, const);
+finline f64 _fmod(f64 x, f64 y) {
+  return x - (i32)(x / y) * y;
+}
+finline f64 _exp(f64 x) __attr(nothrow, leaf, const);
+finline f64 _exp(f64 x) {
+  f64 sum  = 1;
+  f64 term = 1;
+  for (int i = 1; term > F64_EPSILON; i++) {
+    term *= x / i;
+    sum  += term;
+  }
+  return sum;
+}
+finline f64 _sin(f64 x) __attr(nothrow, leaf, const);
+finline f64 _sin(f64 x) {
+  x         = _fmod(x, 2 * PI);
+  f64  sum  = x;
+  f64  term = x;
+  int  n    = 1;
+  bool sign = true;
+  while (term > F64_EPSILON || term < -F64_EPSILON) {
+    n    += 2;
+    term *= x * x / (n * (n - 1));
+    sum  += sign ? -term : term;
+    sign  = !sign;
+  }
+  return sum;
+}
+finline f64 _cos(f64 x) __attr(nothrow, leaf, const);
+finline f64 _cos(f64 x) {
+  x         = _fmod(x, 2 * PI);
+  f64  sum  = 1;
+  f64  term = 1;
+  int  n    = 0;
+  bool sign = true;
+  while (term > F64_EPSILON || term < -F64_EPSILON) {
+    n    += 2;
+    term *= x * x / (n * (n - 1));
+    sum  += sign ? -term : term;
+    sign  = !sign;
+  }
+  return sum;
+}
+finline cf64 _cexp(cf64 x) __attr(nothrow, leaf, const);
+finline cf64 _cexp(cf64 z) {
+  double exp_real = _exp(__real__ z);
+  f64    real     = exp_real * _cos(__imag__ z);
+  f64    imag     = exp_real * _sin(__imag__ z);
+  return real + imag * 1.i;
+}
+#  define cexp(x) _cexp(x)
+#endif
+
 static void FFT(_init)() {
   if (atom_tas(&fft_inited)) return;
   f64 n = 1;
   for (int i = 0; i < 64; i++) {
     cf64 x     = 6.283185307179586232i * n;
-    fft_wn[i]  = __builtin_cexp(x);
-    aft_wn[i]  = __builtin_cexp(-x);
+    fft_wn[i]  = cexp(x);
+    aft_wn[i]  = cexp(-x);
     n         *= .5;
   }
 }
+
+#undef cexp
 
 // y 输出
 // s 输入
