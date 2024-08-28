@@ -2,7 +2,7 @@
 
 #if 0 // plos 启动音效
 
-#define buffer_len 32768
+#  define buffer_len 32768
 static const char l[] = "  QQffQQLLLfLLDDQQQfff  rrff``UU  QQDDQQLLLfLLDD<<f333  r\x98rf`r`U  "
                         "<<<9<LUUU\x80U\x80UL[[rLLL  rrff`frr  <<<93U999`9U3+--9&&&  rrff``UU";
 
@@ -83,33 +83,7 @@ void sound_test() {
 
 #else // plac 测试
 
-#include <plac.h>
-
-// void play_audio(f32 *block, size_t len, void *userdata) {
-//   byte *data = malloc(len);
-//   for (size_t i = 0; i < len; i++) {
-//     f32 x = block[i] * 127 + 128;
-//     if (x > 255) x = 255;
-//     if (x < 0) x = 0;
-//     data[i] = x;
-//   }
-//   sb16_write(data, len);
-//   free(data);
-// }
-
-// void play_audio(f32 *block, size_t len, void *userdata) {
-//   i16 *data = malloc(len * 2);
-//   for (size_t i = 0; i < len; i++) {
-//     f32 x = block[i] * 32767;
-//     if (x > 32767) x = 32767;
-//     if (x < -32768) x = -32768;
-//     data[i] = x;
-//   }
-//   sb16_write(data, len * 2);
-//   free(data);
-// }
-
-<<<<<<< HEAD
+#  include <plac.h>
 #  include <sound.h>
 
 extern void *vram_addr;
@@ -143,52 +117,23 @@ static void draw(f32 *block, size_t len, void *userdata) {
 }
 
 static void play_audio(f32 *block, size_t len, void *userdata) {
-=======
-#include <sound.h>
-#define QOA_IMPLEMENTATION
-#define QOA_NO_STDIO
-#include "qoa.h"
-void play_audio(f32 *block, size_t len, void *userdata) {
->>>>>>> origin/main
   i16 *data = malloc(len * 2);
-  int rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
+  int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
   sb16_write(data, len * 2);
   free(data);
 }
 
 void sound_test() {
   klogd("sound test has been started");
-  vfs_node_t n = vfs_open("/fatfs1/b.qoa");
-  qoa_desc qoa;
-  void *buf1 = malloc(n->size);
-  vfs_read(n, buf1, 0, n->size);
-  short *data = qoa_decode(buf1, n->size, &qoa);
-  klogd("data size: %p samples: %d channels: %d samplerate: %d", data,
-        qoa.samples, qoa.channels, qoa.samplerate);
-  sb16_open(qoa.samplerate, SOUND_FMT_S16);
-  sb16_set_volume(255);
-  int size = 2048;
-  for (int i = 0; i < qoa.samples; i += size) {
-    if (qoa.samples - i < size)
-      size = qoa.samples - i;
-    sb16_write(data + i * qoa.channels, size * 2);
-    printf("\r%f/%f sec", (float)i / (float)qoa.samplerate,
-           (float)qoa.samples / (float)qoa.samplerate);
-  }
-  sb16_close();
-  auto file = vfs_open("/fatfs1/audio.plac");
-  byte *buf = malloc(file->size);
+
+  auto  file = vfs_open("/fatfs1/audio.plac");
+  byte *buf  = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
 
   plac_decompress_t dctx = plac_decompress_alloc(buf, file->size);
-<<<<<<< HEAD
   dctx->callback         = play_audio;
   dctx->userdata         = dctx;
   dctx->cb_mdct_data     = draw;
-=======
-  dctx->callback = play_audio;
-  dctx->userdata = dctx;
->>>>>>> origin/main
 
   u32 samplerate;
   u64 nsamples;
