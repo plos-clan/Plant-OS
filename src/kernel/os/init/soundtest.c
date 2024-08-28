@@ -116,10 +116,23 @@ static void draw(f32 *block, size_t len, void *userdata) {
   if (++x == 1024) x = 0;
 }
 
+// static void play_audio(f32 *block, size_t len, void *userdata) {
+//   i16 *data = malloc(len * 2);
+//   int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
+//   sb16_write(data, len * 2);
+//   free(data);
+// }
+
 static void play_audio(f32 *block, size_t len, void *userdata) {
-  i16 *data = malloc(len * 2);
-  int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
-  sb16_write(data, len * 2);
+  i16 *data = malloc(len * 4);
+  for (size_t i = 0; i < len; i++) {
+    f32 x = block[i] * 32767;
+    if (x > 32767) x = 32767;
+    if (x < -32768) x = -32768;
+    data[i * 2]     = x;
+    data[i * 2 + 1] = x;
+  }
+  sb16_write(data, len * 4);
   free(data);
 }
 
@@ -139,7 +152,7 @@ void sound_test() {
   u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
-  sb16_open(samplerate, 1, SOUND_FMT_S16);
+  sb16_open(samplerate, 2, SOUND_FMT_S16);
   sb16_set_volume(255);
 
   while (plac_decompress_block(dctx))

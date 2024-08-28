@@ -48,23 +48,18 @@ static void *const DMA_BUF_ADDR2 = (void *)0x90000 + DMA_BUF_SIZE; // 不能跨�
 
 #define SB16_IRQ 5
 
-static int sample_rate = 44100;
-
 struct sb16 {
-  mtask          *use_task; //
-  int             status;   //
-  char           *addr1;    // DMA 地址
-  volatile size_t size1;    //
-  char           *addr2;    // DMA 地址
-  volatile size_t size2;    //
-  u8              mode;     // 模式
-  u8              channel;  // DMA 通道
-  byte            depth;    // 采样深度
-};
-
-struct sound_settings {
-  u32 sample_rate; //
-  f32 volume;      //
+  mtask          *use_task;    //
+  int             status;      //
+  char           *addr1;       // DMA 地址
+  volatile size_t size1;       //
+  char           *addr2;       // DMA 地址
+  volatile size_t size2;       //
+  byte            mode;        // 模式
+  byte            dma_channel; // DMA 通道
+  byte            depth;       // 采样深度
+  int             sample_rate;
+  int             channels;
 };
 
 static struct sb16 sb;
@@ -78,7 +73,7 @@ static void sb_exch_dmaaddr() {
   sb.size2    = size;
 }
 
-static void sb_send(u8 cmd) {
+static void sb_send(byte cmd) {
   waitif(asm_in8(SB_WRITE) & MASK(7));
   asm_out8(SB_WRITE, cmd);
 }
@@ -86,14 +81,15 @@ static void sb_send(u8 cmd) {
 static void sb16_do_dma() {
   // 设置采样率
   sb_send(CMD_SOSR);
-  sb_send((sample_rate >> 8) & 0xff);
-  sb_send(sample_rate & 0xff);
+  sb_send((sb.sample_rate >> 8) & 0xff);
+  sb_send(sb.sample_rate & 0xff);
 
-  dma_send(sb.channel, (u32)(sb.addr2), sb.size2, 0, sb.depth == 16);
+  dma_send(sb.dma_channel, sb.addr2, sb.size2, 0, sb.depth == 16);
   sb_send(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
   sb_send(sb.mode);
 
   size_t len = sb.depth == 8 ? sb.size2 : sb.size2 / 2;
+  if (sb.channels == 2) len /= 2;
   sb_send((len - 1) & 0xff);
   sb_send(((len - 1) >> 8) & 0xff);
 }
@@ -169,28 +165,29 @@ int sb16_open(int rate, int channels, sound_pcmfmt_t fmt) {
   sb.use_task = current_task();
   asm_sti;
 
-  sample_rate = rate;
   sb_reset();      // 重置 DSP
   sb_intr_irq();   // 设置中断
   sb_send(CMD_ON); // 打开声卡
 
   if (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_U16) {
-    sb.depth   = 16;
-    sb.channel = 5;
+    sb.depth       = 16;
+    sb.dma_channel = 5;
   } else if (fmt == SOUND_FMT_U8 || fmt == SOUND_FMT_S8) {
-    sb.depth   = 8;
-    sb.channel = 1;
+    sb.depth       = 8;
+    sb.dma_channel = 1;
   }
   if (channels == 1) {
     sb.mode = (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_S8) ? MODE_SMONO : MODE_UMONO;
   } else {
     sb.mode = (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_S8) ? MODE_SSTEREO : MODE_USTEREO;
   }
-  sb.addr1  = DMA_BUF_ADDR1;
-  sb.addr2  = DMA_BUF_ADDR2;
-  sb.size1  = 0;
-  sb.size2  = 0;
-  sb.status = 0;
+  sb.addr1       = DMA_BUF_ADDR1;
+  sb.addr2       = DMA_BUF_ADDR2;
+  sb.size1       = 0;
+  sb.size2       = 0;
+  sb.status      = 0;
+  sb.sample_rate = rate;
+  sb.channels    = channels;
 
   return 0;
 }

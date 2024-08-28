@@ -282,10 +282,10 @@ int fdc_rw(int block, u8 *blockbuff, int read, u32 nosectors) {
 
     /* 发送命令 */
     if (read) {
-      dma_send(2, tbaddr, nosectors * 512, 0);
+      dma8_send(2, (void *)tbaddr, nosectors * 512, 0);
       sendbyte(CMD_READ);
     } else {
-      dma_send(2, tbaddr, nosectors * 512, 1);
+      dma8_send(2, (void *)tbaddr, nosectors * 512, 1);
       sendbyte(CMD_WRITE);
     }
 
@@ -361,10 +361,10 @@ int fdc_rw_ths(int track, int head, int sector, u8 *blockbuff, int read, u32 nos
     asm_out8(FDC_CCR, 0);
 
     if (read) {
-      dma_send(2, tbaddr, nosectors * 512, 0);
+      dma8_send(2, (void *)tbaddr, nosectors * 512, 0);
       sendbyte(CMD_READ);
     } else {
-      dma_send(2, tbaddr, nosectors * 512, 1);
+      dma8_send(2, (void *)tbaddr, nosectors * 512, 1);
       sendbyte(CMD_WRITE);
     }
 

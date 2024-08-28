@@ -9,6 +9,11 @@ typedef ssize_t (*vsound_read_t)(vsound_t vsound, void *addr, size_t size);
 typedef ssize_t (*vsound_write_t)(vsound_t vsound, const void *addr, size_t size);
 typedef ssize_t (*vsound_callback_t)(vsound_t vsound, const void *addr, size_t size);
 
+struct sound_settings {
+  u32 sample_rate; //
+  f32 volume;      //
+};
+
 typedef struct vsound {
   bool              is_using; //
   cstr              name;     //

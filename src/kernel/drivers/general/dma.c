@@ -13,12 +13,13 @@ byte PagePort[8]  = {0x87, 0x83, 0x81, 0x82, 0x8F, 0x8B, 0x89, 0x8A};
 byte AddrPort[8]  = {0x00, 0x02, 0x04, 0x06, 0xC0, 0xC4, 0xC8, 0xCC};
 byte CountPort[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
-void dma_send(byte channel, u64 address, uint length, byte read, bool is_16bit) {
+void dma_send(byte channel, void *address, uint length, byte read, bool is_16bit) {
   byte mode = (read ? 0x48 : 0x44) | (channel % 4);
 
-  byte page   = address >> 16;
-  u16  offset = (is_16bit ? address / 2 : address);
-  length      = (is_16bit ? length / 2 : length) - 1;
+  size_t addr   = (size_t)address;
+  byte   page   = addr >> 16;
+  u16    offset = (is_16bit ? addr / 2 : addr);
+  length        = (is_16bit ? length / 2 : length) - 1;
 
   /* 我们不想别的事情来打扰 */
   asm_cli;
