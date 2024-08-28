@@ -1,19 +1,7 @@
 #include <kernel.h>
-// https://github.com/StevenBaby/onix/blob/dev/src/kernel/sb16.c
+#include <sound.h>
 
 void asm_sb16_handler(int *esp);
-
-struct __PACKED__ WAV16_HEADER {
-  char riff[4];
-  int  size;
-  char wave[4];
-  char fmt[4];
-  int  fmt_size;
-  i16  format;
-  i16  channel;
-  int  sample_rate;
-  int  byte_per_sec;
-};
 
 #define SB_MIXER      0x224 // DSP 混合器端口
 #define SB_MIXER_DATA 0x225 // DSP 混合器数据端口
@@ -137,9 +125,6 @@ void sb16_handler(int *esp) {
 void sb16_init() {
   sb.addr1    = DMA_BUF_ADDR1;
   sb.addr2    = DMA_BUF_ADDR2;
-  sb.mode     = MODE_SMONO;
-  sb.depth    = 16;
-  sb.channel  = 5;
   sb.use_task = NULL;
   sb.size1    = 0;
   sb.size2    = 0;
@@ -172,7 +157,9 @@ void sb16_set_volume(u8 level) {
   asm_out8(SB_MIXER_DATA, level);
 }
 
-void sb16_open(int rate, bool is_16bit) {
+// 支持
+//  S8 U8 S16 U16
+void sb16_open(int rate, sound_pcmfmt_t fmt) {
   while (sb.use_task) {}
   asm_cli;
   sb.use_task = current_task();
@@ -182,12 +169,12 @@ void sb16_open(int rate, bool is_16bit) {
   sb_intr_irq();  // 设置中断
   sb_out(CMD_ON); // 打开声卡
 
-  if (is_16bit) {
-    sb.mode    = MODE_SMONO;
+  if (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_U16) {
+    sb.mode    = fmt == SOUND_FMT_S16 ? MODE_SMONO : MODE_UMONO;
     sb.depth   = 16;
     sb.channel = 5;
-  } else {
-    sb.mode    = MODE_UMONO;
+  } else if (fmt == SOUND_FMT_U8 || fmt == SOUND_FMT_S8) {
+    sb.mode    = fmt == SOUND_FMT_S8 ? MODE_SMONO : MODE_UMONO;
     sb.depth   = 8;
     sb.channel = 1;
   }

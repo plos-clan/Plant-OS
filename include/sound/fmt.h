@@ -5,7 +5,7 @@
 
 #ifndef __cplusplus
 typedef enum {
-#  define FMT(f) sound_fmt_##f
+#  define FMT(f) SOUND_FMT_##f
 #else
 enum class SoundFmt : i32 {
 #  define FMT(f) f
@@ -24,7 +24,7 @@ enum class SoundFmt : i32 {
   FMT(S24B),
   FMT(U24L),
   FMT(U24B),
-  //- 24bit / 4byte(low 3byte)
+  //- 24bit / 4byte (low 3byte)
   FMT(S24L32),
   FMT(S24B32),
   FMT(U24L32),
@@ -48,8 +48,14 @@ enum class SoundFmt : i32 {
   //- 64bit / 8byte  <- float
   FMT(F64L),
   FMT(F64B),
+  //- 8bit / 1byte   <- Mu-Law
+  FMT(MU_LAW),
+  //- 8bit / 1byte   <- A-Law
+  FMT(A_LAW),
+  //- 4bit / 0.5byte <- Ima-ADPCM
+  FMT(IMA_ADPCM),
   //- 计数
-  FMT(cnt),
+  FMT(CNT),
 
 #if LITTLE_ENDIAN
   FMT(S16)    = FMT(S16L),
@@ -86,3 +92,7 @@ enum class SoundFmt : i32 {
 };
 #endif
 #undef FMT
+
+#define sSound_fmt_mask  0xfff
+//- 每个通道一个缓冲区
+#define sSound_fmt_plane 0x1000

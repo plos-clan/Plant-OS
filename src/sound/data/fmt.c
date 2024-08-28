@@ -163,18 +163,18 @@ int _sound_fmt_bytes[] = {
 };
 
 dlexport bool sound_fmt_issigned(sound_pcmfmt_t fmt) {
-  if (fmt < 0 || fmt >= sound_fmt_cnt) return false;
+  if (fmt < 0 || fmt >= SOUND_FMT_CNT) return false;
   return _sound_fmt_issigned[fmt];
 }
 dlexport bool sound_fmt_isfloat(sound_pcmfmt_t fmt) {
-  if (fmt < 0 || fmt >= sound_fmt_cnt) return false;
+  if (fmt < 0 || fmt >= SOUND_FMT_CNT) return false;
   return _sound_fmt_isfloat[fmt];
 }
 dlexport bool sound_fmt_isbe(sound_pcmfmt_t fmt) {
-  if (fmt < 0 || fmt >= sound_fmt_cnt) return false;
+  if (fmt < 0 || fmt >= SOUND_FMT_CNT) return false;
   return _sound_fmt_isbe[fmt];
 }
 dlexport int sound_fmt_bytes(sound_pcmfmt_t fmt) {
-  if (fmt < 0 || fmt >= sound_fmt_cnt) return -1;
+  if (fmt < 0 || fmt >= SOUND_FMT_CNT) return -1;
   return _sound_fmt_bytes[fmt];
 }

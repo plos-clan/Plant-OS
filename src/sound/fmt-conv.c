@@ -114,7 +114,7 @@ extern int  _sound_fmt_bytes[];
 //* ----------------------------------------------------------------------------------------------------
 
 #define __fmtconv_case_(dstname, srcname)                                                          \
-  case sound_fmt_##srcname: sound_fmt_##srcname##to##dstname(dst, src, len); return 0
+  case SOUND_FMT_##srcname: sound_fmt_##srcname##to##dstname(dst, src, len); return 0
 
 #if defined(__x86_64__) && !NO_EXTFLOAT
 
@@ -160,15 +160,15 @@ extern int  _sound_fmt_bytes[];
 #endif
 
 #define __fmtconvto_case_(dstname)                                                                 \
-  case sound_fmt_##dstname: return sound_fmt_convto##dstname(dst, src, srcfmt, len)
+  case SOUND_FMT_##dstname: return sound_fmt_convto##dstname(dst, src, srcfmt, len)
 
 #include "fmtconv/2.h"
 
 int sound_fmt_conv(void *_rest dst, const sound_pcmfmt_t dstfmt, const void *_rest src,
                    const sound_pcmfmt_t srcfmt, const size_t len) {
   if (!src || !dst) return -1;
-  if (srcfmt < 0 || srcfmt >= sound_fmt_cnt) return -1;
-  if (dstfmt < 0 || dstfmt >= sound_fmt_cnt) return -1;
+  if (srcfmt < 0 || srcfmt >= SOUND_FMT_CNT) return -1;
+  if (dstfmt < 0 || dstfmt >= SOUND_FMT_CNT) return -1;
 
   if (srcfmt == dstfmt) {
     __builtin_memcpy(dst, src, len * _sound_fmt_bytes[srcfmt]);
