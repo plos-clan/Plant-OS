@@ -22,3 +22,6 @@ tgtlib(util-plui util-pl2d)
 
 utillib(plac)
 tgtlib(util-plac util-misc)
+
+utillib(sound)
+tgtlib(util-sound)
