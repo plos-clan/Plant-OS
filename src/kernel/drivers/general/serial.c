@@ -31,6 +31,6 @@ static bool is_transmit_empty() {
 }
 
 void write_serial(char a) {
-  while (!is_transmit_empty()) {}
+  waituntil(is_transmit_empty());
   asm_out8(PORT, a);
 }

@@ -97,42 +97,29 @@ finline f32 my_sqrt(f32 x) {
 }
 
 static void draw(f32 *block, size_t len, void *userdata) {
-  static int x = 0;
-  struct __PACKED__ {
-    byte b, g, r, a;
-  } *const buf = vram_addr;
-  for (int y = 0; y < 768; y++) {
-    int i    = y * 1024 + x;
-    int k    = my_sqrt(1 - y / (f32)768) * len / 2;
-    f32 v1   = block[len - k];
-    f32 v2   = block[k];
-    f32 v    = my_sqrt(v1 * v1 + v2 * v2);
-    v        = v > 1 ? 1 : v;
-    v        = my_sqrt(v);
-    buf[i].r = v * 255;
-    buf[i].g = v * 255;
-    buf[i].b = v * 255;
-  }
-  if (++x == 1024) x = 0;
+  // static int x = 0;
+  // struct __PACKED__ {
+  //   byte b, g, r, a;
+  // } *const buf = vram_addr;
+  // for (int y = 0; y < screen_h; y++) {
+  //   int i    = y * screen_w + x;
+  //   int k    = my_sqrt(1 - y / (f32)screen_h) * len / 2;
+  //   f32 v1   = block[len - k];
+  //   f32 v2   = block[k];
+  //   f32 v    = my_sqrt(v1 * v1 + v2 * v2);
+  //   v        = v > 1 ? 1 : v;
+  //   v        = my_sqrt(v);
+  //   buf[i].r = v * 255;
+  //   buf[i].g = v * 255;
+  //   buf[i].b = v * 255;
+  // }
+  // if (++x == screen_w) x = 0;
 }
 
-// static void play_audio(f32 *block, size_t len, void *userdata) {
-//   i16 *data = malloc(len * 2);
-//   int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
-//   sb16_write(data, len * 2);
-//   free(data);
-// }
-
 static void play_audio(f32 *block, size_t len, void *userdata) {
-  i16 *data = malloc(len * 4);
-  for (size_t i = 0; i < len; i++) {
-    f32 x = block[i] * 32767;
-    if (x > 32767) x = 32767;
-    if (x < -32768) x = -32768;
-    data[i * 2]     = x;
-    data[i * 2 + 1] = x;
-  }
-  sb16_write(data, len * 4);
+  i16 *data = malloc(len * 2);
+  int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
+  sb16_write(data, len * 2);
   free(data);
 }
 
@@ -152,11 +139,11 @@ void sound_test() {
   u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
-  sb16_open(samplerate, 2, SOUND_FMT_S16);
+  sb16_open(samplerate, 1, SOUND_FMT_S16);
   sb16_set_volume(255);
 
-  while (plac_decompress_block(dctx))
-    ;
+  waitif(plac_decompress_block(dctx));
+
   sb16_close();
   syscall_exit(0);
 }

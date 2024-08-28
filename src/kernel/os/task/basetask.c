@@ -239,9 +239,9 @@ void init() {
 
   // klogd("Set Mode");
 
-  byte *vram = (void *)set_mode(1024, 768, 32);
+  byte *vram = (void *)set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
-  memset(vram, 0, 1024 * 768 * 4);
+  memset(vram, 0, screen_w * screen_h * 4);
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   vdisk vd;
@@ -267,7 +267,7 @@ void init() {
   auto font1 = load_font("/fatfs1/font1.plff");
   // auto font2 = load_font("/fatfs1/font2.plff");
 
-  auto tty = plty_alloc(vram, 1024, 768, font1);
+  auto tty = plty_alloc(vram, screen_w, screen_h, font1);
   // plty_addfont(tty, font2);
 
   plty_set_default(tty);
@@ -284,20 +284,20 @@ void init() {
   // }
 
   // const int bx = 200, by = 200, r = 100;
-  // for (int y = 0; y < 1024; y++) {
-  //   for (int x = 0; x < 768; x++) {
+  // for (int y = 0; y < screen_w; y++) {
+  //   for (int x = 0; x < screen_h; x++) {
   //     struct __PACKED__ {
   //       byte b, g, r, a;
   //     } *const buf = (void *)vram;
   //     if ((x - bx) * (x - bx) + (y - by) * (y - by) >= (r - 1) * (r - 1) &&
   //         (x - bx) * (x - bx) + (y - by) * (y - by) < r * r) {
-  //       buf[y * 1024 + x].r = 255;
-  //       buf[y * 1024 + x].g = 255;
-  //       buf[y * 1024 + x].b = 255;
+  //       buf[y * screen_w + x].r = 255;
+  //       buf[y * screen_w + x].g = 255;
+  //       buf[y * screen_w + x].b = 255;
   //     } else {
-  //       buf[y * 1024 + x].r = 0;
-  //       buf[y * 1024 + x].g = 0;
-  //       buf[y * 1024 + x].b = 0;
+  //       buf[y * screen_w + x].r = 0;
+  //       buf[y * screen_w + x].g = 0;
+  //       buf[y * screen_w + x].b = 0;
   //     }
   //   }
   // }
