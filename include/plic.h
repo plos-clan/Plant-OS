@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "img/qoi.h"
+#include "plic/qoi.h"
 #ifdef __cplusplus
 }
 #endif
