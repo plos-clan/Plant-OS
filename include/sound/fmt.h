@@ -56,6 +56,8 @@ enum class SoundFmt : i32 {
   FMT(IMA_ADPCM),
   //- 计数
   FMT(CNT),
+  //- 按通道存储 (如果是就给 fmt 加上此值)
+  FMT(PLANE) = 32,
 
 #if LITTLE_ENDIAN
   FMT(S16)    = FMT(S16L),
@@ -93,6 +95,7 @@ enum class SoundFmt : i32 {
 #endif
 #undef FMT
 
-#define sSound_fmt_mask  0xfff
-//- 每个通道一个缓冲区
-#define sSound_fmt_plane 0x1000
+dlimport bool sound_fmt_issigned(sound_pcmfmt_t fmt);
+dlimport bool sound_fmt_isfloat(sound_pcmfmt_t fmt);
+dlimport bool sound_fmt_isbe(sound_pcmfmt_t fmt);
+dlimport int  sound_fmt_bytes(sound_pcmfmt_t fmt);

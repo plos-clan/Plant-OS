@@ -1,8 +1,8 @@
 #pragma once
+#include "fmt.h"
+#include <define.h>
 
 // 音频采样格式转换
-
-#include <sound.h>
 
 extern int sound_fmt_conv(void *_rest dst, sound_pcmfmt_t dstfmt, const void *_rest src,
                           sound_pcmfmt_t srcfmt, size_t len);

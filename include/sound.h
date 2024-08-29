@@ -6,6 +6,7 @@
 extern "C" {
 #endif
 #include "sound/fmtconv.h"
+#include "sound/mix.h"
 #ifdef __cplusplus
 }
 #endif

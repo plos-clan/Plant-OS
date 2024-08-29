@@ -62,21 +62,28 @@ static byte gen(int t) {
   if (t < (128 - G) * K) return G + t / K;
   return 128;
 }
+
+vsound_t snd;
+
 void sound_test() {
   klogd("sound test has been started");
-  F               = g(0);
-  G               = g(T);
-  const int total = T + ((128 - F) + (128 - G)) * K;
-  sb16_open(44100, 1, SOUND_FMT_U8);
-  sb16_set_volume(255);
+  F                      = g(0);
+  G                      = g(T);
+  const int total        = T + ((128 - F) + (128 - G)) * K;
+  snd                    = vsound_find("sb16");
+  snd->settings.fmt      = SOUND_FMT_U8;
+  snd->settings.channels = 1;
+  snd->settings.rate     = 44100;
+  snd->settings.volume   = 1;
+  vsound_open(snd);
   byte *buffer = malloc(buffer_len);
   for (int offset = 0;; offset++) {
     if (offset * buffer_len >= total) break;
     for (int i = 0; i < buffer_len; i++)
       buffer[i] = gen(i + offset * buffer_len);
-    sb16_write(buffer, buffer_len);
+    vsound_write(snd, buffer, buffer_len);
   }
-  sb16_close();
+  vsound_close(snd);
   syscall_exit(0);
 }
 
@@ -115,10 +122,12 @@ static void draw(f32 *block, size_t len, void *userdata) {
   if (++x == screen_w) x = 0;
 }
 
+vsound_t snd;
+
 static void play_audio(f32 *block, size_t len, void *userdata) {
   i16 *data = malloc(len * 2);
   int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
-  sb16_write(data, len * 2);
+  vsound_write(snd, data, len);
   free(data);
 }
 
@@ -138,12 +147,16 @@ void sound_test() {
   u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
-  sb16_open(samplerate, 1, SOUND_FMT_S16);
-  sb16_set_volume(255);
+  snd                    = vsound_find("sb16");
+  snd->settings.fmt      = SOUND_FMT_S16;
+  snd->settings.channels = 1;
+  snd->settings.rate     = samplerate;
+  snd->settings.volume   = 1;
+  vsound_open(snd);
 
   waitif(plac_decompress_block(dctx));
 
-  sb16_close();
+  vsound_close(snd);
   syscall_exit(0);
 }
 

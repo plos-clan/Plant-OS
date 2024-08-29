@@ -1,16 +1,8 @@
 
 #pragma GCC optimize("O3")
 
-#include <data-structure.h>
 #include <libc-base.h>
 #include <sound.h>
-
-typedef struct sound_mixer {
-  f32     *buf;
-  size_t   bufsize;
-  queue_t *tracks;
-  size_t   ntracks;
-} *sound_mixer_t;
 
 sound_mixer_t sound_mixer_alloc(void *buf, size_t bufsize) {
   sound_mixer_t mixer = malloc(sizeof(struct sound_mixer));
@@ -24,41 +16,34 @@ sound_mixer_t sound_mixer_alloc(void *buf, size_t bufsize) {
 
 void sound_mixer_free(sound_mixer_t mixer) {
   if (mixer == null) return;
-  for (size_t i = 0; i < mixer->ntracks; i++) {
-    queue_free_with(mixer->tracks[i], free);
-  }
-  free(mixer->tracks);
+  list_free_with(mixer->tracks, free);
   free(mixer);
 }
 
-#if 0
-
-// 写入音频数据到混合器的一个轨道
-int sound_mixer_write(sound_mixer_t mixer, float *data, size_t num_samples) {
-  if (mixer->ntracks >= mixer->max_tracks || num_samples != mixer->num_samples) {
-    return -1; // 超出轨道限制或样本数量不匹配
-  }
-
-  memcpy(mixer->tracks + mixer->ntracks * mixer->num_samples, data, num_samples * sizeof(float));
-  mixer->ntracks++;
-
-  return 0;
-}
-
-// 读取混合后的音频数据
-void sound_mixer_read(sound_mixer_t mixer, float *output) {
-  memset(output, 0, mixer->num_samples * sizeof(float));
-
-  for (size_t i = 0; i < mixer->ntracks; ++i) {
-    for (size_t j = 0; j < mixer->num_samples; ++j) {
-      output[j] += mixer->tracks[i * mixer->num_samples + j];
-    }
-  }
-
-  // 平均化音频样本值
-  for (size_t j = 0; j < mixer->num_samples; ++j) {
-    output[j] /= mixer->ntracks;
+void sound_mixer_clear(sound_mixer_t mixer) {
+  if (mixer == null) return;
+  for (size_t i = 0; i < mixer->bufsize; i++) {
+    mixer->buf[i] = 0;
   }
 }
 
-#endif
+void *sound_mixer_track(sound_mixer_t mixer) {
+  size_t *len_p = malloc(mixer->bufsize);
+  *len_p        = 0;
+  list_prepend(mixer->tracks, len_p);
+  return len_p;
+}
+
+void sound_mixer_remove(sound_mixer_t mixer, void *track) {
+  list_delete(mixer->tracks, track);
+}
+
+ssize_t sound_mixer_write(sound_mixer_t mixer, void *track, f32 *data, size_t len) {
+  size_t *len_p  = track;
+  size_t  nwrite = min(mixer->bufsize - *len_p, len);
+  for (size_t i = 0; i < nwrite; i++) {
+    mixer->buf[*len_p + i] += data[i];
+  }
+  *len_p += nwrite;
+  return nwrite;
+}

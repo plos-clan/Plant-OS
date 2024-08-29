@@ -20,7 +20,6 @@ extern "C" {
 #include "kernel/page.h"
 #include "kernel/pci.h"
 #include "kernel/ps2.h"
-#include "kernel/sb16.h"
 #include "kernel/screen.h"
 #include "kernel/syscall.h"
 #include "kernel/timer.h"

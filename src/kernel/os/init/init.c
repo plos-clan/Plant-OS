@@ -1,8 +1,6 @@
 #include <fs.h>
 #include <kernel.h>
 
-void sb16_init();
-
 struct MOUSE_DEC mdec;
 size_t           memsize;
 byte            *IVT;
@@ -78,7 +76,7 @@ void malloc_test() {
 #  pragma clang optimize off
 #endif
 void *pci_addr_base;
-void sysinit() {
+void  sysinit() {
   do_init_seg_register();
   memsize = memtest(0x00400000, 0xbfffffff);
   init_page();
@@ -100,6 +98,7 @@ void sysinit() {
   init_tty();
   screen_clear();
   sb16_init();
+  sb16_regist();
   vdisk_init();
   vfs_init();
 
