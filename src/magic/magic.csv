@@ -1,0 +1,39 @@
+MIME;type;magic;extension;description
+application/java-archive;hex;50 4b 03 04;jar;Java Archive file
+application/msword;hex;d0 cf 11 e0 a1 b1 1a e1;doc;Microsoft Word document
+application/pdf;hex;25 50 44 46 2d;pdf;Portable Document Format
+application/vnd.amazon.ebook;hex;50 4b 03 04;azw;Amazon Kindle eBook file
+application/vnd.ms-excel;hex;d0 cf 11 e0 a1 b1 1a e1;xls;Microsoft Excel document
+application/wasm;hex;00 61 73 6d 01 00 00 00;wasm;WebAssembly binary file
+application/x-bzip;hex;42 5a 68;bz;Bzip archive file
+application/x-bzip2;hex;42 5a 68;bz2;Bzip2 archive file
+application/x-cdf;hex;43 44 30 30;cdf;Common Data Format file
+application/x-csh;hex;23 21 2f 62 69 6e 2f 73 68;csh;C Shell script
+application/x-csh;str;#!/usr/bin/bash;sh;Bash script
+application/x-rar-compressed;hex;52 61 72 21 1a 07 00;rar;RAR archive file
+application/zip;hex;50 4b 03 04;zip;ZIP archive file
+audio/aac;hex;ff f1;aac;Advanced Audio Coding file
+audio/mpeg;hex;ff fb;mp3;MP3 audio file
+audio/ogg;hex;4f 67 67 53;ogg;Ogg Vorbis audio file
+audio/wav;hex;52 49 46 46;wav;Waveform Audio file
+audio/webm;hex;1a 45 df a3;weba;WebM audio file
+image/gif;hex;47 49 46 38 39 61;gif;Graphics Interchange Format file
+image/apng;hex;89 50 4e 47 0d 0a 1a 0a;apng;Animated Portable Network Graphics
+image/jpeg;hex;ff d8 ff;jpeg,jpg;JPEG image file
+image/png;hex;89 50 4e 47 0d 0a 1a 0a;png;Portable Network Graphics
+image/vnd.microsoft.icon;hex;00 00 01 00;ico;Icon file
+text/css;;;css;Cascading Style Sheets file
+text/csv;;;csv;Comma-separated values file
+text/html;str;<!DOCTYPE html>;html,htm;Hypertext Markup Language file
+video/mp4;hex;00 00 00 18 66 74 79 70 6d 70 34 32;mp4;MPEG-4 video file
+video/x-msvideo;hex;52 49 46 46;avi;Audio Video Interleave file
+video/webm;hex;1a 45 df a3;webm;WebM video file
+font/woff;hex;77 4f 46 46;woff;Web Open Font Format file
+font/woff2;hex;77 4f 46 32;woff2;Web Open Font Format 2 file
+font/ttf;hex;00 01 00 00;ttf;TrueType Font file
+font/otf;hex;4f 54 54 4f;otf;OpenType Font file
+image/svg+xml;;;svg;Scalable Vector Graphics file
+application/x-7z-compressed;hex;37 7a bc af 27 1c;7z;7-Zip archive file
+text/x-script;str;#!;;Script file
+application/x-executable;hex;7f 45 4c 46;elf;Executable and Linkable Format file
+application/x-msdownload;hex;4d 5a;exe;Windows Executable file

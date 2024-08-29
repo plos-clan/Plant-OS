@@ -16,3 +16,4 @@ typedef struct args {
 } *args_t;
 
 dlimport void *parse_args(args_t args);
+dlimport char *parse_arg(char *arg, cstr *argline_p);

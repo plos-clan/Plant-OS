@@ -8,5 +8,6 @@ target_link_libraries(
   audio
   c-base
   plreadln
-  sound)
+  sound
+  magic)
 target_compile_definitions(kernel PRIVATE RING0=1 KERNEL=1)

@@ -88,7 +88,6 @@ void flush() {
 }
 void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("cd", words, true, ' ');
-  pl_readline_word_maker_add("exec", words, true, ' ');
   pl_readline_word_maker_add("ls", words, true, ' ');
   pl_readline_word_maker_add("pcils", words, true, ' ');
   pl_readline_word_maker_add("exit", words, true, ' ');
@@ -143,6 +142,23 @@ void pci_list() {
       break;
   }
 }
+
+#include <magic.h>
+
+static cstr filetype_from_name(cstr path) {
+  auto   file = vfs_open(path);
+  size_t size = min(1024, file->size);
+  byte  *buf  = malloc(size);
+  vfs_read(file, buf, 0, size);
+  cstr type = filetype(buf, size);
+  free(buf);
+  return type;
+}
+
+static char *exec_name_from_cmdline(cstr line) {
+  return parse_arg(null, &line);
+}
+
 void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
@@ -174,15 +190,6 @@ void shell() {
         sprintf(path, "%s%s", path, s);
       else
         sprintf(path, "%s/%s", path, s);
-    } else if (strneq(ch, "exec ", 5)) {
-      char *s  = ch + 5;
-      char *s2 = strchr(s, ' ');
-      if (s2) *s2 = '\0';
-      char *s3   = strdup(s);
-      *s2        = ' ';
-      int status = os_execute(s3, s);
-      printf("%s exited with code %d\n", s3, status);
-      free(s3);
     } else if (streq(ch, "ls")) {
       list_files(path);
     } else if (streq(ch, "pcils")) {
@@ -192,7 +199,15 @@ void shell() {
     } else if (streq(ch, "clear")) {
       screen_clear();
     } else {
-      printf("bad command\n");
+      char *path = exec_name_from_cmdline(ch);
+      cstr  type = filetype_from_name(path);
+      if (streq(type, "application/x-executable")) {
+        int status = os_execute(path, ch);
+        printf("%s exited with code %d\n", path, status);
+      } else {
+        printf("bad command\n");
+      }
+      free(path);
     }
   }
 }
@@ -293,12 +308,6 @@ void init() {
   // while(1) vfs_write(p, "你好，世界", 0, strlen("你好，世界"));
   // infinite_loop;
 
-  // info("Plant-OS 终端现在支持中文啦！");
-
-  // for (int i = 0;; i++) {
-  //   info("Hello world! %d", i);
-  // }
-
   // const int bx = 200, by = 200, r = 100;
   // for (int y = 0; y < screen_w; y++) {
   //   for (int x = 0; x < screen_h; x++) {
@@ -316,19 +325,6 @@ void init() {
   //       buf[y * screen_w + x].b = 0;
   //     }
   //   }
-  // }
-
-  // infinite_loop;
-
-  // for (int i = 0;; i++) {
-  //   static char text[1024];
-  //   sprintf(text, "Hello world!  %d\n", i + 1);
-  //   color_t color = {rand(), rand(), rand(), 255};
-  //   plty_setfg(tty, color);
-  //   color_t color2 = {rand(), rand(), rand(), 255};
-  //   plty_setbg(tty, color2);
-  //   plty_puts(tty, text);
-  //   plty_flush(tty);
   // }
 
   create_task((u32)shell, 0, 1, 1);

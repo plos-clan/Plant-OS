@@ -5,7 +5,7 @@
 #define isspace(c)                                                                                 \
   ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r' || (c) == '\f' || (c) == '\v')
 
-static char *parse_arg(char *arg, cstr *argline_p) {
+dlexport char *parse_arg(char *arg, cstr *argline_p) {
   cstr s = *argline_p;
 
   if (arg == null) arg = malloc(128);
