@@ -256,6 +256,7 @@ void check_device() {
     is_vbox = false;
     info("VirtualBox not detected");
   }
+  free(s);
 }
 
 void init() {
