@@ -141,11 +141,12 @@ void sb16_handler(int *esp) {
 
   task_run(sb.use_task);
 }
+extern bool is_vbox;
 
 void sb16_init() {
   sb.use_task  = null;
   sb.status    = STAT_OFF;
-  sb.auto_mode = false;
+  sb.auto_mode = is_vbox ? true : false;
   irq_mask_clear(SB16_IRQ);
   register_intr_handler(SB16_IRQ + 0x20, (u32)asm_sb16_handler);
 }
@@ -211,7 +212,8 @@ int sb16_open(int rate, int channels, sound_pcmfmt_t fmt) {
   sb.size2       = 0;
   sb.sample_rate = rate;
   sb.channels    = channels;
-
+  sb.auto_mode   = is_vbox ? true : false;
+  
   // 设置采样率
   sb_send(CMD_SOSR);
   sb_send((sb.sample_rate >> 8) & 0xff);

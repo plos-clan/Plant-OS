@@ -71,4 +71,4 @@ struct VBEINFO {
 
 u32 set_mode(int width, int height, int bpp);
 
-static const int screen_w = 1280, screen_h = 720;
+static const int screen_w = 1024, screen_h = 768;
