@@ -5,9 +5,9 @@
 #include <alsa/asoundlib.h>
 
 #define NO_STD 0
+#include <audio.h>
 #include <data-structure.h>
 #include <misc.h>
-#include <plac.h>
 
 snd_pcm_t *pcm_out;
 

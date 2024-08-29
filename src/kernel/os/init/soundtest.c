@@ -82,7 +82,7 @@ void sound_test() {
 
 #else // plac 测试
 
-#  include <plac.h>
+#  include <audio.h>
 #  include <sound.h>
 
 extern void *vram_addr;

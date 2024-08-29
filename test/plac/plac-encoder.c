@@ -7,9 +7,9 @@
 #include <libswresample/swresample.h>
 
 #define NO_STD 0
+#include <audio.h>
 #include <data-structure.h>
 #include <misc.h>
-#include <plac.h>
 
 static char *replace_extension(const char *path, const char *new_extension) {
   char *new_path = malloc(strlen(path) + strlen(new_extension) + 1);

@@ -2,7 +2,7 @@
 
 // author: copi143
 
-#include <plac.h>
+#include <audio.h>
 
 #include "mulaw.h"
 #include "quantize.h"

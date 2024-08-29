@@ -2,7 +2,7 @@ testexec(audio audio.c)
 testlib(
   audio
   util-misc
-  util-plac
+  util-audio
   asound
   avcodec
   avformat
@@ -13,11 +13,11 @@ testexec(plac-encoder plac-encoder.c)
 testlib(
   plac-encoder
   util-misc
-  util-plac
+  util-audio
   avcodec
   avformat
   avutil
   swresample)
 
 testexec(plac-player plac-player.c)
-testlib(plac-player util-misc util-plac asound)
+testlib(plac-player util-misc util-audio asound)

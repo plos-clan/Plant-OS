@@ -2,7 +2,7 @@
 
 // author: copi143
 
-#include <plac.h>
+#include <audio.h>
 
 void quantize(quantized_t q) {
   if (q->nbit == 0) goto zero;

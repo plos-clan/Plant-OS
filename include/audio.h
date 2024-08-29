@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "plac/plac.h"
+#include "audio/plac.h"
 #ifdef __cplusplus
 }
 #endif

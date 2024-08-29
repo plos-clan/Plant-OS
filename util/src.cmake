@@ -20,8 +20,8 @@ tgtlib(util-plds util-pl2d)
 utillib(plui)
 tgtlib(util-plui util-pl2d)
 
-utillib(plac)
-tgtlib(util-plac util-misc)
+utillib(audio)
+tgtlib(util-audio util-misc)
 
 utillib(sound)
 tgtlib(util-sound)

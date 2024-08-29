@@ -5,7 +5,7 @@ target_link_libraries(
   kernel
   font
   plty
-  plac
+  audio
   c-base
   plreadln
   sound)
