@@ -120,7 +120,11 @@ static void sb16_send_buffer() {
 }
 
 void sb16_do_close() {
-  sb_send(CMD_OFF); // 关闭声卡
+  if (sb.auto_mode) {
+    sb_send(sb.depth == 8 ? 0xD9 : 0xDA);
+  } else {
+    sb_send(CMD_OFF);
+  }
   sb.use_task = null;
   sb.status   = STAT_OFF;
 }
@@ -141,6 +145,7 @@ void sb16_handler(int *esp) {
 
   task_run(sb.use_task);
 }
+
 extern bool is_vbox;
 
 void sb16_init() {
@@ -213,7 +218,7 @@ int sb16_open(int rate, int channels, sound_pcmfmt_t fmt) {
   sb.sample_rate = rate;
   sb.channels    = channels;
   sb.auto_mode   = is_vbox ? true : false;
-  
+
   // 设置采样率
   sb_send(CMD_SOSR);
   sb_send((sb.sample_rate >> 8) & 0xff);

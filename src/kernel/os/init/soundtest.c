@@ -61,7 +61,6 @@ static byte gen(int t) {
   t -= T;
   if (t < (128 - G) * K) return G + t / K;
   return 128;
-  // return g(t);
 }
 void sound_test() {
   klogd("sound test has been started");
@@ -69,7 +68,7 @@ void sound_test() {
   G               = g(T);
   const int total = T + ((128 - F) + (128 - G)) * K;
   sb16_open(44100, 1, SOUND_FMT_U8);
-  sb16_set_volume(128);
+  sb16_set_volume(255);
   byte *buffer = malloc(buffer_len);
   for (int offset = 0;; offset++) {
     if (offset * buffer_len >= total) break;
@@ -97,23 +96,23 @@ finline f32 my_sqrt(f32 x) {
 }
 
 static void draw(f32 *block, size_t len, void *userdata) {
-  // static int x = 0;
-  // struct __PACKED__ {
-  //   byte b, g, r, a;
-  // } *const buf = vram_addr;
-  // for (int y = 0; y < screen_h; y++) {
-  //   int i    = y * screen_w + x;
-  //   int k    = my_sqrt(1 - y / (f32)screen_h) * len / 2;
-  //   f32 v1   = block[len - k];
-  //   f32 v2   = block[k];
-  //   f32 v    = my_sqrt(v1 * v1 + v2 * v2);
-  //   v        = v > 1 ? 1 : v;
-  //   v        = my_sqrt(v);
-  //   buf[i].r = v * 255;
-  //   buf[i].g = v * 255;
-  //   buf[i].b = v * 255;
-  // }
-  // if (++x == screen_w) x = 0;
+  static int x = 0;
+  struct __PACKED__ {
+    byte b, g, r, a;
+  } *const buf = vram_addr;
+  for (int y = 0; y < screen_h; y++) {
+    int i    = y * screen_w + x;
+    int k    = my_sqrt(1 - y / (f32)screen_h) * len / 2;
+    f32 v1   = block[len - k];
+    f32 v2   = block[k];
+    f32 v    = my_sqrt(v1 * v1 + v2 * v2);
+    v        = v > 1 ? 1 : v;
+    v        = my_sqrt(v);
+    buf[i].r = v * 255;
+    buf[i].g = v * 255;
+    buf[i].b = v * 255;
+  }
+  if (++x == screen_w) x = 0;
 }
 
 static void play_audio(f32 *block, size_t len, void *userdata) {
