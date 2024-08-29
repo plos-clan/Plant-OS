@@ -146,7 +146,8 @@ void pci_list() {
 #include <magic.h>
 
 static cstr filetype_from_name(cstr path) {
-  auto   file = vfs_open(path);
+  auto file = vfs_open(path);
+  if (file == null) return null;
   size_t size = min(1024, file->size);
   byte  *buf  = malloc(size);
   vfs_read(file, buf, 0, size);
@@ -198,6 +199,14 @@ void shell() {
       syscall_exit(0);
     } else if (streq(ch, "clear")) {
       screen_clear();
+    } else if (strneq(ch, "file ", 5)) {
+      cstr path = ch + 5;
+      cstr type = filetype_from_name(path);
+      if (type) {
+        printf("%s\n", type);
+      } else {
+        printf("unknown file\n");
+      }
     } else {
       char *path = exec_name_from_cmdline(ch);
       cstr  type = filetype_from_name(path);
