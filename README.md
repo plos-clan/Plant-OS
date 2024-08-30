@@ -14,8 +14,11 @@ A simple OS used to study made by several students。
 
 <br>
 <br>
-<br>
-<br>
+
+![Static Badge](https://img.shields.io/badge/Language-3-orange)
+![Static Badge](https://img.shields.io/badge/hardware-x86-green) 
+
+![Static Badge](https://img.shields.io/badge/model-plui_%7C_pl_readline_%7C_plty-8A2BE2)
 
 ## 项目结构
 
