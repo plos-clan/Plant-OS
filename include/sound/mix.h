@@ -4,12 +4,12 @@
 
 typedef struct sound_mixer {
   f32   *buf;
-  size_t bufsize;
+  size_t len;
   list_t tracks;
   size_t ntracks;
 } *sound_mixer_t;
 
-sound_mixer_t sound_mixer_alloc(void *buf, size_t bufsize);
+sound_mixer_t sound_mixer_alloc(void *buf, size_t len);
 void          sound_mixer_free(sound_mixer_t mixer);
 void          sound_mixer_clear(sound_mixer_t mixer);
 void         *sound_mixer_track(sound_mixer_t mixer);

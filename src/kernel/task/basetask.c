@@ -8,7 +8,6 @@
 
 u8  *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
-void sound_test();
 int  os_execute(char *filename, char *line);
 
 void idle_loop() {
@@ -336,8 +335,19 @@ void init() {
   //   }
   // }
 
+  extern void sound_test();
+
+  // extern void init_sound_mixer();
+  // extern void sound_mixer_task();
+  // extern void sound_test1();
+  // extern void sound_test2();
+  // init_sound_mixer();
+
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);
+  // create_task((u32)sound_mixer_task, 0, 1, 1);
+  // create_task((u32)sound_test1, 0, 1, 1);
+  // create_task((u32)sound_test2, 0, 1, 1);
 
   infinite_loop task_next();
 }

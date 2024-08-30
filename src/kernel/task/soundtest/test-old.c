@@ -83,6 +83,7 @@ void sound_test() {
       buffer[i] = gen(i + offset * buffer_len);
     vsound_write(snd, buffer, buffer_len);
   }
+  free(buffer);
   vsound_close(snd);
   syscall_exit(0);
 }
@@ -157,6 +158,7 @@ void sound_test() {
   waitif(plac_decompress_block(dctx));
 
   vsound_close(snd);
+  plac_decompress_free(dctx);
   syscall_exit(0);
 }
 
