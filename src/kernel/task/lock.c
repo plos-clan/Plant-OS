@@ -7,15 +7,6 @@ void mtask_start();
 
 extern char mtask_stop_flag;
 
-bool cas(int *ptr, int old, int New) {
-  int old_value = *ptr;
-  if (old_value == old) {
-    *ptr = New;
-    return true;
-  }
-  return false;
-}
-
 void lock_init(lock_t *l) {
   l->owner  = NULL;
   l->value  = LOCK_UNLOCKED;

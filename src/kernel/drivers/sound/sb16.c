@@ -1,6 +1,8 @@
 #include <kernel.h>
 #include <sound.h>
 
+#define VSOUND_RWAPI 1
+
 void asm_sb16_handler(int *esp);
 
 #define SB_MIXER      0x224 // DSP 混合器端口
@@ -230,6 +232,7 @@ static void sb16_close(vsound_t vsound) {
   }
 }
 
+#if VSOUND_RWAPI
 static int sb16_write(vsound_t vsound, const void *data, size_t len) {
   size_t size = len * vsound->settings.bytes_per_sample;
   while (size > 0) {
@@ -249,30 +252,41 @@ static int sb16_write(vsound_t vsound, const void *data, size_t len) {
   }
   return 0;
 }
+#endif
 
 struct vsound vsound = {
+#if VSOUND_RWAPI
+    .is_rwmode = true,
+#endif
     .name  = "sb16",
     .open  = sb16_open,
     .close = sb16_close,
+#if VSOUND_RWAPI
     .write = sb16_write,
+#else
+    .bufsize = DMA_BUF_SIZE,
+#endif
+};
+
+static const i16 fmts[] = {
+    SOUND_FMT_S8, SOUND_FMT_U8, SOUND_FMT_S16, SOUND_FMT_U16, -1,
+};
+
+static const i32 rates[] = {
+    8000, 11025, 16000, 22050, 24000, 32000, 44100, 47250, 48000, 50000, -1,
 };
 
 void sb16_regist() {
-  vsound_regist(&vsound);
-  vsound_set_supported_fmt(&vsound, SOUND_FMT_S8);
-  vsound_set_supported_fmt(&vsound, SOUND_FMT_U8);
-  vsound_set_supported_fmt(&vsound, SOUND_FMT_S16);
-  vsound_set_supported_fmt(&vsound, SOUND_FMT_U16);
-  vsound_set_supported_rate(&vsound, 8000);
-  vsound_set_supported_rate(&vsound, 11025);
-  vsound_set_supported_rate(&vsound, 16000);
-  vsound_set_supported_rate(&vsound, 22050);
-  vsound_set_supported_rate(&vsound, 24000);
-  vsound_set_supported_rate(&vsound, 32000);
-  vsound_set_supported_rate(&vsound, 44100);
-  vsound_set_supported_rate(&vsound, 47250);
-  vsound_set_supported_rate(&vsound, 48000);
-  vsound_set_supported_rate(&vsound, 50000);
-  vsound_set_supported_chs(&vsound, 1);
-  vsound_set_supported_chs(&vsound, 2);
+  if (!vsound_regist(&vsound)) {
+    klogw("注册 sb16 失败");
+    return;
+  }
+  vsound_set_supported_fmts(&vsound, fmts, -1);
+  vsound_set_supported_rates(&vsound, rates, -1);
+  vsound_set_supported_ch(&vsound, 1);
+  vsound_set_supported_ch(&vsound, 2);
+#if !VSOUND_RWAPI
+  vsound_addbuf(&vsound, DMA_BUF_ADDR1);
+  vsound_addbuf(&vsound, DMA_BUF_ADDR2);
+#endif
 }

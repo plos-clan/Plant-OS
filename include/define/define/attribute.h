@@ -67,25 +67,25 @@
 
 #ifdef __cplusplus
 #  define overload
-#  define dlexport    __attribute__((visibility("default")))
+#  define dlexport    __attr(used, visibility("default"))
 #  define dlimport    extern
 #  define dlimport_c  extern "C"
 #  define dlimport_x  extern
-#  define dlhidden    __attribute__((visibility("hidden")))
-#  define dlinternal  __attribute__((visibility("internal")))
-#  define dlprotected __attribute__((visibility("protected")))
+#  define dlhidden    __attr(visibility("hidden"))
+#  define dlinternal  __attr(visibility("internal"))
+#  define dlprotected __attr(visibility("protected"))
 #else
 #  define overload    __attribute__((overloadable))
-#  define dlexport    __attribute__((visibility("default")))
+#  define dlexport    __attr(used, visibility("default"))
 #  define dlimport    extern
 #  define dlimport_c  extern
 #  define dlimport_x  extern overload
-#  define dlhidden    __attribute__((visibility("hidden")))
-#  define dlinternal  __attribute__((visibility("internal")))
-#  define dlprotected __attribute__((visibility("protected")))
+#  define dlhidden    __attr(visibility("hidden"))
+#  define dlinternal  __attr(visibility("internal"))
+#  define dlprotected __attr(visibility("protected"))
 #endif
 #if DEBUG
 #  define finline static
 #else
-#  define finline static inline __attribute__((always_inline))
+#  define finline static inline __attr(always_inline)
 #endif

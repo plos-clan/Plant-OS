@@ -2,6 +2,7 @@
 
 static rbtree_sp_t vsound_list;
 
+// 将采样率转换为 id
 static int samplerate_id(int rate) {
   switch (rate) {
   case 8000: return 0;
@@ -25,41 +26,102 @@ static int samplerate_id(int rate) {
   }
 }
 
-static void calc_settings(vsound_t snd) {
-  snd->settings.bytes_per_sample = sound_fmt_bytes(snd->settings.fmt) * snd->settings.channels;
-}
-
 bool vsound_regist(vsound_t device) {
   if (device == null) return false;
+  if (device->is_registed || device->is_using) return false;
   if (rbtree_sp_get(vsound_list, device->name)) return false;
   rbtree_sp_insert(vsound_list, device->name, device);
+  device->is_registed = true;
   return true;
 }
 
-bool vsound_set_supported_fmt(vsound_t device, u16 fmt) {
+bool vsound_set_supported_fmt(vsound_t device, i16 fmt) {
   if (device == null) return false;
   if (fmt >= SOUND_FMT_CNT) return false;
-  device->supported_fmt |= MASK32(fmt);
+  device->supported_fmts |= MASK32(fmt);
   return true;
 }
 
-bool vsound_set_supported_rate(vsound_t device, u32 rate) {
+bool vsound_set_supported_rate(vsound_t device, i32 rate) {
   if (device == null) return false;
   int id = samplerate_id(rate);
   if (id < 0) return false;
-  device->supported_rate |= MASK32(id);
+  device->supported_rates |= MASK32(id);
   return true;
 }
 
-bool vsound_set_supported_chs(vsound_t device, u16 chs) {
+bool vsound_set_supported_ch(vsound_t device, i16 ch) {
   if (device == null) return false;
-  if (chs < 1 || chs > 16) return false;
-  device->supported_chs |= MASK32(chs - 1);
+  if (ch < 1 || ch > 16) return false;
+  device->supported_chs |= MASK32(ch - 1);
   return true;
+}
+
+bool vsound_set_supported_fmts(vsound_t device, const i16 *fmts, ssize_t len) {
+  if (device == null) return false;
+  size_t nseted = 0;
+  if (len < 0) {
+    for (size_t i = 0; fmts[i] > 0; i++) {
+      if (fmts[i] >= SOUND_FMT_CNT) continue;
+      device->supported_fmts |= MASK32(fmts[i] - 1);
+      nseted++;
+    }
+  } else {
+    for (size_t i = 0; i < len; i++) {
+      if (fmts[i] >= SOUND_FMT_CNT) continue;
+      device->supported_fmts |= MASK32(fmts[i] - 1);
+      nseted++;
+    }
+  }
+  return nseted > 0;
+}
+
+bool vsound_set_supported_rates(vsound_t device, const i32 *rates, ssize_t len) {
+  if (device == null) return false;
+  size_t nseted = 0;
+  if (len < 0) {
+    for (size_t i = 0; rates[i] > 0; i++) {
+      int id = samplerate_id(rates[i]);
+      if (id < 0) continue;
+      device->supported_rates |= MASK32(id - 1);
+      nseted++;
+    }
+  } else {
+    for (size_t i = 0; i < len; i++) {
+      int id = samplerate_id(rates[i]);
+      if (id < 0) continue;
+      device->supported_rates |= MASK32(id - 1);
+      nseted++;
+    }
+  }
+  return nseted > 0;
+}
+
+bool vsound_set_supported_chs(vsound_t device, const i16 *chs, ssize_t len) {
+  if (device == null) return false;
+  size_t nseted = 0;
+  if (len < 0) {
+    for (size_t i = 0; chs[i] > 0; i++) {
+      if (chs[i] < 1 || chs[i] > 16) continue;
+      device->supported_chs |= MASK32(chs[i] - 1);
+      nseted++;
+    }
+  } else {
+    for (size_t i = 0; i < len; i++) {
+      if (chs[i] < 1 || chs[i] > 16) continue;
+      device->supported_chs |= MASK32(chs[i] - 1);
+      nseted++;
+    }
+  }
+  return nseted > 0;
 }
 
 vsound_t vsound_find(cstr name) {
   return rbtree_sp_get(vsound_list, name);
+}
+
+static void calc_settings(vsound_t snd) {
+  snd->settings.bytes_per_sample = sound_fmt_bytes(snd->settings.fmt) * snd->settings.channels;
 }
 
 int vsound_open(vsound_t snd) { // 打开设备
@@ -113,5 +175,9 @@ f32 vsound_getvol(vsound_t snd) {
 }
 
 int vsound_setvol(vsound_t snd, f32 vol) {
+  if (snd && snd->setvol) {
+    snd->settings.volume = vol;
+    return snd->setvol(snd, vol);
+  }
   return -1;
 }
