@@ -6,19 +6,33 @@
 
 A simple OS used to study made by several students。
 
-
 如果你要运行 PlantOS, 请先下载[资源文件](https://copi144.eu.org:2000/index.php/s/7BoGFkD7JR52rFP)并将其放置到 bin 目录下
 
 [网页版文档](https://plos-clan.github.io/doc) 未完成，别看（
-
 
 <br>
 <br>
 
 ![Static Badge](https://img.shields.io/badge/Language-3-orange)
-![Static Badge](https://img.shields.io/badge/hardware-x86-green) 
+![Static Badge](https://img.shields.io/badge/hardware-x86-green)
 
 ![Static Badge](https://img.shields.io/badge/model-plui_%7C_pl_readline_%7C_plty-8A2BE2)
+
+## 编译 Plant-OS
+
+你至少需要安装 `clang` `cmake` `mtools` `qemu-system-i386` 来编译此项目
+
+> 可以使用 `gcc` 替代 `clang` 我们会尽量保证可以在 `gcc` 下正常编译
+
+如果你只需要 Plant-OS 本体，请编译 `make` 目标
+
+运行使用 `run` 目标
+
+如果你需要编译本机上的 util 和 单元测试 你还需要安装 `gtest` `freetype` 等
+
+如果编译时出现报错 `undefined reference to` `__udivdi3` `__umoddi3` `__divdi3` `__moddi3` 等，可以尝试链接 `libgcc` 库 (`-lgcc`)
+
+如果在 gcc11 或更早版本中编译时出现异常，可删除项目根目录 `CMakeLists.txt` 中的 `include(cmake/lto)`
 
 ## 项目结构
 
