@@ -276,6 +276,9 @@ void init() {
   printf("Hello Plant-OS!\n");
   check_device();
 
+  hda_init();
+
+  for(;;);
   // klogd("Set Mode");
 
   byte *vram = (void *)set_mode(screen_w, screen_h, 32);
@@ -344,7 +347,7 @@ void init() {
   // init_sound_mixer();
 
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
+  // create_task((u32)sound_test, 0, 1, 1);
   // create_task((u32)sound_mixer_task, 0, 1, 1);
   // create_task((u32)sound_test1, 0, 1, 1);
   // create_task((u32)sound_test2, 0, 1, 1);
