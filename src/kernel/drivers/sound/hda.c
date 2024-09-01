@@ -668,7 +668,7 @@ void hda_sound_test() {
 
   plac_decompress_free(dctx);
 
-  void  *data = PADDING_UP(ms->buf, 128);
+  void  *data = (void *)PADDING_UP(ms->buf, 128);
   size_t size = PADDING_DOWN(ms->size, 128);
   printf("start play audio %d", hda_is_supported_sample_rate(samplerate));
   hda_play_pcm(data, size, samplerate, 1, 16);

@@ -29,7 +29,7 @@ static int samplerate_id(int rate) {
 static void *getbuffer(vsound_t snd) {
   if (snd->bufpos == snd->bufsize) {
     queue_enqueue(&snd->bufs1, snd->buf);
-    if (snd->start_dma) snd->start_dma(snd);
+    if (snd->start_dma) snd->start_dma(snd, snd->buf);
     snd->is_dma_ready = true;
     snd->buf          = null;
   }
@@ -153,6 +153,15 @@ void vsound_addbufs(vsound_t device, void *const *bufs, ssize_t len) {
 
 vsound_t vsound_find(cstr name) {
   return rbtree_sp_get(vsound_list, name);
+}
+
+int vsound_played(vsound_t snd) {
+  if (snd == null) return -1;
+  void *buf = queue_dequeue(&snd->bufs1);
+  if (buf == null) return -1;
+  memset(buf, 0, snd->bufsize);
+  queue_enqueue(&snd->bufs0, buf);
+  return 0;
 }
 
 int vsound_clearbuffer(vsound_t snd) {

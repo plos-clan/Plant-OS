@@ -10,6 +10,7 @@ typedef int (*vsound_func_t)(vsound_t vsound);
 typedef int (*vsound_setvol_t)(vsound_t vsound, f32 volume);
 typedef ssize_t (*vsound_read_t)(vsound_t vsound, void *addr, size_t len);
 typedef ssize_t (*vsound_write_t)(vsound_t vsound, const void *addr, size_t len);
+typedef int (*vsound_cb_dma_t)(vsound_t vsound, void *addr);
 
 // vsound
 //   open 后 is_using 被设为 true ，close 后 is_using 被设为 false
@@ -18,11 +19,11 @@ typedef ssize_t (*vsound_write_t)(vsound_t vsound, const void *addr, size_t len)
 
 typedef struct vsound {
   bool            is_registed  : 1; // 是否已注册
+  bool            is_output    : 1; // 是否是输出设备
   bool            is_using     : 1; // 是否正在使用
   bool            is_rwmode    : 1; // 读写模式还是共享内存模式
   bool            is_dma_ready : 1; // 是否已经开始 DMA
   bool            is_running   : 1; // 是否正在播放或录音
-  bool            is_output    : 1; // 是否是输出设备
   cstr            name;             // 设备名
   vsound_open_t   open;             // 打开设备
   vsound_close_t  close;            // 关闭设备
@@ -32,7 +33,7 @@ typedef struct vsound {
   vsound_func_t   drain;            // 等待播放完毕后停止播放
   vsound_read_t   read;             // 读取数据
   vsound_write_t  write;            // 写入数据
-  vsound_func_t   start_dma;        // 缓冲区已填满，开始 DMA
+  vsound_cb_dma_t start_dma;        // 缓冲区已填满，开始 DMA
   vsound_setvol_t setvol;           // 设置音量
   u32             supported_fmts;   // 支持的采样格式
   u32             supported_rates;  // 支持的采样率

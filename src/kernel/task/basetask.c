@@ -270,7 +270,6 @@ void  check_device() {
   }
   free(s);
 }
-void hda_sound_test();
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
@@ -310,10 +309,12 @@ void init() {
   // plty_addfont(tty, font2);
 
   plty_set_default(tty);
-  hda_init();
-  hda_sound_test();
-  for (;;)
-    ;
+
+  // hda_init();
+  // extern void hda_sound_test();
+  // hda_sound_test();
+  // infinite_loop;
+
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
   // while(1) vfs_write(p, "你好，世界", 0, strlen("你好，世界"));
@@ -347,7 +348,7 @@ void init() {
   // init_sound_mixer();
 
   create_task((u32)shell, 0, 1, 1);
-  // create_task((u32)sound_test, 0, 1, 1);
+  create_task((u32)sound_test, 0, 1, 1);
   // create_task((u32)sound_mixer_task, 0, 1, 1);
   // create_task((u32)sound_test1, 0, 1, 1);
   // create_task((u32)sound_test2, 0, 1, 1);

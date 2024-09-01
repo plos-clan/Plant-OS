@@ -128,6 +128,10 @@ static void sb16_do_close() {
   sb.status   = STAT_OFF;
 }
 
+#if !VSOUND_RWAPI
+static vsound_t snd;
+#endif
+
 void sb16_handler(int *esp) {
   send_eoi(SB16_IRQ);
 
@@ -136,6 +140,9 @@ void sb16_handler(int *esp) {
   sb.size2 = 0;
   if (sb.size1 == 0) sb.status = STAT_WAITING;
   sb16_send_buffer();
+#if !VSOUND_RWAPI
+  vsound_played(snd);
+#endif
 
   if (sb.status == STAT_CLOSING) {
     sb16_do_close();
@@ -254,7 +261,38 @@ static int sb16_write(vsound_t vsound, const void *data, size_t len) {
 }
 #endif
 
-struct vsound vsound = {
+#if !VSOUND_RWAPI
+static int sb16_start_dma(vsound_t vsound, void *addr) {
+  size_t dmasize;
+  size_t len;
+  if (sb.auto_mode) {
+    dmasize = 2 * DMA_BUF_SIZE;
+    len     = DMA_BUF_SIZE / vsound->bytes_per_sample;
+    if (sb.status != STAT_WAITING) return 0;
+  } else {
+    dmasize = DMA_BUF_SIZE;
+    len     = DMA_BUF_SIZE / vsound->bytes_per_sample;
+  }
+
+  byte mode = (sb.auto_mode ? 16 : 0) | 0x48; // 0x48 为播放 0x44 为录音
+  dma_start(mode, sb.dma_channel, addr, dmasize, sb.depth == 16);
+  if (sb.auto_mode) {
+    sb_send(sb.depth == 8 ? CMD_AUTO_OUT8 : CMD_AUTO_OUT16);
+  } else {
+    sb_send(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
+  }
+  sb_send(sb.mode);
+
+  sb_send((len - 1) & 0xff);
+  sb_send(((len - 1) >> 8) & 0xff);
+
+  if (sb.status == STAT_WAITING) sb.status = STAT_PLAYING;
+  return 0;
+}
+#endif
+
+static struct vsound vsound = {
+    .is_output = true,
 #if VSOUND_RWAPI
     .is_rwmode = true,
 #endif
@@ -264,7 +302,8 @@ struct vsound vsound = {
 #if VSOUND_RWAPI
     .write = sb16_write,
 #else
-    .bufsize = DMA_BUF_SIZE,
+    .start_dma = sb16_start_dma,
+    .bufsize   = DMA_BUF_SIZE,
 #endif
 };
 
@@ -277,16 +316,17 @@ static const i32 rates[] = {
 };
 
 void sb16_regist() {
-  if (!vsound_regist(&vsound)) {
+  snd = &vsound;
+  if (!vsound_regist(snd)) {
     klogw("注册 sb16 失败");
     return;
   }
-  vsound_set_supported_fmts(&vsound, fmts, -1);
-  vsound_set_supported_rates(&vsound, rates, -1);
-  vsound_set_supported_ch(&vsound, 1);
-  vsound_set_supported_ch(&vsound, 2);
+  vsound_set_supported_fmts(snd, fmts, -1);
+  vsound_set_supported_rates(snd, rates, -1);
+  vsound_set_supported_ch(snd, 1);
+  vsound_set_supported_ch(snd, 2);
 #if !VSOUND_RWAPI
-  vsound_addbuf(&vsound, DMA_BUF_ADDR1);
-  vsound_addbuf(&vsound, DMA_BUF_ADDR2);
+  vsound_addbuf(snd, DMA_BUF_ADDR1);
+  vsound_addbuf(snd, DMA_BUF_ADDR2);
 #endif
 }
