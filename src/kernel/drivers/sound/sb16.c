@@ -1,7 +1,7 @@
 #include <kernel.h>
 #include <sound.h>
 
-#define VSOUND_RWAPI 1
+#define VSOUND_RWAPI 0
 
 void asm_sb16_handler(int *esp);
 
@@ -186,11 +186,11 @@ static void sb16_set_volume(f32 volume) {
 
 extern bool is_vbox;
 
-static int sb16_open(vsound_t vsound, sound_settings_t settings) {
-  u16 fmt      = settings->fmt;
-  u16 channels = settings->channels;
-  u32 rate     = settings->rate;
-  f32 volume   = settings->volume;
+static int sb16_open(vsound_t vsound) {
+  u16 fmt      = vsound->fmt;
+  u16 channels = vsound->channels;
+  u32 rate     = vsound->rate;
+  f32 volume   = vsound->volume;
 
   sb.use_task = current_task();
 
