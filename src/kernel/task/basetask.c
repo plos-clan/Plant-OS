@@ -270,15 +270,12 @@ void  check_device() {
   }
   free(s);
 }
-
+void hda_sound_test();
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
   check_device();
 
-  hda_init();
-
-  for(;;);
   // klogd("Set Mode");
 
   byte *vram = (void *)set_mode(screen_w, screen_h, 32);
@@ -313,7 +310,10 @@ void init() {
   // plty_addfont(tty, font2);
 
   plty_set_default(tty);
-
+  hda_init();
+  hda_sound_test();
+  for (;;)
+    ;
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
   // while(1) vfs_write(p, "你好，世界", 0, strlen("你好，世界"));
