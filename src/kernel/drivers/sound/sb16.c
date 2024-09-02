@@ -50,18 +50,20 @@ static void *const DMA_BUF_ADDR2 = (void *)0x90000 + DMA_BUF_SIZE; // 不能跨�
 
 #define SB16_IRQ 5
 
-static struct sb16 {
-  mtask *use_task;             //
-  int    status;               //
-  bool   auto_mode;            //
-  void *volatile addr1;        // DMA 地址
-  volatile size_t size1;       //
-  void *volatile addr2;        // DMA 地址
-  volatile size_t size2;       //
-  byte            mode;        // 模式
-  byte            dma_channel; // DMA 通道
-  byte            depth;       // 采样深度
-  int             channels;
+static struct {
+  mtask *use_task;  //
+  int    status;    //
+  bool   auto_mode; //
+#if VSOUND_RWAPI
+  void *volatile addr1;  // DMA 地址
+  volatile size_t size1; //
+  void *volatile addr2;  // DMA 地址
+  volatile size_t size2; //
+#endif
+  byte mode;        // 模式
+  byte dma_channel; // DMA 通道
+  byte depth;       // 采样深度
+  int  channels;    // 声道数
 } sb;
 
 #define STAT_OFF     0 // 未开启
@@ -70,6 +72,7 @@ static struct sb16 {
 #define STAT_PLAYING 3 // 正在播放音频
 #define STAT_CLOSING 4 // 正在等待播放完毕并关闭
 
+#if VSOUND_RWAPI
 static void sb_exch_dmaaddr() {
   char *addr  = sb.addr1;
   sb.addr1    = sb.addr2;
@@ -78,12 +81,14 @@ static void sb_exch_dmaaddr() {
   sb.size1    = sb.size2;
   sb.size2    = size;
 }
+#endif
 
 static void sb_send(byte cmd) {
   waitif(asm_in8(SB_WRITE) & MASK(7));
   asm_out8(SB_WRITE, cmd);
 }
 
+#if VSOUND_RWAPI
 static void sb16_do_dma() {
   size_t dmasize;
   size_t len;
@@ -110,13 +115,16 @@ static void sb16_do_dma() {
   sb_send((len - 1) & 0xff);
   sb_send(((len - 1) >> 8) & 0xff);
 }
+#endif
 
+#if VSOUND_RWAPI
 static void sb16_send_buffer() {
   if (sb.size1 == 0) return;
   sb_exch_dmaaddr();
   sb16_do_dma();
   if (sb.status == STAT_WAITING) sb.status = STAT_PLAYING;
 }
+#endif
 
 static void sb16_do_close() {
   if (sb.auto_mode) {
@@ -128,19 +136,18 @@ static void sb16_do_close() {
   sb.status   = STAT_OFF;
 }
 
-#if !VSOUND_RWAPI
 static vsound_t snd;
-#endif
 
 void sb16_handler(int *esp) {
   send_eoi(SB16_IRQ);
 
   asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);
 
+#if VSOUND_RWAPI
   sb.size2 = 0;
   if (sb.size1 == 0) sb.status = STAT_WAITING;
   sb16_send_buffer();
-#if !VSOUND_RWAPI
+#else
   vsound_played(snd);
 #endif
 
@@ -217,11 +224,13 @@ static int sb16_open(vsound_t vsound) {
   } else {
     sb.mode = (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_S8) ? MODE_SSTEREO : MODE_USTEREO;
   }
-  sb.status    = STAT_WAITING;
-  sb.addr1     = DMA_BUF_ADDR1;
-  sb.addr2     = DMA_BUF_ADDR2;
-  sb.size1     = 0;
-  sb.size2     = 0;
+  sb.status = STAT_WAITING;
+#if VSOUND_RWAPI
+  sb.addr1 = DMA_BUF_ADDR1;
+  sb.addr2 = DMA_BUF_ADDR2;
+  sb.size1 = 0;
+  sb.size2 = 0;
+#endif
   sb.channels  = channels;
   sb.auto_mode = is_vbox ? true : false;
 
