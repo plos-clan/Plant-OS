@@ -23,6 +23,7 @@ include(GoogleTest)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+include(cmake/benchmark)
 include(cmake/gtest)
 include(cmake/mklib)
 include(cmake/util)
@@ -37,8 +38,8 @@ add_subdirectory(include)
 set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 set_link_flag("")
 
-# set_optim_flag("-g -O1") # 调试开 O1
-set_optim_flag("-Ofast") # 编译开 O3
+set_optim_flag("-g -O1") # 调试开 O1
+# set_optim_flag("-Ofast") # 编译开 O3
 
 add_compile_flag("-march=native")
 

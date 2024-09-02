@@ -22,7 +22,6 @@ extern "C" {
 #include "libc-base/math/complex/complex.h"
 #include "libc-base/math/exp-log.h"
 #include "libc-base/math/float.h"
-#include "libc-base/math/i64-div.h"
 #include "libc-base/math/math.h"
 #include "libc-base/math/sin.h"
 #include "libc-base/math/sqrt.h"

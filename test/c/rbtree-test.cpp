@@ -1,9 +1,10 @@
+#include <gtest/gtest.h>
+
 #define NO_STD 0
+#define RBTREE_IMPLEMENTATION
 extern "C" {
 #include <data-structure/rbtree.h>
 }
-
-#include <gtest/gtest.h>
 
 TEST(RBTreeTest, InsertAndGet) {
   rbtree_t tree = null;

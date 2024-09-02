@@ -26,6 +26,20 @@ static int samplerate_id(int rate) {
   }
 }
 
+static void *getbuffer(vsound_t snd) {
+  if (snd->bufpos == snd->bufsize) {
+    queue_enqueue(&snd->bufs1, snd->buf);
+    if (snd->start_dma) snd->start_dma(snd, snd->buf);
+    snd->is_dma_ready = true;
+    snd->buf          = null;
+  }
+  if (snd->buf == null) {
+    snd->buf    = queue_dequeue(&snd->bufs0);
+    snd->bufpos = 0;
+  }
+  return snd->buf;
+}
+
 bool vsound_regist(vsound_t device) {
   if (device == null) return false;
   if (device->is_registed || device->is_using) return false;
@@ -116,18 +130,58 @@ bool vsound_set_supported_chs(vsound_t device, const i16 *chs, ssize_t len) {
   return nseted > 0;
 }
 
+void vsound_addbuf(vsound_t device, void *buf) {
+  if (device == null) return;
+  memset(buf, 0, device->bufsize);
+  queue_enqueue(&device->bufs0, buf);
+}
+
+void vsound_addbufs(vsound_t device, void *const *bufs, ssize_t len) {
+  if (device == null) return;
+  if (len < 0) {
+    for (size_t i = 0; bufs[i] != null; i++) {
+      memset(bufs[i], 0, device->bufsize);
+      queue_enqueue(&device->bufs0, bufs[i]);
+    }
+  } else {
+    for (size_t i = 0; i < len; i++) {
+      memset(bufs[i], 0, device->bufsize);
+      queue_enqueue(&device->bufs0, bufs[i]);
+    }
+  }
+}
+
 vsound_t vsound_find(cstr name) {
   return rbtree_sp_get(vsound_list, name);
 }
 
-static void calc_settings(vsound_t snd) {
-  snd->settings.bytes_per_sample = sound_fmt_bytes(snd->settings.fmt) * snd->settings.channels;
+int vsound_played(vsound_t snd) {
+  if (snd == null) return -1;
+  void *buf = queue_dequeue(&snd->bufs1);
+  if (buf == null) return -1;
+  memset(buf, 0, snd->bufsize);
+  queue_enqueue(&snd->bufs0, buf);
+  return 0;
+}
+
+int vsound_clearbuffer(vsound_t snd) {
+  if (snd == null) return -1;
+  void *buf;
+  while ((buf = queue_dequeue(&snd->bufs1)) != null) {
+    memset(buf, 0, snd->bufsize);
+    queue_enqueue(&snd->bufs0, buf);
+  }
+  if (snd->buf != null) {
+    memset(snd->buf, 0, snd->bufsize);
+    queue_enqueue(&snd->bufs0, snd->buf);
+  }
+  return 0;
 }
 
 int vsound_open(vsound_t snd) { // 打开设备
-  if (snd->is_using) return -1;
-  calc_settings(snd);
-  snd->open(snd, &snd->settings);
+  if (snd->is_using || snd->is_dma_ready || snd->is_running) return -1;
+  snd->bytes_per_sample = sound_fmt_bytes(snd->fmt) * snd->channels;
+  snd->open(snd);
   snd->is_using = true;
   return 0;
 }
@@ -135,48 +189,95 @@ int vsound_open(vsound_t snd) { // 打开设备
 int vsound_close(vsound_t snd) { // 关闭设备
   if (snd == null) return -1;
   snd->close(snd);
-  snd->is_using = false;
+  snd->is_using     = false;
+  snd->is_dma_ready = false;
+  snd->is_running   = false;
   return 0;
 }
 
 int vsound_play(vsound_t snd) { // 开始播放
-  if (snd && snd->play) return snd->play(snd);
-  return -1;
+  if (snd == null) return -1;
+  if (snd->is_running) return 1;
+  int rets = snd->play ? snd->play(snd) : -1;
+  if (rets == 0) snd->is_running = true;
+  return rets;
 }
 
 int vsound_pause(vsound_t snd) { // 暂停播放
-  if (snd && snd->pause) return snd->pause(snd);
-  return -1;
+  if (snd == null) return -1;
+  if (!snd->is_running) return 1;
+  int rets = snd->pause ? snd->pause(snd) : -1;
+  if (rets == 0) snd->is_running = false;
+  return rets;
 }
 
 int vsound_drop(vsound_t snd) { // 停止播放并丢弃缓冲
-  if (snd && snd->drop) return snd->drop(snd);
-  return -1;
+  if (snd == null) return -1;
+  if (!snd->is_running) return 1;
+  int rets = snd->drop ? snd->drop(snd) : -1;
+  if (rets == 0) snd->is_running = false;
+  return rets;
 }
 
 int vsound_drain(vsound_t snd) { // 等待播放完毕后停止播放
-  if (snd && snd->drain) return snd->drain(snd);
-  return -1;
+  if (snd == null) return -1;
+  if (!snd->is_running) return 1;
+  int rets = snd->drain ? snd->drain(snd) : -1;
+  if (rets == 0) snd->is_running = false;
+  return rets;
 }
 
-ssize_t vsound_read(vsound_t snd, void *buf, size_t len) { // 读取 (录音)
-  if (snd && snd->read) return snd->read(snd, buf, len);
-  return -1;
+ssize_t vsound_read(vsound_t snd, void *data, size_t len) { // 读取 (录音)
+  if (snd == null) return -1;
+  if (snd->is_output) return -1;
+  if (snd->is_rwmode) {
+    if (snd->read) return snd->read(snd, data, len);
+    return -1;
+  }
+
+  void  *buf  = getbuffer(snd);
+  size_t size = len * snd->bytes_per_sample;
+  while (size > 0) {
+    waitif((buf = getbuffer(snd)) == null);
+    size_t nread = min(size, snd->bufsize - snd->bufpos);
+    memcpy(data, buf + snd->bufpos, nread);
+    snd->bufpos += nread;
+    data        += nread;
+    size        -= nread;
+  }
+  getbuffer(snd); // 刷新一下，如果读空就触发 DMA
+  return len;
 }
 
-ssize_t vsound_write(vsound_t snd, const void *buf, size_t len) { // 写入 (播放)
-  if (snd && snd->write) return snd->write(snd, buf, len);
-  return -1;
+ssize_t vsound_write(vsound_t snd, const void *data, size_t len) { // 写入 (播放)
+  if (snd == null) return -1;
+  if (!snd->is_output) return -1;
+  if (snd->is_rwmode) {
+    if (snd && snd->write) return snd->write(snd, data, len);
+    return -1;
+  }
+
+  void  *buf  = getbuffer(snd);
+  size_t size = len * snd->bytes_per_sample;
+  while (size > 0) {
+    waitif((buf = getbuffer(snd)) == null);
+    size_t nwrite = min(size, snd->bufsize - snd->bufpos);
+    memcpy(buf + snd->bufpos, data, nwrite);
+    snd->bufpos += nwrite;
+    data        += nwrite;
+    size        -= nwrite;
+  }
+  getbuffer(snd); // 刷新一下，如果写满就触发 DMA
+  return len;
 }
 
 f32 vsound_getvol(vsound_t snd) {
-  if (snd) return snd->settings.volume;
-  return -1;
+  return snd ? snd->volume : -1;
 }
 
 int vsound_setvol(vsound_t snd, f32 vol) {
   if (snd && snd->setvol) {
-    snd->settings.volume = vol;
+    snd->volume = vol;
     return snd->setvol(snd, vol);
   }
   return -1;

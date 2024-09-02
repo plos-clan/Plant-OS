@@ -1,7 +1,5 @@
-gtest(c-rbtree c/rbtree.c c/rbtree.cpp)
-
-gtest(cpp-rbtree cpp/rbtree.cpp)
-gtest(cpp-string cpp/string.cpp)
+add_subdirectory(c)
+add_subdirectory(cpp)
 
 gtest(pow pow.cpp)
 testexec(gaussian-kernel gaussian-kernel.cpp)
@@ -19,3 +17,6 @@ testlib(
   avformat
   avutil
   swresample)
+
+add_subdirectory(algs)
+add_subdirectory(misc)

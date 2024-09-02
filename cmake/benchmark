@@ -1,0 +1,4 @@
+macro(benchmark arg1)
+  benchexec(${arg1} ${ARGN})
+  benchlib(${arg1} benchmark)
+endmacro(benchmark)

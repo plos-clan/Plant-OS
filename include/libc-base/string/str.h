@@ -210,8 +210,7 @@ finline int toupper(int c) noexcept {
   return ('a' <= c && c <= 'a') ? c - 'a' + 'A' : c;
 }
 
-// case-insensitive
-finline int strcmp_ci(cstr _s1, cstr _s2) noexcept {
+finline int strcasecmp(cstr _s1, cstr _s2) noexcept {
   const byte *s1 = (const byte *)_s1;
   const byte *s2 = (const byte *)_s2;
   int         c1, c2;
@@ -223,8 +222,7 @@ finline int strcmp_ci(cstr _s1, cstr _s2) noexcept {
   return c1 - c2;
 }
 
-// case-insensitive
-finline int strncmp_ci(cstr _s1, cstr _s2, size_t n) noexcept {
+finline int strncasecmp(cstr _s1, cstr _s2, size_t n) noexcept {
   const byte *s1 = (const byte *)_s1;
   const byte *e1 = (const byte *)_s1 + n;
   const byte *s2 = (const byte *)_s2;
@@ -384,7 +382,7 @@ finline cstr strcasestr(cstr _s, cstr _t) noexcept {
   if (_sn < _tn) return null;
   cstr s = _s, t = _t;
   for (size_t i = 0; i <= _sn - _tn; i++) {
-    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
+    if (strncasecmp(s + i, t, _tn) == 0) return (char *)(s + i);
   }
   return null;
 #    endif
@@ -398,7 +396,7 @@ finline char *strcasestr(char *_s, cstr _t) noexcept {
   if (_sn < _tn) return null;
   cstr s = _s, t = _t;
   for (size_t i = 0; i <= _sn - _tn; i++) {
-    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
+    if (strncasecmp(s + i, t, _tn) == 0) return (char *)(s + i);
   }
   return null;
 #    endif
@@ -474,7 +472,7 @@ finline char *strcasestr(cstr _s, cstr _t) noexcept {
   if (_sn < _tn) return null;
   cstr s = _s, t = _t;
   for (size_t i = 0; i <= _sn - _tn; i++) {
-    if (strncmp_ci(s + i, t, _tn) == 0) return (char *)(s + i);
+    if (strncasecmp(s + i, t, _tn) == 0) return (char *)(s + i);
   }
   return null;
 #    endif
@@ -648,13 +646,13 @@ finline size_t strlen32(cstr32 s) {
   return len;
 }
 
-finline void str2upper(char *str) {
+finline void strupper(char *str) {
   for (; *str != '\0'; str++) {
     if ('a' <= *str && *str <= 'z') *str = *str - 'a' + 'A';
   }
 }
 
-finline void str2lower(char *str) {
+finline void strlower(char *str) {
   for (; *str != '\0'; str++) {
     if ('A' <= *str && *str <= 'Z') *str = *str - 'A' + 'a';
   }
