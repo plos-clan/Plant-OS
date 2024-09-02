@@ -35,6 +35,7 @@ void  sysinit() {
   init_pit();
   init_tty();
   screen_clear();
+
   sb16_init();
   sb16_regist();
   vdisk_init();
@@ -47,7 +48,6 @@ void  sysinit() {
   }
   pci_addr_base = page_malloc(1 * 1024 * 1024);
   init_pci(pci_addr_base);
-
   init_keyboard();
 }
 #ifdef __clang__

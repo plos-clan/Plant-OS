@@ -1,7 +1,7 @@
 #include <kernel.h>
 #include <sound.h>
 
-#define VSOUND_RWAPI 1
+#define VSOUND_RWAPI 0
 
 void asm_sb16_handler(int *esp);
 
@@ -50,18 +50,20 @@ static void *const DMA_BUF_ADDR2 = (void *)0x90000 + DMA_BUF_SIZE; // 不能跨�
 
 #define SB16_IRQ 5
 
-static struct sb16 {
-  mtask *use_task;             //
-  int    status;               //
-  bool   auto_mode;            //
-  void *volatile addr1;        // DMA 地址
-  volatile size_t size1;       //
-  void *volatile addr2;        // DMA 地址
-  volatile size_t size2;       //
-  byte            mode;        // 模式
-  byte            dma_channel; // DMA 通道
-  byte            depth;       // 采样深度
-  int             channels;
+static struct {
+  mtask *use_task;  //
+  int    status;    //
+  bool   auto_mode; //
+#if VSOUND_RWAPI
+  void *volatile addr1;  // DMA 地址
+  volatile size_t size1; //
+  void *volatile addr2;  // DMA 地址
+  volatile size_t size2; //
+#endif
+  byte mode;        // 模式
+  byte dma_channel; // DMA 通道
+  byte depth;       // 采样深度
+  int  channels;    // 声道数
 } sb;
 
 #define STAT_OFF     0 // 未开启
@@ -70,6 +72,7 @@ static struct sb16 {
 #define STAT_PLAYING 3 // 正在播放音频
 #define STAT_CLOSING 4 // 正在等待播放完毕并关闭
 
+#if VSOUND_RWAPI
 static void sb_exch_dmaaddr() {
   char *addr  = sb.addr1;
   sb.addr1    = sb.addr2;
@@ -78,12 +81,14 @@ static void sb_exch_dmaaddr() {
   sb.size1    = sb.size2;
   sb.size2    = size;
 }
+#endif
 
 static void sb_send(byte cmd) {
   waitif(asm_in8(SB_WRITE) & MASK(7));
   asm_out8(SB_WRITE, cmd);
 }
 
+#if VSOUND_RWAPI
 static void sb16_do_dma() {
   size_t dmasize;
   size_t len;
@@ -110,13 +115,16 @@ static void sb16_do_dma() {
   sb_send((len - 1) & 0xff);
   sb_send(((len - 1) >> 8) & 0xff);
 }
+#endif
 
+#if VSOUND_RWAPI
 static void sb16_send_buffer() {
   if (sb.size1 == 0) return;
   sb_exch_dmaaddr();
   sb16_do_dma();
   if (sb.status == STAT_WAITING) sb.status = STAT_PLAYING;
 }
+#endif
 
 static void sb16_do_close() {
   if (sb.auto_mode) {
@@ -128,14 +136,20 @@ static void sb16_do_close() {
   sb.status   = STAT_OFF;
 }
 
+static vsound_t snd;
+
 void sb16_handler(int *esp) {
   send_eoi(SB16_IRQ);
 
   asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);
 
+#if VSOUND_RWAPI
   sb.size2 = 0;
   if (sb.size1 == 0) sb.status = STAT_WAITING;
   sb16_send_buffer();
+#else
+  vsound_played(snd);
+#endif
 
   if (sb.status == STAT_CLOSING) {
     sb16_do_close();
@@ -186,11 +200,11 @@ static void sb16_set_volume(f32 volume) {
 
 extern bool is_vbox;
 
-static int sb16_open(vsound_t vsound, sound_settings_t settings) {
-  u16 fmt      = settings->fmt;
-  u16 channels = settings->channels;
-  u32 rate     = settings->rate;
-  f32 volume   = settings->volume;
+static int sb16_open(vsound_t vsound) {
+  u16 fmt      = vsound->fmt;
+  u16 channels = vsound->channels;
+  u32 rate     = vsound->rate;
+  f32 volume   = vsound->volume;
 
   sb.use_task = current_task();
 
@@ -210,11 +224,13 @@ static int sb16_open(vsound_t vsound, sound_settings_t settings) {
   } else {
     sb.mode = (fmt == SOUND_FMT_S16 || fmt == SOUND_FMT_S8) ? MODE_SSTEREO : MODE_USTEREO;
   }
-  sb.status    = STAT_WAITING;
-  sb.addr1     = DMA_BUF_ADDR1;
-  sb.addr2     = DMA_BUF_ADDR2;
-  sb.size1     = 0;
-  sb.size2     = 0;
+  sb.status = STAT_WAITING;
+#if VSOUND_RWAPI
+  sb.addr1 = DMA_BUF_ADDR1;
+  sb.addr2 = DMA_BUF_ADDR2;
+  sb.size1 = 0;
+  sb.size2 = 0;
+#endif
   sb.channels  = channels;
   sb.auto_mode = is_vbox ? true : false;
 
@@ -254,7 +270,38 @@ static int sb16_write(vsound_t vsound, const void *data, size_t len) {
 }
 #endif
 
-struct vsound vsound = {
+#if !VSOUND_RWAPI
+static int sb16_start_dma(vsound_t vsound, void *addr) {
+  size_t dmasize;
+  size_t len;
+  if (sb.auto_mode) {
+    dmasize = 2 * DMA_BUF_SIZE;
+    len     = DMA_BUF_SIZE / vsound->bytes_per_sample;
+    if (sb.status != STAT_WAITING) return 0;
+  } else {
+    dmasize = DMA_BUF_SIZE;
+    len     = DMA_BUF_SIZE / vsound->bytes_per_sample;
+  }
+
+  byte mode = (sb.auto_mode ? 16 : 0) | 0x48; // 0x48 为播放 0x44 为录音
+  dma_start(mode, sb.dma_channel, addr, dmasize, sb.depth == 16);
+  if (sb.auto_mode) {
+    sb_send(sb.depth == 8 ? CMD_AUTO_OUT8 : CMD_AUTO_OUT16);
+  } else {
+    sb_send(sb.depth == 8 ? CMD_SINGLE_OUT8 : CMD_SINGLE_OUT16);
+  }
+  sb_send(sb.mode);
+
+  sb_send((len - 1) & 0xff);
+  sb_send(((len - 1) >> 8) & 0xff);
+
+  if (sb.status == STAT_WAITING) sb.status = STAT_PLAYING;
+  return 0;
+}
+#endif
+
+static struct vsound vsound = {
+    .is_output = true,
 #if VSOUND_RWAPI
     .is_rwmode = true,
 #endif
@@ -264,7 +311,8 @@ struct vsound vsound = {
 #if VSOUND_RWAPI
     .write = sb16_write,
 #else
-    .bufsize = DMA_BUF_SIZE,
+    .start_dma = sb16_start_dma,
+    .bufsize   = DMA_BUF_SIZE,
 #endif
 };
 
@@ -277,16 +325,17 @@ static const i32 rates[] = {
 };
 
 void sb16_regist() {
-  if (!vsound_regist(&vsound)) {
+  snd = &vsound;
+  if (!vsound_regist(snd)) {
     klogw("注册 sb16 失败");
     return;
   }
-  vsound_set_supported_fmts(&vsound, fmts, -1);
-  vsound_set_supported_rates(&vsound, rates, -1);
-  vsound_set_supported_ch(&vsound, 1);
-  vsound_set_supported_ch(&vsound, 2);
+  vsound_set_supported_fmts(snd, fmts, -1);
+  vsound_set_supported_rates(snd, rates, -1);
+  vsound_set_supported_ch(snd, 1);
+  vsound_set_supported_ch(snd, 2);
 #if !VSOUND_RWAPI
-  vsound_addbuf(&vsound, DMA_BUF_ADDR1);
-  vsound_addbuf(&vsound, DMA_BUF_ADDR2);
+  vsound_addbuf(snd, DMA_BUF_ADDR1);
+  vsound_addbuf(snd, DMA_BUF_ADDR2);
 #endif
 }

@@ -9,11 +9,11 @@ void init_sound_mixer() {
 }
 
 void sound_mixer_task() {
-  vsound_t snd           = vsound_find("sb16");
-  snd->settings.fmt      = SOUND_FMT_S16;
-  snd->settings.channels = 1;
-  snd->settings.rate     = 44100;
-  snd->settings.volume   = 1;
+  vsound_t snd  = vsound_find("sb16");
+  snd->fmt      = SOUND_FMT_S16;
+  snd->channels = 1;
+  snd->rate     = 44100;
+  snd->volume   = 1;
   vsound_open(snd);
 
   i16 *data = malloc(mixer->len * 2);

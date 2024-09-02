@@ -73,7 +73,7 @@ set_optim_flag("-g -O1")
 # add_link_flag("-nolibc -Qn")
 
 include(cmake/optim) # 优化选项
-include(cmake/lto) # 链接时优化
+# include(cmake/lto) # 链接时优化
 # include(cmake/code-gc) # 删除重复代码
 
 # 其它选项

@@ -270,7 +270,6 @@ void  check_device() {
   }
   free(s);
 }
-
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
@@ -310,6 +309,11 @@ void init() {
   // plty_addfont(tty, font2);
 
   plty_set_default(tty);
+
+  // hda_init();
+  // extern void hda_sound_test();
+  // hda_sound_test();
+  // infinite_loop;
 
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
