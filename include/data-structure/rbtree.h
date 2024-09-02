@@ -194,8 +194,8 @@ static rbtree_t rbtree_insert_fixup(rbtree_t root, rbtree_t z) __THROW __wur;
  */
 static rbtree_t rbtree_delete_fixup(rbtree_t root, rbtree_t x, rbtree_t x_parent) __THROW __wur;
 
-static rbtree_t rbtree_alloc(int32_t key, void *value) {
-  rbtree_t node = malloc(sizeof(*node));
+static rbtree_t rbtree_alloc(int32_t key, void *value) noexcept {
+  rbtree_t node = (rbtree_t)malloc(sizeof(*node));
   node->key     = key;
   node->value   = value;
   node->color   = RBT_RED;
@@ -205,14 +205,14 @@ static rbtree_t rbtree_alloc(int32_t key, void *value) {
   return node;
 }
 
-static void rbtree_free(rbtree_t root) {
+static void rbtree_free(rbtree_t root) noexcept {
   if (root == null) return;
   rbtree_free(root->left);
   rbtree_free(root->right);
   free(root);
 }
 
-static void rbtree_free_with(rbtree_t root, free_t callback) {
+static void rbtree_free_with(rbtree_t root, free_t callback) noexcept {
   if (root == null) return;
   rbtree_free_with(root->left, callback);
   rbtree_free_with(root->right, callback);
@@ -220,7 +220,7 @@ static void rbtree_free_with(rbtree_t root, free_t callback) {
   free(root);
 }
 
-static void *rbtree_get(rbtree_t root, int32_t key) {
+static void *rbtree_get(rbtree_t root, int32_t key) noexcept {
   while (root != null && root->key != key) {
     if (key < root->key)
       root = root->left;
@@ -230,7 +230,7 @@ static void *rbtree_get(rbtree_t root, int32_t key) {
   return root ? root->value : null;
 }
 
-static rbtree_t rbtree_get_node(rbtree_t root, int32_t key) {
+static rbtree_t rbtree_get_node(rbtree_t root, int32_t key) noexcept {
   while (root != null && root->key != key) {
     if (key < root->key)
       root = root->left;
@@ -240,7 +240,7 @@ static rbtree_t rbtree_get_node(rbtree_t root, int32_t key) {
   return root;
 }
 
-static bool rbtree_search(rbtree_t root, void *value, int32_t *key) {
+static bool rbtree_search(rbtree_t root, void *value, int32_t *key) noexcept {
   if (root == null) return false;
   if (root->value == value) {
     *key = root->key;
@@ -251,7 +251,7 @@ static bool rbtree_search(rbtree_t root, void *value, int32_t *key) {
   return false;
 }
 
-static rbtree_t rbtree_search_node(rbtree_t root, void *value) {
+static rbtree_t rbtree_search_node(rbtree_t root, void *value) noexcept {
   if (root == null) return null;
   if (root->value == value) return root;
   if (root->left) {
@@ -265,19 +265,19 @@ static rbtree_t rbtree_search_node(rbtree_t root, void *value) {
   return null;
 }
 
-static rbtree_t rbtree_min(rbtree_t root) {
+static rbtree_t rbtree_min(rbtree_t root) noexcept {
   while (root->left != null)
     root = root->left;
   return root;
 }
 
-static rbtree_t rbtree_max(rbtree_t root) {
+static rbtree_t rbtree_max(rbtree_t root) noexcept {
   while (root->right != null)
     root = root->right;
   return root;
 }
 
-static rbtree_t rbtree_left_rotate(rbtree_t root, rbtree_t x) {
+static rbtree_t rbtree_left_rotate(rbtree_t root, rbtree_t x) noexcept {
   rbtree_t y = x->right;
   x->right   = y->left;
 
@@ -298,7 +298,7 @@ static rbtree_t rbtree_left_rotate(rbtree_t root, rbtree_t x) {
   return root;
 }
 
-static rbtree_t rbtree_right_rotate(rbtree_t root, rbtree_t y) {
+static rbtree_t rbtree_right_rotate(rbtree_t root, rbtree_t y) noexcept {
   rbtree_t x = y->left;
   y->left    = x->right;
 
@@ -319,7 +319,7 @@ static rbtree_t rbtree_right_rotate(rbtree_t root, rbtree_t y) {
   return root;
 }
 
-static rbtree_t rbtree_transplant(rbtree_t root, rbtree_t u, rbtree_t v) {
+static rbtree_t rbtree_transplant(rbtree_t root, rbtree_t u, rbtree_t v) noexcept {
   if (u->parent == null)
     root = v;
   else if (u == u->parent->left)
@@ -332,7 +332,7 @@ static rbtree_t rbtree_transplant(rbtree_t root, rbtree_t u, rbtree_t v) {
   return root;
 }
 
-static rbtree_t rbtree_insert_fixup(rbtree_t root, rbtree_t z) {
+static rbtree_t rbtree_insert_fixup(rbtree_t root, rbtree_t z) noexcept {
   while (z != root && z->parent->color == RBT_RED) {
     if (z->parent == z->parent->parent->left) {
       rbtree_t y = z->parent->parent->right;
@@ -373,7 +373,7 @@ static rbtree_t rbtree_insert_fixup(rbtree_t root, rbtree_t z) {
   return root;
 }
 
-static rbtree_t rbtree_insert(rbtree_t root, int32_t key, void *value) {
+static rbtree_t rbtree_insert(rbtree_t root, int32_t key, void *value) noexcept {
   rbtree_t z = rbtree_alloc(key, value);
 
   rbtree_t y = null;
@@ -398,7 +398,7 @@ static rbtree_t rbtree_insert(rbtree_t root, int32_t key, void *value) {
   return rbtree_insert_fixup(root, z);
 }
 
-static rbtree_t rbtree_delete_fixup(rbtree_t root, rbtree_t x, rbtree_t x_parent) {
+static rbtree_t rbtree_delete_fixup(rbtree_t root, rbtree_t x, rbtree_t x_parent) noexcept {
   while (x != root && (x == null || x->color == RBT_BLACK)) {
     if (x == x_parent->left) {
       rbtree_t w = x_parent->right;
@@ -459,7 +459,7 @@ static rbtree_t rbtree_delete_fixup(rbtree_t root, rbtree_t x, rbtree_t x_parent
   return root;
 }
 
-static rbtree_t rbtree_delete_with(rbtree_t root, int32_t key, free_t callback) {
+static rbtree_t rbtree_delete_with(rbtree_t root, int32_t key, free_t callback) noexcept {
   if (root == null) return null;
   rbtree_t z = rbtree_get_node(root, key);
   if (z == null) return root;
@@ -502,12 +502,12 @@ static rbtree_t rbtree_delete_with(rbtree_t root, int32_t key, free_t callback) 
   return root;
 }
 
-static rbtree_t rbtree_delete(rbtree_t root, int32_t key) {
+static rbtree_t rbtree_delete(rbtree_t root, int32_t key) noexcept {
   return rbtree_delete_with(root, key, null);
 }
 
 #  ifdef __libplos__
-static void rbtree_print_inorder(rbtree_t root, int deepth) {
+static void rbtree_print_inorder(rbtree_t root, int deepth) noexcept {
   if (deepth == 0) printf("In-order traversal of the Red-Black Tree: \n");
   if (root == null) return;
   rbtree_print_inorder(root->left, deepth + 1);
@@ -517,7 +517,7 @@ static void rbtree_print_inorder(rbtree_t root, int deepth) {
   rbtree_print_inorder(root->right, deepth + 1);
 }
 
-static void rbtree_print_preorder(rbtree_t root, int deepth) {
+static void rbtree_print_preorder(rbtree_t root, int deepth) noexcept {
   if (deepth == 0) printf("Pre-order traversal of the Red-Black Tree: \n");
   if (root == null) return;
   for (int i = 0; i < deepth; i++)
@@ -527,7 +527,7 @@ static void rbtree_print_preorder(rbtree_t root, int deepth) {
   rbtree_print_preorder(root->right, deepth + 1);
 }
 
-static void rbtree_print_postorder(rbtree_t root, int deepth) {
+static void rbtree_print_postorder(rbtree_t root, int deepth) noexcept {
   if (deepth == 0) printf("Post-order traversal of the Red-Black Tree: \n");
   if (root == null) return;
   rbtree_print_postorder(root->left, deepth + 1);
