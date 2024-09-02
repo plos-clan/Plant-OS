@@ -563,8 +563,8 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
     error("stream reset failed 2");
     return;
   }
-  for (int i = 0; i < 10000; i++)
-    asm volatile("nop");
+  wait(1);
+
   ticks = timerctl.count;
   moutb(output_base + 0x0, 0);
   while (timerctl.count - ticks < 1) {
@@ -574,8 +574,8 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
     error("output reset failed");
     return;
   }
-  for (int i = 0; i < 10000; i++)
-    asm volatile("nop");
+  wait(1);
+
   moutb(output_base + 0x3, 0b11100);
   explicit_bzero(output_buffer, 16 * 2);
   output_buffer[0] = (u32)buffer;
@@ -588,10 +588,10 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
 
   moutl(output_base + 0x8, size);
   moutw(output_base + 0xc, 1);
-  moutl(output_base + 0x12, data_format);
+  moutw(output_base + 0x12, data_format);
+  printf("data_format = %x %d\n", data_format, hda_pin_output_node);
   hda_verb(hda_codec_number, hda_pin_output_node, 0x2, data_format);
-  for (int i = 0; i < 10000; i++)
-    asm volatile("nop");
+  wait(1);
 
   moutb(output_base + 0x2, 0x1c);
 
@@ -609,9 +609,9 @@ u32 hda_get_bytes_sent() {
 #include <audio.h>
 #include <data-structure.h>
 #include <sound.h>
-
-int         flag1 = 0;
-static void play_audio(f32 *block, size_t len, void *userdata) {
+#pragma clang optimize off
+int                    flag1 = 0;
+static void            play_audio(f32 *block, size_t len, void *userdata) {
   i16 *data = page_malloc(len * 2);
   int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
   hda_play_pcm(data, len * 2, 44100, 1, 16);
@@ -668,10 +668,50 @@ void hda_sound_test() {
 
   plac_decompress_free(dctx);
 
-  void  *data = PADDING_UP(ms->buf, 128);
-  size_t size = PADDING_DOWN(ms->size, 128);
+  void *data = page_malloc(ms->size);
+  memcpy(data, ms->buf, ms->size);
   printf("start play audio %d", hda_is_supported_sample_rate(samplerate));
-  hda_play_pcm(data, size, samplerate, 1, 16);
+#define N (65536 * 4)
+  void *buffer = page_malloc(N * 2);
+  void *b1     = buffer;
+  void *b2     = buffer + N;
+  int   a      = 0;
+  int   b      = 0;
+  int   c      = 0;
+
+  int d = 0;
+
+  memcpy(b1, data, N);
+  hda_play_pcm(buffer, N * 2, samplerate, 1, 16);
+  while (1) {
+    if (b == 0) {
+      if (hda_get_bytes_sent() < N) {
+        c = a + hda_get_bytes_sent();
+      } else {
+        a += N;
+        c  = a + hda_get_bytes_sent() - N;
+        b  = 1;
+      }
+    } else {
+      if (hda_get_bytes_sent() >= N) {
+        c = a + hda_get_bytes_sent() - N;
+      } else {
+        a += N;
+        c  = a + hda_get_bytes_sent();
+        b  = 0;
+      }
+    }
+    if (b != d) {
+      if (b == 1) {
+        memcpy(b2, data + c, N);
+        asm("wbinvd");
+      } else {
+        memcpy(b1, data + c, N);
+        asm("wbinvd");
+      }
+      d = b;
+    }
+  }
   printf("ok\n");
   for (;;)
     ;
