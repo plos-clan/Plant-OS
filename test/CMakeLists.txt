@@ -19,3 +19,4 @@ testlib(
   swresample)
 
 add_subdirectory(algs)
+add_subdirectory(misc)

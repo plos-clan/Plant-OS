@@ -289,7 +289,7 @@ struct FAT_FILEINFO *Get_File_Address(char *path1, vfs_t *vfs) {
   char                *path         = (char *)page_malloc(strlen(path1) + 1);
   char                *bmp          = path;
   strcpy(path, path1);
-  str2upper(path);
+  strupper(path);
   if (strncmp("/", path, 1) == 0) {
     path    += 1;
     bmpDict  = get_dm(vfs).root_directory;
@@ -360,7 +360,7 @@ struct FAT_FILEINFO *Get_dictaddr(char *path1, vfs_t *vfs) {
   char                *path         = (char *)page_malloc(strlen(path1) + 1);
   char                *bmp          = path;
   strcpy(path, path1);
-  str2upper(path);
+  strupper(path);
   if (strncmp("/", path, 1) == 0) {
     path    += 1;
     bmpDict  = get_dm(vfs).root_directory;
@@ -681,7 +681,7 @@ void mkfile(char *name, vfs_t *vfs) {
 }
 int changedict(char *dictname, vfs_t *vfs) {
   // cd命令的依赖函数
-  str2upper(dictname);
+  strupper(dictname);
 
   if (strcmp(dictname, "/") == 0) {
     while (vfs->path->ctl->all != 0) {
@@ -732,8 +732,8 @@ int changedict(char *dictname, vfs_t *vfs) {
   return 1;
 }
 int rename(char *src_name, char *dst_name, vfs_t *vfs) {
-  str2upper(src_name);
-  str2upper(dst_name);
+  strupper(src_name);
+  strupper(dst_name);
   char name[9], ext[4];
   int  i;
   bzero(name, 9);
