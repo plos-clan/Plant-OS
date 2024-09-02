@@ -683,6 +683,7 @@ void hda_sound_test() {
 
   memcpy(b1, data, N);
   hda_play_pcm(buffer, N * 2, samplerate, 1, 16);
+  asm_cli;
   while (1) {
     if (b == 0) {
       if (hda_get_bytes_sent() < N) {

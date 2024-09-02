@@ -310,10 +310,10 @@ void init() {
 
   plty_set_default(tty);
 
-  // hda_init();
-  // extern void hda_sound_test();
-  // hda_sound_test();
-  // infinite_loop;
+  hda_init();
+  extern void hda_sound_test();
+  hda_sound_test();
+  infinite_loop;
 
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
