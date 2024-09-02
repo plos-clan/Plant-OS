@@ -13,8 +13,7 @@ void mouse_wait(byte a_type) {
     }
     return;
   } else {
-    while (_time_out--) // Signal
-    {
+    while (_time_out--) { // Signal
       if ((asm_in8(0x64) & 2) == 0) return;
     }
     return;

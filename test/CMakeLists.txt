@@ -19,3 +19,5 @@ testlib(
   avformat
   avutil
   swresample)
+
+add_subdirectory(algs)
