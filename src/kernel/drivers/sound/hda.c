@@ -325,11 +325,8 @@ void hda_init_codec(u32 codec) {
     }
   }
 }
-void hda_interrupt_handler() {
-  info("hda interrupt");
-  for (;;)
-    ;
-}
+
+void asm_hda_handler();
 void pci_set_drive_irq(u8 bus, u8 slot, u8 func, u8 irq);
 void hda_init() {
   klogd("hda_init");
@@ -347,7 +344,6 @@ void hda_init() {
     error("hda card not found");
     return;
   }
-  pci_set_drive_irq(hda_bus, hda_slot, hda_func, 0xf);
   write_pci(hda_bus, hda_slot, hda_func, 0x04,
             ((read_pci(hda_bus, hda_slot, hda_func, 0x04) & ~(1 << 10)) | (1 << 2) |
              (1 << 1))); // enable interrupts, enable bus mastering, enable MMIO space
@@ -379,13 +375,13 @@ void hda_init() {
   info("output base address: 0x%x", output_base);
   output_buffer = page_malloc_one_no_mark();
 
-  irq_mask_clear(0x0f);
-  register_intr_handler(0x0f + 0x20, (u32)hda_interrupt_handler);
-  moutl(hda_base + 0x20, (1 << 31) | (1 << 30) | (1 << input_stream_count));
+  irq_mask_clear(0xb);
+  register_intr_handler(0xb + 0x20, (u32)asm_hda_handler);
+  asm_set32(hda_base + 0x20, (1 << 31) | (1 << input_stream_count));
 
   info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));
-  moutl(hda_base + 0x70, 0);
-  moutl(hda_base + 0x74, 0);
+  asm_set32(hda_base + 0x70, 0);
+  asm_set32(hda_base + 0x74, 0);
 
   asm_set32(hda_base + 0x34, 0);
   asm_set32(hda_base + 0x38, 0);
@@ -583,7 +579,7 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
 
   asm_set8(output_base + 0x2, 0x1c);
 
-  moutb(output_base + 0x0, 0b110);
+  asm_set8(output_base + 0x0, 0b110);
 }
 
 void hda_stop(void) {
@@ -634,6 +630,29 @@ u8 hda_is_supported_sample_rate(u32 sample_rate) {
     return 0;
   }
 }
+
+// static vsound_t snd;
+// static struct vsound vsound = {
+//     .is_output = true,
+// #if VSOUND_RWAPI
+//     .is_rwmode = true,
+// #endif
+//     .name  = "sb16",
+//     .open  = sb16_open,
+//     .close = sb16_close,
+// #if VSOUND_RWAPI
+//     .write = sb16_write,
+// #else
+//     .start_dma = sb16_start_dma,
+//     .bufsize   = DMA_BUF_SIZE,
+// #endif
+// };
+void hda_interrupt_handler() {
+  send_eoi(0x0b);
+  printf("hda interrupt");
+  asm_set8(output_base + 0x83, 1 << 2);
+}
+
 void hda_sound_test() {
   klogd("sound test has been started");
 
