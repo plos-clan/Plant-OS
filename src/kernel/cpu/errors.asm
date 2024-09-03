@@ -17,7 +17,7 @@ asm_error0:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR0
-	iretd
+	iret
 asm_error1:
 	cli
 	mov ecx, 1
@@ -26,7 +26,7 @@ asm_error1:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR1
-	iretd
+	iret
 asm_error3:
 	cli
 	mov ecx, 3
@@ -35,7 +35,7 @@ asm_error3:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR3
-	iretd
+	iret
 asm_error4:
 	cli
 	mov ecx, 4
@@ -44,7 +44,7 @@ asm_error4:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR4
-	iretd
+	iret
 asm_error5:
 	cli
 	mov ecx, 5
@@ -53,7 +53,7 @@ asm_error5:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR5
-	iretd
+	iret
 asm_error6:
 	cli
 	mov ecx, 6
@@ -62,7 +62,7 @@ asm_error6:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR6
-	iretd
+	iret
 asm_error7:
 	push ds
 	push es
@@ -75,7 +75,7 @@ asm_error7:
 	pop fs
 	pop es
 	pop ds
-	iretd
+	iret
 asm_error8:
 	cli
 	mov ecx, 8
@@ -84,9 +84,9 @@ asm_error8:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR8
-	iretd
+	iret
 asm_error9:
-	iretd
+	iret
 asm_error10:
 	cli
 	push 10
@@ -94,7 +94,7 @@ asm_error10:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR10
-	iretd
+	iret
 asm_error11:
 	cli
 	mov ecx, 11
@@ -103,7 +103,7 @@ asm_error11:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR11
-	iretd
+	iret
 asm_error12:
 	cli
 	mov ecx, 12
@@ -112,7 +112,7 @@ asm_error12:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR12
-	iretd
+	iret
 asm_error13:
 	cli
 	PUSHAD
@@ -129,7 +129,7 @@ asm_error13:
 	inc esi
 	mov byte [esi], 0x0c
 	jmp $
-	iretd
+	iret
 	EXTERN Print_Hex
 asm_error14:
 	cli
@@ -147,7 +147,7 @@ asm_error14:
 	add esp, 4
 	; what the fuck is esp doing?
 	sti
-	iretd
+	iret
 asm_error16:
 	cli
 	mov ecx, 16
@@ -156,7 +156,7 @@ asm_error16:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR16
-	iretd
+	iret
 asm_error17:
 	cli
 	mov ecx, 17
@@ -165,7 +165,7 @@ asm_error17:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR17
-	iretd
+	iret
 asm_error18:
 	cli
 	mov ecx, 18
@@ -174,7 +174,7 @@ asm_error18:
 	cmp ax, 1 * 8                ; 是不是在程序产生的
 	jne KILLAPP1
 	call ERROR18
-	iretd
+	iret
 KILLAPP1:
 	cli
 	PUSHAD
