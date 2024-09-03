@@ -302,10 +302,12 @@ void page_unlink_pde(u32 addr, u32 pde) {
   current_task()->pde = pde_backup;
   asm_set_cr3(pde_backup);
 }
+
 void page_unlink(u32 addr) {
   page_unlink_pde(addr, current_task()->pde);
 }
-void C_init_page() {
+
+void init_page() {
   init_pdepte(PDE_ADDRESS, PTE_ADDRESS, PAGE_END);
   init_page_manager(pages);
   // kernel 加载到0x280000
@@ -313,6 +315,8 @@ void C_init_page() {
   page_set_alloced(pages, 0, 0xb00000);
   // 0xc0000000 到 0xffffffff 物理内存保留地址
   page_set_alloced(pages, 0xc0000000, 0xffffffff);
+  asm_set_cr3(PDE_ADDRESS);
+  asm_set_pg;
 }
 
 void pf_set(u32 memsize) {

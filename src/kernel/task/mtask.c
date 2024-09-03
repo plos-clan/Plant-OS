@@ -10,7 +10,7 @@ char         default_drive, default_drive_number;
 static char  flags_once = false;
 struct TSS32 tss;
 mtask       *idle_task;
-mtask       *current = NULL;
+mtask       *mtask_current = NULL;
 rbtree_t     tasks;
 char         mtask_stop_flag = 0;
 
@@ -100,14 +100,15 @@ bool task_check_train(mtask *task) {
 extern mtask *mouse_use_task;
 
 void task_next() {
-  if (!current) fatal("current is null");
+  if (!mtask_current) fatal("current is null");
 
-  if (current->running < current->timeout - 1 && current->state == RUNNING && next_set == NULL) {
-    current->running++;
+  if (mtask_current->running < mtask_current->timeout - 1 && mtask_current->state == RUNNING &&
+      next_set == NULL) {
+    mtask_current->running++;
     return; // 不需要调度，当前时间片仍然属于你
   }
 
-  if (!next_set) current->running = 0;
+  if (!next_set) mtask_current->running = 0;
 
   mtask *next = NULL;
   int    i;
@@ -122,7 +123,7 @@ void task_next() {
   }
   for (; i < 255; i++) {
     mtask *p = task_by_id(i);
-    if (p == current) continue;
+    if (p == mtask_current) continue;
     if (p->state != RUNNING) { // RUNNING
       if (p->state == READY) p->state = EMPTY;
       if (p->state == WAITING) {
@@ -156,8 +157,8 @@ H:
   if (next == NULL) next = idle_task;
   if (next->urgent) next->urgent = 0;
   if (next->ready) next->ready = 0;
-  int         current_fpu_flag = current->fpu_flag;
-  fpu_regs_t *current_fpu      = &(current->fpu);
+  int         current_fpu_flag = mtask_current->fpu_flag;
+  fpu_regs_t *current_fpu      = &(mtask_current->fpu);
   asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
   if (current_fpu && current_fpu_flag)
     asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
@@ -187,7 +188,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
   t->esp->eip  = eip;                                                // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
-  if (current == NULL) {                                             // 还没启用多任务
+  if (mtask_current == NULL) {                                       // 还没启用多任务
     t->pde   = PDE_ADDRESS; // 所以先用预设好的页表
     t->times = PDE_ADDRESS;
   } else {
@@ -250,7 +251,7 @@ mtask *get_task(u32 tid) {
 // };
 
 void task_to_user_mode(u32 eip, u32 esp) {
-  u32 addr = (u32)current->top;
+  u32 addr = (u32)mtask_current->top;
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
@@ -264,17 +265,17 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->ecx       = 0;
   iframe->eax       = 0;
 
-  iframe->gs         = 0;
-  iframe->ds         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->es         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->fs         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->ss         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->cs         = GET_SEL(4 * 8, SA_RPL3);
-  iframe->eip        = eip;
-  iframe->eflags     = (0 << 12 | 0b10 | 1 << 9);
-  iframe->esp        = esp; // 设置用户态堆栈
-  current->user_mode = 1;
-  tss.esp0           = current->top;
+  iframe->gs               = 0;
+  iframe->ds               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->es               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->fs               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->ss               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->cs               = GET_SEL(4 * 8, SA_RPL3);
+  iframe->eip              = eip;
+  iframe->eflags           = (0 << 12 | 0b10 | 1 << 9);
+  iframe->esp              = esp; // 设置用户态堆栈
+  mtask_current->user_mode = 1;
+  tss.esp0                 = mtask_current->top;
   klogd("tid: %d\n", current_task()->tid);
   asm_cli;
   asm volatile("movl %0, %%esp\n\t"
@@ -319,14 +320,14 @@ void task_kill(u32 tid) {
 }
 
 mtask *current_task() {
-  if (current != NULL) return current;
+  if (mtask_current != NULL) return mtask_current;
   empty_task.tid = NULL_TID;
   return &empty_task;
 }
 
 void into_mtask() {
   init_tasks();
-  asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
+  asm_clr_em, asm_clr_ts;
   asm volatile("fninit");
   asm volatile("fnsave (%%eax) \n" ::"a"(&public_fpu));
   fpu_disable();
@@ -337,7 +338,7 @@ void into_mtask() {
   load_tr(103 * 8);
   idle_task = create_task((u32)idle_loop, 0, 1, 3);
   create_task((u32)init, 0, 5, 1);
-  asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
+  asm_set_em, asm_set_ts, asm_set_ne;
   task_start(task_by_id(0));
 }
 

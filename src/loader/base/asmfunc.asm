@@ -39,7 +39,7 @@ floppy_int:
 	pop  eax
 	popad
 	sti
-	IRETD
+	iret
 
 ;; definition of
 ;;      u32 memtest_sub(u32 start, u32 end)
