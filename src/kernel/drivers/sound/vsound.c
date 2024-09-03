@@ -75,15 +75,15 @@ bool vsound_set_supported_fmts(vsound_t device, const i16 *fmts, ssize_t len) {
   if (device == null) return false;
   size_t nseted = 0;
   if (len < 0) {
-    for (size_t i = 0; fmts[i] > 0; i++) {
+    for (size_t i = 0; fmts[i] >= 0; i++) {
       if (fmts[i] >= SOUND_FMT_CNT) continue;
-      device->supported_fmts |= MASK32(fmts[i] - 1);
+      device->supported_fmts |= MASK32(fmts[i]);
       nseted++;
     }
   } else {
     for (size_t i = 0; i < len; i++) {
       if (fmts[i] >= SOUND_FMT_CNT) continue;
-      device->supported_fmts |= MASK32(fmts[i] - 1);
+      device->supported_fmts |= MASK32(fmts[i]);
       nseted++;
     }
   }
@@ -97,14 +97,14 @@ bool vsound_set_supported_rates(vsound_t device, const i32 *rates, ssize_t len) 
     for (size_t i = 0; rates[i] > 0; i++) {
       int id = samplerate_id(rates[i]);
       if (id < 0) continue;
-      device->supported_rates |= MASK32(id - 1);
+      device->supported_rates |= MASK32(id);
       nseted++;
     }
   } else {
     for (size_t i = 0; i < len; i++) {
       int id = samplerate_id(rates[i]);
       if (id < 0) continue;
-      device->supported_rates |= MASK32(id - 1);
+      device->supported_rates |= MASK32(id);
       nseted++;
     }
   }
@@ -180,6 +180,11 @@ int vsound_clearbuffer(vsound_t snd) {
 
 int vsound_open(vsound_t snd) { // 打开设备
   if (snd->is_using || snd->is_dma_ready || snd->is_running) return -1;
+  if ((snd->supported_fmts & MASK32(snd->fmt)) == 0) return -1;
+  int id = samplerate_id(snd->rate);
+  if (id < 0) return -1;
+  if ((snd->supported_rates & MASK32(id)) == 0) return -1;
+  if ((snd->supported_chs & MASK32(snd->channels - 1)) == 0) return -1;
   snd->bytes_per_sample = sound_fmt_bytes(snd->fmt) * snd->channels;
   snd->open(snd);
   snd->is_using = true;

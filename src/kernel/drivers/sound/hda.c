@@ -1,7 +1,7 @@
 // 此驱动可能注释不全，请参考https://server.plos-clan.org/hda-programming-document.html
 #pragma clang optimize off
 #include <kernel.h>
-#include <mmio.h>
+
 #define SEND_VERB_METHOD_DMA      1
 #define SEND_VERB_METHOD_MMIO     2
 #define HDA_WIDGET_AUDIO_OUTPUT   0x0
@@ -52,46 +52,23 @@ static u32 hda_pin_stream_format_cap_second = 0;
 
 static u32 *output_buffer    = null;
 static u32  hda_codec_number = 0;
+
 static void wait(int ticks) {
   int tick = timerctl.count;
-
-  while (timerctl.count - tick < ticks)
-    ;
-}
-u8 minb(u32 addr) {
-  return *((volatile u8 *)addr);
+  waituntil(timerctl.count - tick < ticks);
 }
 
-u16 minw(u32 addr) {
-  return *((volatile u16 *)addr);
-}
-
-u32 minl(u32 addr) {
-  return *((volatile u32 *)addr);
-}
-
-void moutb(u32 addr, u8 value) {
-  *((volatile u8 *)addr) = value;
-}
-
-void moutw(u32 addr, u16 value) {
-  *((volatile u16 *)addr) = value;
-}
-
-void moutl(u32 addr, u32 value) {
-  *((volatile u32 *)addr) = value;
-}
 u32 hda_verb(u32 codec, u32 node, u32 verb, u32 command) {
   if (verb == 0x2 || verb == 0x3) { verb <<= 8; }
   u32 value = ((codec << 28) | (node << 20) | (verb << 8) | (command));
   if (send_verb_method == SEND_VERB_METHOD_DMA) {
     corb[corb_write_pointer] = value;
-    moutw(hda_base + 0x48, corb_write_pointer);
+    asm_set16(hda_base + 0x48, corb_write_pointer);
     u32 ticks = timerctl.count;
     while (timerctl.count - ticks < 1) {
-      if ((minw(hda_base + 0x58)) == corb_write_pointer) { break; }
+      if ((asm_get16(hda_base + 0x58)) == corb_write_pointer) { break; }
     }
-    if ((minw(hda_base + 0x58) & 0xff) != corb_write_pointer) {
+    if ((asm_get16(hda_base + 0x58) & 0xff) != corb_write_pointer) {
       error("no response from hda");
       return 0;
     }
@@ -100,21 +77,21 @@ u32 hda_verb(u32 codec, u32 node, u32 verb, u32 command) {
     rirb_read_pointer  = (rirb_read_pointer + 1) % rirb_entry_count;
     return value;
   } else {
-    moutw(hda_base + 0x68, 0b10);
-    moutl(hda_base + 0x60, value);
-    moutw(hda_base + 0x68, 1);
+    asm_set16(hda_base + 0x68, 0b10);
+    asm_set32(hda_base + 0x60, value);
+    asm_set16(hda_base + 0x68, 1);
     u32 ticks = timerctl.count;
     while (timerctl.count - ticks < 1) {
-      if ((minw(hda_base + 0x68) & 0x3) == 0b10) { break; }
+      if ((asm_get16(hda_base + 0x68) & 0x3) == 0b10) { break; }
     }
-    if ((minw(hda_base + 0x68) & 0x3) != 0b10) {
-      moutw(hda_base + 0x68, 0b10);
+    if ((asm_get16(hda_base + 0x68) & 0x3) != 0b10) {
+      asm_set16(hda_base + 0x68, 0b10);
       error("no response from hda");
       return 0;
     } else {
-      moutw(hda_base + 0x68, 0b10);
+      asm_set16(hda_base + 0x68, 0b10);
     }
-    return minl(hda_base + 0x64);
+    return asm_get32(hda_base + 0x64);
   }
 }
 u8 hda_node_type(u32 codec, u32 node) {
@@ -377,26 +354,26 @@ void hda_init() {
   info("hda card found at bus %d slot %d func %d", hda_bus, hda_slot, hda_func);
   hda_base = read_bar_n(hda_bus, hda_slot, hda_func, 0);
   info("hda base address: 0x%x", hda_base);
-  moutl(hda_base + 0x08, 0);
+  asm_set32(hda_base + 0x08, 0);
   int ticks = timerctl.count;
   while (timerctl.count - ticks < 1) {
-    if ((minl(hda_base + 0x08) & 0x01) == 0) { break; }
+    if ((asm_get32(hda_base + 0x08) & 0x01) == 0) { break; }
   }
-  if ((minl(hda_base + 0x08) & 0x01) != 0) {
+  if ((asm_get32(hda_base + 0x08) & 0x01) != 0) {
     error("hda reset failed");
     return;
   }
-  moutl(hda_base + 0x08, 1);
+  asm_set32(hda_base + 0x08, 1);
   ticks = timerctl.count;
   while (timerctl.count - ticks < 1) {
-    if ((minl(hda_base + 0x08) & 0x01) == 1) { break; }
+    if ((asm_get32(hda_base + 0x08) & 0x01) == 1) { break; }
   }
-  if ((minl(hda_base + 0x08) & 0x01) != 1) {
+  if ((asm_get32(hda_base + 0x08) & 0x01) != 1) {
     error("hda reset failed");
     return;
   }
   info("hda card is working now");
-  int input_stream_count = (minw(hda_base + 0x00) >> 8) & 0x0f;
+  int input_stream_count = (asm_get16(hda_base + 0x00) >> 8) & 0x0f;
   info("input stream count: %d", input_stream_count);
   output_base = hda_base + 0x80 + (0x20 * input_stream_count);
   info("output base address: 0x%x", output_base);
@@ -410,86 +387,86 @@ void hda_init() {
   moutl(hda_base + 0x70, 0);
   moutl(hda_base + 0x74, 0);
 
-  moutl(hda_base + 0x34, 0);
-  moutl(hda_base + 0x38, 0);
+  asm_set32(hda_base + 0x34, 0);
+  asm_set32(hda_base + 0x38, 0);
 
-  moutb(hda_base + 0x4c, 0);
-  moutb(hda_base + 0x5c, 0);
+  asm_set8(hda_base + 0x4c, 0);
+  asm_set8(hda_base + 0x5c, 0);
 
   corb = page_malloc_one_no_mark();
-  moutl(hda_base + 0x40, (u32)corb);
-  moutl(hda_base + 0x44, 0);
+  asm_set32(hda_base + 0x40, (u32)corb);
+  asm_set32(hda_base + 0x44, 0);
 
-  u8 corb_size = minb(hda_base + 0x4e) >> 4 & 0x0f;
+  u8 corb_size = asm_get8(hda_base + 0x4e) >> 4 & 0x0f;
   if (corb_size & 0b0001) {
     corb_entry_count = 2;
-    moutb(hda_base + 0x4e, 0b00);
+    asm_set8(hda_base + 0x4e, 0b00);
   } else if (corb_size & 0b0010) {
     corb_entry_count = 16;
-    moutb(hda_base + 0x4e, 0b01);
+    asm_set8(hda_base + 0x4e, 0b01);
   } else if (corb_size & 0b0100) {
     corb_entry_count = 256;
-    moutb(hda_base + 0x4e, 0b10);
+    asm_set8(hda_base + 0x4e, 0b10);
   } else {
     error("corb size not supported");
     goto mmio;
   }
   info("corb size: %d entries", corb_entry_count);
 
-  moutw(hda_base + 0x4A, 0x8000);
+  asm_set16(hda_base + 0x4A, 0x8000);
   ticks = timerctl.count;
   while (timerctl.count - ticks < 1) {
 
-    if ((minw(hda_base + 0x4A) & 0x8000)) { break; }
+    if ((asm_get16(hda_base + 0x4A) & 0x8000)) { break; }
   }
-  if ((minw(hda_base + 0x4A) & 0x8000) == 0) {
+  if ((asm_get16(hda_base + 0x4A) & 0x8000) == 0) {
     error("corb reset failed");
     goto mmio;
   }
-  moutw(hda_base + 0x4A, 0x0000);
+  asm_set16(hda_base + 0x4A, 0x0000);
   ticks = timerctl.count;
   while (timerctl.count - ticks < 1) {
-    if ((minw(hda_base + 0x4A) & 0x8000) == 0) { break; }
+    if ((asm_get16(hda_base + 0x4A) & 0x8000) == 0) { break; }
   }
-  if ((minw(hda_base + 0x4A) & 0x8000) != 0) {
+  if ((asm_get16(hda_base + 0x4A) & 0x8000) != 0) {
     error("corb reset failed");
     goto mmio;
   }
-  moutw(hda_base + 0x48, 0);
+  asm_set16(hda_base + 0x48, 0);
 
   corb_write_pointer = 1;
   info("corb has been reset already");
 
   rirb = page_malloc_one_no_mark();
-  moutl(hda_base + 0x50, (u32)rirb);
-  moutl(hda_base + 0x54, 0);
+  asm_set32(hda_base + 0x50, (u32)rirb);
+  asm_set32(hda_base + 0x54, 0);
 
-  u8 rirb_size = minb(hda_base + 0x5e) >> 4 & 0x0f;
+  u8 rirb_size = asm_get8(hda_base + 0x5e) >> 4 & 0x0f;
   if (rirb_size & 0b0001) {
     rirb_entry_count = 2;
-    moutb(hda_base + 0x5e, 0b00);
+    asm_set8(hda_base + 0x5e, 0b00);
   } else if (rirb_size & 0b0010) {
     rirb_entry_count = 16;
-    moutb(hda_base + 0x5e, 0b01);
+    asm_set8(hda_base + 0x5e, 0b01);
   } else if (rirb_size & 0b0100) {
     rirb_entry_count = 256;
-    moutb(hda_base + 0x5e, 0b10);
+    asm_set8(hda_base + 0x5e, 0b10);
   } else {
     error("rirb size not supported");
     goto mmio;
   }
   info("rirb size: %d entries", rirb_entry_count);
 
-  moutw(hda_base + 0x58, 0x8000);
+  asm_set16(hda_base + 0x58, 0x8000);
   wait(1);
 
-  moutw(hda_base + 0x5A, 0x0000);
+  asm_set16(hda_base + 0x5A, 0x0000);
 
   rirb_read_pointer = 1;
   info("rirb has been reset already");
 
-  moutb(hda_base + 0x4c, 0b10);
-  moutb(hda_base + 0x5c, 0b10);
+  asm_set8(hda_base + 0x4c, 0b10);
+  asm_set8(hda_base + 0x5c, 0b10);
   info("corb rirb dma has been started");
   send_verb_method = SEND_VERB_METHOD_DMA;
   for (int i = 0; i < 16; i++) {
@@ -503,8 +480,8 @@ void hda_init() {
 mmio:
   warn("use mmio");
   send_verb_method = SEND_VERB_METHOD_MMIO;
-  moutb(output_base + 0x4c, 0);
-  moutb(output_base + 0x5c, 0);
+  asm_set8(output_base + 0x4c, 0);
+  asm_set8(output_base + 0x5c, 0);
   for (int i = 0; i < 16; i++) {
     u32 codec_id = hda_verb(i, 0, 0xf00, 0);
     if (codec_id != 0) {
@@ -556,37 +533,37 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
     return;
   }
   int ticks = timerctl.count;
-  moutb(output_base + 0x0, 0);
+  asm_set8(output_base + 0x0, 0);
   while (timerctl.count - ticks < 1) {
-    if ((minb(output_base + 0x0) & 0b11) == 0x0) { break; }
+    if ((asm_get8(output_base + 0x0) & 0b11) == 0x0) { break; }
   }
-  if ((minb(output_base + 0x0) & 0b11) != 0x0) {
+  if ((asm_get8(output_base + 0x0) & 0b11) != 0x0) {
     error("output reset failed 1");
     return;
   }
-  moutb(output_base + 0x0, 1);
+  asm_set8(output_base + 0x0, 1);
   ticks = timerctl.count;
   while (timerctl.count - ticks < 1) {
-    if ((minb(output_base + 0x0) & 0b01) == 0x1) { break; }
+    if ((asm_get8(output_base + 0x0) & 0b01) == 0x1) { break; }
   }
-  if ((minb(output_base + 0x0) & 0b01) != 0x1) {
+  if ((asm_get8(output_base + 0x0) & 0b01) != 0x1) {
     error("stream reset failed 2");
     return;
   }
   wait(1);
 
   ticks = timerctl.count;
-  moutb(output_base + 0x0, 0);
+  asm_set8(output_base + 0x0, 0);
   while (timerctl.count - ticks < 1) {
-    if ((minb(output_base + 0x0) & 0b11) == 0x0) { break; }
+    if ((asm_get8(output_base + 0x0) & 0b11) == 0x0) { break; }
   }
-  if ((minb(output_base + 0x0) & 0b11) != 0x0) {
+  if ((asm_get8(output_base + 0x0) & 0b11) != 0x0) {
     error("output reset failed");
     return;
   }
   wait(1);
 
-  moutb(output_base + 0x3, 0b11100);
+  asm_set8(output_base + 0x3, 0b11100);
   explicit_bzero(output_buffer, 16 * 2);
   output_buffer[0] = (u32)buffer;
   output_buffer[2] = size;
@@ -594,27 +571,27 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
 
   asm volatile("wbinvd");
 
-  moutl(output_base + 0x18, (u32)output_buffer);
-  moutl(output_base + 0x1c, 0);
+  asm_set32(output_base + 0x18, (u32)output_buffer);
+  asm_set32(output_base + 0x1c, 0);
 
-  moutl(output_base + 0x8, size);
-  moutw(output_base + 0xc, 1);
-  moutw(output_base + 0x12, data_format);
+  asm_set32(output_base + 0x8, size);
+  asm_set16(output_base + 0xc, 1);
+  asm_set16(output_base + 0x12, data_format);
   printf("data_format = %x %d\n", data_format, hda_pin_output_node);
   hda_verb(hda_codec_number, hda_pin_output_node, 0x2, data_format);
   wait(1);
 
-  moutb(output_base + 0x2, 0x1c);
+  asm_set8(output_base + 0x2, 0x1c);
 
   moutb(output_base + 0x0, 0b110);
 }
 
 void hda_stop(void) {
-  moutb(output_base + 0x0, 0);
+  asm_set8(output_base + 0x0, 0);
 }
 
 u32 hda_get_bytes_sent() {
-  return minl(output_base + 0x4);
+  return asm_get32(output_base + 0x4);
 }
 
 #include <audio.h>

@@ -190,7 +190,6 @@ void task_to_user_mode_shell() {
   change_page_task_id(current_task()->tid, (void *)(iframe->esp - 512 * 1024), 512 * 1024);
 
   asm volatile("movl %0, %%esp\n\t"
-               "xchg %%bx,%%bx\n\t"
                "popa\n\t"
                "pop %%gs\n\t"
                "pop %%fs\n\t"

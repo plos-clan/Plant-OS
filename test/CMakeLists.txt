@@ -1,8 +1,6 @@
 add_subdirectory(c)
 add_subdirectory(cpp)
-
-gtest(pow pow.cpp)
-testexec(gaussian-kernel gaussian-kernel.cpp)
+add_subdirectory(math)
 
 add_subdirectory(plui)
 
