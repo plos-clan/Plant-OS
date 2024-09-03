@@ -1,6 +1,5 @@
 #include <kernel.h>
 
-
 #define PCI_COMMAND_PORT 0xCF8
 #define PCI_DATA_PORT    0xCFC
 #define mem_mapping      0
@@ -63,6 +62,9 @@ base_address_register get_base_address_register(u8 bus, u8 device, u8 function, 
 u8 pci_get_drive_irq(u8 bus, u8 slot, u8 func) {
   return (u8)read_pci(bus, slot, func, 0x3c);
 }
+void pci_set_drive_irq(u8 bus, u8 slot, u8 func, u8 irq) {
+  write_pci(bus, slot, func, 0x3c, read_pci(bus, slot, func, 0x3c) & ~(0xff) | irq);
+}
 u32 pci_get_port_base(u8 bus, u8 slot, u8 func) {
   u32 io_port = 0;
   for (int i = 0; i < 6; i++) {
@@ -72,8 +74,8 @@ u32 pci_get_port_base(u8 bus, u8 slot, u8 func) {
   return io_port;
 }
 void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func) {
-  extern void * pci_addr_base;
-  u8        *pci_drive = (void *)pci_addr_base;
+  extern void *pci_addr_base;
+  u8          *pci_drive = (void *)pci_addr_base;
   for (;; pci_drive += 0x110 + 4) {
     if (pci_drive[0] == 0xff) {
       struct pci_config_space_public *pci_config_space_puclic;

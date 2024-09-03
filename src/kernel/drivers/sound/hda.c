@@ -348,7 +348,12 @@ void hda_init_codec(u32 codec) {
     }
   }
 }
-
+void hda_interrupt_handler() {
+  info("hda interrupt");
+  for (;;)
+    ;
+}
+void pci_set_drive_irq(u8 bus, u8 slot, u8 func, u8 irq);
 void hda_init() {
   klogd("hda_init");
   // 许多 HDA 设备的 Vendor ID 为 8086（Intel），Device ID 为 2668 或
@@ -365,6 +370,7 @@ void hda_init() {
     error("hda card not found");
     return;
   }
+  pci_set_drive_irq(hda_bus, hda_slot, hda_func, 0xf);
   write_pci(hda_bus, hda_slot, hda_func, 0x04,
             ((read_pci(hda_bus, hda_slot, hda_func, 0x04) & ~(1 << 10)) | (1 << 2) |
              (1 << 1))); // enable interrupts, enable bus mastering, enable MMIO space
@@ -395,8 +401,12 @@ void hda_init() {
   output_base = hda_base + 0x80 + (0x20 * input_stream_count);
   info("output base address: 0x%x", output_base);
   output_buffer = page_malloc_one_no_mark();
-  moutl(hda_base + 0x20, 0);
 
+  irq_mask_clear(0x0f);
+  register_intr_handler(0x0f + 0x20, (u32)hda_interrupt_handler);
+  moutl(hda_base + 0x20, (1 << 31) | (1 << 30) | (1 << input_stream_count));
+
+  info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));
   moutl(hda_base + 0x70, 0);
   moutl(hda_base + 0x74, 0);
 
@@ -580,6 +590,7 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
   explicit_bzero(output_buffer, 16 * 2);
   output_buffer[0] = (u32)buffer;
   output_buffer[2] = size;
+  output_buffer[3] = 1;
 
   asm volatile("wbinvd");
 
@@ -595,7 +606,7 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
 
   moutb(output_base + 0x2, 0x1c);
 
-  moutb(output_base + 0x0, 0b10);
+  moutb(output_base + 0x0, 0b110);
 }
 
 void hda_stop(void) {
@@ -671,7 +682,7 @@ void hda_sound_test() {
   void *data = page_malloc(ms->size);
   memcpy(data, ms->buf, ms->size);
   printf("start play audio %d", hda_is_supported_sample_rate(samplerate));
-#define N (65536 * 4)
+#define N (32768)
   void *buffer = page_malloc(N * 2);
   void *b1     = buffer;
   void *b2     = buffer + N;
@@ -683,7 +694,11 @@ void hda_sound_test() {
 
   memcpy(b1, data, N);
   hda_play_pcm(buffer, N * 2, samplerate, 1, 16);
-  asm_cli;
+  // asm_cli;
+  // screen_clear();
+  while (1) {
+    // printf("%02x\n", minb(output_base + 0x3));
+  }
   while (1) {
     if (b == 0) {
       if (hda_get_bytes_sent() < N) {
@@ -702,6 +717,12 @@ void hda_sound_test() {
         b  = 0;
       }
     }
+    if (c > ms->size) {
+      hda_stop();
+      for (;;)
+        ;
+      break;
+    }
     if (b != d) {
       if (b == 1) {
         memcpy(b2, data + c, N);
@@ -712,6 +733,7 @@ void hda_sound_test() {
       }
       d = b;
     }
+    printf("\e[0;0H%d/%d", c, ms->size);
   }
   printf("ok\n");
   for (;;)
