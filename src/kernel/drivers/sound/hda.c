@@ -50,8 +50,9 @@ static u32 hda_pin_output_amp_cap_second    = 0;
 static u32 hda_pin_pcm_format_cap_second    = 0;
 static u32 hda_pin_stream_format_cap_second = 0;
 
-static u32 *output_buffer    = null;
-static u32  hda_codec_number = 0;
+static u32  *output_buffer    = null;
+static u32   hda_codec_number = 0;
+static void *hda_buffer_ptr   = null;
 
 static void wait(int ticks) {
   int tick = timerctl.count;
@@ -347,6 +348,7 @@ void hda_init() {
   write_pci(hda_bus, hda_slot, hda_func, 0x04,
             ((read_pci(hda_bus, hda_slot, hda_func, 0x04) & ~(1 << 10)) | (1 << 2) |
              (1 << 1))); // enable interrupts, enable bus mastering, enable MMIO space
+  hda_buffer_ptr = page_malloc(4096 * 2);
   info("hda card found at bus %d slot %d func %d", hda_bus, hda_slot, hda_func);
   hda_base = read_bar_n(hda_bus, hda_slot, hda_func, 0);
   info("hda base address: 0x%x", hda_base);
@@ -565,12 +567,16 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
   output_buffer[2] = size;
   output_buffer[3] = 1;
 
+  output_buffer[4] = (u32)buffer + size;
+  output_buffer[6] = size;
+  output_buffer[7] = 1;
+
   asm volatile("wbinvd");
 
   asm_set32(output_base + 0x18, (u32)output_buffer);
   asm_set32(output_base + 0x1c, 0);
 
-  asm_set32(output_base + 0x8, size);
+  asm_set32(output_base + 0x8, size * 2);
   asm_set16(output_base + 0xc, 1);
   asm_set16(output_base + 0x12, data_format);
   printf("data_format = %x %d\n", data_format, hda_pin_output_node);
@@ -649,101 +655,97 @@ u8 hda_is_supported_sample_rate(u32 sample_rate) {
 //     .bufsize   = DMA_BUF_SIZE,
 // #endif
 // };
-#define N (0x10000)
-static void *data;
-static void *buffer;
-static int   p;
-void         hda_interrupt_handler() {
-  int bytes = hda_get_bytes_sent();
-  if (bytes >= N) { bytes = abs(N - bytes); }
-  asm_set8(output_base + 0x3, 1 << 2);
-  memcpy(buffer + bytes, data + p + bytes, N - bytes);
+#define N (4096)
+
+static u32      hda_depth;
+static u32      hda_channels;
+static u32      hda_rate;
+static u32      hda_state = 0;
+static vsound_t snd;
+static mtask   *use_task;
+static int      hda_open(vsound_t vsound) {
+  klogd("hda open has been called");
+  u16 fmt      = vsound->fmt;
+  u16 channels = vsound->channels;
+  u32 rate     = vsound->rate;
+  f32 volume   = vsound->volume;
+  if (fmt == SOUND_FMT_U16 || fmt == SOUND_FMT_S16) { hda_depth = 16; }
+  if (fmt == SOUND_FMT_U32 || fmt == SOUND_FMT_S32) { hda_depth = 32; }
+  hda_channels = channels;
+  hda_rate     = rate;
+  hda_state    = 0;
+  use_task     = current_task();
+  return 0;
+}
+void hda_interrupt_handler() {
+
+  // if (p >= size) {
+  //   hda_stop();
+  //   asm_set8(output_base + 0x3, 1 << 2);
+  //   send_eoi(0x0b);
+  //   return;
+  // }
+  // int bytes = hda_get_bytes_sent();
+  // if (bytes >= N) {
+  //   memcpy(b1, data + p, N);
+  //   asm("wbinvd");
+  //   p += N;
+  // } else {
+  //   memcpy(b2, data + p, N);
+  //   asm("wbinvd");
+  //   p += N;
+  // }
+  if (hda_state == 2) { hda_stop(); }
+  if (hda_state == 1) vsound_played(snd);
   asm("wbinvd");
-  p += N - bytes;
+  asm_set8(output_base + 0x3, 1 << 2);
+  task_run(use_task);
   send_eoi(0x0b);
 }
-
-void hda_sound_test() {
-  klogd("sound test has been started");
-
-  ms = mostream_alloc(SIZE_4k);
-
-  auto file = vfs_open("/fatfs1/audio.plac");
-  info("file = %p", file);
-  byte *buf = malloc(file->size);
-  vfs_read(file, buf, 0, file->size);
-
-  plac_decompress_t dctx = plac_decompress_alloc(buf, file->size);
-  dctx->callback         = callback;
-  dctx->userdata         = dctx;
-
-  u32 samplerate;
-  u64 nsamples;
-  plac_read_header(dctx, &samplerate, &nsamples);
-
-  waitif(plac_decompress_block(dctx));
-
-  plac_decompress_free(dctx);
-
-  data = page_malloc(ms->size);
-  memcpy(data, ms->buf, ms->size);
-  printf("1\n");
-  printf("start play audio %d", hda_is_supported_sample_rate(samplerate));
-  buffer = page_malloc(N * 2);
-  int a  = 0;
-  int b  = 0;
-  int c  = 0;
-
-  int d = 0;
-  p     = 0;
-  memcpy(buffer, data, N);
-  p += N;
-  hda_play_pcm(buffer, N, samplerate, 1, 16);
-  // asm_cli;
-  // screen_clear();
-  while (1) {
-    // printf("%02x\n", minb(output_base + 0x3));
+static void hda_close(vsound_t vsound) {
+  if (hda_state == 1) { hda_state = 2; }
+}
+static int hda_start_dma(vsound_t vsound, void *addr) {
+  if (hda_state == 0) {
+    hda_play_pcm(addr, N, hda_rate, hda_channels, hda_depth);
+    hda_state = 1;
   }
-  // while (1) {
-  //   if (b == 0) {
-  //     if (hda_get_bytes_sent() < N) {
-  //       c = a + hda_get_bytes_sent();
-  //     } else {
-  //       a += N;
-  //       c  = a + hda_get_bytes_sent() - N;
-  //       b  = 1;
-  //     }
-  //   } else {
-  //     if (hda_get_bytes_sent() >= N) {
-  //       c = a + hda_get_bytes_sent() - N;
-  //     } else {
-  //       a += N;
-  //       c  = a + hda_get_bytes_sent();
-  //       b  = 0;
-  //     }
-  //   }
-  //   if (c > ms->size) {
-  //     hda_stop();
-  //     for (;;)
-  //       ;
-  //     break;
-  //   }
-  //   if (b != d) {
-  //     if (b == 1) {
-  //       memcpy(b2, data + c, N);
-  //       asm("wbinvd");
-  //     } else {
-  //       memcpy(b1, data + c, N);
-  //       asm("wbinvd");
-  //     }
-  //     d = b;
-  //   }
-  //   printf("\e[0;0H%d/%d", c, ms->size);
-  // }
-  printf("ok\n");
-  for (;;)
-    ;
-  mostream_free(ms);
+  return 0;
+}
+static struct vsound vsound = {
+    .is_output = true,
+#if VSOUND_RWAPI
+    .is_rwmode = true,
+#endif
+    .name  = "hda",
+    .open  = hda_open,
+    .close = hda_close,
+#if VSOUND_RWAPI
+    .write = hda_write,
+#else
+    .start_dma = hda_start_dma,
+    .bufsize   = N,
+#endif
+};
+static const i16 fmts[] = {
+    SOUND_FMT_S16, SOUND_FMT_U16, SOUND_FMT_U32, SOUND_FMT_S32, -1,
+};
 
-  syscall_exit(0);
+static const i32 rates[] = {
+    8000, 11025, 16000, 22050, 24000, 32000, 44100, 47250, 48000, 50000, -1,
+};
+void hda_regist() {
+  snd = &vsound;
+  if (!vsound_regist(snd)) {
+    klogw("注册 hda 失败");
+    return;
+  }
+  vsound_set_supported_fmts(snd, fmts, -1);
+  vsound_set_supported_rates(snd, rates, -1);
+  vsound_set_supported_ch(snd, 1);
+  vsound_set_supported_ch(snd, 2);
+#if !VSOUND_RWAPI
+  vsound_addbuf(snd, hda_buffer_ptr);
+  vsound_addbuf(snd, hda_buffer_ptr + N);
+#endif
 }
