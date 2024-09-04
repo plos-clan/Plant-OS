@@ -585,7 +585,9 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
 void hda_stop(void) {
   asm_set8(output_base + 0x0, 0);
 }
-
+void hda_continue(void) {
+  asm_set8(output_base + 0x0, 0b110);
+}
 u32 hda_get_bytes_sent() {
   return asm_get32(output_base + 0x4);
 }
@@ -647,10 +649,18 @@ u8 hda_is_supported_sample_rate(u32 sample_rate) {
 //     .bufsize   = DMA_BUF_SIZE,
 // #endif
 // };
-void hda_interrupt_handler() {
+#define N (0x10000)
+static void *data;
+static void *buffer;
+static int   p;
+void         hda_interrupt_handler() {
+  int bytes = hda_get_bytes_sent();
+  if (bytes >= N) { bytes = abs(N - bytes); }
+  asm_set8(output_base + 0x3, 1 << 2);
+  memcpy(buffer + bytes, data + p + bytes, N - bytes);
+  asm("wbinvd");
+  p += N - bytes;
   send_eoi(0x0b);
-  printf("hda interrupt");
-  asm_set8(output_base + 0x83, 1 << 2);
 }
 
 void hda_sound_test() {
@@ -675,62 +685,61 @@ void hda_sound_test() {
 
   plac_decompress_free(dctx);
 
-  void *data = page_malloc(ms->size);
+  data = page_malloc(ms->size);
   memcpy(data, ms->buf, ms->size);
+  printf("1\n");
   printf("start play audio %d", hda_is_supported_sample_rate(samplerate));
-#define N (32768)
-  void *buffer = page_malloc(N * 2);
-  void *b1     = buffer;
-  void *b2     = buffer + N;
-  int   a      = 0;
-  int   b      = 0;
-  int   c      = 0;
+  buffer = page_malloc(N * 2);
+  int a  = 0;
+  int b  = 0;
+  int c  = 0;
 
   int d = 0;
-
-  memcpy(b1, data, N);
-  hda_play_pcm(buffer, N * 2, samplerate, 1, 16);
+  p     = 0;
+  memcpy(buffer, data, N);
+  p += N;
+  hda_play_pcm(buffer, N, samplerate, 1, 16);
   // asm_cli;
   // screen_clear();
   while (1) {
     // printf("%02x\n", minb(output_base + 0x3));
   }
-  while (1) {
-    if (b == 0) {
-      if (hda_get_bytes_sent() < N) {
-        c = a + hda_get_bytes_sent();
-      } else {
-        a += N;
-        c  = a + hda_get_bytes_sent() - N;
-        b  = 1;
-      }
-    } else {
-      if (hda_get_bytes_sent() >= N) {
-        c = a + hda_get_bytes_sent() - N;
-      } else {
-        a += N;
-        c  = a + hda_get_bytes_sent();
-        b  = 0;
-      }
-    }
-    if (c > ms->size) {
-      hda_stop();
-      for (;;)
-        ;
-      break;
-    }
-    if (b != d) {
-      if (b == 1) {
-        memcpy(b2, data + c, N);
-        asm("wbinvd");
-      } else {
-        memcpy(b1, data + c, N);
-        asm("wbinvd");
-      }
-      d = b;
-    }
-    printf("\e[0;0H%d/%d", c, ms->size);
-  }
+  // while (1) {
+  //   if (b == 0) {
+  //     if (hda_get_bytes_sent() < N) {
+  //       c = a + hda_get_bytes_sent();
+  //     } else {
+  //       a += N;
+  //       c  = a + hda_get_bytes_sent() - N;
+  //       b  = 1;
+  //     }
+  //   } else {
+  //     if (hda_get_bytes_sent() >= N) {
+  //       c = a + hda_get_bytes_sent() - N;
+  //     } else {
+  //       a += N;
+  //       c  = a + hda_get_bytes_sent();
+  //       b  = 0;
+  //     }
+  //   }
+  //   if (c > ms->size) {
+  //     hda_stop();
+  //     for (;;)
+  //       ;
+  //     break;
+  //   }
+  //   if (b != d) {
+  //     if (b == 1) {
+  //       memcpy(b2, data + c, N);
+  //       asm("wbinvd");
+  //     } else {
+  //       memcpy(b1, data + c, N);
+  //       asm("wbinvd");
+  //     }
+  //     d = b;
+  //   }
+  //   printf("\e[0;0H%d/%d", c, ms->size);
+  // }
   printf("ok\n");
   for (;;)
     ;

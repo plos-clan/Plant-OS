@@ -168,20 +168,7 @@ asm_hda_handler:
 	push fs
 	push gs
 	pusha
-	PUSH ES
-	PUSH DS
-	PUSHAD
-	MOV EAX, ESP
-	PUSH EAX
-	MOV AX, SS
-	MOV DS, AX
-	MOV ES, AX
 	CALL hda_interrupt_handler
-	POP EAX
-	;call signal_deal
-	POPAD
-	POP DS
-	POP ES
 	popa
 	pop gs
 	pop fs
