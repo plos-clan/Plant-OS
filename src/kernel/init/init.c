@@ -36,8 +36,13 @@ void  sysinit() {
   init_tty();
   screen_clear();
 
+  pci_addr_base = page_malloc(1 * 1024 * 1024);
+  init_pci(pci_addr_base);
+
   sb16_init();
   sb16_regist();
+  hda_init();
+  hda_regist();
   vdisk_init();
   vfs_init();
 
@@ -46,8 +51,6 @@ void  sysinit() {
   } else {
     info("the memory test has been passed! Your PC has %dMB memory", memsize / (1024 * 1024));
   }
-  pci_addr_base = page_malloc(1 * 1024 * 1024);
-  init_pci(pci_addr_base);
   init_keyboard();
 }
 #ifdef __clang__

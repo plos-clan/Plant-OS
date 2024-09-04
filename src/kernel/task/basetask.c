@@ -310,10 +310,6 @@ void init() {
 
   plty_set_default(tty);
 
-  hda_init();
-  extern void hda_sound_test();
-  extern void hda_regist();
-  hda_regist();
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
   // while(1) vfs_write(p, "你好，世界", 0, strlen("你好，世界"));

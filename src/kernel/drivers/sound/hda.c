@@ -598,29 +598,6 @@ u32 hda_get_bytes_sent() {
   return asm_get32(output_base + 0x4);
 }
 
-#include <audio.h>
-#include <data-structure.h>
-#include <sound.h>
-#pragma clang optimize off
-int                    flag1 = 0;
-static void            play_audio(f32 *block, size_t len, void *userdata) {
-  i16 *data = page_malloc(len * 2);
-  int  rets = sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
-  hda_play_pcm(data, len * 2, 44100, 1, 16);
-  flag1 = 1;
-  while (hda_get_bytes_sent() < len * 2)
-    ;
-  page_free(data, len * 2);
-}
-
-mostream_t ms;
-
-static void callback(f32 *block, size_t len, void *userdata) {
-  i16 *data = malloc(len * 2);
-  sound_fmt_conv(data, SOUND_FMT_S16, block, SOUND_FMT_F32, len);
-  mostream_write(ms, data, len * 2);
-  free(data);
-}
 u8 hda_is_supported_sample_rate(u32 sample_rate) {
   u32 sample_rates[11] = {8000,  11025, 16000, 22050,  32000, 44100,
                           48000, 88200, 96000, 176400, 192000};
@@ -639,94 +616,53 @@ u8 hda_is_supported_sample_rate(u32 sample_rate) {
   }
 }
 
-// static vsound_t snd;
-// static struct vsound vsound = {
-//     .is_output = true,
-// #if VSOUND_RWAPI
-//     .is_rwmode = true,
-// #endif
-//     .name  = "sb16",
-//     .open  = sb16_open,
-//     .close = sb16_close,
-// #if VSOUND_RWAPI
-//     .write = sb16_write,
-// #else
-//     .start_dma = sb16_start_dma,
-//     .bufsize   = DMA_BUF_SIZE,
-// #endif
-// };
-#define N (4096)
+#define HDA_BUF_SIZE 4096
 
-static u32      hda_depth;
-static u32      hda_channels;
-static u32      hda_rate;
-static u32      hda_state = 0;
+static bool     hda_stopping = false;
 static vsound_t snd;
 static mtask   *use_task;
-static int      hda_open(vsound_t vsound) {
+
+static int hda_open(vsound_t vsound) {
   klogd("hda open has been called");
-  u16 fmt      = vsound->fmt;
-  u16 channels = vsound->channels;
-  u32 rate     = vsound->rate;
-  f32 volume   = vsound->volume;
-  if (fmt == SOUND_FMT_U16 || fmt == SOUND_FMT_S16) { hda_depth = 16; }
-  if (fmt == SOUND_FMT_U32 || fmt == SOUND_FMT_S32) { hda_depth = 32; }
-  hda_channels = channels;
-  hda_rate     = rate;
-  hda_state    = 0;
-  use_task     = current_task();
+  use_task = current_task();
   return 0;
 }
-void hda_interrupt_handler() {
 
-  // if (p >= size) {
-  //   hda_stop();
-  //   asm_set8(output_base + 0x3, 1 << 2);
-  //   send_eoi(0x0b);
-  //   return;
-  // }
-  // int bytes = hda_get_bytes_sent();
-  // if (bytes >= N) {
-  //   memcpy(b1, data + p, N);
-  //   asm("wbinvd");
-  //   p += N;
-  // } else {
-  //   memcpy(b2, data + p, N);
-  //   asm("wbinvd");
-  //   p += N;
-  // }
-  if (hda_state == 2) { hda_stop(); }
-  if (hda_state == 1) vsound_played(snd);
+void hda_interrupt_handler() {
+  if (hda_stopping) {
+    hda_stop();
+  } else {
+    vsound_played(snd);
+  }
   asm("wbinvd");
   asm_set8(output_base + 0x3, 1 << 2);
   task_run(use_task);
   send_eoi(0x0b);
 }
-static void hda_close(vsound_t vsound) {
-  if (hda_state == 1) { hda_state = 2; }
-}
-static int hda_start_dma(vsound_t vsound, void *addr) {
-  if (hda_state == 0) {
-    hda_play_pcm(addr, N, hda_rate, hda_channels, hda_depth);
-    hda_state = 1;
+
+static void hda_close(vsound_t snd) {
+  if (!snd->is_dma_ready) {
+    hda_stopping = true;
+  } else {
+    hda_stop();
   }
+}
+
+static int hda_start_dma(vsound_t snd, void *addr) {
+  if (snd->is_dma_ready) return 0;
+  hda_play_pcm(addr, HDA_BUF_SIZE, snd->rate, snd->channels, sound_fmt_bytes(snd->fmt) * 8);
   return 0;
 }
+
 static struct vsound vsound = {
     .is_output = true,
-#if VSOUND_RWAPI
-    .is_rwmode = true,
-#endif
-    .name  = "hda",
-    .open  = hda_open,
-    .close = hda_close,
-#if VSOUND_RWAPI
-    .write = hda_write,
-#else
+    .name      = "hda",
+    .open      = hda_open,
+    .close     = hda_close,
     .start_dma = hda_start_dma,
-    .bufsize   = N,
-#endif
+    .bufsize   = HDA_BUF_SIZE,
 };
+
 static const i16 fmts[] = {
     SOUND_FMT_S16, SOUND_FMT_U16, SOUND_FMT_U32, SOUND_FMT_S32, -1,
 };
@@ -734,6 +670,7 @@ static const i16 fmts[] = {
 static const i32 rates[] = {
     8000, 11025, 16000, 22050, 24000, 32000, 44100, 47250, 48000, 50000, -1,
 };
+
 void hda_regist() {
   snd = &vsound;
   if (!vsound_regist(snd)) {
@@ -744,8 +681,6 @@ void hda_regist() {
   vsound_set_supported_rates(snd, rates, -1);
   vsound_set_supported_ch(snd, 1);
   vsound_set_supported_ch(snd, 2);
-#if !VSOUND_RWAPI
   vsound_addbuf(snd, hda_buffer_ptr);
-  vsound_addbuf(snd, hda_buffer_ptr + N);
-#endif
+  vsound_addbuf(snd, hda_buffer_ptr + HDA_BUF_SIZE);
 }
