@@ -148,7 +148,7 @@ void sound_test() {
   u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
-  snd           = vsound_find("sb16");
+  snd           = vsound_find("hda");
   snd->fmt      = SOUND_FMT_S16;
   snd->channels = 1;
   snd->rate     = samplerate;
