@@ -6,13 +6,10 @@
 
 void free_pde(u32 addr);
 
-char         default_drive, default_drive_number;
-static char  flags_once = false;
 struct TSS32 tss;
 mtask       *idle_task;
 mtask       *mtask_current = NULL;
 rbtree_t     tasks;
-char         mtask_stop_flag = 0;
 
 mtask *next_set = NULL;
 mtask  empty_task;
@@ -31,6 +28,7 @@ finline void running_tasks_push(mtask *task) {
   queue_enqueue(running_tasks, task);
   spin_unlock(running_tasks_lock);
 }
+
 finline mtask *running_tasks_pop() {
   mtask *task = null;
   spin_lock(running_tasks_lock);
@@ -195,42 +193,14 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
     t->pde   = pde_clone(current_task()->pde); // 启用了就复制一个
     t->times = t->pde;
   }
-  t->top          = esp_alloced; // r0的esp
-  t->floor        = floor;
-  t->running      = 0;
-  t->timeout      = ticks;
-  t->state        = RUNNING; // running
-  t->drive_number = default_drive_number;
-  t->drive        = default_drive;
-  t->TTY          = NULL;
-  t->jiffies      = 0;
+  t->top     = esp_alloced; // r0的esp
+  t->floor   = floor;
+  t->running = 0;
+  t->timeout = ticks;
+  t->state   = RUNNING; // running
+  t->TTY     = NULL;
+  t->jiffies = 0;
 
-  // 获取default_drive_number
-  if (!flags_once) {
-    if (memeq((void *)"FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) ||
-        memeq((void *)"FAT16   ", (void *)0x7c00 + BS_FileSysType, 8)) { // FAT12 or FAT16
-      if (*(byte *)(0x7c00 + BS_DrvNum) >= 0x80) {
-        default_drive_number = *(byte *)(0x7c00 + BS_DrvNum) - 0x80 + 0x02;
-      } else {
-        default_drive_number = *(byte *)(0x7c00 + BS_DrvNum);
-      }
-    } else if (memeq((void *)"FAT32   ", (void *)0x7c00 + BPB_Fat32ExtByts + BS_FileSysType,
-                     8)) {                                            // FAT32
-      if (*(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) >= 0x80) { // 0x80以上是硬盘
-        default_drive_number = *(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) - 0x80 + 0x02;
-      } else { // 0x00 是软盘 所以不管他了
-        default_drive_number = *(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum);
-      }
-    } else {
-      if (*(byte *)(0x7c00) >= 0x80) {
-        default_drive_number = *(byte *)(0x7c00) - 0x80 + 0x02;
-      } else {
-        default_drive_number = *(byte *)(0x7c00);
-      }
-    }
-    default_drive = default_drive_number + 0x41;
-    flags_once    = true;
-  }
   rbtree_insert(tasks, t->tid, t);
   return t;
 }
@@ -475,14 +445,6 @@ int waittid(u32 tid) {
   return status;
 }
 
-void mtask_stop() {
-  mtask_stop_flag = 1;
-}
-
-void mtask_start() {
-  mtask_stop_flag = 0;
-}
-
 void mtask_run_now(mtask *obj) {
   next_set = obj;
 }
@@ -543,7 +505,6 @@ int task_fork() {
   m->top = stack += STACK_SIZE;
   stack          += STACK_SIZE;
   m->esp          = (stack_frame *)stack;
-  // m->nfs          = NULL;
   if (current_task()->press_key_fifo) {
     m->press_key_fifo = malloc(sizeof(struct event));
     memcpy(m->press_key_fifo, current_task()->press_key_fifo, sizeof(struct event));

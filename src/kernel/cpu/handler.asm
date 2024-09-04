@@ -134,8 +134,8 @@ RTL8139_ASM_INTHANDLER:
 	pop ds
 	iret
 	
-	EXTERN sb16_handler,hda_interrupt_handler
-	GLOBAL asm_sb16_handler, asm_rtc_handler,asm_hda_handler
+	EXTERN sb16_handler, hda_interrupt_handler
+	GLOBAL asm_sb16_handler, asm_rtc_handler, asm_hda_handler
 asm_sb16_handler:
 	push ds
 	push es

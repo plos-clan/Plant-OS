@@ -2,11 +2,6 @@
 
 #include <kernel.h>
 
-void mtask_stop();
-void mtask_start();
-
-extern char mtask_stop_flag;
-
 void lock_init(lock_t *l) {
   l->owner  = NULL;
   l->value  = LOCK_UNLOCKED;
@@ -14,25 +9,14 @@ void lock_init(lock_t *l) {
 }
 
 bool interrupt_disable() {
-  size_t flags;
-  asm volatile("pushfl\n"
-               "cli\n"
-               "popl %%eax\n"
-               : "=a"(flags)
-               :
-               : "memory");
+  size_t flags = asm_get_flags();
+  asm_cli;
   return (flags >> 9) & 1;
 }
 
 // 获得 IF 位
 bool get_interrupt_state() {
-  size_t flags;
-  asm volatile("pushfl\n\t"
-               "popl %%eax\n\t"
-               : "=a"(flags)
-               :
-               : "memory");
-  // 将 eax 右移 9 位，得到 IF 位
+  size_t flags = asm_get_flags();
   return (flags >> 9) & 1;
 }
 
@@ -50,7 +34,6 @@ void lock(lock_t *key) {
   if (key->value != LOCK_UNLOCKED) {
     key->waiter = current_task();
     if (key->value != LOCK_UNLOCKED && key->waiter) {
-
       mtask_run_now(key->owner);
       if (current_task()->ready == 1) { current_task()->ready = 0; }
       task_fall_blocked(WAITING);

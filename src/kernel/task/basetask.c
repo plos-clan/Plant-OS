@@ -277,7 +277,7 @@ void init() {
 
   // klogd("Set Mode");
 
-  byte *vram = (void *)set_mode(screen_w, screen_h, 32);
+  byte *vram = set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
   memset(vram, 0, screen_w * screen_h * 4);
   floppy_init();
@@ -310,10 +310,10 @@ void init() {
 
   plty_set_default(tty);
 
-  hda_init();
-  extern void hda_sound_test();
-  hda_sound_test();
-  infinite_loop;
+  // hda_init();
+  // extern void hda_sound_test();
+  // hda_sound_test();
+  // infinite_loop;
 
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");

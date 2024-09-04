@@ -90,7 +90,7 @@ mts_nomore:
 move_cursor_by_idx: ;移动光标
 	ret
 empty_inthandler:
-	iretd
+	iret
 
 	global _IN
 _IN:
