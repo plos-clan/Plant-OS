@@ -22,13 +22,9 @@ A simple OS used to study made by several students。
 
 ## 子项目
 
-转到 <https://doc.plos-clan.org/sub-projects>
+转到 <https://doc.plos-clan.org/projects>
 
-**`python` 构建脚本被暂时删除**
-
-历史版本见 [dev-plasma](https://github.com/plos-clan/Plant-OS/tree/dev-plasma)
-
-# 反馈或讨论问题
+## 反馈或讨论问题
 
 您可以在此仓库中提出 Issue
 
