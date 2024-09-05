@@ -13,3 +13,4 @@ mcopy -i hd.img testapp-cpp.bin ::
 mcopy -i hd.img font1.plff ::
 mcopy -i hd.img font2.plff ::
 mcopy -i hd.img audio.plac ::
+mcopy -i hd.img world_execute_me.qoa ::

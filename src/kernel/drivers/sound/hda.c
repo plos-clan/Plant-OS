@@ -579,7 +579,7 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
   asm_set32(output_base + 0x8, size * 2);
   asm_set16(output_base + 0xc, 1);
   asm_set16(output_base + 0x12, data_format);
-  printf("data_format = %x %d\n", data_format, hda_pin_output_node);
+  // printf("data_format = %x %d\n", data_format, hda_pin_output_node);
   hda_verb(hda_codec_number, hda_pin_output_node, 0x2, data_format);
   wait(1);
 
