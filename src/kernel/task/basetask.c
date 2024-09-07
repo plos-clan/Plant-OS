@@ -341,7 +341,7 @@ void init() {
   // extern void sound_test1();
   // extern void sound_test2();
   // init_sound_mixer();
-
+  create_task((u32)idle_loop, 0, 1, 1);
   create_task((u32)shell, 0, 1, 1);
   create_task((u32)sound_test, 0, 1, 1);
   // create_task((u32)sound_mixer_task, 0, 1, 1);

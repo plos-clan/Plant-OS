@@ -89,13 +89,7 @@ int input_char_inSM() {
   int    i;
   mtask *task = current_task();
   while (1) {
-    if ((tty_fifo_status() == 0)) {
-      // 不返回扫描码的情况
-      // 1.没有输入
-      // 2.窗口未处于顶端
-      // 3.正在运行的控制台并不是函数发起的控制台（TTY）
-      task_next();
-    } else {
+    if ((tty_fifo_status() != 0)) {
       // 返回扫描码
       i = tty_fifo_get(); // 从FIFO缓冲区中取出扫描码
       if (i != -1) { break; }
@@ -134,6 +128,7 @@ void inthandler21(int *esp) {
   u8 data, s[4];
   asm_out8(PIC0_OCW2, 0x61);
   data = asm_in8(PORT_KEYDAT); // 从键盘IO口读取扫描码
+  klogd("%d", data);
   //return;
   //  特殊键处理
   if (data == 0xe0) {
