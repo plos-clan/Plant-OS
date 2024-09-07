@@ -91,7 +91,7 @@ void sound_test() {
 #else // plac 测试
 #  define QOA_IMPLEMENTATION
 #  define QOA_NO_STDIO
-#  include "/home/min0911/new-plos/Plant-OS/src/audio/qoa.h"
+#  include "../../../audio/qoa.h"
 #  include <audio.h>
 #  include <sound.h>
 
