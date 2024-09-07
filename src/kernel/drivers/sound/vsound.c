@@ -197,6 +197,7 @@ int vsound_close(vsound_t snd) { // 关闭设备
   snd->is_using     = false;
   snd->is_dma_ready = false;
   snd->is_running   = false;
+  vsound_clearbuffer(snd);
   return 0;
 }
 

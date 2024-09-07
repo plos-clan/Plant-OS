@@ -128,7 +128,7 @@ void inthandler21(int *esp) {
   u8 data, s[4];
   asm_out8(PIC0_OCW2, 0x61);
   data = asm_in8(PORT_KEYDAT); // 从键盘IO口读取扫描码
-  klogd("%d", data);
+  // klogd("%d", data);
   //return;
   //  特殊键处理
   if (data == 0xe0) {

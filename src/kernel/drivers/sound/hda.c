@@ -629,6 +629,7 @@ static int hda_open(vsound_t vsound) {
 }
 
 void hda_interrupt_handler() {
+  // printf("hda interrupt has been called");
   if (hda_stopping) {
     hda_stop();
   } else {
