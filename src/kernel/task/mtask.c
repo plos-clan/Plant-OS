@@ -1,7 +1,7 @@
 // This code is released under the MIT License
 
 #include <kernel.h>
-
+#pragma clang optimize off
 #define STACK_SIZE 1024 * 1024
 
 void free_pde(u32 addr);
@@ -119,8 +119,14 @@ void task_next() {
   } else {
     i = 0;
   }
+  // asm_cli;
   for (; i < 255; i++) {
     mtask *p = task_by_id(i);
+    // assert(p != NULL);
+    if (p == NULL) {
+      asm volatile("nop"); // what the fuck
+      continue;
+    }
     if (p == mtask_current) continue;
     if (p->state != RUNNING) { // RUNNING
       if (p->state == READY) p->state = EMPTY;
@@ -131,13 +137,8 @@ void task_next() {
           goto OK;
         }
         if (p->waittid == -1) continue;
-        if ((p->state == EMPTY || p->state == WILL_EMPTY || p->state == READY) ||
-            task_by_id(p->waittid)->ptid != p->tid) {
-          p->state   = RUNNING;
-          p->waittid = -1;
-          i--;
-        }
       }
+      if (p->state == DIED) { p->state = EMPTY; }
       continue;
     }
   OK:
@@ -151,8 +152,8 @@ void task_next() {
       }
   }
 H:
-  if (next->user_mode == 1) tss.esp0 = next->top;
   if (next == NULL) next = idle_task;
+  if (next->user_mode == 1) tss.esp0 = next->top;
   if (next->urgent) next->urgent = 0;
   if (next->ready) next->ready = 0;
   int         current_fpu_flag = mtask_current->fpu_flag;
@@ -163,7 +164,13 @@ H:
   next->jiffies = global_time;
   fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
   if (current_task()->state == WILL_EMPTY) current_task()->state = READY;
-
+  if (current_task()->state == DIED || current_task()->state == EMPTY ||
+      current_task()->state == READY) {
+    // asm_sti;
+    task_start(next);
+    return;
+  }
+  // asm_sti;
   task_switch(next); // 调度
 }
 
@@ -263,9 +270,11 @@ void task_kill(u32 tid) {
   mtask *task = task_by_id(tid);
   if (mouse_use_task == current_task()) mouse_sleep(&mdec);
   for (int i = 0; i < 255; i++) {
-    if (task->state == EMPTY || task->state == WILL_EMPTY || task->state == READY) continue;
-    if (task->tid == tid) continue;
-    if (task->ptid == tid) task_kill(task->tid);
+    mtask *t = task_by_id(i);
+    if (!t) continue;
+    if (t->state == EMPTY || t->state == WILL_EMPTY || t->state == READY) continue;
+    if (t->tid == tid) continue;
+    if (t->ptid == tid) { task_kill(t->tid); }
   }
   asm_cli;
   if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }
@@ -286,7 +295,12 @@ void task_kill(u32 tid) {
   asm_cli;
   rbtree_delete_with(tasks, tid, free);
   asm_sti;
-  if (get_task(tid) == current_task()) infinite_loop;
+  if (get_task(tid) == current_task()) {
+    while (1) {
+      asm_sti;
+      task_next();
+    }
+  }
 }
 
 mtask *current_task() {
@@ -397,11 +411,13 @@ void task_exit(u32 status) {
   if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
   u32    tid  = current_task()->tid;
   mtask *task = current_task();
-  for (int i = 0; i < 255; i++) {
-    if (task->state == EMPTY || task->state == WILL_EMPTY || task->state == READY) continue;
-    if (task->tid == tid) continue;
-    if (task->ptid == tid) { task_kill(task->tid); }
-  }
+  // for (int i = 0; i < 255; i++) {
+  //   mtask *t = task_by_id(i);
+  //   if (!t) continue;
+  //   if (t->state == EMPTY || t->state == WILL_EMPTY || t->state == READY) continue;
+  //   if (t->tid == tid) continue;
+  //   if (t->ptid == tid) { task_kill(t->tid); }
+  // }
   asm_cli;
   task->status = status;
   task->state  = DIED;
@@ -422,10 +438,21 @@ void task_exit(u32 status) {
   if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
     task_run(task_by_id(task->ptid));
   }
-
+  if (task->ptid == -1) {
+    klogd("set empty");
+    task->state = EMPTY;
+    while (1) {
+      asm_sti;
+      task_next();
+    }
+    infinite_loop;
+  }
   task->ptid = -1;
   asm_sti;
-  task_next();
+  while (1) {
+    asm_sti;
+    task_next();
+  }
   infinite_loop;
 }
 

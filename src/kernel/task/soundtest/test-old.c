@@ -89,7 +89,9 @@ void sound_test() {
 }
 
 #else // plac 测试
-
+#  define QOA_IMPLEMENTATION
+#  define QOA_NO_STDIO
+#  include "/home/min0911/new-plos/Plant-OS/src/audio/qoa.h"
 #  include <audio.h>
 #  include <sound.h>
 
@@ -134,7 +136,31 @@ static void play_audio(f32 *block, size_t len, void *userdata) {
 
 void sound_test() {
   klogd("sound test has been started");
-
+  vfs_node_t n = vfs_open("/fatfs1/do_you_hear_the_people_sing.qoa");
+  qoa_desc   qoa;
+  void      *buf1 = malloc(n->size);
+  vfs_read(n, buf1, 0, n->size);
+  short *data = qoa_decode(buf1, n->size, &qoa);
+  klogd("data size: %p samples: %d channels: %d samplerate: %d", data, qoa.samples, qoa.channels,
+        qoa.samplerate);
+  snd           = vsound_find("hda");
+  snd->fmt      = SOUND_FMT_S16;
+  snd->channels = qoa.channels;
+  snd->rate     = qoa.samplerate;
+  snd->volume   = 1;
+  vsound_open(snd);
+  printf("\n");
+  for (int i = 0; i < qoa.samples; i += 2048) {
+    vsound_write(snd, data + i * qoa.channels, 2048);
+    printf("\r%d/%d sec", (int)((float)i / (float)qoa.samplerate),
+           (int)((float)qoa.samples / (float)qoa.samplerate));
+  }
+  vsound_close(snd);
+  free(data);
+  free(buf1);
+  syscall_exit(0);
+  for (;;)
+    ;
   auto  file = vfs_open("/fatfs1/audio.plac");
   byte *buf  = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
