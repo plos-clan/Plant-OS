@@ -44,8 +44,8 @@ set_optim_flag("-g -O1") # 调试开 O1
 add_compile_flag("-march=native")
 
 include(cmake/optim) # 优化选项
-include(cmake/lto) # 链接时优化
-include(cmake/code-gc) # 删除重复代码
+# include(cmake/lto) # 链接时优化
+# include(cmake/code-gc) # 删除重复代码
 
 include(cmake/disable-warning)
 
