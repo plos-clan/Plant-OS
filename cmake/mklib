@@ -23,6 +23,14 @@ macro(testlib arg1)
   target_link_libraries(${arg1}-test ${ARGN})
 endmacro(testlib)
 
+macro(benchexec arg1)
+  add_executable(${arg1}-bench ${ARGN})
+endmacro(benchexec)
+
+macro(benchlib arg1)
+  target_link_libraries(${arg1}-bench ${ARGN})
+endmacro(benchlib)
+
 macro(mklib arg1)
   file(GLOB_RECURSE asm_files "*.asm")
   file(GLOB_RECURSE c_files "*.c")

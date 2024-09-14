@@ -62,13 +62,13 @@ typedef struct __PACKED__ {
   VESAModeInfo       modeList[0];
 } VESAControllerInfo;
 struct VBEINFO {
-  char res1[18];
-  i16  xsize, ysize;
-  char res2[18];
-  int  vram;
+  char  res1[18];
+  i16   xsize, ysize;
+  char  res2[18];
+  void *vram;
 };
 #define VBEINFO_ADDRESS 0x7e00
 
-u32 set_mode(int width, int height, int bpp);
+void *set_mode(int width, int height, int bpp);
 
 static const int screen_w = 1024, screen_h = 768;

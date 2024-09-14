@@ -458,7 +458,7 @@
 
 // int ISO_cd(struct vfs_t *vfs, char *dictname) {
 //   //
-//   //    str2upper(dictname);
+//   //    strupper(dictname);
 //   //
 //   if (strcmp(dictname, "/") == 0) {
 //     while (vfs->path->ctl->all != 0) {
@@ -479,7 +479,7 @@
 //       free(dictname);
 //     } else {
 //       dictname = strdup(dictname);
-//       str2upper(dictname);
+//       strupper(dictname);
 //       free_flag = 1;
 //       goto RE;
 //     }
@@ -511,7 +511,7 @@
 //       free(path);
 //     } else {
 //       path = strdup(path);
-//       str2upper(path);
+//       strupper(path);
 //       free_flag = 1;
 //       goto RE;
 //     }
@@ -541,7 +541,7 @@
 //         free(dictpath);
 //       } else {
 //         dictpath = strdup(dictpath);
-//         str2upper(dictpath);
+//         strupper(dictpath);
 //         free_flag = 1;
 //         goto RE;
 //       }
@@ -602,7 +602,7 @@
 //       free(filename);
 //     } else {
 //       filename = strdup(filename);
-//       str2upper(filename);
+//       strupper(filename);
 //       free_flag = 1;
 //       goto RE;
 //     }

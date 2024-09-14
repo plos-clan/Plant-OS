@@ -207,11 +207,17 @@ void shell() {
         printf("unknown file\n");
       }
     } else {
-      char *path = exec_name_from_cmdline(ch);
-      cstr  type = filetype_from_name(path);
+      char       *path = exec_name_from_cmdline(ch);
+      cstr        type = filetype_from_name(path);
+      extern void plac_player(cstr path);
+      extern void qoa_player(cstr path);
       if (streq(type, "application/x-executable")) {
         int status = os_execute(path, ch);
         printf("%s exited with code %d\n", path, status);
+      } else if (streq(type, "audio/x-qoa")) {
+        qoa_player(path);
+      } else if (streq(type, "audio/x-plac")) {
+        plac_player(path);
       } else {
         printf("bad command\n");
       }
@@ -277,7 +283,7 @@ void init() {
 
   // klogd("Set Mode");
 
-  byte *vram = (void *)set_mode(screen_w, screen_h, 32);
+  byte *vram = set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
   memset(vram, 0, screen_w * screen_h * 4);
   floppy_init();
@@ -310,11 +316,6 @@ void init() {
 
   plty_set_default(tty);
 
-  // hda_init();
-  // extern void hda_sound_test();
-  // hda_sound_test();
-  // infinite_loop;
-
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
   // while(1) vfs_write(p, "你好，世界", 0, strlen("你好，世界"));
@@ -346,9 +347,9 @@ void init() {
   // extern void sound_test1();
   // extern void sound_test2();
   // init_sound_mixer();
-
+  create_task((u32)idle_loop, 0, 1, 1);
   create_task((u32)shell, 0, 1, 1);
-  create_task((u32)sound_test, 0, 1, 1);
+  // create_task((u32)sound_test, 0, 1, 1);
   // create_task((u32)sound_mixer_task, 0, 1, 1);
   // create_task((u32)sound_test1, 0, 1, 1);
   // create_task((u32)sound_test2, 0, 1, 1);

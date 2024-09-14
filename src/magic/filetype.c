@@ -19,6 +19,7 @@ static const cstr mime_types[] = {
     "audio/ogg",
     "audio/wav",
     "audio/webm",
+    "audio/x-qoa",
     "image/gif",
     "image/apng",
     "image/jpeg",
@@ -159,7 +160,7 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 1) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 0) return mime_types[21];
+        if (b == 0) return mime_types[22];
         return null;
       }
       if (b == 0) {
@@ -189,7 +190,7 @@ dlexport cstr filetype(const void *data, size_t size) {
                       if (b == 52) {
                         if (size == 11) return null;
                         byte b = ((const byte *)data)[11];
-                        if (b == 50) return mime_types[25];
+                        if (b == 50) return mime_types[26];
                         return null;
                       }
                       return null;
@@ -216,7 +217,7 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 0) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 0) return mime_types[30];
+        if (b == 0) return mime_types[31];
         return null;
       }
       return null;
@@ -342,7 +343,7 @@ dlexport cstr filetype(const void *data, size_t size) {
         }
         return null;
       }
-      return mime_types[34];
+      return mime_types[35];
     }
     return null;
   }
@@ -381,7 +382,7 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 70) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 70) return mime_types[26];
+        if (b == 70) return mime_types[27];
         return null;
       }
       return null;
@@ -396,7 +397,7 @@ dlexport cstr filetype(const void *data, size_t size) {
     if (b == 216) {
       if (size == 2) return null;
       byte b = ((const byte *)data)[2];
-      if (b == 255) return mime_types[19];
+      if (b == 255) return mime_types[20];
       return null;
     }
     return null;
@@ -421,7 +422,7 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 84) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 79) return mime_types[31];
+        if (b == 79) return mime_types[32];
         return null;
       }
       return null;
@@ -437,7 +438,23 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 223) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 163) return mime_types[27];
+        if (b == 163) return mime_types[28];
+        return null;
+      }
+      return null;
+    }
+    return null;
+  }
+  if (b == 113) {
+    if (size == 1) return null;
+    byte b = ((const byte *)data)[1];
+    if (b == 111) {
+      if (size == 2) return null;
+      byte b = ((const byte *)data)[2];
+      if (b == 97) {
+        if (size == 3) return null;
+        byte b = ((const byte *)data)[3];
+        if (b == 102) return mime_types[17];
         return null;
       }
       return null;
@@ -459,7 +476,7 @@ dlexport cstr filetype(const void *data, size_t size) {
           if (b == 57) {
             if (size == 5) return null;
             byte b = ((const byte *)data)[5];
-            if (b == 97) return mime_types[17];
+            if (b == 97) return mime_types[18];
             return null;
           }
           return null;
@@ -491,7 +508,7 @@ dlexport cstr filetype(const void *data, size_t size) {
               if (b == 26) {
                 if (size == 7) return null;
                 byte b = ((const byte *)data)[7];
-                if (b == 10) return mime_types[20];
+                if (b == 10) return mime_types[21];
                 return null;
               }
               return null;
@@ -548,7 +565,7 @@ dlexport cstr filetype(const void *data, size_t size) {
                             if (b == 108) {
                               if (size == 14) return null;
                               byte b = ((const byte *)data)[14];
-                              if (b == 62) return mime_types[24];
+                              if (b == 62) return mime_types[25];
                               return null;
                             }
                             return null;
@@ -586,8 +603,8 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 70) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 70) return mime_types[28];
-        if (b == 50) return mime_types[29];
+        if (b == 70) return mime_types[29];
+        if (b == 50) return mime_types[30];
         return null;
       }
       return null;
@@ -609,7 +626,7 @@ dlexport cstr filetype(const void *data, size_t size) {
           if (b == 39) {
             if (size == 5) return null;
             byte b = ((const byte *)data)[5];
-            if (b == 28) return mime_types[33];
+            if (b == 28) return mime_types[34];
             return null;
           }
           return null;
@@ -629,7 +646,7 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 76) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 70) return mime_types[35];
+        if (b == 70) return mime_types[36];
         return null;
       }
       return null;
@@ -639,7 +656,7 @@ dlexport cstr filetype(const void *data, size_t size) {
   if (b == 77) {
     if (size == 1) return null;
     byte b = ((const byte *)data)[1];
-    if (b == 90) return mime_types[36];
+    if (b == 90) return mime_types[37];
     return null;
   }
   if (b == 112) {
@@ -651,13 +668,13 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (b == 97) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 99) return mime_types[37];
+        if (b == 99) return mime_types[38];
         return null;
       }
       if (b == 102) {
         if (size == 3) return null;
         byte b = ((const byte *)data)[3];
-        if (b == 102) return mime_types[38];
+        if (b == 102) return mime_types[39];
         return null;
       }
       return null;

@@ -17,6 +17,7 @@ audio/mpeg;hex;ff fb;mp3;MP3 audio file
 audio/ogg;hex;4f 67 67 53;ogg;Ogg Vorbis audio file
 audio/wav;hex;52 49 46 46;wav;Waveform Audio file
 audio/webm;hex;1a 45 df a3;weba;WebM audio file
+audio/x-qoa;str;qoaf;qoa;Quite OK Audio file
 image/gif;hex;47 49 46 38 39 61;gif;Graphics Interchange Format file
 image/apng;hex;89 50 4e 47 0d 0a 1a 0a;apng;Animated Portable Network Graphics
 image/jpeg;hex;ff d8 ff;jpeg,jpg;JPEG image file

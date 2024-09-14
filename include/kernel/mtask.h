@@ -43,8 +43,6 @@ struct __PACKED__ mtask {
   char          flagOfexp;
   fpu_regs_t    fpu;
   int           fpu_flag;
-  char          drive_number;
-  char          drive;
   cir_queue8_t  press_key_fifo, release_keyfifo;
   cir_queue8_t  keyfifo, mousefifo; // 基本输入设备的缓冲区
   char          urgent;

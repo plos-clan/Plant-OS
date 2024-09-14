@@ -10,6 +10,7 @@ extern "C" {
 #include "define/base.h"
 #include "define/logging.h"
 #include "define/magic.h"
+#include "define/mem.h"
 #include "define/rc.h"
 #include "define/va.h"
 #ifdef __cplusplus

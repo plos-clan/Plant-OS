@@ -1,25 +1,23 @@
 // This code is released under the MIT License
 
 #include <kernel.h>
-
+#pragma clang optimize off
 #define STACK_SIZE 1024 * 1024
 
 void free_pde(u32 addr);
 
-char         default_drive, default_drive_number;
-static char  flags_once = false;
 struct TSS32 tss;
 mtask       *idle_task;
-mtask       *current = NULL;
-rbtree_t     tasks;
-char         mtask_stop_flag = 0;
+mtask       *mtask_current = NULL;
+// rbtree_t     tasks;
+mtask       *tasks[256] = {NULL};
 
 mtask *next_set = NULL;
 mtask  empty_task;
 
 mtask *task_by_id(i32 tid) {
   if (tid < 0) return null;
-  return rbtree_get(tasks, tid);
+  return tasks[tid];
 }
 
 queue_t running_tasks;
@@ -31,6 +29,7 @@ finline void running_tasks_push(mtask *task) {
   queue_enqueue(running_tasks, task);
   spin_unlock(running_tasks_lock);
 }
+
 finline mtask *running_tasks_pop() {
   mtask *task = null;
   spin_lock(running_tasks_lock);
@@ -100,14 +99,16 @@ bool task_check_train(mtask *task) {
 extern mtask *mouse_use_task;
 
 void task_next() {
-  if (!current) fatal("current is null");
+  if (!mtask_current) fatal("current is null");
 
-  if (current->running < current->timeout - 1 && current->state == RUNNING && next_set == NULL) {
-    current->running++;
+  if (mtask_current->running < mtask_current->timeout - 1 && mtask_current->state == RUNNING &&
+      next_set == NULL) {
+    mtask_current->running++;
     return; // 不需要调度，当前时间片仍然属于你
   }
+  asm_cli;
 
-  if (!next_set) current->running = 0;
+  if (!next_set) mtask_current->running = 0;
 
   mtask *next = NULL;
   int    i;
@@ -122,9 +123,10 @@ void task_next() {
   }
   for (; i < 255; i++) {
     mtask *p = task_by_id(i);
-    if (p == current) continue;
+    // assert(p != NULL);
+    if (p == NULL) { continue; }
+    if (p == mtask_current) continue;
     if (p->state != RUNNING) { // RUNNING
-      if (p->state == READY) p->state = EMPTY;
       if (p->state == WAITING) {
         if (p->ready) {
           p->ready = 0;
@@ -132,13 +134,8 @@ void task_next() {
           goto OK;
         }
         if (p->waittid == -1) continue;
-        if ((p->state == EMPTY || p->state == WILL_EMPTY || p->state == READY) ||
-            task_by_id(p->waittid)->ptid != p->tid) {
-          p->state   = RUNNING;
-          p->waittid = -1;
-          i--;
-        }
       }
+      // if (p->state == DIED) { p->state = EMPTY; }
       continue;
     }
   OK:
@@ -146,32 +143,28 @@ void task_next() {
       next = p;
       break;
     }
-    if (!next || p->jiffies < next->jiffies || p->running)
-      if ((!task_check_train(next)) || (task_check_train(next) && task_check_train(p))) {
-        next = p;
-      }
+    if (!next || p->jiffies < next->jiffies || p->running) next = p;
   }
 H:
-  if (next->user_mode == 1) tss.esp0 = next->top;
   if (next == NULL) next = idle_task;
+  if (next->user_mode == 1) tss.esp0 = next->top;
   if (next->urgent) next->urgent = 0;
   if (next->ready) next->ready = 0;
-  int         current_fpu_flag = current->fpu_flag;
-  fpu_regs_t *current_fpu      = &(current->fpu);
+  int         current_fpu_flag = mtask_current->fpu_flag;
+  fpu_regs_t *current_fpu      = &(mtask_current->fpu);
   asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
   if (current_fpu && current_fpu_flag)
     asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
   next->jiffies = global_time;
   fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
-  if (current_task()->state == WILL_EMPTY) current_task()->state = READY;
-
+  asm_sti;
   task_switch(next); // 调度
 }
 
 finline int alloc_tid() {
   static i32 next_tid = 0;        // 下一个线程号
   if (next_tid < 0) next_tid = 1; // 0 号是主进程
-  while (rbtree_get(tasks, next_tid) != null) {
+  while (tasks[next_tid] != null) {
     next_tid++;
   }
   return next_tid++;
@@ -187,50 +180,25 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
   t->esp->eip  = eip;                                                // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
-  if (current == NULL) {                                             // 还没启用多任务
+  if (mtask_current == NULL) {
+    asm_cli;
+    // 还没启用多任务
     t->pde   = PDE_ADDRESS; // 所以先用预设好的页表
     t->times = PDE_ADDRESS;
   } else {
     t->pde   = pde_clone(current_task()->pde); // 启用了就复制一个
     t->times = t->pde;
   }
-  t->top          = esp_alloced; // r0的esp
-  t->floor        = floor;
-  t->running      = 0;
-  t->timeout      = ticks;
-  t->state        = RUNNING; // running
-  t->drive_number = default_drive_number;
-  t->drive        = default_drive;
-  t->TTY          = NULL;
-  t->jiffies      = 0;
+  t->top     = esp_alloced; // r0的esp
+  t->floor   = floor;
+  t->running = 0;
+  t->timeout = ticks;
+  t->state   = RUNNING; // running
+  t->TTY     = NULL;
+  t->jiffies = 0;
 
-  // 获取default_drive_number
-  if (!flags_once) {
-    if (memeq((void *)"FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) ||
-        memeq((void *)"FAT16   ", (void *)0x7c00 + BS_FileSysType, 8)) { // FAT12 or FAT16
-      if (*(byte *)(0x7c00 + BS_DrvNum) >= 0x80) {
-        default_drive_number = *(byte *)(0x7c00 + BS_DrvNum) - 0x80 + 0x02;
-      } else {
-        default_drive_number = *(byte *)(0x7c00 + BS_DrvNum);
-      }
-    } else if (memeq((void *)"FAT32   ", (void *)0x7c00 + BPB_Fat32ExtByts + BS_FileSysType,
-                     8)) {                                            // FAT32
-      if (*(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) >= 0x80) { // 0x80以上是硬盘
-        default_drive_number = *(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) - 0x80 + 0x02;
-      } else { // 0x00 是软盘 所以不管他了
-        default_drive_number = *(byte *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum);
-      }
-    } else {
-      if (*(byte *)(0x7c00) >= 0x80) {
-        default_drive_number = *(byte *)(0x7c00) - 0x80 + 0x02;
-      } else {
-        default_drive_number = *(byte *)(0x7c00);
-      }
-    }
-    default_drive = default_drive_number + 0x41;
-    flags_once    = true;
-  }
-  rbtree_insert(tasks, t->tid, t);
+  tasks[t->tid] = t;
+  // rbtree_insert(tasks, t->tid, t);
   return t;
 }
 
@@ -250,7 +218,7 @@ mtask *get_task(u32 tid) {
 // };
 
 void task_to_user_mode(u32 eip, u32 esp) {
-  u32 addr = (u32)current->top;
+  u32 addr = (u32)mtask_current->top;
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
@@ -264,17 +232,17 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->ecx       = 0;
   iframe->eax       = 0;
 
-  iframe->gs         = 0;
-  iframe->ds         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->es         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->fs         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->ss         = GET_SEL(3 * 8, SA_RPL3);
-  iframe->cs         = GET_SEL(4 * 8, SA_RPL3);
-  iframe->eip        = eip;
-  iframe->eflags     = (0 << 12 | 0b10 | 1 << 9);
-  iframe->esp        = esp; // 设置用户态堆栈
-  current->user_mode = 1;
-  tss.esp0           = current->top;
+  iframe->gs               = 0;
+  iframe->ds               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->es               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->fs               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->ss               = GET_SEL(3 * 8, SA_RPL3);
+  iframe->cs               = GET_SEL(4 * 8, SA_RPL3);
+  iframe->eip              = eip;
+  iframe->eflags           = (0 << 12 | 0b10 | 1 << 9);
+  iframe->esp              = esp; // 设置用户态堆栈
+  mtask_current->user_mode = 1;
+  tss.esp0                 = mtask_current->top;
   klogd("tid: %d\n", current_task()->tid);
   asm_cli;
   asm volatile("movl %0, %%esp\n\t"
@@ -292,9 +260,11 @@ void task_kill(u32 tid) {
   mtask *task = task_by_id(tid);
   if (mouse_use_task == current_task()) mouse_sleep(&mdec);
   for (int i = 0; i < 255; i++) {
-    if (task->state == EMPTY || task->state == WILL_EMPTY || task->state == READY) continue;
-    if (task->tid == tid) continue;
-    if (task->ptid == tid) task_kill(task->tid);
+    mtask *t = task_by_id(i);
+    if (!t) continue;
+    if (t->state == EMPTY || t->state == DIED) continue;
+    if (t->tid == tid) continue;
+    if (t->ptid == tid) { task_kill(t->tid); }
   }
   asm_cli;
   if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }
@@ -313,20 +283,27 @@ void task_kill(u32 tid) {
     task_by_id(task->ptid)->state = RUNNING;
   }
   asm_cli;
-  rbtree_delete_with(tasks, tid, free);
+  // rbtree_delete_with(tasks, tid, free);
+  free(task);
+  tasks[tid] = NULL;
   asm_sti;
-  if (get_task(tid) == current_task()) infinite_loop;
+  if (get_task(tid) == current_task()) {
+    while (1) {
+      asm_sti;
+      task_next();
+    }
+  }
 }
 
 mtask *current_task() {
-  if (current != NULL) return current;
+  if (mtask_current != NULL) return mtask_current;
   empty_task.tid = NULL_TID;
   return &empty_task;
 }
 
 void into_mtask() {
   init_tasks();
-  asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
+  asm_clr_em, asm_clr_ts;
   asm volatile("fninit");
   asm volatile("fnsave (%%eax) \n" ::"a"(&public_fpu));
   fpu_disable();
@@ -337,7 +314,7 @@ void into_mtask() {
   load_tr(103 * 8);
   idle_task = create_task((u32)idle_loop, 0, 1, 3);
   create_task((u32)init, 0, 5, 1);
-  asm_set_cr0(asm_get_cr0() | CR0_EM | CR0_TS | CR0_NE);
+  asm_set_em, asm_set_ts, asm_set_ne;
   task_start(task_by_id(0));
 }
 
@@ -427,9 +404,11 @@ void task_exit(u32 status) {
   u32    tid  = current_task()->tid;
   mtask *task = current_task();
   for (int i = 0; i < 255; i++) {
-    if (task->state == EMPTY || task->state == WILL_EMPTY || task->state == READY) continue;
-    if (task->tid == tid) continue;
-    if (task->ptid == tid) { task_kill(task->tid); }
+    mtask *t = task_by_id(i);
+    if (!t) continue;
+    if (t->state == EMPTY || t->state == DIED) continue;
+    if (t->tid == tid) continue;
+    if (t->ptid == tid) { task_kill(t->tid); }
   }
   asm_cli;
   task->status = status;
@@ -451,10 +430,23 @@ void task_exit(u32 status) {
   if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
     task_run(task_by_id(task->ptid));
   }
-
+  if (task->ptid == -1) {
+    klogd("set empty");
+    free(task);
+    tasks[tid] = NULL;
+    task_start(tasks[0]);
+    while (1) {
+      asm_sti;
+      task_next();
+    }
+    infinite_loop;
+  }
   task->ptid = -1;
   asm_sti;
-  task_next();
+  while (1) {
+    asm_sti;
+    task_next();
+  }
   infinite_loop;
 }
 
@@ -469,17 +461,10 @@ int waittid(u32 tid) {
   klogd("here %d %d %d", t->ptid, current_task()->tid, t->tid);
   u32 status = t->status;
   klogd("task exit with code %d\n", status);
-  t->state = EMPTY;
-  rbtree_delete_with(tasks, tid, free);
+  // rbtree_delete_with(tasks, tid, free);
+  free(tasks[tid]);
+  tasks[tid] = NULL;
   return status;
-}
-
-void mtask_stop() {
-  mtask_stop_flag = 1;
-}
-
-void mtask_start() {
-  mtask_stop_flag = 0;
 }
 
 void mtask_run_now(mtask *obj) {
@@ -542,7 +527,6 @@ int task_fork() {
   m->top = stack += STACK_SIZE;
   stack          += STACK_SIZE;
   m->esp          = (stack_frame *)stack;
-  // m->nfs          = NULL;
   if (current_task()->press_key_fifo) {
     m->press_key_fifo = malloc(sizeof(struct event));
     memcpy(m->press_key_fifo, current_task()->press_key_fifo, sizeof(struct event));

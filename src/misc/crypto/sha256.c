@@ -36,10 +36,10 @@ static const u32 SHA256_K[64] = {
 typedef struct _SHA256_t SHA256_t;
 
 struct _SHA256_t {
-  u8  b[64]; // 输入缓冲区
-  u8  p;     // 输入缓冲区指针
-  u64 s;     // 大小
-  u32 h[8];  // hash值
+  byte b[64]; // 输入缓冲区
+  byte p;     // 输入缓冲区指针
+  u64  s;     // 大小
+  u32  h[8];  // hash值
 };
 
 static void SHA256_iterate(SHA256_t *_rest s) {
@@ -120,8 +120,9 @@ const void *SHA256_val(SHA256_t *_rest s) {
 
 void SHA256_print(SHA256_t *_rest s) {
   if (!s) return;
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; i++) {
     printf("%08x", s->h[i]);
+  }
   printf("\n");
 }
 

@@ -89,7 +89,9 @@ void sound_test() {
 }
 
 #else // plac 测试
-
+#  define QOA_IMPLEMENTATION
+#  define QOA_NO_STDIO
+#  include "../../../audio/qoa.h"
 #  include <audio.h>
 #  include <sound.h>
 
@@ -122,7 +124,6 @@ static void draw(f32 *block, size_t len, void *userdata) {
   }
   if (++x == screen_w) x = 0;
 }
-
 vsound_t snd;
 
 static void play_audio(f32 *block, size_t len, void *userdata) {
@@ -131,10 +132,59 @@ static void play_audio(f32 *block, size_t len, void *userdata) {
   vsound_write(snd, data, len);
   free(data);
 }
+void qoa_player(cstr path) {
+  vfs_node_t n = vfs_open(path);
+  qoa_desc   qoa;
+  void      *buf1 = malloc(n->size);
+  vfs_read(n, buf1, 0, n->size);
+  short *data = qoa_decode(buf1, n->size, &qoa);
+  klogd("data size: %p samples: %d channels: %d samplerate: %d", data, qoa.samples, qoa.channels,
+        qoa.samplerate);
+  snd           = vsound_find("hda");
+  snd->fmt      = SOUND_FMT_S16;
+  snd->channels = qoa.channels;
+  snd->rate     = qoa.samplerate;
+  snd->volume   = 1;
+  vsound_open(snd);
+  for (int i = 0; i < qoa.samples; i += 2048) {
+    klogd("writing %d samples", i);
+    vsound_write(snd, data + i * qoa.channels, 2048);
+    printf("\r%d/%d sec", (int)((float)i / (float)qoa.samplerate),
+           (int)((float)qoa.samples / (float)qoa.samplerate));
+  }
+  vsound_close(snd);
+  free(data);
+  free(buf1);
+  printf("\n");
+}
+void plac_player(cstr path) {
+  auto  file = vfs_open(path);
+  byte *buf  = malloc(file->size);
+  vfs_read(file, buf, 0, file->size);
 
+  plac_decompress_t dctx = plac_decompress_alloc(buf, file->size);
+  dctx->callback         = play_audio;
+  dctx->userdata         = dctx;
+  dctx->cb_mdct_data     = draw;
+
+  u32 samplerate;
+  u64 nsamples;
+  plac_read_header(dctx, &samplerate, &nsamples);
+
+  snd           = vsound_find("hda");
+  snd->fmt      = SOUND_FMT_S16;
+  snd->channels = 1;
+  snd->rate     = samplerate;
+  snd->volume   = 1;
+  vsound_open(snd);
+
+  waitif(plac_decompress_block(dctx));
+
+  vsound_close(snd);
+  plac_decompress_free(dctx);
+}
 void sound_test() {
   klogd("sound test has been started");
-
   auto  file = vfs_open("/fatfs1/audio.plac");
   byte *buf  = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
@@ -148,7 +198,7 @@ void sound_test() {
   u64 nsamples;
   plac_read_header(dctx, &samplerate, &nsamples);
 
-  snd           = vsound_find("sb16");
+  snd           = vsound_find("hda");
   snd->fmt      = SOUND_FMT_S16;
   snd->channels = 1;
   snd->rate     = samplerate;

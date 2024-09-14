@@ -107,9 +107,9 @@ finline auto byteswap(u64 x) {
 }
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #  define little_endian(x) (x)
-#  define big_endian(x)    (byteswap(x))
+#  define big_endian(x)    (::cpp::byteswap(x))
 #else
-#  define little_endian(x) (byteswap(x))
+#  define little_endian(x) (::cpp::byteswap(x))
 #  define big_endian(x)    (x)
 #endif
 

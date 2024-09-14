@@ -104,7 +104,7 @@ uint64_t   global_time = 0;
 void inthandler20(int cs, int *esp) {
   // printk("CS:EIP=%04x:%08x\n",current_task()->tss.cs,esp[-10]);
   asm_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
-  extern mtask *current;
+  extern mtask *mtask_current;
   if (global_time + 1 == 0) {
     klogd("reset\n");
     // extern mtask m[255];
@@ -134,5 +134,5 @@ void inthandler20(int cs, int *esp) {
   timerctl.t0   = timer;
   timerctl.next = timer->timeout;
   asm_sti;
-  if (current) task_next();
+  if (mtask_current) task_next();
 }

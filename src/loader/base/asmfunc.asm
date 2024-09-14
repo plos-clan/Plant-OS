@@ -39,7 +39,7 @@ floppy_int:
 	pop  eax
 	popad
 	sti
-	IRETD
+	iret
 
 ;; definition of
 ;;      u32 memtest_sub(u32 start, u32 end)
@@ -90,7 +90,7 @@ mts_nomore:
 move_cursor_by_idx: ;移动光标
 	ret
 empty_inthandler:
-	iretd
+	iret
 
 	global _IN
 _IN:
