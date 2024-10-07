@@ -91,6 +91,8 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("pcils", words, true, ' ');
   pl_readline_word_maker_add("exit", words, true, ' ');
   pl_readline_word_maker_add("clear", words, true, ' ');
+  pl_readline_word_maker_add("read", words, true, ' ');
+  pl_readline_word_maker_add("stdout_test", words, true, ' ');
 
   if (buf[0] != '/' && strlen(buf)) { return; }
   char *s = malloc(strlen(buf) + 2);
@@ -99,7 +101,6 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     for (int i = strlen(s); i >= 0; i--) {
       if (s[i] == '/') {
         s[i + 1] = '\0';
-        klogw("%s", s);
         break;
       }
     }
@@ -118,9 +119,8 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 
   // 添加words中的单词
   list_foreach(p->child, i) {
-    vfs_node_t c = (vfs_node_t)i->data;
-    klogd("%s", c->name);
-    char *new_path = pathcat(s, c->name);
+    vfs_node_t c        = (vfs_node_t)i->data;
+    char      *new_path = pathcat(s, c->name);
     if (c->type == file_dir) {
       pl_readline_word_maker_add(new_path, words, false, '/');
     } else {
@@ -198,6 +198,9 @@ void shell() {
       syscall_exit(0);
     } else if (streq(ch, "clear")) {
       screen_clear();
+    } else if (streq(ch, "stdout_test")) {
+      vfs_node_t stdout = vfs_open("/dev/stdout");
+      vfs_write(stdout, "Hello, world!\n", 0, 14);
     } else if (strneq(ch, "file ", 5)) {
       cstr path = ch + 5;
       cstr type = filetype_from_name(path);
@@ -206,6 +209,22 @@ void shell() {
       } else {
         printf("unknown file\n");
       }
+    } else if (strneq(ch, "read ", 5)) {
+      char      *s = ch + 5;
+      vfs_node_t p = vfs_open(s);
+      if (!p) {
+        printf("open %s failed\n", s);
+        continue;
+      }
+      if (p->type == file_dir) {
+        printf("not a file\n");
+        continue;
+      }
+      size_t size = p->size;
+      byte  *buf  = malloc(size);
+      vfs_read(p, buf, 0, size);
+      printf("%s\n", buf);
+      free(buf);
     } else {
       char       *path = exec_name_from_cmdline(ch);
       cstr        type = filetype_from_name(path);
@@ -301,10 +320,10 @@ void init() {
   vfs_mount(NULL, vfs_open("/dev"));
   int s = 0;
   vfs_mkdir("/fatfs0");
-  vfs_mount((cstr)&s, vfs_open("/fatfs0"));
+  vfs_mount("/dev/floppy", vfs_open("/fatfs0"));
   s++;
   vfs_mkdir("/fatfs1");
-  vfs_mount((cstr)&s, vfs_open("/fatfs1"));
+  vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 
   vram_addr = vram;
 

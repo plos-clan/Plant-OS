@@ -10,7 +10,7 @@
 #include "diskio.h" /* Declarations of disk functions */
 #include "ff.h"     /* Obtains integer types */
 #include <kernel.h>
-
+vfs_node_t fatfs_get_node_by_number(int number);
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
@@ -19,7 +19,7 @@ DSTATUS disk_status(byte pdrv /* Physical drive nmuber to identify the drive */
 ) {
   DSTATUS stat = STA_NOINIT;
   int     result;
-  if (have_vdisk(pdrv)) stat &= ~STA_NOINIT;
+  if (fatfs_get_node_by_number(pdrv)) stat &= ~STA_NOINIT;
   return stat;
 }
 
@@ -32,7 +32,7 @@ DSTATUS disk_initialize(byte pdrv /* Physical drive nmuber to identify the drive
   klogd();
   DSTATUS stat = STA_NOINIT;
   int     result;
-  if (have_vdisk(pdrv)) stat &= ~STA_NOINIT;
+  if (fatfs_get_node_by_number(pdrv)) stat &= ~STA_NOINIT;
   return stat;
 }
 
@@ -46,8 +46,8 @@ DRESULT disk_read(byte  pdrv,   /* Physical drive nmuber to identify the drive *
                   uint  count   /* Number of sectors to read */
 ) {
   DRESULT res = RES_PARERR;
-  if (!have_vdisk(pdrv)) return RES_PARERR;
-  Disk_Read(sector, count, buff, pdrv);
+  if (!fatfs_get_node_by_number(pdrv)) return RES_PARERR;
+  vfs_read(fatfs_get_node_by_number(pdrv), buff, sector * 0x200, count * 0x200);
   res = RES_OK;
   return res;
 }
@@ -64,8 +64,8 @@ DRESULT disk_write(byte        pdrv,   /* Physical drive nmuber to identify the 
                    uint        count   /* Number of sectors to write */
 ) {
   DRESULT res = RES_PARERR;
-  if (!have_vdisk(pdrv)) return RES_PARERR;
-  Disk_Write(sector, count, buff, pdrv);
+  if (!fatfs_get_node_by_number(pdrv)) return RES_PARERR;
+  vfs_write(fatfs_get_node_by_number(pdrv), (void *)buff, sector * 0x200, count * 0x200);
   res = RES_OK;
   return res;
 }
@@ -85,13 +85,7 @@ DRESULT disk_ioctl(byte  pdrv, /* Physical drive nmuber (0..) */
   int          result;
 
   switch (cmd) {
-  case GET_SECTOR_SIZE:
-    if (vdisk_ctl[pdrv].flag == 2) {
-      *(u16 *)buff = 2048;
-    } else {
-      *(u16 *)buff = 512;
-    }
-    return RES_OK;
+  case GET_SECTOR_SIZE: *(u16 *)buff = 2048; return RES_OK;
   case GET_SECTOR_COUNT: *(u32 *)buff = disk_Size(pdrv + 0x41); return RES_OK;
   case GET_BLOCK_SIZE: *(u16 *)buff = 0; return RES_OK;
   default: break;
