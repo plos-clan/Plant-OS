@@ -93,6 +93,10 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("clear", words, true, ' ');
   pl_readline_word_maker_add("read", words, true, ' ');
   pl_readline_word_maker_add("stdout_test", words, true, ' ');
+  pl_readline_word_maker_add("mkdir", words, true, ' ');
+  pl_readline_word_maker_add("mount", words, true, ' ');
+  pl_readline_word_maker_add("file", words, true, ' ');
+  pl_readline_word_maker_add("umount", words, true, ' ');
 
   if (buf[0] != '/' && strlen(buf)) { return; }
   char *s = malloc(strlen(buf) + 2);
@@ -225,6 +229,18 @@ void shell() {
       vfs_read(p, buf, 0, size);
       printf("%s\n", buf);
       free(buf);
+    } else if (strneq(ch, "mkdir ", 6)) {
+      vfs_mkdir(ch + 6);
+    } else if (strneq(ch, "mount ", 6)) {
+      // 用strtok分割参数
+      char *dev_name = strtok(ch + 6, " ");
+      char *dir_name = strtok(null, " ");
+      vfs_mount(dev_name, vfs_open(dir_name));
+    } else if (strneq(ch, "umount ", 7)) {
+      char *dir_name = ch + 7;
+      int   ret      = vfs_unmount(dir_name);
+      if (ret == -1) { printf("umount %s failed\n", dir_name); }
+
     } else {
       char       *path = exec_name_from_cmdline(ch);
       cstr        type = filetype_from_name(path);
@@ -318,10 +334,7 @@ void init() {
 
   vfs_mkdir("/dev");
   vfs_mount(NULL, vfs_open("/dev"));
-  int s = 0;
-  vfs_mkdir("/fatfs0");
-  vfs_mount("/dev/floppy", vfs_open("/fatfs0"));
-  s++;
+
   vfs_mkdir("/fatfs1");
   vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 

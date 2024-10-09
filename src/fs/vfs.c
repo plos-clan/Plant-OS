@@ -203,16 +203,27 @@ vfs_node_t vfs_node_alloc(vfs_node_t parent, cstr name) {
   node->name   = name ? strdup(name) : null;
   node->type   = file_none;
   node->fsid   = parent ? parent->fsid : 0;
+  node->root   = parent ? parent->root : node;
   if (parent) list_prepend(parent->child, node);
   return node;
 }
-
+int vfs_close(vfs_node_t node) {
+  if (node == null) return -1;
+  if (node->handle == null) return 0;
+  callbackof(node, close)(node->handle);
+  node->handle = null;
+  return 0;
+}
 void vfs_free(vfs_node_t vfs) {
   if (vfs == null) return;
   list_free_with(vfs->child, (void (*)(void *))vfs_free);
-  fs_callbacks[vfs->fsid]->close(vfs->handle);
+  vfs_close(vfs);
   free(vfs->name);
   free(vfs);
+}
+void vfs_free_child(vfs_node_t vfs) {
+  if (vfs == null) return;
+  list_free_with(vfs->child, (void (*)(void *))vfs_free);
 }
 
 int vfs_mount(cstr src, vfs_node_t node) {
@@ -222,6 +233,7 @@ int vfs_mount(cstr src, vfs_node_t node) {
   for (int i = 1; i < fs_nextid; i++) {
     if (fs_callbacks[i]->mount(src, node) == 0) {
       node->fsid = i;
+      node->root = node;
       return 0;
     }
   }
@@ -237,4 +249,27 @@ int vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size) {
   do_update(file);
   if (file->type != file_block) return -1;
   return callbackof(file, write)(file->handle, addr, offset, size);
+}
+
+int vfs_unmount(cstr path) {
+  vfs_node_t node = vfs_open(path);
+  if (node == null) return -1;
+  if (node->type != file_dir) return -1;
+  if (node->fsid == 0) return -1;
+  if (node->parent) {
+    vfs_node_t cur = node;
+    node           = node->parent;
+    if (cur->root == cur) {
+      vfs_free_child(cur);
+      callbackof(cur, unmount)(cur->handle);
+      cur->fsid   = node->fsid; // 交给上级
+      cur->root   = node->root;
+      cur->handle = null;
+      cur->child  = null;
+      cur->type   = file_none;
+      do_update(cur);
+      return 0;
+    }
+  }
+  return -1;
 }

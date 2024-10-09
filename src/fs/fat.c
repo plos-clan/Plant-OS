@@ -25,9 +25,7 @@ int fatfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   file_t p        = parent;
   char  *new_path = malloc(strlen(p->path) + strlen(name) + 1 + 1);
   sprintf(new_path, "%s/%s", p->path, name);
-  FIL     fp;
   FRESULT res = f_mkdir(new_path);
-  f_close(&fp);
   free(new_path);
   if (res != FR_OK) { return -1; }
   return 0;
@@ -113,6 +111,7 @@ void fatfs_close(file_t handle) {
     res = f_close(handle->handle);
   }
   free(handle->path);
+  free(handle->handle);
   free(handle);
   assert(res == FR_OK);
 }
@@ -151,7 +150,15 @@ int fatfs_mount(cstr src, vfs_node_t node) {
   return 0;
 }
 
-void fatfs_unmount(void *root) {}
+void fatfs_unmount(void *root) {
+  file_t f      = root;
+  int    number = f->path[0] - '0';
+  f_closedir(f->handle);
+  f_unmount(f->path);
+  free(f->path);
+  free(f->handle);
+  free(f);
+}
 
 int fatfs_stat(void *handle, vfs_node_t node) {
   file_t  f = handle;

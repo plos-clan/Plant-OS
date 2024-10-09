@@ -56,6 +56,7 @@ struct vfs_node {
   u16        fsid;        // 文件系统的 id
   void      *handle;      // 操作文件的句柄
   list_t     child;       //
+  vfs_node_t root;        // 根目录
 };
 
 struct fd {
@@ -90,3 +91,4 @@ int        vfs_mkdir(cstr name);
 int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size);
 int vfs_mkfile(cstr name);
 int vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size);
+int vfs_unmount(cstr path);
