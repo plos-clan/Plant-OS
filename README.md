@@ -1,7 +1,7 @@
 # PlantOS
 
 <div>
-  <img id="logo"src="https://plos-logo.copi143.workers.dev" width="250" height="250" align="right">
+  <img id="logo"src="https://plos-logo.copi143.workers.dev" width="200" height="200" align="right">
 </div>
 
 A simple OS used to study made by several students。
