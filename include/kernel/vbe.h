@@ -1,5 +1,6 @@
 #pragma once
 #include <libc-base.h>
+
 typedef struct {
   u32  setWindow;
   u32  setDisplayStart;
@@ -13,10 +14,12 @@ typedef struct {
   long setPaletteLen;
   // 以下是代码和表格
 } VBEProtectedModeInfo;
+
 typedef struct {
   u16 offset;
   u16 seg;
 } ReadModeFarPointer;
+
 typedef struct __PACKED__ {
   u16          attributes;
   u8           winA, winB;
@@ -43,6 +46,7 @@ typedef struct __PACKED__ {
   u16          offsize;
 
 } VESAModeInfo;
+
 typedef struct __PACKED__ {
   u8                 signature[4];
   u16                Version;
@@ -61,12 +65,14 @@ typedef struct __PACKED__ {
   u8                 oemUse[256];
   VESAModeInfo       modeList[0];
 } VESAControllerInfo;
+
 struct VBEINFO {
   char  res1[18];
   i16   xsize, ysize;
   char  res2[18];
   void *vram;
 };
+
 #define VBEINFO_ADDRESS 0x7e00
 
 void *set_mode(int width, int height, int bpp);

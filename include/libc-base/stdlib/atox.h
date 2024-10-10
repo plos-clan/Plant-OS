@@ -206,18 +206,21 @@ __(strto);
 #undef __strb16to
 #undef __strto
 
-#define __stof(_t_, _type_) dlimport _type_ strto##_t_(cstr _rest s, char **_rest e);
+#define __stof(_t_, _type_)                                                                        \
+  dlimport _type_ strto##_t_(cstr _rest s, char **_rest e) __THROW __nnull(1)
 
 __stof(f, float);
 __stof(d, double);
 
 #define _stof(t) __stof(t, t)
 
+#ifndef NO_STD // TODO 找到声明冲突的原因
 _stof(f32);
 _stof(f64);
-#if defined(__x86_64__) && !NO_EXTFLOAT
+#  if defined(__x86_64__) && !NO_EXTFLOAT
 _stof(f16);
 _stof(f128);
+#  endif
 #endif
 
 #undef _stof

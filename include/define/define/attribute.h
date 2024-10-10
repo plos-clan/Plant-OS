@@ -47,7 +47,7 @@
 #  define __attr_readonly(...)
 #  define __attr_writeonly(...)
 #else
-#  define __attr_access(x)      __attr(access x)
+#  define __attr_access(x)      __attr(access x) // 这个 redefine 没有问题，忽略掉
 #  define __attr_readonly(...)  __attr(access(read_only, ##__VA_ARGS__))
 #  define __attr_writeonly(...) __attr(access(write_only, ##__VA_ARGS__))
 #endif

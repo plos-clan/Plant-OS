@@ -57,12 +57,12 @@ void load_tr(int tr);
 #define SA_RPL3          3
 #define GET_SEL(cs, rpl) ((cs & SA_RPL_MASK & SA_TI_MASK) | (rpl))
 
-struct TSS32 {
-  int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
-  int eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
-  int es, cs, ss, ds, fs, gs;
-  int ldtr, iomap;
-};
+typedef struct TSS32 {
+  i32 backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
+  i32 eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+  i32 es, cs, ss, ds, fs, gs;
+  i32 ldtr, iomap;
+} TSS32;
 
 #define ADR_IDT      0x0026f800
 #define LIMIT_IDT    0x000007ff
@@ -110,8 +110,8 @@ void asm_error16();
 void asm_error17();
 void asm_error18();
 
-void asm_inthandler36() __attribute__((naked));
-void asm_inthandler72() __attribute__((naked));
+void asm_inthandler36() __attr(naked);
+void asm_inthandler72() __attr(naked);
 
 void asm_gui_api();
 void asm_net_api();

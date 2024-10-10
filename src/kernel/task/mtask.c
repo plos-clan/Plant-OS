@@ -6,11 +6,11 @@
 
 void free_pde(u32 addr);
 
-struct TSS32 tss;
-mtask       *idle_task;
-mtask       *mtask_current = NULL;
+TSS32  tss;
+mtask *idle_task;
+mtask *mtask_current = NULL;
 // rbtree_t     tasks;
-mtask       *tasks[256] = {NULL};
+mtask *tasks[256] = {NULL};
 
 mtask *next_set = NULL;
 mtask  empty_task;

@@ -12,15 +12,15 @@ void *syscall_mmap(void *start, u32 length) {
   u32  page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
   bool size_is_2M = page_count == 512;
 
-  u32 addr            = current_task()->pde;
-  u32 line_addr_start = null;
+  u32   addr            = current_task()->pde;
+  void *line_addr_start = null;
   for (int i = DIDX(0x70000000), c = 0; i < 1024; i++) {
     u32 *pde_entry = (u32 *)addr + i;
     u32  p         = *pde_entry & (0xfffff000);
     for (int j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
       u32 *pte_entry = (u32 *)p + j;
       if (!(page_get_attr(get_line_address(i, j, 0)) & PAGE_WRABLE)) {
-        if (c == 0) line_addr_start = get_line_address(i, j, 0);
+        if (c == 0) line_addr_start = (void *)get_line_address(i, j, 0);
         c++;
       } else {
         c = 0;
@@ -32,9 +32,9 @@ _1:
   klogd("找到了一段空闲的没有被映射的线性地址%p-%p", line_addr_start,
         line_addr_start + page_count * 0x1000);
   for (int i = 0; i < page_count; i++) {
-    page_link_share(line_addr_start + i * 0x1000);
+    page_link_share((size_t)line_addr_start + i * 0x1000);
   }
-  return (void *)line_addr_start;
+  return line_addr_start;
 }
 
 void syscall_munmap(void *start, u32 length) {

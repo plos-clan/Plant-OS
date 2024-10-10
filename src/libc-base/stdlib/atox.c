@@ -88,7 +88,7 @@ _atof(f128);
 #undef __atof
 
 #define __stof(_t_, _type_)                                                                        \
-  dlexport _type_ strto##_t_(cstr _rest s, char **_rest e) {                                       \
+  dlexport _type_ strto##_t_(cstr _rest s, char **_rest e) noexcept {                              \
     if (e) *e = (char *)s;                                                                         \
                                                                                                    \
     bool neg = *s == '-';                                                                          \

@@ -7,7 +7,7 @@
 void task_to_user_mode_elf(char *filename);
 
 extern char             *shell_data;
-extern struct TSS32      tss;
+extern TSS32             tss;
 extern struct PAGE_INFO *pages;
 
 void task_to_user_mode_shell();

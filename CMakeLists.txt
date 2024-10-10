@@ -66,6 +66,8 @@ set_optim_flag("-g -O1")
 # set_optim_flag("-O2") # 测试通过
 # set_optim_flag("-O3") # 编译错误
 
+# add_compile_flag("-w") # 如果你不想编译器输出 warning
+
 # if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #   add_compile_flag("-emit-obj") # 不输出 llvm-ir
 # endif()
