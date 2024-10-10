@@ -1,7 +1,7 @@
 # PlantOS
 
 <div>
-  <img id="logo"src="assets/plos.png" width="250" height="250" align="right">
+  <img id="logo"src="https://plos-logo.copi143.workers.dev" width="250" height="250" align="right">
 </div>
 
 A simple OS used to study made by several students。
@@ -32,4 +32,4 @@ A simple OS used to study made by several students。
 
 也可以发送邮件到 <Yan.Huang24@student.xjtlu.edu.cn>
 
-![Star History Chart](https://api.star-history.com/svg?repos=plos-clan/Plant-OS&type=Timeline)
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=plos-clan/Plant-OS&type=Date&theme=dark" /> <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=plos-clan/Plant-OS&type=Date" /><img alt="Star History Chart" src="https://api.star-history.com/svg?repos=plos-clan/Plant-OS&type=Date" /></picture>
