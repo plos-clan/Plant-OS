@@ -44,7 +44,6 @@ typedef struct __PACKED__ {
   u32          physbase; // your LFB (Linear Framebuffer) address ;)
   u32          offscreen;
   u16          offsize;
-
 } VESAModeInfo;
 
 typedef struct __PACKED__ {

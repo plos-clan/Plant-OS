@@ -132,7 +132,7 @@ typedef struct {
   Elf32_Word p_flags;
   Elf32_Word p_align;
 } Elf32_Phdr;
-bool elf32Validate(Elf32_Ehdr *hdr);
-void elf32LoadData(Elf32_Ehdr *elfhdr, u8 *ptr);
+bool elf32_is_validate(Elf32_Ehdr *hdr);
+void elf32_load_data(Elf32_Ehdr *elfhdr, u8 *ptr);
 u32  elf32_get_max_vaddr(Elf32_Ehdr *hdr);
 u32  load_elf(Elf32_Ehdr *hdr);

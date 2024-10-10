@@ -14,10 +14,10 @@
 #define PAGE_MANNAGER PAGE_END
 #define NULL_TID      11459810
 
-struct PAGE_INFO {
+typedef struct __PACKED__ PageInfo {
   u8 task_id;
   u8 count;
-} __PACKED__;
+} PageInfo;
 
 int   get_line_address(int t, int p, int o);
 u32   page_get_attr(u32 vaddr);

@@ -6,7 +6,7 @@
 
 #define rmfarptr2ptr(x) ((void *)((x).seg * 0x10 + (x).offset))
 
-int check_vbe_mode(int mode, struct VBEINFO *vinfo) {
+static int vbe_check_mode(int mode, struct VBEINFO *vinfo) {
   regs16 regs;
   regs.ax = 0x4f01;
   regs.cx = mode + 0x4000;
@@ -17,9 +17,9 @@ int check_vbe_mode(int mode, struct VBEINFO *vinfo) {
   return 0;
 }
 
-int SwitchVBEMode(int mode) {
+static int vbe_switch_mode(int mode) {
   struct VBEINFO *vinfo = (struct VBEINFO *)VBEINFO_ADDRESS;
-  if (check_vbe_mode(mode, vinfo) != 0) return -1;
+  if (vbe_check_mode(mode, vinfo) != 0) return -1;
   regs16 regs;
   regs.ax = 0x4f02;
   regs.bx = mode + 0x4000;
@@ -42,7 +42,7 @@ void SwitchTo320X200X256_BIOS() {
 
 void *GetSVGACardMemAddress() {
   struct VBEINFO *vinfo = (struct VBEINFO *)VBEINFO_ADDRESS;
-  return (void *)(vinfo->vram);
+  return (void *)vinfo->vram;
 }
 
 char *GetSVGACharOEMString() {
@@ -53,7 +53,7 @@ char *GetSVGACharOEMString() {
   return rmfarptr2ptr(info->oemString);
 }
 
-VESAModeInfo *GetVESAModeInfo(volatile int mode) {
+static VESAModeInfo *get_vesa_mode_info(volatile int mode) {
   regs16 r;
   r.ax = 0x4f01;
   r.cx = mode + 0x4000;
@@ -73,7 +73,7 @@ void get_all_mode() {
   auto vbe  = (VESAControllerInfo *)VBEINFO_ADDRESS;
   u16 *mode = (u16 *)rmfarptr2ptr(vbe->videoModes);
   for (size_t c = 0; mode[c] != U16_MAX; c++) {
-    VESAModeInfo *info = GetVESAModeInfo(mode[c]);
+    VESAModeInfo *info = get_vesa_mode_info(mode[c]);
     klogd("Mode: %04x %4d x %4d x %4d", mode[c], info->width, info->height, info->bitsPerPixel);
   }
 }
@@ -85,10 +85,10 @@ void *set_mode(int width, int height, int bpp) {
   auto          vbe  = (VESAControllerInfo *)VBEINFO_ADDRESS;
   volatile u16 *mode = (u16 *)rmfarptr2ptr(vbe->videoModes);
   for (size_t c = 0; mode[c] != U16_MAX; c++) {
-    volatile VESAModeInfo *info = GetVESAModeInfo(mode[c]);
+    volatile VESAModeInfo *info = get_vesa_mode_info(mode[c]);
     // klogd("%04x:%dx%dx%d", mode[c], info->width, info->height, info->bitsPerPixel);
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
-      SwitchVBEMode(mode[c]);
+      vbe_switch_mode(mode[c]);
       volatile struct VBEINFO *v = (struct VBEINFO *)VBEINFO_ADDRESS;
       return v->vram;
     }

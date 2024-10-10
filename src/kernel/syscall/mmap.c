@@ -5,7 +5,7 @@
 #define TIDX(addr) (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx)  ((u32)idx << 12)            // 获取页索引 idx 对应的页开始的位置
 
-extern struct PAGE_INFO *pages;
+extern PageInfo *pages;
 
 void *syscall_mmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
@@ -30,9 +30,9 @@ void *syscall_mmap(void *start, u32 length) {
   }
 _1:
   klogd("找到了一段空闲的没有被映射的线性地址%p-%p", line_addr_start,
-        line_addr_start + page_count * 0x1000);
+        line_addr_start + page_count * PAGE_SIZE);
   for (int i = 0; i < page_count; i++) {
-    page_link_share((size_t)line_addr_start + i * 0x1000);
+    page_link_share((size_t)line_addr_start + i * PAGE_SIZE);
   }
   return line_addr_start;
 }
@@ -42,12 +42,12 @@ void syscall_munmap(void *start, u32 length) {
   u32 page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
 
   if (start > (void *)0xf0000000) {
-    error("Couldn't unmap memory from %p to %p.", start, start + page_count * 0x1000);
+    error("Couldn't unmap memory from %p to %p.", start, start + page_count * PAGE_SIZE);
     syscall_exit(-1);
     return;
   }
   for (int i = 0; i < page_count; i++) {
-    page_unlink((u32)start + i * 0x1000);
+    page_unlink((u32)start + i * PAGE_SIZE);
   }
 
   klogd("释放了地址%p-%p", start, start + length);

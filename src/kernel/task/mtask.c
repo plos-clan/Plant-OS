@@ -397,7 +397,7 @@ void task_fall_blocked(enum STATE state) {
   task_next();
 }
 
-extern struct PAGE_INFO *pages;
+extern PageInfo *pages;
 
 void task_exit(u32 status) {
   if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }

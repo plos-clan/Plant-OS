@@ -5,37 +5,36 @@
 #define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
-void flush_tlb(u32 vaddr);
-
-struct PAGE_INFO *pages = (struct PAGE_INFO *)PAGE_MANNAGER;
-
-static u32 padding_up(u32 num, u32 size) {
-  return (num + size - 1) / size;
+// 刷新虚拟地址 vaddr 的 块表 TLB
+static void flush_tlb(u32 vaddr) {
+  asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
 }
+
+PageInfo *pages = (PageInfo *)PAGE_MANNAGER;
 
 void init_pdepte(u32 pde_addr, u32 pte_addr, u32 page_end) {
   memset((void *)pde_addr, 0, page_end - pde_addr);
   { // 这是初始化PDE 页目录
     size_t *addr = (void *)pde_addr;
     for (size_t i = 0; addr + i < (size_t *)pte_addr; i++) {
-      addr[i] = (pte_addr + i * 0x1000) | PAGE_P | PAGE_WRABLE;
+      addr[i] = (pte_addr + i * PAGE_SIZE) | PAGE_P | PAGE_WRABLE;
     }
   }
 
   { // 这是初始化PTE 页表
     size_t *addr = (void *)PTE_ADDRESS;
     for (size_t i = 0; addr + i < (size_t *)PAGE_END; i++) {
-      addr[i] = (i * 0x1000) | PAGE_P | PAGE_WRABLE;
+      addr[i] = (i * PAGE_SIZE) | PAGE_P | PAGE_WRABLE;
     }
   }
   return;
 }
 
-void init_page_manager(struct PAGE_INFO *pg) {
-  memset(pg, 0, 1024 * 1024 * sizeof(struct PAGE_INFO));
-} // 全部置为0就好
+void init_page_manager(PageInfo *pg) { // 全部置为0就好
+  memset(pg, 0, 1024 * 1024 * sizeof(PageInfo));
+}
 
-void page_set_alloced(struct PAGE_INFO *pg, u32 start, u32 end) {
+void page_set_alloced(PageInfo *pg, u32 start, u32 end) {
   for (int i = IDX(start); i <= IDX(end); i++) {
     pg[i].count++; // 设置占用，但是没有进程引用
   }
@@ -53,12 +52,12 @@ void page_set_alloced(struct PAGE_INFO *pg, u32 start, u32 end) {
 // 为了防止应用程序和操作系统抢占前0x70000000的内存，所以page_link和copy_on_write是从后往前分配的
 // OS应该是用不完0x70000000的，所以应用程序大概是可以用满2GB
 u32 pde_clone(u32 addr) {
-  for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
+  for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry = (u32 *)(addr + i);
     u32  p         = *pde_entry & (0xfffff000);
     pages[IDX(*pde_entry)].count++;
     *pde_entry &= ~PAGE_WRABLE;
-    for (int j = 0; j < 0x1000; j += 4) {
+    for (int j = 0; j < PAGE_SIZE; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
       if ((page_get_attr(get_line_address(i / 4, j / 4, 0)) & PAGE_USER)) {
         pages[IDX(*pte_entry)].count++;
@@ -71,7 +70,7 @@ u32 pde_clone(u32 addr) {
     }
   }
   u32 result = (u32)page_malloc_one_no_mark();
-  memcpy((void *)result, (void *)addr, 0x1000);
+  memcpy((void *)result, (void *)addr, PAGE_SIZE);
   flush_tlb(result);
   flush_tlb(addr);
   asm_set_cr3(addr);
@@ -80,7 +79,7 @@ u32 pde_clone(u32 addr) {
 }
 
 void pde_reset(u32 addr) {
-  for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
+  for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry  = (u32 *)(addr + i);
     *pde_entry     |= PAGE_WRABLE;
   }
@@ -92,7 +91,7 @@ void free_pde(u32 addr) {
     u32 *pde_entry = (u32 *)(addr + i);
     u32  p         = *pde_entry & (0xfffff000);
     if (!(*pde_entry & PAGE_USER) && !(*pde_entry & PAGE_P)) { continue; }
-    for (int j = 0; j < 0x1000; j += 4) {
+    for (int j = 0; j < PAGE_SIZE; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
       if (*pte_entry & PAGE_USER && *pte_entry & PAGE_P) { pages[IDX(*pte_entry)].count--; }
     }
@@ -101,11 +100,6 @@ void free_pde(u32 addr) {
   }
   flush_tlb(addr);
   page_free_one((void *)addr);
-}
-
-// 刷新虚拟地址 vaddr 的 块表 TLB
-void flush_tlb(u32 vaddr) {
-  asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
 }
 
 void page_link_pde(u32 addr, u32 pde) {
@@ -122,7 +116,7 @@ void page_link_pde(u32 addr, u32 pde) {
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, 0x1000);
+    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
     *pte |= 7;
   } else {
     *pte |= 7;
@@ -153,7 +147,7 @@ void page_link_pde_share(u32 addr, u32 pde) {
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, 0x1000);
+    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
     *pte |= 7;
   } else {
     *pte |= 7;
@@ -191,7 +185,7 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = *paddr1;
-    memcpy((void *)(*pte), (void *)old, 0x1000);
+    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
     *pte    |= 7;
     *paddr1  = 0;
     if (flag) { *pte |= PAGE_SHARED; }
@@ -213,7 +207,7 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
 }
 u32 page_get_alloced() {
   u32 r = 0;
-  for (int i = 0; i < padding_up(memsize, 0x1000); i++) {
+  for (int i = 0; i < PADDING_UP(memsize, PAGE_SIZE) / PAGE_SIZE; i++) {
     if (pages[i].count) { r++; }
   }
   return r;
@@ -234,7 +228,7 @@ void page_links_pde(u32 start, u32 numbers, u32 pde) {
     if (j == 2) {
       page_link_pde_paddr(start, pde, &(a[0]), a[1]);
       times++;
-      start += 0x1000;
+      start += PAGE_SIZE;
       j      = 0;
       if (a[0] != 0) { j = 1; }
     }
@@ -255,21 +249,21 @@ void page_link_share(u32 addr) {
 }
 
 void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
-  u32 pg = padding_up(size, 0x1000);
+  size_t pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < pg; i++) {
-    memcpy((void *)page_get_phy_pde(line, pde), (void *)phy, size >= 0x1000 ? 0x1000 : size);
-    size -= 0x1000;
-    line += 0x1000;
-    phy  += 0x1000;
+    memcpy((void *)page_get_phy_pde(line, pde), (void *)phy, min(size, PAGE_SIZE));
+    size -= PAGE_SIZE;
+    line += PAGE_SIZE;
+    phy  += PAGE_SIZE;
   }
 }
 
 void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
-  u32 pg = padding_up(size, 0x1000);
+  size_t pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < pg; i++) {
-    memset((void *)page_get_phy_pde(line, pde), val, size >= 0x1000 ? 0x1000 : size);
-    size -= 0x1000;
-    line += 0x1000;
+    memset((void *)page_get_phy_pde(line, pde), val, min(size, PAGE_SIZE));
+    size -= PAGE_SIZE;
+    line += PAGE_SIZE;
   }
 }
 
@@ -287,7 +281,7 @@ void page_unlink_pde(u32 addr, u32 pde) {
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, 0x1000);
+    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
     *pte |= 7;
   } else {
     *pte |= 7;
@@ -473,7 +467,7 @@ void page_free(void *p, int size) {
   p     = (void *)((u32)p & 0xfffff000);
   for (int i = 0; i < n; i++) {
     page_free_one((void *)p);
-    p += 0x1000;
+    p += PAGE_SIZE;
   }
 }
 
@@ -565,7 +559,7 @@ void copy_on_write(u32 vaddr) {
     }
     // 进行COW
     *(u32 *)(pde) = (u32)page_malloc_one_count_from_4gb(); // 分配一页
-    memcpy((void *)(*(u32 *)pde), pde_phy, 0x1000);        // 复制内容
+    memcpy((void *)(*(u32 *)pde), pde_phy, PAGE_SIZE);     // 复制内容
     *(u32 *)(pde) |=
         (backup & 0x00000fff) | PAGE_WRABLE | PAGE_USER | PAGE_P; // 设置属性（并且可读）
     pages[IDX(backup)].count--;                                   // 原有引用减少
@@ -589,7 +583,7 @@ void copy_on_write(u32 vaddr) {
     // 分配一个页
     //  klogd("UPDATE %08x\n", vaddr);
     void *new_page = page_malloc_one_count_from_4gb();
-    memcpy(new_page, phy, 0x1000);
+    memcpy(new_page, phy, PAGE_SIZE);
 
     // 获取原先页的属性
     u32 attr = old_pte & 0x00000fff;
@@ -625,7 +619,7 @@ void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, 0x1000);
+    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
     *pte |= 7;
   } else {
     *pte |= 7;
@@ -651,7 +645,7 @@ void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 pde_backup)
     pages[IDX(*pte)].count--;
     u32 old = *pte & 0xfffff000;
     *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, 0x1000);
+    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
     *pte |= 7;
   } else {
     *pte |= 7;
@@ -703,11 +697,11 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
 }
 
 void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
-  int count = padding_up(end - start, 0x1000); // 整除
+  int count = PADDING_UP(end - start, PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < count; i++) {
-    u32 *pde_entry  = (u32 *)(pde + DIDX(start + i * 0x1000) * 4);
+    u32 *pde_entry  = (u32 *)(pde + DIDX(start + i * PAGE_SIZE) * 4);
     u32  p          = *pde_entry & (0xfffff000);
-    u32 *pte_entry  = (u32 *)(p + TIDX(start + i * 0x1000) * 4);
+    u32 *pte_entry  = (u32 *)(p + TIDX(start + i * PAGE_SIZE) * 4);
     *pte_entry     |= attr;
   }
   asm_set_cr3(pde);
