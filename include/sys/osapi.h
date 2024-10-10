@@ -1,8 +1,6 @@
 #pragma once
 #include <define.h>
 
-//
-
 // 说明一下宏定义
 // __THROW 表明函数不会抛出异常
 // __wur 表明必须处理函数的返回值

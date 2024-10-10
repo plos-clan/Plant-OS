@@ -2,6 +2,8 @@
 
 #include <libc-base.h>
 
+// 你 builtin 一下这么难是吧
+
 dlexport cf32 __mulsc3(f32 a, f32 b, f32 c, f32 d) {
   return (cf32){a * c - b * d, a * d + b * c};
 }

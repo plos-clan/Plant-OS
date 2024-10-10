@@ -22,7 +22,7 @@ dlexport void abort() {
   __builtin_unreachable();
 }
 
-dlexport int print(cstr s) {
+dlexport ssize_t print(cstr s) {
   return __syscall(SYSCALL_PRINT, s);
 }
 
