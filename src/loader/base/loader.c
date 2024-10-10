@@ -111,7 +111,7 @@ void DOSLDR_MAIN() {
     infinite_loop;
   }
   // printf("fp = %08x\n%d\n",fp, fp->size);
-  char *s = page_malloc(sz);
+  char *s = page_alloc(sz);
   klogf("Will load in %08x size = %08x\n", s, sz);
   vfs_readfile(path, s);
   klogf("Loading...\n");

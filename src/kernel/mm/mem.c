@@ -48,14 +48,3 @@ size_t malloc_usable_size(void *ptr) {
 void *realloc(void *ptr, size_t size) {
   return mpool_realloc(&pool, ptr, size);
 }
-
-// 老旧代码
-// void *kmalloc(int size) {
-//   return malloc(size);
-// }
-// void kfree(void *p) {
-//   free(p);
-// }
-// void *krealloc(void *ptr, u32 size) {
-//   return realloc(ptr, size);
-// }

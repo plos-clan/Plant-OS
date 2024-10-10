@@ -28,7 +28,7 @@ static int  devfs_read(void *file, void *addr, size_t offset, size_t size) {
   if (padding_up_to_sector_size == size) {
     buf = addr;
   } else {
-    buf = page_malloc(padding_up_to_sector_size);
+    buf = page_alloc(padding_up_to_sector_size);
   }
   int sectors_to_do = size / sector_size;
   Disk_Read(offset / sector_size, sectors_to_do, buf, dev_id);
@@ -48,7 +48,7 @@ static int devfs_write(void *file, const void *addr, size_t offset, size_t size)
   if (padding_up_to_sector_size == size) {
     buf = (void *)addr;
   } else {
-    buf = page_malloc(padding_up_to_sector_size);
+    buf = page_alloc(padding_up_to_sector_size);
     memset(buf, 0, padding_up_to_sector_size);
     memcpy(buf, addr, size);
   }

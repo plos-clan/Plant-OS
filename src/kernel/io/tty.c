@@ -66,7 +66,7 @@ struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct t
                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
                       void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1, u8 color),
                       int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res)) {
-  struct tty *res  = (struct tty *)page_malloc(sizeof(struct tty));
+  struct tty *res  = (struct tty *)page_alloc(sizeof(struct tty));
   res->is_using    = 1;
   res->x           = 0;
   res->y           = 0;

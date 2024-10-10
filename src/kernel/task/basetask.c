@@ -135,8 +135,8 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   free(s);
 }
 void pci_list() {
-  extern int pci_addr_base;
-  u8        *pci_drive = (u8 *)pci_addr_base;
+  extern void *pci_addr_base;
+  u8          *pci_drive = (u8 *)pci_addr_base;
   //输出PCI表的内容
   for (int line = 0;; pci_drive += 0x110 + 4, line++) {
     if (pci_drive[0] == 0xff)
@@ -167,7 +167,7 @@ void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
   void *kbuf  = page_malloc_one();
-  cir_queue8_init(kfifo, 0x1000, kbuf);
+  cir_queue8_init(kfifo, PAGE_SIZE, kbuf);
   current_task()->keyfifo = (cir_queue8_t)kfifo;
   char         *path      = malloc(1024);
   char         *ch        = malloc(255);

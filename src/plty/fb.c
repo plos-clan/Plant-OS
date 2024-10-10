@@ -5,7 +5,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-finline void plty_fb_clear(plty_fb *fb) {
+void plty_fb_clear(plty_fb *fb) {
   for (size_t i = 0; i < fb->width * fb->height; i++) {
     fb->vbuf[i] = ' ';
   }
@@ -15,31 +15,31 @@ finline void plty_fb_clear(plty_fb *fb) {
   fb->cur_color = (tty_light_gray << 8) | (tty_black << 12);
 }
 
-finline int plty_fb_getcolor(plty_fb *fb, int x, int y) {
+int plty_fb_getcolor(plty_fb *fb, int x, int y) {
   return fb->vbuf[y * fb->width + x] >> 8;
 }
 
-finline void plty_fb_setcolor(plty_fb *fb, int fg, int bg) {
+void plty_fb_setcolor(plty_fb *fb, int fg, int bg) {
   fb->cur_color = ((u8)(fg & 15) << 8) | ((u8)(bg & 15) << 12);
 }
 
-finline int plty_fb_getfg(plty_fb *fb, int x, int y) {
+int plty_fb_getfg(plty_fb *fb, int x, int y) {
   return (fb->vbuf[y * fb->width + x] >> 8) & 15;
 }
 
-finline int plty_fb_getbg(plty_fb *fb, int x, int y) {
+int plty_fb_getbg(plty_fb *fb, int x, int y) {
   return fb->vbuf[y * fb->width + x] >> 12;
 }
 
-finline int plty_fb_getch(plty_fb *fb, int x, int y) {
+int plty_fb_getch(plty_fb *fb, int x, int y) {
   return fb->vbuf[y * fb->width + x] & 0xff;
 }
 
-finline void plty_fb_setch(plty_fb *fb, int x, int y, int c) {
+void plty_fb_setch(plty_fb *fb, int x, int y, int c) {
   fb->vbuf[y * fb->width + x] = (u8)c | fb->cur_color;
 }
 
-finline void plty_fb_lf(plty_fb *fb) {
+void plty_fb_lf(plty_fb *fb) {
   fb->cur_x = 0;
   if (fb->cur_y == fb->height - 1) {
     memcpy(fb->vbuf, fb->vbuf + fb->width, 2 * fb->width * (fb->height - 1));
@@ -48,7 +48,7 @@ finline void plty_fb_lf(plty_fb *fb) {
   }
 }
 
-static void plty_fb_putc_raw(plty_fb *fb, int c) {
+void plty_fb_putc_raw(plty_fb *fb, int c) {
   u16 ch = (u8)c | fb->cur_color;
 
   if (c == '\r') {
@@ -77,7 +77,7 @@ static void plty_fb_putc_raw(plty_fb *fb, int c) {
   fb->cur_x++;
 }
 
-finline void plty_fb_puts_raw(plty_fb *fb, cstr s) {
+void plty_fb_puts_raw(plty_fb *fb, cstr s) {
   for (; *s != '\0'; s++) {
     plty_fb_putc_raw(fb, *s);
   }
@@ -121,7 +121,7 @@ again:
   return;
 }
 
-finline void plty_fb_putc(plty_fb *fb, int c) {
+void plty_fb_putc(plty_fb *fb, int c) {
   if (fb->len >= 0) { // 处于转义序列中
     fb->buf[fb->len++] = c;
     plty_fb_parse(fb);
@@ -139,7 +139,7 @@ finline void plty_fb_putc(plty_fb *fb, int c) {
   plty_fb_putc_raw(fb, c);
 }
 
-finline void plty_fb_puts(plty_fb *fb, cstr s) {
+void plty_fb_puts(plty_fb *fb, cstr s) {
   for (; *s != '\0'; s++) {
     plty_fb_putc(fb, *s);
   }

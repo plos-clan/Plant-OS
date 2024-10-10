@@ -19,8 +19,8 @@ void *syscall_mmap(void *start, u32 length) {
     u32  p         = *pde_entry & (0xfffff000);
     for (int j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
       u32 *pte_entry = (u32 *)p + j;
-      if (!(page_get_attr(get_line_address(i, j, 0)) & PAGE_WRABLE)) {
-        if (c == 0) line_addr_start = (void *)get_line_address(i, j, 0);
+      if (!(page_get_attr(mk_linear_addr(i, j, 0)) & PAGE_WRABLE)) {
+        if (c == 0) line_addr_start = (void *)mk_linear_addr(i, j, 0);
         c++;
       } else {
         c = 0;

@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #include "plty/fb.h"
+#include "plty/plty.h"
 #ifdef __cplusplus
 }
 #endif

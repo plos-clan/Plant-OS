@@ -30,7 +30,7 @@ void task_app() {
   filename             = (char *)r[0];
   current_task()->line = (char *)r[1];
   klogd("我爱你");
-  page_free_one(r);
+  page_free(r, PAGE_SIZE);
   klogd("%08x", current_task()->top);
   // klogd("%p %d", current_task()->nfs, vfs_filesize("testapp.bin"));
   char *kfifo = (char *)page_malloc_one();
@@ -236,7 +236,7 @@ void task_to_user_mode_elf(char *filename) {
   tss.eflags     = 0x202;
   u32 sz         = file->size;
   klogd("%d", sz);
-  char *p = page_malloc(sz);
+  char *p = page_alloc(sz);
   vfs_read(file, p, 0, sz);
   klogd();
   if (!elf32_is_validate((Elf32_Ehdr *)p)) {

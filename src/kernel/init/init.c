@@ -10,15 +10,15 @@ void abort() {
   }
 }
 
-#ifdef __clang__
-#  pragma clang optimize off
-#endif
 void *pci_addr_base;
-void  sysinit() {
+
+#pragma clang optimize off
+
+void sysinit() {
   do_init_seg_register();
   memsize = memtest(0x00400000, 0xbfffffff);
   init_page();
-  IVT = page_malloc(0x10000);
+  IVT = page_alloc(0x10000);
   memcpy(IVT, null, 0x10000); // 这是正确的，忽略这个 warning
   // init_gdtidt();
   init_pic();
@@ -28,7 +28,7 @@ void  sysinit() {
   irq_mask_clear(1);
   asm_set_em, asm_set_ts, asm_set_ne;
 
-  memory_init(page_malloc(128 * 1024 * 1024), 128 * 1024 * 1024);
+  memory_init(page_alloc(128 * 1024 * 1024), 128 * 1024 * 1024);
 
   // 可以 setmode
 
@@ -36,7 +36,7 @@ void  sysinit() {
   init_tty();
   screen_clear();
 
-  pci_addr_base = page_malloc(1 * 1024 * 1024);
+  pci_addr_base = page_alloc(1 * 1024 * 1024);
   init_pci(pci_addr_base);
 
   sb16_init();
@@ -53,6 +53,3 @@ void  sysinit() {
   }
   init_keyboard();
 }
-#ifdef __clang__
-#  pragma clang optimize on
-#endif

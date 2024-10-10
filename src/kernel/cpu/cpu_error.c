@@ -145,13 +145,11 @@ void ERROR7(u32 eip) {
 
 void ERROR13(u32 eip) {
   kloge("ERROR GP!!!!");
-  while (true)
-    ;
+  infinite_loop;
 }
 
 void KILLAPP(int eip, int ec) {
-  while (true)
-    ;
+  infinite_loop;
 }
 
 void KILLAPP0(int ec, int tn) {

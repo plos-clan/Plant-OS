@@ -79,7 +79,7 @@ int get_directory_max(struct FAT_FILEINFO *directory, vfs_t *vfs) {
 }
 void file_loadfile(int clustno, int size, char *buf, int *fat, vfs_t *vfs) {
   if (!size) { return; }
-  void *img = page_malloc(((size - 1) / get_dm(vfs).ClustnoBytes + 1) * get_dm(vfs).ClustnoBytes);
+  void *img = page_alloc(((size - 1) / get_dm(vfs).ClustnoBytes + 1) * get_dm(vfs).ClustnoBytes);
   for (int i = 0; i != (size - 1) / get_dm(vfs).ClustnoBytes + 1; i++) {
     u32 sec = (get_dm(vfs).FileDataAddress + (clustno - 2) * get_dm(vfs).ClustnoBytes) /
               get_dm(vfs).SectorBytes;
@@ -125,7 +125,7 @@ void file_savefile(int clustno, int size, char *buf, int *fat, u8 *ff, vfs_t *vf
     alloc_size = (clustall + 1) * get_dm(vfs).ClustnoBytes;
     // 这里不分配Fat的原因是要清空更改后多余的数据
   }
-  void *img = page_malloc(alloc_size);
+  void *img = page_alloc(alloc_size);
   bzero((char *)img, alloc_size);
   memcpy(img, buf, size); // 把要写入的数据复制到新请求的内存地址
   for (int i = 0; i != (alloc_size / get_dm(vfs).ClustnoBytes); i++) {
@@ -286,7 +286,7 @@ struct FAT_FILEINFO *dict_search(char *name, struct FAT_FILEINFO *finfo, int max
 struct FAT_FILEINFO *Get_File_Address(char *path1, vfs_t *vfs) {
   struct FAT_FILEINFO *bmpDict      = get_now_dir(vfs);
   int                  drive_number = vfs->disk_number;
-  char                *path         = (char *)page_malloc(strlen(path1) + 1);
+  char                *path         = (char *)page_alloc(strlen(path1) + 1);
   char                *bmp          = path;
   strcpy(path, path1);
   strupper(path);
@@ -303,7 +303,7 @@ struct FAT_FILEINFO *Get_File_Address(char *path1, vfs_t *vfs) {
       }
     }
   }
-  char                *temp_name = (char *)page_malloc(128);
+  char                *temp_name = (char *)page_alloc(128);
   struct FAT_FILEINFO *finfo     = get_dm(vfs).root_directory;
   int                  i         = 0;
   while (1) {
@@ -357,7 +357,7 @@ struct FAT_FILEINFO *Get_dictaddr(char *path1, vfs_t *vfs) {
   // TODO: Modifly it
   struct FAT_FILEINFO *bmpDict      = get_now_dir(vfs);
   int                  drive_number = vfs->disk_number;
-  char                *path         = (char *)page_malloc(strlen(path1) + 1);
+  char                *path         = (char *)page_alloc(strlen(path1) + 1);
   char                *bmp          = path;
   strcpy(path, path1);
   strupper(path);
@@ -374,7 +374,7 @@ struct FAT_FILEINFO *Get_dictaddr(char *path1, vfs_t *vfs) {
       }
     }
   }
-  char                *temp_name = (char *)page_malloc(128);
+  char                *temp_name = (char *)page_alloc(128);
   struct FAT_FILEINFO *finfo;
   int                  i = 0;
   while (1) {
@@ -490,7 +490,7 @@ void mkdir(char *dictname, int last_clust, vfs_t *vfs) {
   }
   file_savefat(get_dm(vfs).fat, get_clustno(model[2].clustno_high, model[2].clustno_low), 1, vfs);
 
-  void *directory_alloc = page_malloc(get_dm(vfs).ClustnoBytes);
+  void *directory_alloc = page_alloc(get_dm(vfs).ClustnoBytes);
   Disk_Read(
       (get_dm(vfs).FileDataAddress +
        (get_clustno(finfo->clustno_high, finfo->clustno_low) - 2) * get_dm(vfs).ClustnoBytes) /
@@ -711,7 +711,7 @@ int changedict(char *dictname, vfs_t *vfs) {
   //.不进行处理
   //其他按照下面的方式处理
   if (strcmp(dictname, "..") != 0 && strcmp(dictname, ".") != 0) {
-    char *dict = page_malloc(255);
+    char *dict = page_alloc(255);
     strcpy(dict, dictname);
     AddVal((u32)dict, vfs->path);
   }
@@ -778,7 +778,7 @@ int attrib(char *filename, ftype type, struct vfs_t *vfs) {
 }
 void fat_InitFS(struct vfs_t *vfs, u8 disk_number) {
   vfs->cache        = malloc(sizeof(fat_cache));
-  void *boot_sector = page_malloc(512);
+  void *boot_sector = page_alloc(512);
   Disk_Read(0, 1, boot_sector, disk_number);
 
   if (memcmp(boot_sector + BS_FileSysType, "FAT12   ", 8) == 0) {

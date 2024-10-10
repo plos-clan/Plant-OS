@@ -396,7 +396,7 @@ OK:
 
   ahci_search_ports(hba_mem_address);
 
-  ahci_ports_base_addr = (u32)page_malloc(1048576);
+  ahci_ports_base_addr = (u32)page_alloc(1048576);
 
   klog("AHCI port base address has been alloced in 0x%08x!\n", ahci_ports_base_addr);
   klog("The Useable Ports:");

@@ -18,7 +18,7 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
   return;
 }
 
-void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) {
+void set_gatedesc(struct GATE_DESCRIPTOR *gd, size_t offset, int selector, int ar) {
   gd->offset_low   = offset & 0xffff;
   gd->selector     = selector;
   gd->dw_count     = (ar >> 8) & 0xff;

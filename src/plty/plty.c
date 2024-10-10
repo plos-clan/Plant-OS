@@ -310,9 +310,9 @@ static void plty_putc_raw(plty_t tty, u32 c) {
   }
   tty->cur_x += cw;
 
-  for (size_t i = tty->cur_x; i < tty->ncols; i++){
+  for (size_t i = tty->cur_x; i < tty->ncols; i++) {
     auto ptr = &tty->text[tty->cur_y * tty->ncols + i];
-    if(ptr->ch != &empty_char) break;
+    if (ptr->ch != &empty_char) break;
     ptr->ch = null;
     ptr->fg = tty->fg;
     ptr->bg = tty->bg;

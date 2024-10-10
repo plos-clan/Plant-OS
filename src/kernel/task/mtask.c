@@ -175,7 +175,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   init_task(t, alloc_tid());
 
   if (t == null) return null;
-  u32 esp_alloced = (u32)page_malloc(STACK_SIZE) + STACK_SIZE;
+  u32 esp_alloced = (u32)page_alloc(STACK_SIZE) + STACK_SIZE;
   change_page_task_id(t->tid, (void *)(esp_alloced - STACK_SIZE), STACK_SIZE);
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
   t->esp->eip  = eip;                                                // 设置跳转地址
@@ -269,7 +269,7 @@ void task_kill(u32 tid) {
   asm_cli;
   if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }
   free_pde(task->pde);
-  gc(tid); // 释放内存
+  task_free_all_pages(tid); // 释放内存
   if (task->press_key_fifo) {
     page_free(task->press_key_fifo->buf, 4096);
     free(task->press_key_fifo);
@@ -415,7 +415,7 @@ void task_exit(u32 status) {
   task->state  = DIED;
   asm_set_cr3(PDE_ADDRESS);
   free_pde(task->pde);
-  gc(tid); // 释放内存
+  task_free_all_pages(tid); // 释放内存
   if (task->press_key_fifo) {
     page_free(task->press_key_fifo->buf, 4096);
     free(task->press_key_fifo);
@@ -519,7 +519,7 @@ int task_fork() {
   int  tid   = 0;
   tid        = m->tid;
   memcpy(m, current_task(), sizeof(mtask));
-  u32 stack = (u32)page_malloc(STACK_SIZE);
+  u32 stack = (u32)page_alloc(STACK_SIZE);
   change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;
   memcpy((void *)stack, (void *)(m->top - STACK_SIZE), STACK_SIZE);
@@ -530,13 +530,13 @@ int task_fork() {
   if (current_task()->press_key_fifo) {
     m->press_key_fifo = malloc(sizeof(struct event));
     memcpy(m->press_key_fifo, current_task()->press_key_fifo, sizeof(struct event));
-    m->press_key_fifo->buf = page_malloc(4096);
+    m->press_key_fifo->buf = page_alloc(4096);
     memcpy(m->press_key_fifo->buf, current_task()->press_key_fifo->buf, 4096);
   }
   if (current_task()->release_keyfifo) {
     m->release_keyfifo = malloc(sizeof(struct event));
     memcpy(m->release_keyfifo, current_task()->release_keyfifo, sizeof(struct event));
-    m->release_keyfifo->buf = page_malloc(4096);
+    m->release_keyfifo->buf = page_alloc(4096);
     memcpy(m->release_keyfifo->buf, current_task()->release_keyfifo->buf, 4096);
   }
   if (current_task()->keyfifo) {

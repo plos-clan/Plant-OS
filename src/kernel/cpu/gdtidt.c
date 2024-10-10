@@ -16,7 +16,7 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
   sd->base_high    = (base >> 24) & 0xff;
 }
 
-void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) {
+void set_gatedesc(struct GATE_DESCRIPTOR *gd, size_t offset, int selector, int ar) {
   gd->offset_low   = offset & 0xffff;
   gd->selector     = selector;
   gd->dw_count     = (ar >> 8) & 0xff;
@@ -24,13 +24,27 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) 
   gd->offset_high  = (offset >> 16) & 0xffff;
 }
 
+static const void *handlers[256] = {
+    [0x00] = asm_error0,       [0x01] = asm_error1,  [0x03] = asm_error3,  [0x04] = asm_error4,
+    [0x05] = asm_error5,       [0x06] = asm_error6,  [0x07] = asm_error7,  [0x08] = asm_error8,
+    [0x09] = asm_error9,       [0x0a] = asm_error10, [0x0b] = asm_error11, [0x0c] = asm_error12,
+    [0x0d] = asm_error13,      [0x0e] = asm_error14, [0x10] = asm_error16, [0x11] = asm_error17,
+    [0x12]      = asm_error18,
+    [0x20]      = asm_inthandler20, // 计时器中断
+    [0x21]      = asm_inthandler21, // 键盘中断
+    [0x36]      = asm_inthandler36, // 系统API
+    [0x72]      = asm_inthandler72, // 系统API
+    [0x2c]      = asm_inthandler2c, // 鼠标中断
+    [0x20 + 14] = asm_ide_irq,      // IDE中断
+    [0x20 + 15] = asm_ide_irq,      // IDE中断
+};
+
 void init_gdtidt() {
   struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
   struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  int                        i;
 
   /* GDT初始化 */
-  for (i = 0; i <= LIMIT_GDT / 8; i++) {
+  for (int i = 0; i <= LIMIT_GDT / 8; i++) {
     set_segmdesc(gdt + i, 0, 0, 0);
   }
   set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
@@ -44,58 +58,18 @@ void init_gdtidt() {
   load_gdtr(LIMIT_GDT, ADR_GDT);                         // 加载GDT表
 
   /* IDT */
-  for (i = 0; i <= LIMIT_IDT / 8; i++) {
+  for (int i = 0; i <= LIMIT_IDT / 8; i++) {
     set_gatedesc(idt + i, 0, 0, 0);
   }
   load_idtr(LIMIT_IDT, ADR_IDT); // 加载IDT表
   /* IDT初始化*/
 
-  for (int i = 0; i < 0xff; i++) {
-    // 为了防止报#GP异常，将所有中断处理函数的地址设置为0
-    set_gatedesc(idt + i, (int)empty_inthandler, 2 * 8, AR_INTGATE32);
+#pragma unroll
+  for (size_t i = 0; i < lengthof(handlers); i++) {
+    set_gatedesc(idt + i, (size_t)handlers[i] ?: (size_t)empty_inthandler, 2 * 8, AR_INTGATE32);
   }
-  // 接下来这里是设置中断处理函数的地址
-  set_gatedesc(idt + 0x00, (int)asm_error0, 2 * 8, AR_INTGATE32); // 0x00号异常
-  set_gatedesc(idt + 0x01, (int)asm_error1, 2 * 8, AR_INTGATE32); // 0x01号异常
-  set_gatedesc(idt + 0x03, (int)asm_error3, 2 * 8, AR_INTGATE32); // 0x03号异常
-  set_gatedesc(idt + 0x04, (int)asm_error4, 2 * 8, AR_INTGATE32); // 0x04号异常
-  set_gatedesc(idt + 0x05, (int)asm_error5, 2 * 8, AR_INTGATE32); // 0x05号异常
-  set_gatedesc(idt + 0x06, (int)asm_error6, 2 * 8, AR_INTGATE32); // 0x06号异常
-  set_gatedesc(idt + 0x07, (int)asm_error7, 2 * 8, AR_INTGATE32); // 0x07号异常
-  set_gatedesc(idt + 0x08, (int)asm_error8, 2 * 8, AR_INTGATE32); // 0x08号异常
-  set_gatedesc(idt + 0x09, (int)asm_error9, 2 * 8, AR_INTGATE32); // 0x09号异常
-  set_gatedesc(idt + 0x0a, (int)asm_error10, 2 * 8,
-               AR_INTGATE32); // 0x0a号异常
-  set_gatedesc(idt + 0x0b, (int)asm_error11, 2 * 8,
-               AR_INTGATE32); // 0x0b号异常
-  set_gatedesc(idt + 0x0c, (int)asm_error12, 2 * 8,
-               AR_INTGATE32); // 0x0c号异常
-  set_gatedesc(idt + 0x0d, (int)asm_error13, 2 * 8,
-               AR_INTGATE32); // 0x0d号异常
-  set_gatedesc(idt + 0x0e, (int)asm_error14, 2 * 8,
-               AR_INTGATE32); // 0x0e号异常
-  set_gatedesc(idt + 0x10, (int)asm_error16, 2 * 8,
-               AR_INTGATE32); // 0x10号异常
-  set_gatedesc(idt + 0x11, (int)asm_error17, 2 * 8,
-               AR_INTGATE32); // 0x11号异常
-  set_gatedesc(idt + 0x12, (int)asm_error18, 2 * 8,
-               AR_INTGATE32); // 0x12号异常
-  set_gatedesc(idt + 0x20, (int)asm_inthandler20, 2 * 8,
-               AR_INTGATE32); // 计时器中断
-  set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2 * 8,
-               AR_INTGATE32); // 键盘中断
-  set_gatedesc(idt + 0x36, (int)asm_inthandler36, 2 * 8,
-               AR_INTGATE32 | 3 << 5); // 系统API
-  set_gatedesc(idt + 0x72, (int)asm_inthandler72, 2 * 8,
-               AR_INTGATE32 | 3 << 5); // 系统API
-  set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8,
-               AR_INTGATE32); // 鼠标中断
-  set_gatedesc(idt + 0x20 + 15, (int)asm_ide_irq, 2 * 8,
-               AR_INTGATE32); // IDE中断
-  set_gatedesc(idt + 0x20 + 14, (int)asm_ide_irq, 2 * 8,
-               AR_INTGATE32); // IDE中断
-  set_gatedesc(idt + 0x30, (int)asm_net_api, 2 * 8,
-               AR_INTGATE32 | 3 << 5); // NET API
+
+  set_gatedesc(idt + 0x30, (int)asm_net_api, 2 * 8, AR_INTGATE32 | 3 << 5);
 }
 
 // 注册中断处理函数

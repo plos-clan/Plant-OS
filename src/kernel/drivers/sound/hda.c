@@ -348,7 +348,7 @@ void hda_init() {
   write_pci(hda_bus, hda_slot, hda_func, 0x04,
             ((read_pci(hda_bus, hda_slot, hda_func, 0x04) & ~(1 << 10)) | (1 << 2) |
              (1 << 1))); // enable interrupts, enable bus mastering, enable MMIO space
-  hda_buffer_ptr = page_malloc(4096 * 2);
+  hda_buffer_ptr = page_alloc(4096 * 2);
   info("hda card found at bus %d slot %d func %d", hda_bus, hda_slot, hda_func);
   hda_base = read_bar_n(hda_bus, hda_slot, hda_func, 0);
   info("hda base address: 0x%x", hda_base);
