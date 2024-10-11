@@ -21,15 +21,25 @@ typedef struct font {
   rbtree_t    chars;
 } *plff_t;
 
-extern plff_t font_load(const char *filename);
-extern int    font_save(const char *filename, plff_t font);
-extern void   font_free(plff_t font);
+// plff_t font_alloc() {
+//   plff_t font = malloc(sizeof(struct font));
+//   if (font == null) return null;
+//   font->nchars   = 0;
+//   font->height   = 0;
+//   font->channels = 0;
+//   font->chars    = null;
+//   return font;
+// }
 
-extern plff_t font_ref(plff_t font);
-extern void   font_unref(plff_t font);
+plff_t font_load(const char *filename);
+int    font_save(const char *filename, plff_t font);
+void   font_free(plff_t font);
 
-dlexport plff_t plff_load_from_mem(const void *data, size_t size);
-dlexport void  *font_save_to_mem(plff_t font, size_t *size_p);
+plff_t font_ref(plff_t font);
+void   font_unref(plff_t font);
+
+plff_t plff_load_from_mem(const void *data, size_t size);
+void  *font_save_to_mem(plff_t font, size_t *size_p);
 
 finline font_char_t font_getchar(plff_t font, u32 code) {
   return rbtree_get(font->chars, (i32)code);

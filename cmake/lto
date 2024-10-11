@@ -2,4 +2,8 @@
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   add_compile_flag("-flto=16 -ffat-lto-objects")
 endif()
-add_link_flag("-Wl,-O1 -fuse-linker-plugin")
+add_link_flag("-fuse-linker-plugin")
+
+# add_link_flag("-Wl,-O1")
+add_link_flag("-Wl,-O2")
+# add_link_flag("-Wl,-O3")

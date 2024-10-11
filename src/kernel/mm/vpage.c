@@ -442,7 +442,7 @@ void *page_alloc(size_t size) {
 }
 
 void page_free(void *p, size_t size) {
-  if ((size_t)p & (PAGE_SIZE - 1) != 0) fatal("炸啦！");
+  if (((size_t)p & (PAGE_SIZE - 1)) != 0) fatal("炸啦！");
   for (size_t id = (size_t)p / PAGE_SIZE, i = 0; i < size; i += PAGE_SIZE, id++) {
     if (id >= 1024 * 1024) fatal("炸啦！");                                 // 超过最大页
     if (pages[id].count <= 1 || pages[id].task_id == current_task()->tid) { //
@@ -466,17 +466,16 @@ void set_phy_addr_of_linear_addr(void *line, void *phy) {
 
 // 映射地址
 void page_map(void *target, void *start, void *end) {
-  target  = (void *)((int)target & 0xfffff000);
-  start   = (void *)((int)start & 0xfffff000);
-  end     = (void *)((int)end & 0xfffff000);
-  u32 n   = (int)end - (int)start;
-  n      /= 4 * 1024;
-  n++;
-  for (u32 i = 0; i < n; i++) {
-    u32 tmp  = (u32)phy_addr_from_linear_addr((void *)((u32)target + i * 4 * 1024));
-    u32 tmp2 = (u32)phy_addr_from_linear_addr((void *)((u32)start + i * 4 * 1024));
-    set_phy_addr_of_linear_addr((void *)((u32)target + i * 4 * 1024), (void *)tmp2);
-    set_phy_addr_of_linear_addr((void *)((u32)start + i * 4 * 1024), (void *)tmp);
+  target   = (void *)((size_t)target & 0xfffff000);
+  start    = (void *)((size_t)start & 0xfffff000);
+  end      = (void *)((size_t)end & 0xfffff000);
+  size_t n = end - start;
+  n        = n / 4 * 1024;
+  for (u32 i = 0; i <= n; i++) {
+    var tmp1 = phy_addr_from_linear_addr(target + i * 4 * 1024);
+    var tmp2 = phy_addr_from_linear_addr(start + i * 4 * 1024);
+    set_phy_addr_of_linear_addr(target + i * 4 * 1024, tmp2);
+    set_phy_addr_of_linear_addr(start + i * 4 * 1024, tmp1);
   }
 }
 

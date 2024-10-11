@@ -4,7 +4,7 @@
  */
 #include <loader.h>
 volatile int floppy_int_count = 0;
-void         floppy_int(void);
+void         floppy_int();
 typedef struct DrvGeom {
   u8 heads;
   u8 tracks;
@@ -123,7 +123,7 @@ void reset() {
 
   dchange = 0; //清除“磁盘更改”状态（将dchange设置为false，让别的函数知道磁盘更改状态已经被清楚了）
 }
-void motoron(void) {
+void motoron() {
   if (!motor) {
     mtick = -1; /* 停止电机计时 */
     asm_out8(FDC_DOR, 0x1c);
@@ -134,12 +134,12 @@ void motoron(void) {
 }
 
 /* 关闭电机 */
-void motoroff(void) {
+void motoroff() {
   if (motor) { mtick = 13500; /* 重新初始化电机计时器 */ }
 }
 
 /* 重新校准驱动器 */
-void recalibrate(void) {
+void recalibrate() {
   /* 先启用电机 */
   motoron();
 

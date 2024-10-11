@@ -3,7 +3,7 @@
 ; GLOBAL asm_in8, asm_in16, asm_in32
 ; GLOBAL asm_out8, asm_out16, asm_out32
 GLOBAL asm_get_flags, asm_set_flags
-GLOBAL load_gdtr, load_idtr, loader_main
+GLOBAL loader_main
 EXTERN DOSLDR_MAIN                                              ; 在 loader.c 那里定义
 EXTERN flint                                                    ; 在 fdc.c 中定义
 GLOBAL memtest_sub, empty_inthandler
@@ -13,23 +13,7 @@ GLOBAL floppy_int
 %define ADR_BOTPAK 0x100000
 
 ;; definition of
-;;       void load_gdtr(int limit, int addr);
-load_gdtr:
-	MOV  AX,        [ESP + 4] ; limit
-	MOV  [ESP + 6], AX
-	LGDT [ESP + 6]
-	RET
-
-;; definition of
-;;      void load_idtr(int limit, int addr);
-load_idtr:
-	MOV  AX,        [ESP + 4] ; limit
-	MOV  [ESP + 6], AX
-	LIDT [ESP + 6]
-	RET
-
-;; definition of
-;;      void floppy_int(void);
+;;      void floppy_int();
 floppy_int:
 	cli
 	pushad

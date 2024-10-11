@@ -37,7 +37,7 @@ void Maskirq(u8 irq) {
   value = asm_in8(port) | (1 << irq);
   asm_out8(port, value);
 }
-void init_pic(void) {
+void init_pic() {
   asm_out8(PIC0_IMR, 0xff); /* 初始化，所有中断均被屏蔽 */
   asm_out8(PIC1_IMR, 0xff);
   asm_out8(PIC0_ICW1, 0x11);

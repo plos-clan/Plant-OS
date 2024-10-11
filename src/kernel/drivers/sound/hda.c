@@ -588,10 +588,10 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
   mem_set8(output_base + 0x0, 0b110);
 }
 
-void hda_stop(void) {
+void hda_stop() {
   mem_set8(output_base + 0x0, 0);
 }
-void hda_continue(void) {
+void hda_continue() {
   mem_set8(output_base + 0x0, 0b110);
 }
 u32 hda_get_bytes_sent() {

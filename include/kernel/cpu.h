@@ -44,8 +44,6 @@ typedef struct __PACKED__ fpu_regs {
   u8  regs[80];
 } fpu_regs_t;
 
-void load_gdtr(int limit, int addr);
-void load_idtr(int limit, int addr);
 void load_tr(int tr);
 
 #define SA_RPL_MASK      0xFFFC
@@ -64,10 +62,10 @@ typedef struct TSS32 {
   i32 ldtr, iomap;
 } TSS32;
 
-#define ADR_IDT      0x0026f800
-#define LIMIT_IDT    0x000007ff
-#define ADR_GDT      0x00270000
-#define LIMIT_GDT    0x0000ffff
+#define ADR_IDT      0x0026f800 // IDT 地址
+#define IDT_LEN      256
+#define ADR_GDT      0x00270000 // GDT 地址
+#define GDT_LEN      8192
 #define ADR_BOTPAK   0x100000
 #define LIMIT_BOTPAK 0x0007ffff
 #define AR_DATA32_RW 0x4092

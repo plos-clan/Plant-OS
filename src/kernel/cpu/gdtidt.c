@@ -40,13 +40,14 @@ static const void *handlers[256] = {
 };
 
 void init_gdtidt() {
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-  struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
+  var gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
+  var idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
 
-  /* GDT初始化 */
-  for (int i = 0; i <= LIMIT_GDT / 8; i++) {
+  // 初始化 GDT
+  for (int i = 0; i < GDT_LEN; i++) {
     set_segmdesc(gdt + i, 0, 0, 0);
   }
+
   set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
   set_segmdesc(gdt + 2, 0xffffffff, 0x00000000, AR_CODE32_ER);
   set_segmdesc(gdt + 3, 0xffffffff, 0x00000000, AR_DATA32_RW | 3 << 5);
@@ -55,16 +56,14 @@ void init_gdtidt() {
   set_segmdesc(gdt + 1000, 0xffffffff, 0, AR_CODE32_ER); // CODE32
   set_segmdesc(gdt + 1001, 0xfffff, 0, AR_CODE16_ER);    // CODE16
   set_segmdesc(gdt + 1002, 0xfffff, 0, AR_DATA16_RW);    // DATA16
-  load_gdtr(LIMIT_GDT, ADR_GDT);                         // 加载GDT表
+  load_gdt(gdt, GDT_LEN);                                // 加载GDT表
 
-  /* IDT */
-  for (int i = 0; i <= LIMIT_IDT / 8; i++) {
+  // 初始化 IDT
+  for (int i = 0; i < IDT_LEN; i++) {
     set_gatedesc(idt + i, 0, 0, 0);
   }
-  load_idtr(LIMIT_IDT, ADR_IDT); // 加载IDT表
-  /* IDT初始化*/
+  load_idt(idt, IDT_LEN); // 加载IDT表
 
-#pragma unroll
   for (size_t i = 0; i < lengthof(handlers); i++) {
     set_gatedesc(idt + i, (size_t)handlers[i] ?: (size_t)empty_inthandler, 2 * 8, AR_INTGATE32);
   }

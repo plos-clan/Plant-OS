@@ -1,7 +1,6 @@
 	[BITS 32]
 	section .data
 	GLOBAL asm_get_flags, asm_set_flags
-	GLOBAL load_gdtr, load_idtr
 	GLOBAL move_cursor_by_idx
 	GLOBAL memtest_sub, farjmp, farcall, start_app
 	GLOBAL load_tr
@@ -78,19 +77,7 @@ mts_nomore:
 	POP ESI
 	POP EDI
 	RET
-	
-load_gdtr:                    ; void load_gdtr(int limit, int addr);
-	MOV AX, [ESP + 4]            ; limit
-	MOV [ESP + 6], AX
-	LGDT [ESP + 6]
-	RET
-	
-load_idtr:                    ; void load_idtr(int limit, int addr);
-	MOV AX, [ESP + 4]            ; limit
-	MOV [ESP + 6], AX
-	LIDT [ESP + 6]
-	RET
-	
+
 move_cursor_by_idx:           ;移动光标
 	mov dx, 03d4h                ;03d4h是索引端口
 	mov al, 0eh                  ;内部的0eh位置存放着光标位置的高八位

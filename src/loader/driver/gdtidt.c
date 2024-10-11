@@ -27,32 +27,30 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, size_t offset, int selector, int a
   return;
 }
 
-void init_gdtidt(void) {
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-  struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  int                        i;
+void init_gdtidt() {
+  var gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
+  var idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
 
-  /* GDT初始化 */
-  for (i = 0; i <= LIMIT_GDT / 8; i++) {
+  // 初始化 GDT
+  for (int i = 0; i < GDT_LEN; i++) {
     set_segmdesc(gdt + i, 0, 0, 0);
   }
   set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
   set_segmdesc(gdt + 2, 0xffffffff, 0x00000000, AR_CODE32_ER);
   set_segmdesc(gdt + 4, 0xffffffff, 0x00000000, AR_CODE32_ER);
-  load_gdtr(LIMIT_GDT, ADR_GDT); // 加载GDT表
+  load_gdt(gdt, GDT_LEN);
 
-  /* IDT */
-  for (i = 0; i <= LIMIT_IDT / 8; i++) {
+  // 初始化 IDT
+  for (int i = 0; i < IDT_LEN; i++) {
     set_gatedesc(idt + i, 0, 0, 0);
   }
-  load_idtr(LIMIT_IDT, ADR_IDT); // 加载IDT表
-  /* IDT初始化*/
-  for (int i = 0; i < 0xff; i++) {
-    // 为了防止报#GP异常，将所有中断处理函数的地址设置为0
-    set_gatedesc(idt + i, (int)empty_inthandler, 2 * 8, AR_INTGATE32);
+  load_idt(idt, IDT_LEN); // 加载IDT表
+
+  for (size_t i = 0; i < IDT_LEN; i++) {
+    set_gatedesc(idt + i, (size_t)empty_inthandler, 2 * 8, AR_INTGATE32);
   }
-  return;
 }
+
 // 注册中断处理函数
 void register_intr_handler(int num, int addr) {
   struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;

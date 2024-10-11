@@ -1,4 +1,5 @@
 #pragma once
+#include <define.h>
 
 // HLT
 #define asm_hlt ({ asm volatile("hlt\n\t"); })
@@ -19,3 +20,19 @@
 #define asm_setreg(reg, val) ({ asm volatile("mov %0, %%" #reg "\n\t" : : "r"((size_t)(val))); })
 
 #define used_val(val) ({ asm volatile("" : "r,m"(val) : : "memory"); })
+
+finline void load_gdt(void *addr, size_t len) {
+  struct __PACKED__ {
+    u16   limit;
+    void *base;
+  } gdt_r = {(u16)(len * 8 - 1), addr};
+  asm volatile("lgdt %0\n\t" ::"m"(gdt_r));
+}
+
+finline void load_idt(void *addr, size_t len) {
+  struct __PACKED__ {
+    u16   limit;
+    void *base;
+  } idt_r = {(u16)(len * 8 - 1), addr};
+  asm volatile("lidt %0\n\t" ::"m"(idt_r));
+}
