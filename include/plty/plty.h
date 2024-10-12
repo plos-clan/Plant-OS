@@ -14,6 +14,7 @@ typedef struct plty {
   u32         nlines;             // 行数
   u16         charw, charh;       // 字符的宽高
   void       *vram;               // 显存
+  void       *backbuf;            // 后台缓冲区
   u32         width;              // 终端的宽度
   u32         height;             // 终端的高度
   plff_t      fonts[4];           // 字体
@@ -25,11 +26,14 @@ typedef struct plty {
   bool        show_cur;           // 在换行时自动刷新
   char       *input_buf;          // 输入缓冲区
   size_t      input_bufsize;      // 输入缓冲区大小
+  void (*flipbuf)();              //
 } *plty_t;
 
 plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font);
 
 void plty_free(plty_t tty);
+
+void plty_setbackbuffer(plty_t tty, void *vram, void (*flipbuf)());
 
 void plty_addfont(plty_t tty, plff_t font);
 

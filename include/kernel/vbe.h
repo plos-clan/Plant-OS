@@ -62,18 +62,22 @@ typedef struct __PACKED__ {
   u16                modeCount;
   u8                 reserved0[220];
   u8                 oemUse[256];
-  VESAModeInfo       modeList[0];
+  VESAModeInfo       modeList[];
 } VESAControllerInfo;
 
-struct VBEINFO {
-  char  res1[18];
-  i16   xsize, ysize;
-  char  res2[18];
-  void *vram;
-};
+#define VBEINFO_ADDR     0x7e00
+#define VBEMODEINFO_ADDR 0x7000
 
-#define VBEINFO_ADDRESS 0x7e00
-
-void *vbe_set_mode(int width, int height, int bpp);
+int   vbe_get_controller_info(VESAControllerInfo *addr);
+int   vbe_get_mode_info(u16 mode, VESAModeInfo *addr);
+void *vbe_set_mode(u16 mode);
+void  vbe_print_all_modes();
+int   vbe_match_mode(int width, int height, int bpp);
+void *vbe_match_and_set_mode(int width, int height, int bpp);
+int   vbe_set_buffer(int xoff, int yoff);
+int   vbe_flip();
 
 static const int screen_w = 1024, screen_h = 768;
+
+extern void *vbe_frontbuffer;
+extern void *vbe_backbuffer;

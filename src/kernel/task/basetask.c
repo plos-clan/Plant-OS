@@ -311,14 +311,31 @@ void  check_device() {
   }
   free(s);
 }
+
+void draw(int n) {
+  u32 *buf = vbe_backbuffer;
+  for (size_t y = 0; y < screen_h; y++) {
+    for (size_t x = 0; x < screen_w; x++) {
+      buf[y * screen_w + x] = (0xff8000 + x + n * 16) & 0xffffff;
+    }
+  }
+}
+
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
   check_device();
 
-  byte *vram = vbe_set_mode(screen_w, screen_h, 32);
+  byte *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
   memset(vram, 0, screen_w * screen_h * 4);
+
+#if 0
+  for (volatile size_t i = 0;; i++) {
+    draw(i);
+    vbe_flip();
+  }
+#endif
 
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);

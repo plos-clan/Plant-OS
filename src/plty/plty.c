@@ -13,6 +13,7 @@ plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
   plty_t tty         = malloc(sizeof(*tty));
   if (tty == null) return null;
   tty->vram       = vram;
+  tty->backbuf    = null;
   tty->width      = width;
   tty->height     = height;
   tty->ncols      = width / font_width;
@@ -33,6 +34,7 @@ plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
   tty->cur_bg     = tty->bg;
   tty->auto_flush = false;
   tty->show_cur   = false;
+  tty->flipbuf    = null;
   plty_clear(tty);
   return tty;
 }
@@ -40,6 +42,15 @@ plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
 void plty_free(plty_t tty) {
   free(tty->text);
   free(tty);
+}
+
+void plty_setbackbuffer(plty_t tty, void *vram, void (*flipbuf)()) {
+  if (tty == null || (vram == null) != (flipbuf == null)) return;
+  for (u32 i = 0; i < tty->ncols * tty->nlines; i++) {
+    tty->text2[i].ch = &empty_char;
+  }
+  tty->backbuf = vram;
+  tty->flipbuf = flipbuf;
 }
 
 void plty_addfont(plty_t tty, plff_t font) {
@@ -75,7 +86,7 @@ static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
   auto       bg   = _ch->bg;
   const auto ch   = _ch->ch;
   const auto cw   = ch ? (ch->advance + tty->charw - 1) / tty->charw : 1;
-  if (!force && cheq(_ch, _ch2)) return cw;
+  if (tty->backbuf == null && !force && cheq(_ch, _ch2)) return cw;
   if (force && x == tty->cur_x && y == tty->cur_y) {
     auto tmp = fg;
     fg       = bg;
@@ -115,13 +126,17 @@ static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
 }
 
 void plty_flush(plty_t tty) {
+  if (tty->backbuf != null) {
+    void *temp   = tty->vram;
+    tty->vram    = tty->backbuf;
+    tty->backbuf = temp;
+  }
   if (tty == null) return;
   for (i32 y = 0; y < tty->nlines; y++) {
     for (i32 x = 0; x < tty->ncols;) {
       x += vram_putchar(tty, x, y, false);
     }
   }
-  memcpy(tty->text2, tty->text, tty->ncols * tty->nlines * sizeof(*tty->text));
   if (tty->cur_oldx != tty->cur_x || tty->cur_oldy != tty->cur_y) {
     if (tty->show_cur) {
       vram_putchar(tty, tty->cur_oldx, tty->cur_oldy, true);
@@ -130,6 +145,11 @@ void plty_flush(plty_t tty) {
     tty->cur_oldx = tty->cur_x;
     tty->cur_oldy = tty->cur_y;
   }
+  if (tty->backbuf != null) {
+    tty->flipbuf();
+    return;
+  }
+  memcpy(tty->text2, tty->text, tty->ncols * tty->nlines * sizeof(*tty->text));
 }
 
 void plty_clear(plty_t tty) {
@@ -139,6 +159,7 @@ void plty_clear(plty_t tty) {
     tty->text[i].fg = tty->fg;
     tty->text[i].bg = tty->bg;
   }
+  if (tty->backbuf != null) return;
   for (u32 i = 0; i < tty->ncols * tty->nlines; i++) {
     tty->text2[i].ch = &empty_char;
   }
