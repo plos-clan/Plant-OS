@@ -72,6 +72,7 @@ void list_files(char *path) {
 
 int readline_getch() {
   int ch;
+  screen_flush();
   while ((ch = getch()) == 0) {}
   if (ch == -1) return PL_READLINE_KEY_UP;
   if (ch == -2) return PL_READLINE_KEY_DOWN;
@@ -172,7 +173,7 @@ void shell() {
   char         *path      = malloc(1024);
   char         *ch        = malloc(255);
   pl_readline_t n;
-  n = pl_readline_init(readline_getch, putchar, flush, handle_tab);
+  n = pl_readline_init(readline_getch, putchar, screen_flush, handle_tab);
   sprintf(path, "/");
   while (true) {
     char buf[255];

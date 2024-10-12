@@ -374,6 +374,15 @@ void putchar(int ch) {
   }
 }
 
+void screen_flush() {
+  mtask *task = current_task();
+  if (task->TTY->is_using != 1) {
+    tty_default->flush(tty_default);
+  } else {
+    task->TTY->flush(task->TTY);
+  }
+}
+
 void screen_ne() {
   mtask *task = current_task();
   if (task->TTY->is_using != 1) {
@@ -431,7 +440,6 @@ int get_ysize() {
 void print(cstr str) {
   mtask *task = current_task();
   if (task->TTY->is_using != 1) {
-
     tty_default->print(tty_default, str);
   } else {
     task->TTY->print(task->TTY, str);

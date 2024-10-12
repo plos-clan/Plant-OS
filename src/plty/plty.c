@@ -124,27 +124,27 @@ static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
   }
   return cw;
 }
-
+void klog_raw(const char *msg);
 void plty_flush(plty_t tty) {
+  if (tty == null) return;
   if (tty->backbuf != null) {
     void *temp   = tty->vram;
     tty->vram    = tty->backbuf;
     tty->backbuf = temp;
   }
-  if (tty == null) return;
   for (i32 y = 0; y < tty->nlines; y++) {
     for (i32 x = 0; x < tty->ncols;) {
       x += vram_putchar(tty, x, y, false);
     }
   }
-  if (tty->cur_oldx != tty->cur_x || tty->cur_oldy != tty->cur_y) {
-    if (tty->show_cur) {
-      vram_putchar(tty, tty->cur_oldx, tty->cur_oldy, true);
-      vram_putchar(tty, tty->cur_x, tty->cur_y, true);
-    }
-    tty->cur_oldx = tty->cur_x;
-    tty->cur_oldy = tty->cur_y;
+
+  if (tty->show_cur) {
+    vram_putchar(tty, tty->cur_oldx, tty->cur_oldy, true);
+    vram_putchar(tty, tty->cur_x, tty->cur_y, true);
   }
+  tty->cur_oldx = tty->cur_x;
+  tty->cur_oldy = tty->cur_y;
+
   if (tty->backbuf != null) {
     tty->flipbuf();
     return;
