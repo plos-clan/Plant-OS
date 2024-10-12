@@ -58,9 +58,9 @@ void init_gdtidt() {
   // 初始化 IDT
   var idt = (GateDescriptor *)IDT_ADDR;
   for (size_t i = 0; i < IDT_LEN; i++) {
-    set_gatedesc(idt + i, (size_t)handlers[i] ?: (size_t)empty_inthandler, 2 * 8, AR_INTGATE32);
+    int ar = (i >= 0x30 && handlers[i]) ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
+    set_gatedesc(idt + i, (size_t)handlers[i] ?: (size_t)empty_inthandler, 2 * 8, ar);
   }
-  set_gatedesc(idt + 0x30, (size_t)asm_net_api, 2 * 8, AR_INTGATE32 | 3 << 5);
   load_idt(idt, IDT_LEN); // 加载IDT表
 }
 
