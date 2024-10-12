@@ -3,14 +3,10 @@
 	GLOBAL asm_get_flags, asm_set_flags
 	GLOBAL move_cursor_by_idx
 	GLOBAL memtest_sub, farjmp, farcall, start_app
-	GLOBAL load_tr
-	GLOBAL get_eip, return_to_app, do_init_seg_register, entering_v86
+	GLOBAL return_to_app, do_init_seg_register, entering_v86
 str: db 'Yun Xing Ni Ma De Kernel Xiang Si Shi Bu Shi', 0
 	section .text
 	%define ADR_BOTPAK 0x0
-get_eip:                      ; int get_eip();
-	mov eax, [esp]
-	ret
 farjmp:                       ; void farjmp(int eip, int cs);
 	pushad
 	JMP FAR [ESP + 36]           ; eip, cs
@@ -21,9 +17,6 @@ farcall:                      ; void farjmp(int eip, int cs);
 	call FAR [ESP + 36]          ; eip, cs
 	popad
 	RET
-load_tr:
-	ltr [esp + 4]
-	ret
 	EXTERN clear
 	EXTERN Print_Hex
 	EXTERN Clear_A_Line

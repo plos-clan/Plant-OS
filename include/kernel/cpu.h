@@ -44,8 +44,6 @@ typedef struct __PACKED__ fpu_regs {
   u8  regs[80];
 } fpu_regs_t;
 
-void load_tr(int tr);
-
 #define SA_RPL_MASK      0xFFFC
 #define SA_TI_MASK       0xFFFB
 #define SA_TIL           4 // 设置此项，将从LDT中寻找
@@ -62,9 +60,9 @@ typedef struct TSS32 {
   i32 ldtr, iomap;
 } TSS32;
 
-#define ADR_IDT      0x0026f800 // IDT 地址
+#define IDT_ADDR     0x0026f800 // IDT 地址
 #define IDT_LEN      256
-#define ADR_GDT      0x00270000 // GDT 地址
+#define GDT_ADDR     0x00270000 // GDT 地址
 #define GDT_LEN      8192
 #define ADR_BOTPAK   0x100000
 #define LIMIT_BOTPAK 0x0007ffff
@@ -75,20 +73,20 @@ typedef struct TSS32 {
 #define AR_INTGATE32 0x008e
 #define AR_TSS32     0x0089
 
-struct SEGMENT_DESCRIPTOR {
+typedef struct SegmentDescriptor {
   i16  limit_low, base_low;
   char base_mid, access_right;
   char limit_high, base_high;
-};
+} SegmentDescriptor;
 
-struct GATE_DESCRIPTOR {
+typedef struct GateDescriptor {
   i16  offset_low, selector;
   char dw_count, access_right;
   i16  offset_high;
-};
+} GateDescriptor;
 
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar);
-void set_gatedesc(struct GATE_DESCRIPTOR *gd, size_t offset, int selector, int ar);
+void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar);
+void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar);
 
 void asm_error0();
 void asm_error1();
@@ -120,7 +118,7 @@ void asm_inthandler21();
 
 void asm_ide_irq();
 
-typedef struct {
+typedef struct regs16 {
   u16 di, si, bp, sp, bx, dx, cx, ax;
   u16 gs, fs, es, ds, eflags;
 } regs16;
@@ -133,4 +131,4 @@ void init_gdtidt();
 void fpu_disable();
 bool interrupt_disable();
 void set_interrupt_state(bool state);
-void register_intr_handler(int num, int addr);
+void regist_intr_handler(int id, void *addr);

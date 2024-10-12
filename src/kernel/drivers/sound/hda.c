@@ -378,7 +378,7 @@ void hda_init() {
   output_buffer = page_malloc_one_no_mark();
 
   irq_mask_clear(0xb);
-  register_intr_handler(0xb + 0x20, (u32)asm_hda_handler);
+  regist_intr_handler(0xb + 0x20, asm_hda_handler);
   mem_set32(hda_base + 0x20, (1 << 31) | (1 << input_stream_count));
 
   info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));

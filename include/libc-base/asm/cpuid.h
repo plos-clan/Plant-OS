@@ -19,3 +19,91 @@
     cpuid(1, eax, ebx, ecx, edx);                                                                  \
     (ebx >> 24) & 0xff;                                                                            \
   })
+
+// 获取是否支持 SSE
+
+// 可参考：https://wiki.osdev.org/SSE
+
+#define cpuid_has_sse                                                                              \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    edx & (1 << 25);                                                                               \
+  })
+
+#define cpuid_has_sse2                                                                             \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    edx & (1 << 26);                                                                               \
+  })
+
+#define cpuid_has_sse3                                                                             \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 0);                                                                                \
+  })
+
+#define cpuid_has_ssse3                                                                            \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 9);                                                                                \
+  })
+
+#define cpuid_has_sse41                                                                            \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 19);                                                                               \
+  })
+
+#define cpuid_has_sse42                                                                            \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 20);                                                                               \
+  })
+
+#define cpuid_has_sse4a                                                                            \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 6);                                                                                \
+  })
+
+#define cpuid_has_xop                                                                              \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 11);                                                                               \
+  })
+
+#define cpuid_has_fma4                                                                             \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 16);                                                                               \
+  })
+
+#define cpuid_has_cvt16                                                                            \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 29);                                                                               \
+  })
+
+#define cpuid_has_avx                                                                              \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ecx & (1 << 28);                                                                               \
+  })
+
+#define cpuid_has_avx2                                                                             \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(7, eax, ebx, ecx, edx);                                                                  \
+    ebx & (1 << 5);                                                                                \
+  })

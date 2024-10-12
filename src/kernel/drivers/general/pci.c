@@ -89,8 +89,7 @@ void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func) {
   u8          *pci_drive = pci_addr_base;
   for (;; pci_drive += 0x110 + 4) {
     if (pci_drive[0] == 0xff) {
-      struct pci_config_space_public *pci_config_space_puclic;
-      pci_config_space_puclic = (struct pci_config_space_public *)(pci_drive + 0x0c);
+      var pci_config_space_puclic = (struct pci_config_space_public *)(pci_drive + 0x0c);
       if (pci_config_space_puclic->VendorID == vendor_id &&
           pci_config_space_puclic->DeviceID == device_id) {
         *bus  = pci_drive[1];

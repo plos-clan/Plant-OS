@@ -74,6 +74,6 @@ struct VBEINFO {
 
 #define VBEINFO_ADDRESS 0x7e00
 
-void *set_mode(int width, int height, int bpp);
+void *vbe_set_mode(int width, int height, int bpp);
 
 static const int screen_w = 1024, screen_h = 768;

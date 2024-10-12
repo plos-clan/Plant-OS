@@ -163,7 +163,7 @@ void sb16_init() {
   sb.use_task = null;
   sb.status   = STAT_OFF;
   irq_mask_clear(SB16_IRQ);
-  register_intr_handler(SB16_IRQ + 0x20, (u32)asm_sb16_handler);
+  regist_intr_handler(SB16_IRQ + 0x20, asm_sb16_handler);
 }
 
 static void sb_reset() {

@@ -36,3 +36,7 @@ finline void load_idt(void *addr, size_t len) {
   } idt_r = {(u16)(len * 8 - 1), addr};
   asm volatile("lidt %0\n\t" ::"m"(idt_r));
 }
+
+finline void load_tr(size_t selector) {
+  asm volatile("ltr %0\n\t" : : "m"(selector));
+}

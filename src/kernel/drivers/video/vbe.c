@@ -78,7 +78,7 @@ void get_all_mode() {
   }
 }
 
-void *set_mode(int width, int height, int bpp) {
+void *vbe_set_mode(int width, int height, int bpp) {
   regs16 regs = {.ax = 0x4f00, .es = 0x07e0, .di = 0x0000};
   asm16_int(0x10, &regs);
 

@@ -316,11 +316,10 @@ void init() {
   printf("Hello Plant-OS!\n");
   check_device();
 
-  // klogd("Set Mode");
-
-  byte *vram = set_mode(screen_w, screen_h, 32);
+  byte *vram = vbe_set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
   memset(vram, 0, screen_w * screen_h * 4);
+
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   vdisk vd;
@@ -341,10 +340,10 @@ void init() {
   vram_addr = vram;
 
   auto font1 = load_font("/fatfs1/font1.plff");
-  // auto font2 = load_font("/fatfs1/font2.plff");
+  auto font2 = load_font("/fatfs1/font2.plff");
 
   auto tty = plty_alloc(vram, screen_w, screen_h, font1);
-  // plty_addfont(tty, font2);
+  plty_addfont(tty, font2);
 
   plty_set_default(tty);
 
@@ -372,7 +371,7 @@ void init() {
   //   }
   // }
 
-  extern void sound_test();
+  // extern void sound_test();
 
   // extern void init_sound_mixer();
   // extern void sound_mixer_task();

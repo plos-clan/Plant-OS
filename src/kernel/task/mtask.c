@@ -1,7 +1,9 @@
 // This code is released under the MIT License
 
 #include <kernel.h>
+
 #pragma clang optimize off
+
 #define STACK_SIZE 1024 * 1024
 
 void free_pde(u32 addr);
@@ -209,14 +211,6 @@ mtask *get_task(u32 tid) {
   return task;
 }
 
-// enum {
-//   THREAD_IDLE,    // 线程被创建但未运行
-//   THREAD_RUNNING, // 线程正在运行
-//   THREAD_WAITING, // 线程正在等待被调度
-//   THREAD_STOPPED, // 线程已暂停
-//   THREAD_DEAD,    // 线程已结束
-// };
-
 void task_to_user_mode(u32 eip, u32 esp) {
   u32 addr = (u32)mtask_current->top;
 
@@ -307,7 +301,7 @@ void into_mtask() {
   asm volatile("fninit");
   asm volatile("fnsave (%%eax) \n" ::"a"(&public_fpu));
   fpu_disable();
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
+  SegmentDescriptor *gdt = (SegmentDescriptor *)GDT_ADDR;
   memset(&tss, 0, sizeof(tss));
   tss.ss0 = 1 * 8;
   set_segmdesc(gdt + 103, 103, (int)&tss, AR_TSS32);

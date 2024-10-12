@@ -12,16 +12,17 @@ static const byte PAGE_PORT[8]  = {0x87, 0x83, 0x81, 0x82, 0x8F, 0x8B, 0x89, 0x8
 static const byte ADDR_PORT[8]  = {0x00, 0x02, 0x04, 0x06, 0xC0, 0xC4, 0xC8, 0xCC};
 static const byte COUNT_PORT[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
-void dma_start(byte mode, byte channel, void *address, uint length, bool is_16bit) {
+void dma_start(byte mode, byte channel, void *address, size_t size, bool is_16bit) {
   mode |= (channel % 4); // What the fuck ???
                          // 这什么奇葩标准
 
   if ((channel > 4) != is_16bit) fatal("貌似 16 位通道是 4 以上的");
+  if (is_16bit && size % 2 != 0) fatal("16 位模式下大小必须为 2 byte 的整数倍");
 
   size_t addr   = (size_t)address;
   byte   page   = addr >> 16;
   u16    offset = (is_16bit ? addr / 2 : addr);
-  length        = (is_16bit ? length / 2 : length) - 1;
+  size          = (is_16bit ? size / 2 : size) - 1;
 
   // 我们不想别的事情来打扰
   asm_cli;
@@ -44,8 +45,8 @@ void dma_start(byte mode, byte channel, void *address, uint length, bool is_16bi
   asm_out8(ADDR_PORT[channel], HIGH_BYTE(offset));
 
   // 发送数据的长度 跟之前一样，先发送低八位，再发送高八位
-  asm_out8(COUNT_PORT[channel], LOW_BYTE(length));
-  asm_out8(COUNT_PORT[channel], HIGH_BYTE(length));
+  asm_out8(COUNT_PORT[channel], LOW_BYTE(size));
+  asm_out8(COUNT_PORT[channel], HIGH_BYTE(size));
 
   // 现在我们该做的东西已经全部做完了，所以启用DMA_channel
   asm_out8(MASK_REG[channel], (channel % 4));

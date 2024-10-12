@@ -69,8 +69,8 @@ void floppy_init() {
     return;
   }
   //设置软盘驱动器的中断服务程序
-  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  set_gatedesc(idt + 0x26, (int)floppy_int, 4 * 8, AR_INTGATE32);
+  GateDescriptor *idt = (GateDescriptor *)IDT_ADDR;
+  set_gatedesc(idt + 0x26, (size_t)floppy_int, 4 * 8, AR_INTGATE32);
   ClearMaskIrq(0x6); //清除IRQ6的中断
   klogf("FLOPPY DISK:RESETING\n");
   reset(); //重置软盘驱动器

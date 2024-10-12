@@ -1,10 +1,10 @@
+#include <loader.h>
 
 // GDTIDT的初始化
-//  Copyright (C) 2021-2022 zhouzhihao & min0911_
-//  ------------------------------------------------
-#include <loader.h>
+
 void empty_inthandler();
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
+
+void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
     limit /= 0x1000;
@@ -18,7 +18,7 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
   return;
 }
 
-void set_gatedesc(struct GATE_DESCRIPTOR *gd, size_t offset, int selector, int ar) {
+void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
   gd->offset_low   = offset & 0xffff;
   gd->selector     = selector;
   gd->dw_count     = (ar >> 8) & 0xff;
@@ -28,8 +28,8 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, size_t offset, int selector, int a
 }
 
 void init_gdtidt() {
-  var gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-  var idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
+  var gdt = (SegmentDescriptor *)GDT_ADDR;
+  var idt = (GateDescriptor *)IDT_ADDR;
 
   // 初始化 GDT
   for (int i = 0; i < GDT_LEN; i++) {
@@ -41,18 +41,8 @@ void init_gdtidt() {
   load_gdt(gdt, GDT_LEN);
 
   // 初始化 IDT
-  for (int i = 0; i < IDT_LEN; i++) {
-    set_gatedesc(idt + i, 0, 0, 0);
-  }
-  load_idt(idt, IDT_LEN); // 加载IDT表
-
   for (size_t i = 0; i < IDT_LEN; i++) {
     set_gatedesc(idt + i, (size_t)empty_inthandler, 2 * 8, AR_INTGATE32);
   }
-}
-
-// 注册中断处理函数
-void register_intr_handler(int num, int addr) {
-  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  set_gatedesc(idt + num, addr, 2 * 8, AR_INTGATE32);
+  load_idt(idt, IDT_LEN); // 加载IDT表
 }

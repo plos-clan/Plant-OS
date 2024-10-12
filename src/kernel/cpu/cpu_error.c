@@ -1,5 +1,7 @@
 #include <kernel.h>
 
+// TODO 重构
+
 int  DisableExpFlag = 0;
 u32  CatchEIP       = 0;
 char flagOfexp      = 0;

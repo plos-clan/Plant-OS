@@ -3,7 +3,7 @@
 #include <libc-base.h>
 
 // 在 32 位下支持 64 位整数除法
-#ifdef __i686__
+#if NO_STD && defined __i686__
 
 dlexport void __udivmoddi4(u64 a, u64 b, u64 *_c, u64 *_d) {
   u64 c    = 0;

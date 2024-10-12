@@ -50,12 +50,69 @@ typedef struct vsound {
   size_t          bufsize;          // 每个缓冲区大小
 } *vsound_t;
 
+/**
+ * \brief 注册音频设备
+ *
+ * \param device 要注册的音频设备
+ * \return 注册是否成功
+ */
 bool vsound_regist(vsound_t device);
+
+/**
+ * \brief 设置音频设备支持的格式
+ *
+ * \param device 音频设备
+ * \param fmt 支持的格式
+ * \return 设置是否成功
+ */
 bool vsound_set_supported_fmt(vsound_t device, i16 fmt);
+
+/**
+ * \brief 设置音频设备支持的采样率
+ *
+ * \param device 音频设备
+ * \param rate 支持的采样率
+ * \return 设置是否成功
+ */
 bool vsound_set_supported_rate(vsound_t device, i32 rate);
+
+/**
+ * \brief 设置音频设备支持的通道数
+ *
+ * \param device 音频设备
+ * \param ch 支持的通道数
+ * \return 设置是否成功
+ */
 bool vsound_set_supported_ch(vsound_t device, i16 ch);
+
+/**
+ * \brief 设置音频设备支持的多种格式
+ *
+ * \param device 音频设备
+ * \param fmts 支持的格式数组
+ * \param len 数组长度
+ * \return 设置是否成功
+ */
 bool vsound_set_supported_fmts(vsound_t device, const i16 *fmts, ssize_t len);
+
+/**
+ * \brief 设置音频设备支持的多种采样率
+ *
+ * \param device 音频设备
+ * \param rates 支持的采样率数组
+ * \param len 数组长度
+ * \return 设置是否成功
+ */
 bool vsound_set_supported_rates(vsound_t device, const i32 *rates, ssize_t len);
+
+/**
+ * \brief 设置音频设备支持的多种通道数
+ *
+ * \param device 音频设备
+ * \param chs 支持的通道数数组
+ * \param len 数组长度
+ * \return 设置是否成功
+ */
 bool vsound_set_supported_chs(vsound_t device, const i16 *chs, ssize_t len);
 
 void vsound_addbuf(vsound_t device, void *buf);
