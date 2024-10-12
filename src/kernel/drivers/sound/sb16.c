@@ -104,7 +104,7 @@ static void sb16_do_dma() {
   }
 
   byte mode = (sb.auto_mode ? 16 : 0) | 0x48; // 0x48 为播放 0x44 为录音
-  dma_start(mode, sb.dma_channel, sb.addr2, dmasize, sb.depth == 16);
+  dma_start(mode, sb.dma_channel, sb.addr2, dmasize);
   if (sb.auto_mode) {
     sb_send(sb.depth == 8 ? CMD_AUTO_OUT8 : CMD_AUTO_OUT16);
   } else {
@@ -284,7 +284,7 @@ static int sb16_start_dma(vsound_t vsound, void *addr) {
   }
 
   byte mode = (sb.auto_mode ? 16 : 0) | 0x48; // 0x48 为播放 0x44 为录音
-  dma_start(mode, sb.dma_channel, addr, dmasize, sb.depth == 16);
+  dma_start(mode, sb.dma_channel, addr, dmasize);
   if (sb.auto_mode) {
     sb_send(sb.depth == 8 ? CMD_AUTO_OUT8 : CMD_AUTO_OUT16);
   } else {
