@@ -5,7 +5,7 @@ qemu-system-i386 \
   -serial stdio \
   -device sb16 -device intel-hda -device hda-micro \
   -device floppy,drive=fda -drive id=fda,if=none,format=raw,file=disk.img \
-  -drive id=hda,if=none,format=raw,file=hd.img \
+  -device ide-hd,drive=hda,bus=ide.0 -drive id=hda,if=none,format=raw,file=hd.img \
   -boot a \
   -m 256 \
   $*
