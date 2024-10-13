@@ -138,7 +138,7 @@ static void sb16_do_close() {
 
 static vsound_t snd;
 
-void sb16_handler(int *esp) {
+void sb16_handler() {
   send_eoi(SB16_IRQ);
 
   asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);

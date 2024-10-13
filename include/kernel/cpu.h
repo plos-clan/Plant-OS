@@ -108,7 +108,6 @@ void asm_error17();
 void asm_error18();
 
 void asm_inthandler36() __attr(naked);
-void asm_inthandler72() __attr(naked);
 
 void asm_gui_api();
 void asm_net_api();

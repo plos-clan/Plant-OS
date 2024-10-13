@@ -1,6 +1,5 @@
 #include <kernel.h>
 
-void empty_inthandler();
 void ide_irq();
 
 void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
@@ -24,6 +23,12 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
   gd->offset_high  = (offset >> 16) & 0xffff;
 }
 
+void empty_inthandler() __attr(naked);
+
+void empty_inthandler() {
+  asm volatile("iret\n\t");
+}
+
 static const void *handlers[IDT_LEN] = {
     [0x00] = asm_error0,       [0x01] = asm_error1,  [0x03] = asm_error3,  [0x04] = asm_error4,
     [0x05] = asm_error5,       [0x06] = asm_error6,  [0x07] = asm_error7,  [0x08] = asm_error8,
@@ -33,7 +38,6 @@ static const void *handlers[IDT_LEN] = {
     [0x20]      = asm_inthandler20, // 计时器中断
     [0x21]      = asm_inthandler21, // 键盘中断
     [0x36]      = asm_inthandler36, // 系统API
-    [0x72]      = asm_inthandler72, // 系统API
     [0x2c]      = asm_inthandler2c, // 鼠标中断
     [0x20 + 14] = asm_ide_irq,      // IDE中断
     [0x20 + 15] = asm_ide_irq,      // IDE中断

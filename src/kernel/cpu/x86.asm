@@ -4,7 +4,7 @@
 	GLOBAL move_cursor_by_idx
 	GLOBAL memtest_sub, farjmp, farcall, start_app
 	GLOBAL return_to_app, do_init_seg_register, entering_v86
-str: db 'Yun Xing Ni Ma De Kernel Xiang Si Shi Bu Shi', 0
+
 	section .text
 	%define ADR_BOTPAK 0x0
 farjmp:                       ; void farjmp(int eip, int cs);

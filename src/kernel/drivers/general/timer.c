@@ -30,8 +30,7 @@ void init_pit() {
 }
 
 struct TIMER *timer_alloc() {
-  int i;
-  for (i = 0; i < MAX_TIMER; i++) {
+  for (int i = 0; i < MAX_TIMER; i++) {
     if (timerctl.timers0[i].flags == 0) {
       timerctl.timers0[i].flags  = TIMER_FLAGS_ALLOC;
       timerctl.timers0[i].waiter = NULL;
