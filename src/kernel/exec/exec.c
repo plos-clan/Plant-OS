@@ -292,7 +292,7 @@ int os_execute(char *filename, char *line) {
 
   klogd("execute: %s %s", filename, line);
 
-  mtask *t = create_task((u32)task_app, 0, 1, 1);
+  mtask *t = create_task(task_app, 1, 1);
   // 轮询
   t->train = 0;
 
@@ -345,7 +345,7 @@ int os_execute(char *filename, char *line) {
 }
 
 int os_execute_shell(char *line) {
-  mtask *t                  = create_task((u32)task_shell, 0, 1, 1);
+  mtask *t                  = create_task(task_shell, 1, 1);
   t->train                  = 1;
   int old                   = current_task()->sigint_up;
   current_task()->sigint_up = 0;
@@ -368,7 +368,7 @@ int os_execute_shell(char *line) {
 }
 
 void os_execute_no_ret(char *filename, char *line) {
-  mtask      *t          = create_task((u32)task_app, 0, 1, 1);
+  mtask      *t          = create_task(task_app, 1, 1);
   struct tty *tty_backup = current_task()->TTY;
   t->TTY                 = current_task()->TTY;
   current_task()->TTY    = NULL;

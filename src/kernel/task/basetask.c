@@ -296,8 +296,6 @@ void stdout_write(int drive, u8 *buffer, u32 number, u32 lba) {
   }
 }
 
-void *vram_addr;
-
 char *GetSVGACharOEMString();
 bool  is_vbox = false;
 void  check_device() {
@@ -317,7 +315,7 @@ void draw(int n) {
   u32 *buf = vbe_backbuffer;
   for (size_t y = 0; y < screen_h; y++) {
     for (size_t x = 0; x < screen_w; x++) {
-      buf[y * screen_w + x] = (0xff8000 + x + n * 16) & 0xffffff;
+      buf[y * screen_w + x] = (0xff8000 + x + n) & 0xffffff;
     }
   }
 }
@@ -354,8 +352,6 @@ void init() {
 
   vfs_mkdir("/fatfs1");
   vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
-
-  vram_addr = vram;
 
   auto font1 = load_font("/fatfs1/font1.plff");
   auto font2 = load_font("/fatfs1/font2.plff");
@@ -396,12 +392,11 @@ void init() {
   // extern void sound_test1();
   // extern void sound_test2();
   // init_sound_mixer();
-  create_task((u32)idle_loop, 0, 1, 1);
-  create_task((u32)shell, 0, 1, 1);
-  // create_task((u32)sound_test, 0, 1, 1);
-  // create_task((u32)sound_mixer_task, 0, 1, 1);
-  // create_task((u32)sound_test1, 0, 1, 1);
-  // create_task((u32)sound_test2, 0, 1, 1);
+  create_task(shell, 1, 1);
+  // create_task(sound_test, 1, 1);
+  // create_task(sound_mixer_task, 1, 1);
+  // create_task(sound_test1, 1, 1);
+  // create_task(sound_test2, 1, 1);
 
   infinite_loop task_next();
 }

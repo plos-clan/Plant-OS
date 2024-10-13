@@ -95,8 +95,6 @@ void sound_test() {
 #  include <audio.h>
 #  include <sound.h>
 
-extern void *vram_addr;
-
 finline f32 my_sqrt(f32 x) {
   f32 guess = .6;
   for (size_t i = 0; i < 16; i++) {
@@ -109,7 +107,7 @@ static void draw(f32 *block, size_t len, void *userdata) {
   static int x = 0;
   struct __PACKED__ {
     byte b, g, r, a;
-  } *const buf = vram_addr;
+  } *const buf = vbe_frontbuffer;
   for (int y = 0; y < screen_h; y++) {
     int i    = y * screen_w + x;
     int k    = my_sqrt(1 - y / (f32)screen_h) * len / 2;

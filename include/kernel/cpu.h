@@ -60,7 +60,8 @@ typedef struct TSS32 {
   i32 ldtr, iomap;
 } TSS32;
 
-#define IDT_ADDR     0x0026f800 // IDT 地址
+#define IDT_ADDR 0x0026f800 // IDT 地址
+
 #define IDT_LEN      256
 #define GDT_ADDR     0x00270000 // GDT 地址
 #define GDT_LEN      8192

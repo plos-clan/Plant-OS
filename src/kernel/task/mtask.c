@@ -172,7 +172,7 @@ finline int alloc_tid() {
   return next_tid++;
 }
 
-mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
+mtask *create_task(void *func, u32 ticks, u32 floor) {
   mtask *t = malloc(sizeof(*t));
   init_task(t, alloc_tid());
 
@@ -180,7 +180,7 @@ mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
   u32 esp_alloced = (u32)page_alloc(STACK_SIZE) + STACK_SIZE;
   change_page_task_id(t->tid, (void *)(esp_alloced - STACK_SIZE), STACK_SIZE);
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
-  t->esp->eip  = eip;                                                // 设置跳转地址
+  t->esp->eip  = (size_t)func;                                       // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
   if (mtask_current == NULL) {
     asm_cli;
@@ -306,8 +306,8 @@ void into_mtask() {
   tss.ss0 = 1 * 8;
   set_segmdesc(gdt + 103, 103, (int)&tss, AR_TSS32);
   load_tr(103 * 8);
-  idle_task = create_task((u32)idle_loop, 0, 1, 3);
-  create_task((u32)init, 0, 5, 1);
+  idle_task = create_task(idle_loop, 1, 3);
+  create_task(init, 5, 1);
   asm_set_em, asm_set_ts, asm_set_ne;
   task_start(task_by_id(0));
 }
