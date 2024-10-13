@@ -222,10 +222,8 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
   vdisk vd;
   for (int i = 0; i < 4; i++)
     if (ide_devices[i].Reserved == 1) {
-      info(" %d Found %s Drive %dMB - %s\n", i,
-           (const char *[]){"ATA", "ATAPI"}[ide_devices[i].Type], /* Type */
-           ide_devices[i].Size / 1024 / 2,                        /* Size */
-           ide_devices[i].Model);
+      info("%d Found %s Drive %dMB - %s", i, ide_devices[i].Type ? "ATAPI" : "ATA",
+           ide_devices[i].Size / 1024 / 2, ide_devices[i].Model);
       sprintf(vd.DriveName, "ide%d", i);
       if (ide_devices[i].Type == IDE_ATAPI) {
         vd.flag = 2;
@@ -239,7 +237,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       vd.sector_size   = vd.flag == 2 ? 2048 : 512;
       int c            = register_vdisk(vd);
       drive_mapping[c] = i;
-      info("disk %c detected", c);
+      info("disk %d detected", c);
     }
 }
 u8 ide_read(u8 channel, u8 reg) {

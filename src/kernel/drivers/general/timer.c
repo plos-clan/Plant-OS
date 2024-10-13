@@ -132,6 +132,9 @@ void inthandler20(int cs, int *esp) {
   }
   timerctl.t0   = timer;
   timerctl.next = timer->timeout;
+
+  //
+
   asm_sti;
   if (mtask_current) task_next();
 }

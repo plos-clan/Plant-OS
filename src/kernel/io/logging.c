@@ -4,12 +4,12 @@
 
 void init_serial();
 
-void write_serial(char a);
+void serial_write(char a);
 
 void klog_raw(cstr s) {
   asm_cli;
   for (size_t i = 0; s[i] != '\0'; i++) {
-    write_serial(s[i]);
+    serial_write(s[i]);
   }
   asm_sti;
 }
@@ -22,7 +22,7 @@ void klog(cstr _rest fmt, ...) {
   vsprintf(buf, fmt, va);
   va_end(va);
   for (size_t i = 0; buf[i] != '\0'; i++) {
-    write_serial(buf[i]);
+    serial_write(buf[i]);
   }
   asm_sti;
 }
