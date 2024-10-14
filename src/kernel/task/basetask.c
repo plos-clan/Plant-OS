@@ -354,10 +354,10 @@ void init() {
   vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 
   auto font1 = load_font("/fatfs1/font1.plff");
-  auto font2 = load_font("/fatfs1/font2.plff");
+  // auto font2 = load_font("/fatfs1/font2.plff");
 
   auto tty = plty_alloc(vram, screen_w, screen_h, font1);
-  plty_addfont(tty, font2);
+  // plty_addfont(tty, font2);
 
   plty_set_default(tty);
 

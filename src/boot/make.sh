@@ -1,5 +1,8 @@
+objcopy --only-keep-debug loader.bin loader.sym
+objcopy --strip-debug loader.bin
 objcopy --only-keep-debug kernel.bin kernel.sym
 objcopy --strip-debug kernel.bin
+# 上面几步把调试信息分离，防止炸软盘
 
 qemu-img create disk.img 1474560
 mformat -f 1440 -B boot.bin -i disk.img

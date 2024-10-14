@@ -63,6 +63,8 @@
 
 #define USED __attr(used)
 
+#define __nif __attr(no_instrument_function)
+
 // __attribute__((overloadable)) 是 clang 扩展，使 C 函数可以被重载
 
 #ifdef __cplusplus
@@ -85,7 +87,7 @@
 #  define dlprotected __attr(visibility("protected"))
 #endif
 #if DEBUG
-#  define finline static
+#  define finline static __nif
 #else
-#  define finline static inline __attr(always_inline)
+#  define finline static inline __attr(always_inline) __nif
 #endif

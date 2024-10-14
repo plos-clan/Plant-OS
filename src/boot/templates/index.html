@@ -19,7 +19,7 @@
             'log-info': '#3498db',
             'log-warn': '#f39c12',
             'log-error': '#e74c3c',
-            'log-debug': '#2ecc71'
+            'log-debug': '#2ecc71',
           }
         }
       }
@@ -47,7 +47,6 @@
     }
 
     .badge-warn {
-      color: #000;
       border-color: #f39c12;
       background-color: #f1c40f;
     }
@@ -64,130 +63,224 @@
   </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen" x-data="logViewer()">
-  <div class="container mx-auto px-4 py-8">
-    <!-- <h1 class="text-3xl font-bold mb-8 text-gray-800">Log Viewer</h1> -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-white rounded-lg shadow-md p-2">
-        <div class="mb-4 border-b border-gray-200">
-          <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+<body class="bg-gray-100 min-h-screen max-h-screen px-4 py-8 flex" style="flex-direction: column;" x-data="logViewer()">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-2">
+      <div class="mb-4 border-b border-gray-200">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+          <template x-for="tab in ['types', 'files', 'funcs', 'cpus', 'threads']" :key="tab">
             <li class="mr-2" role="presentation">
               <button class="inline-block p-4 rounded-t-lg border-b-2"
-                :class="{'border-blue-600 text-blue-600': activeTab === 'types', 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300': activeTab !== 'types'}"
-                @click="activeTab = 'types'" type="button" role="tab">类型</button>
+                :class="{'border-blue-600 text-blue-600': activeTab === tab, 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300': activeTab !== tab}"
+                @click="activeTab = tab" type="button" role="tab"
+                x-text="{types: '类型', files: '文件', funcs: '函数', cpus: 'CPU', threads: '线程'}[tab]">
+              </button>
             </li>
-            <li class="mr-2" role="presentation">
-              <button class="inline-block p-4 rounded-t-lg border-b-2"
-                :class="{'border-blue-600 text-blue-600': activeTab === 'files', 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300': activeTab !== 'files'}"
-                @click="activeTab = 'files'" type="button" role="tab">文件</button>
-            </li>
-            <li class="mr-2" role="presentation">
-              <button class="inline-block p-4 rounded-t-lg border-b-2"
-                :class="{'border-blue-600 text-blue-600': activeTab === 'funcs', 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300': activeTab !== 'funcs'}"
-                @click="activeTab = 'funcs'" type="button" role="tab">函数</button>
-            </li>
-          </ul>
-        </div>
-        <div class="p-4" style="padding-top: 0;">
-          <div x-show="activeTab === 'types'" role="tabpanel">
-            <div class="flex flex-wrap">
-              <div class="badge" @click="search.type = ''; filter_logs()">
-                <span>所有</span> <span x-text="stats.total"></span>
-              </div>
-              <template x-for="(count, type) in stats.types" :key="type">
-                <div :class="['badge', 'badge-' + type.toLowerCase()]" @click="search.type = type; filter_logs()">
-                  <span x-text="type"></span> <span x-text="count"></span>
-                </div>
-              </template>
-            </div>
-          </div>
-          <div x-show="activeTab === 'files'" role="tabpanel">
-            <div class="flex flex-wrap">
-              <div class="badge" @click="search.file = ''; filter_logs()">
-                <span>所有</span> <span x-text="stats.total"></span>
-              </div>
-              <template x-for="(count, file) in stats.files" :key="file">
-                <div class="badge" @click="search.file = file; filter_logs()">
-                  <span x-text="file"></span> <span x-text="count"></span>
-                </div>
-              </template>
-            </div>
-          </div>
-          <div x-show="activeTab === 'funcs'" role="tabpanel">
-            <div class="flex flex-wrap">
-              <div class="badge" @click="search.func = ''; filter_logs()">
-                <span>所有</span> <span x-text="stats.total"></span>
-              </div>
-              <template x-for="(count, func) in stats.funcs" :key="func">
-                <div class="badge" @click="search.func = func; filter_logs()">
-                  <span x-text="func"></span> <span x-text="count"></span>
-                </div>
-              </template>
-            </div>
-          </div>
-        </div>
+          </template>
+        </ul>
       </div>
-      <div class="bg-white rounded-lg shadow-md p-6 md:col-span-2">
-        <div class="flex flex-wrap -mx-2 mb-4">
-          <div class="w-full md:w-3/4 px-2 mb-4 md:mb-0">
-            <input type="text" x-model="search.query" placeholder="从日志中搜索"
-              class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
-              @input="filter_logs()">
-          </div>
-          <div class="w-full md:w-1/4 px-2 mb-4 md:mb-0">
-            <select x-model="search.type" @change="filter_logs"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300">
-              <option value="">所有</option>
-              <template x-for="type in Object.keys(stats.types)" :key="type">
-                <option :value="type" x-text="type"></option>
+      <div class="p-4" style="padding-top: 0;">
+        <template x-if="['types', 'files', 'funcs', 'cpus', 'threads'].includes(activeTab)">
+          <div>
+            <div class="flex flex-wrap">
+              <div class="badge" @click="search[activeTab.slice(0, -1)] = ''; filter_logs()">
+                <span>所有</span>: <span x-text="stats.total"></span>
+              </div>
+              <template x-for="(count, item) in stats[activeTab]" :key="item">
+                <div :class="['badge', activeTab === 'types' ? 'badge-' + item.toLowerCase() : 'badge']"
+                  :style="activeTab === 'types' ? '' : gen_bg_and_border_color_css(item)"
+                  @click="search[activeTab.slice(0, -1)] = item; filter_logs()">
+                  <span x-text="item"></span>: <span x-text="count"></span>
+                </div>
               </template>
-            </select>
-          </div>
-        </div>
-        <div class="flex flex-wrap -mx-2 mb-4">
-          <div class="w-full md:w-1/3 px-2 mb-4 md:mb-0">
-            <input type="text" x-model="search.file" placeholder="文件"
-              class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
-              @input="filter_logs()">
-          </div>
-          <div class="w-full md:w-1/3 px-2 mb-4 md:mb-0">
-            <input type="text" x-model="search.func" placeholder="函数"
-              class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
-              @input="filter_logs()">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="bg-white rounded-lg shadow-md p-6">
-      <!-- <h2 class="text-xl font-semibold mb-4">Log Entries</h2> -->
-      <div id="logs" class="overflow-y-auto h-96">
-        <template x-for="log in filtered_logs">
-          <div :class="{
-                        'bg-log-info text-white': log.type === 'Info',
-                        'bg-log-warn text-gray-800': log.type === 'Warn',
-                        'bg-log-error text-white': log.type === 'Error',
-                        'bg-log-debug text-white': log.type === 'Debug',
-                        'bg-gray-200 text-gray-800': !['Info', 'Warn', 'Error', 'Debug'].includes(log.type)
-                    }">
-            <!-- <span class="font-semibold" x-text="'[' + log.type + ']'"></span> -->
-            <pre x-text="log.content"></pre>
+            </div>
           </div>
         </template>
       </div>
     </div>
+    <div class="bg-white rounded-lg shadow-md p-6 md:col-span-2">
+      <div class="flex flex-wrap -mx-2 mb-4">
+        <div class="w-full md:w-7/12 px-2 mb-4 md:mb-0">
+          <input type="text" x-model="search.query" placeholder="从日志中搜索"
+            class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
+            @input="filter_logs()">
+        </div>
+        <div class="w-full md:w-1/6 px-2 mb-4 md:mb-0">
+          <select x-model="search.type" @change="filter_logs"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300">
+            <option value="">所有</option>
+            <template x-for="type in Object.keys(stats.types)" :key="type">
+              <option :value="type" x-text="type"></option>
+            </template>
+          </select>
+        </div>
+        <div class="w-full md:w-1/4 px-2 mb-4 md:mb-0">
+          <div class="flex items-center w-full">
+            <div class="bg-blue-500 text-white px-3 py-2 rounded-md cursor-pointer w-1/2 text-center"
+              @click="search.and = !search.and; filter_logs()">
+              <span x-text="search.and ? '同时满足' : '任意满足'"></span>
+            </div>
+            <div class="bg-gray-500 text-white px-3 py-2 rounded-md cursor-pointer w-1/2 text-center">
+              <span>设置</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap -mx-2 mb-4">
+        <div class="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+          <input type="text" x-model="search.file" placeholder="文件"
+            class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
+            @input="filter_logs()">
+        </div>
+        <div class="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+          <input type="text" x-model="search.func" placeholder="函数"
+            class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
+            @input="filter_logs()">
+        </div>
+        <div class="w-full md:w-1/6 px-2 mb-4 md:mb-0">
+          <input type="text" x-model="search.cpu" placeholder="CPU"
+            class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
+            @input="filter_logs()">
+        </div>
+        <div class="w-full md:w-1/6 px-2 mb-4 md:mb-0">
+          <input type="text" x-model="search.thread" placeholder="线程"
+            class="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300"
+            @input="filter_logs()">
+        </div>
+      </div>
+    </div>
   </div>
+  <div class="bg-white rounded-lg shadow-md p-6 overflow-y-auto" style="flex: 1;">
+    <table>
+      <template x-for="log in filtered_logs">
+        <tr style="position: relative;">
+          <td :class="{
+                        'bg-log-info': log.type === 'Info',
+                        'bg-log-warn': log.type === 'Warn',
+                        'bg-log-error': log.type === 'Error',
+                        'bg-log-debug': log.type === 'Debug',
+                        'bg-gray-200': !['Info', 'Warn', 'Error', 'Debug'].includes(log.type)
+                    }" style="position: absolute; width: 100%; height: 100%; opacity: 0.1;"></td>
+          <template x-if="log_shown_cols.includes('time')">
+            <td style="padding: 0 0.5em;">
+              <pre x-text="fmtdatetime(log.time);"></pre>
+            </td>
+          </template>
+          <template x-if="log_shown_cols.includes('type')">
+            <td style="padding: 0 0.5em;">
+              <pre :class="{
+                        'text-log-info': log.type === 'Info',
+                        'text-log-warn': log.type === 'Warn',
+                        'text-log-error': log.type === 'Error',
+                        'text-log-debug': log.type === 'Debug',
+                        'text-gray-200': !['Info', 'Warn', 'Error', 'Debug'].includes(log.type)
+                    }" x-text="log.type"></pre>
+            </td>
+          </template>
+          <template x-if="log_shown_cols.includes('file')">
+            <td style="padding: 0 0.5em;">
+              <pre x-text="log.file" :style="gen_fg_color_css(log.file)"></pre>
+            </td>
+          </template>
+          <template x-if="log_shown_cols.includes('func')">
+            <td style="padding: 0 0.5em;">
+              <pre x-text="log.func" :style="gen_fg_color_css(log.func)"></pre>
+            </td>
+          </template>
+          <template x-if="log_shown_cols.includes('line')">
+            <td style="padding: 0 0.5em;">
+              <pre x-text="log.line"></pre>
+            </td>
+          </template>
+          <template x-if="log_shown_cols.includes('cpu')">
+            <td style="padding: 0 0.5em;">
+              <pre x-text="log.cpu"></pre>
+            </td>
+          </template>
+          <template x-if="log_shown_cols.includes('thread')">
+            <td style="padding: 0 0.5em;">
+              <pre x-text="log.thread"></pre>
+            </td>
+          </template>
+          <template x-if="log_shown_cols.includes('content')">
+            <td style="padding: 0 0.5em;">
+              <pre class="text-white" :class="{
+                        'bg-log-info': log.type === 'Info',
+                        'bg-log-warn': log.type === 'Warn',
+                        'bg-log-error': log.type === 'Error',
+                        'bg-log-debug': log.type === 'Debug',
+                        'bg-gray-200': !['Info', 'Warn', 'Error', 'Debug'].includes(log.type)
+                    }" x-text="log.content"></pre>
+            </td>
+          </template>
+        </tr>
+      </template>
+    </table>
+  </div>
+
+  <script>
+    function fmtdatetime(time) {
+      if (time < 0) return '';
+      return new Date(time * 1000).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      // return new Date(time * 1000).toLocaleString('zh-CN', {
+      //   year: 'numeric',
+      //   month: '2-digit',
+      //   day: '2-digit',
+      //   hour: '2-digit',
+      //   minute: '2-digit',
+      //   second: '2-digit',
+      // }).replace(/\//g, '-');
+    }
+  </script>
+
+  <script>
+    function gen_fg_color_css(str) {
+      const hash = Array.from(str).reduce((hash, char) => {
+        return char.charCodeAt(0) + ((hash << 5) - hash);
+      }, 0x114514);
+      const l = hash % 10 + 70;
+      const r = Math.floor(hash / 10) % 100;
+      const d = Math.floor(hash / 1000) % 360 / 180 * Math.PI;
+      const a = Math.cos(d) * r;
+      const b = Math.sin(d) * r;
+      const color = `lab(${l} ${a} ${b})`;
+      return {
+        'color': color,
+      };
+    }
+    function gen_bg_and_border_color_css(str) {
+      const hash = Array.from(str).reduce((hash, char) => {
+        return char.charCodeAt(0) + ((hash << 5) - hash);
+      }, 0x114514);
+      const l = hash % 10 + 70;
+      const r = Math.floor(hash / 10) % 100;
+      const d = Math.floor(hash / 1000) % 360 / 180 * Math.PI;
+      const a = Math.cos(d) * r;
+      const b = Math.sin(d) * r;
+      const color = `lab(${l} ${a} ${b})`;
+      return {
+        'border-color': `color-mix(in srgb, ${color}, #0003)`,
+        'background-color': color,
+      };
+    }
+  </script>
 
   <script>
     function logViewer() {
       return {
         logs: [],
         filtered_logs: [],
+        log_cols: [],
+        log_shown_cols: ['time', 'type', 'file', 'func', 'line', 'content'],
         stats: { total: 0, types: {} },
         activeTab: 'types',
-        search: { query: '', file: '', func: '', type: '' },
+        search: { and: true, query: '', file: '', func: '', type: '', cpu: '', thread: '' },
         socket: null,
         init() {
           this.socket = io();
+          this.socket.on('cols', (cols) => {
+            this.log_cols = cols;
+          });
           this.socket.on('logs', (logs) => {
             this.logs = logs;
             this.filter_logs();
@@ -199,10 +292,13 @@
         filter_logs() {
           const search = this.search;
           this.filtered_logs = this.logs.filter(log =>
-            (!search.type || log.type === search.type) &&
-            (!search.query || log.content.toLowerCase().includes(search.query.toLowerCase())) &&
-            (!search.file || log.file.toLowerCase().includes(search.file.toLowerCase())) &&
-            (!search.func || log.func.toLowerCase().includes(search.func.toLowerCase()))
+            (!search.type || log.type === search.type) +
+            (!search.query || log.content.toLowerCase().includes(search.query.toLowerCase())) +
+            (!search.file || log.file.toLowerCase().includes(search.file.toLowerCase())) +
+            (!search.func || log.func.toLowerCase().includes(search.func.toLowerCase())) +
+            (!search.cpu || log.cpu === parseInt(search.cpu)) +
+            (!search.thread || log.thread === parseInt(search.thread))
+            >= (search.and ? 6 : (1 + !search.type + !search.query + !search.file + !search.func + !search.cpu + !search.thread))
           );
         }
       }

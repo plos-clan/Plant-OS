@@ -7,47 +7,141 @@ import time
 import threading
 import eventlet
 import os
+import struct
+
+# 'Plant-OS' 'Plant-OS ext'
+LOG_TYPE = 'Plant-OS'
+
+PORT = 1234
 
 thread_event = threading.Event()
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='eventlet')
 
-logs = []
-log_stats = {'total': 0, 'types': {}, 'files': {}, 'funcs': {}}
+logs: list[dict] = []
+log_stats = {
+    'total': 0,
+    'types': {},
+    'files': {},
+    'funcs': {},
+    'cpus': {},
+    'threads': {},
+}
+lod_default_data = {
+    'time': -1,
+    'type': 'Unknown',
+    'file': 'Unknown',
+    'func': 'Unknown',
+    'line': -1,
+    'cpu': -1,
+    'thread': -1,
+    'content': '',
+}
+log_cols = [k for k in lod_default_data.keys()]
 
 
-def update_stats(log_type, log_file, log_func):
+def read(size: int):
+  data = sys.stdin.buffer.read(size)
+  if len(data) < 4: exit(0)
+  return data
+
+
+def read8():
+  return struct.unpack('b', read(1))[0]
+
+
+def read16():
+  return struct.unpack('h', read(2))[0]
+
+
+def read32():
+  return struct.unpack('i', read(4))[0]
+
+
+def read64():
+  return struct.unpack('q', read(8))[0]
+
+
+def reads():
+  return read(read32()).decode('utf-8')
+
+
+def log_update(in_data: dict):
+  data = dict(lod_default_data)
+  data.update(in_data)
+  print(data)
   log_stats['total'] += 1
-  if log_type in log_stats['types']:
-    log_stats['types'][log_type] += 1
-  else:
-    log_stats['types'][log_type] = 1
-  if log_file in log_stats['files']:
-    log_stats['files'][log_file] += 1
-  else:
-    log_stats['files'][log_file] = 1
-  if log_func in log_stats['funcs']:
-    log_stats['funcs'][log_func] += 1
-  else:
-    log_stats['funcs'][log_func] = 1
+  for key in ['type', 'file', 'func', 'cpu', 'thread']:
+    if data[key] in log_stats[f'{key}s']:
+      log_stats[f'{key}s'][data[key]] += 1
+    else:
+      log_stats[f'{key}s'][data[key]] = 1
+  logs.append(data)
+  thread_event.set()
 
 
-def read_logs():
-  while True:
-    line = sys.stdin.readline()
-    line = re.sub(r'\033\[.*?m', '', line)
-    if not line:
-      time.sleep(0.1)
-      continue
-    match = re.search(r'\[(.*?)\] *\[(.*?)\] *\[(.*?):(.*?)\]', line)
-    log_type = match.group(1).strip() if match else 'Unknown'
-    log_file = match.group(2).strip() if match else 'Unknown'
-    log_func = match.group(3).strip() if match else 'Unknown'
-    log_line = match.group(4).strip() if match else 'Unknown'
-    logs.append({'type': log_type, 'file': log_file, 'func': log_func, 'line': log_line, 'content': line.strip()})
-    update_stats(log_type, log_file, log_func)
-    thread_event.set()
+def read_log_plos():
+  line = sys.stdin.readline()
+  line = re.sub(r'\033\[.*?m', '', line)
+  if not line or not line.strip():
+    time.sleep(0.1)
+    return
+  match = re.search(r'\[(.*?)\] *\[(.*?)\] *\[(.*?):(.*?)\] *(.*)', line)
+  log_update({
+      'time': int(time.time()),
+      'type': match.group(1).strip() if match else 'Unknown',
+      'file': match.group(2).strip() if match else 'Unknown',
+      'func': match.group(3).strip() if match else 'Unknown',
+      'line': int(match.group(4).strip()) if match else -1,
+      'cpu': 0,
+      'content': match.group(5).strip(),
+  })
+
+
+# [  OK ]
+# [FALED]
+
+
+def read_log_plos_ext():
+  id = read32()
+  if id == 0:
+    log_update({
+        'time': int(time.time()),
+        'type': reads(),
+        'file': reads(),
+        'func': reads(),
+        'line': read32(),
+        'cpu': read32(),
+        'thread': read32(),
+        'content': reads(),
+    })
+    return
+
+
+def read_log_cpos():
+  line = sys.stdin.readline()
+  line = re.sub(r'\033\[.*?m', '', line)
+  if not line or not line.strip():
+    time.sleep(0.1)
+    return
+  match = re.search(r'\[(.*?)\] *\[(.*?)\] *\[(.*?):(.*?)\] *(.*)', line)
+  log_update({
+      'time': int(time.time()),
+      'type': match.group(1).strip() if match else 'Unknown',
+      'file': match.group(2).strip() if match else 'Unknown',
+      'func': match.group(3).strip() if match else 'Unknown',
+      'line': int(match.group(4).strip()) if match else -1,
+      'cpu': 0,
+      'content': match.group(5).strip(),
+  })
+
+
+read_log_funcs = {
+    'Plant-OS': read_log_plos,
+    'Plant-OS ext': read_log_plos_ext,
+    'CoolPot-OS': read_log_cpos,
+}
 
 
 @app.route('/')
@@ -65,8 +159,17 @@ def catch_all(path):
 
 @socketio.on('connect')
 def handle_connect():
+  emit('cols', log_cols)
   emit('logs', logs)
   emit('stats', log_stats)
+
+
+def read_thread():
+  while True:
+    try:
+      read_log_funcs[LOG_TYPE]()
+    except:
+      pass
 
 
 def background_thread():
@@ -79,6 +182,6 @@ def background_thread():
 
 
 if __name__ == '__main__':
-  threading.Thread(target=read_logs, daemon=True).start()
+  threading.Thread(target=read_thread, daemon=True).start()
   socketio.start_background_task(background_thread)
-  socketio.run(app, port=1234, use_reloader=False, debug=False)
+  socketio.run(app, port=PORT, use_reloader=False, debug=False)
