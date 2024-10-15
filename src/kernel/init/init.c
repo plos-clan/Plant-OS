@@ -30,7 +30,7 @@ void sysinit() {
 
   memory_init(page_alloc(128 * 1024 * 1024), 128 * 1024 * 1024);
 
-  // 可以 setmode
+  vbe_init();
 
   init_pit();
   init_tty();

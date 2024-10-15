@@ -110,3 +110,58 @@ int vbe_flip() {
   vbe_backbuffer  = temp;
   return vbe_set_buffer(now_xoff, now_yoff ? 0 : now_height);
 }
+
+int vbe_flush(const void *buf) {
+  if (vbe_backbuffer == null) return -1;
+  lgmemcpy32(vbe_backbuffer, buf, now_width * now_height);
+  return vbe_flip();
+}
+
+int vbe_clear(byte r, byte g, byte b) {
+  lgmemset32(vbe_backbuffer, r << 16 | g << 8 | b, now_width * now_height);
+  return vbe_flip();
+}
+
+typedef union PMInfoBlock {
+  struct {
+    u32  signature;       // PM Info Block Signature
+    u16  entry_point;     // Offset of PM entry point within BIOS
+    u16  pm_initialize;   //  Offset of PM initialization entry point
+    u16  bios_data_sel;   // Selector to BIOS data area emulation block
+    u16  A0000_sel;       // Selector to access A0000h physical mem
+    u16  B0000_sel;       // Selector to access B0000h physical mem
+    u16  B8000_sel;       // Selector to access B8000h physical mem
+    u16  code_seg_sel;    // Selector to access code segment as data
+    bool in_protect_mode; // Set to 1 when in protected mode
+    byte checksum;        // Checksum byte for structure
+  };
+  byte data[20];
+} PMInfoBlock;
+
+#define BIOS_ADDR ((void *)0xc0000)
+#define BIOS_SIZE ((size_t)0x8000 * 4)
+
+static void vbe_find_pminfo() {
+  void *bios_copy = malloc(BIOS_SIZE);
+  memcpy(bios_copy, BIOS_ADDR, BIOS_SIZE);
+  PMInfoBlock *info = null;
+  for (size_t i = 0; i < BIOS_SIZE - sizeof(PMInfoBlock); i++) {
+    PMInfoBlock *blk = BIOS_ADDR + i;
+    if (blk->signature != MAGIC32('P', 'M', 'I', 'D')) continue;
+    klogd("Found PMInfoBlock signature at %p", blk);
+    byte sum = 0;
+#pragma unroll
+    for (size_t i = 0; i < sizeof(*blk); i++) {
+      sum += blk->data[i];
+    }
+    if (sum != 0) continue;
+    info = blk;
+    break;
+  }
+  if (info == null) {
+    klogw("No PMInfoBlock found in BIOS");
+    return;
+  }
+}
+
+void vbe_init() {}

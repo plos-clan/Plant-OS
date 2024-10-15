@@ -70,6 +70,7 @@ def reads():
 def log_update(in_data: dict):
   data = dict(lod_default_data)
   data.update(in_data)
+  if data['time'] < 0: data['time'] = int(time.time())
   print(data)
   log_stats['total'] += 1
   for key in ['type', 'file', 'func', 'cpu', 'thread']:
@@ -89,7 +90,6 @@ def read_log_plos():
     return
   match = re.search(r'\[(.*?)\] *\[(.*?)\] *\[(.*?):(.*?)\] *(.*)', line)
   log_update({
-      'time': int(time.time()),
       'type': match.group(1).strip() if match else 'Unknown',
       'file': match.group(2).strip() if match else 'Unknown',
       'func': match.group(3).strip() if match else 'Unknown',
@@ -107,7 +107,7 @@ def read_log_plos_ext():
   id = read32()
   if id == 0:
     log_update({
-        'time': int(time.time()),
+        'time': read32(),
         'type': reads(),
         'file': reads(),
         'func': reads(),

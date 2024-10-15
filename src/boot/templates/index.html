@@ -194,12 +194,12 @@
           </template>
           <template x-if="log_shown_cols.includes('cpu')">
             <td style="padding: 0 0.5em;">
-              <pre x-text="log.cpu"></pre>
+              <pre x-text="log.cpu" :style="gen_fg_color_css(log.cpu)"></pre>
             </td>
           </template>
           <template x-if="log_shown_cols.includes('thread')">
             <td style="padding: 0 0.5em;">
-              <pre x-text="log.thread"></pre>
+              <pre x-text="log.thread" :style="gen_fg_color_css(log.thread)"></pre>
             </td>
           </template>
           <template x-if="log_shown_cols.includes('content')">
@@ -235,7 +235,7 @@
 
   <script>
     function gen_fg_color_css(str) {
-      const hash = Array.from(str).reduce((hash, char) => {
+      const hash = Array.from(`${str}`).reduce((hash, char) => {
         return char.charCodeAt(0) + ((hash << 5) - hash);
       }, 0x114514);
       const l = hash % 10 + 70;

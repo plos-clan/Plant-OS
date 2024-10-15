@@ -68,6 +68,7 @@ typedef struct __PACKED__ {
 #define VBEINFO_ADDR     0x7e00
 #define VBEMODEINFO_ADDR 0x7000
 
+void  vbe_init();
 int   vbe_get_controller_info(VESAControllerInfo *addr);
 int   vbe_get_mode_info(u16 mode, VESAModeInfo *addr);
 void *vbe_set_mode(u16 mode);
@@ -76,6 +77,8 @@ int   vbe_match_mode(int width, int height, int bpp);
 void *vbe_match_and_set_mode(int width, int height, int bpp);
 int   vbe_set_buffer(int xoff, int yoff);
 int   vbe_flip();
+int   vbe_flush(const void *buf);
+int   vbe_clear(byte r, byte g, byte b);
 
 static const int screen_w = 1024, screen_h = 768;
 

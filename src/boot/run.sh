@@ -1,6 +1,7 @@
 qemu-system-i386 \
   -smp sockets=1,cores=4,threads=2,maxcpus=8 \
   -bios seabios.bin \
+  -vga std \
   -net nic,model=pcnet -net user \
   -serial stdio \
   -device sb16 -device intel-hda -device hda-micro \
