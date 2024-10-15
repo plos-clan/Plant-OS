@@ -14,6 +14,7 @@ struct tm {
   int tm_yday;  // 一年中的第几天 [0-365]
   int tm_isdst; // 夏令时标志 (0 无夏令时, >0 有夏令时, <0 未知)
 
+  // GCC 搞啥啊
 #  ifdef __USE_MISC
   long int    tm_gmtoff; /* Seconds east of UTC.  */
   const char *tm_zone;   /* Timezone abbreviation.  */
@@ -23,8 +24,29 @@ struct tm {
 #  endif
 };
 
-time_t     mktime(struct tm *tp);
+/**
+ *\brief 将时间结构转换为时间戳
+ * 
+ *\param tp 指向时间结构的指针
+ *\return time_t 返回时间戳
+ */
+time_t mktime(struct tm *tp);
+
+/**
+ *\brief 将时间戳转换为本地时间结构
+ * 
+ *\param time 指向时间戳的指针
+ *\return struct tm* 返回指向本地时间结构的指针
+ */
 struct tm *localtime(const time_t *time);
+
+/**
+ *\brief 将时间戳转换为本地时间结构（线程安全）
+ * 
+ *\param time 指向时间戳的指针
+ *\param tp 指向存储结果的时间结构的指针
+ *\return struct tm* 返回指向本地时间结构的指针
+ */
 struct tm *localtime_r(const time_t *time, struct tm *tp);
 
 #endif
