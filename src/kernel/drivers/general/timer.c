@@ -101,6 +101,7 @@ static u32 count       = 0;
 uint64_t   global_time = 0;
 
 void inthandler20(int cs, int *esp) {
+  // klogd("*");
   // printk("CS:EIP=%04x:%08x\n",current_task()->tss.cs,esp[-10]);
   asm_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
   extern mtask *mtask_current;

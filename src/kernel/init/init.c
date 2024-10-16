@@ -18,8 +18,9 @@ void sysinit() {
   do_init_seg_register();
   memsize = memtest(0x00400000, 0xbfffffff);
   init_page();
-  IVT = page_alloc(0x10000);
-  memcpy(IVT, null, 0x10000); // 这是正确的，忽略这个 warning
+  IVT = page_alloc(0x500);
+
+  memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
   // init_gdtidt();
   init_pic();
 

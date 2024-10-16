@@ -133,6 +133,36 @@ void page_link_pde(u32 addr, u32 pde) {
   current_task()->pde = pde_backup;
   asm_set_cr3(pde_backup);
 }
+void page_link_addr_pde(u32 addr, u32 pde, u32 map_addr) {
+  u32 pde_backup      = current_task()->pde;
+  current_task()->pde = PDE_ADDRESS;
+  asm_set_cr3(PDE_ADDRESS);
+  u32 t, p;
+  t        = DIDX(addr);
+  p        = (addr >> 12) & 0x3ff;
+  u32 *pte = (u32 *)((pde + t * 4));
+
+  if (pages[IDX(*pte)].count > 1) {
+    // 这个页目录还有人引用，所以需要复制
+    pages[IDX(*pte)].count--;
+    u32 old = *pte & 0xfffff000;
+    *pte    = (u32)page_malloc_one_count_from_4gb();
+    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
+    *pte |= 7;
+  } else {
+    *pte |= 7;
+  }
+
+  u32 *physics = (u32 *)((*pte & 0xfffff000) + p * 4); // PTE页表
+  // COW
+  if (pages[IDX(*physics)].count > 1) { pages[IDX(*physics)].count--; }
+  *physics  = (u32)map_addr;
+  *physics |= 7;
+  flush_tlb((u32)pte);
+  flush_tlb(addr);
+  current_task()->pde = pde_backup;
+  asm_set_cr3(pde_backup);
+}
 
 void page_link_pde_share(u32 addr, u32 pde) {
   u32 pde_backup      = current_task()->pde;

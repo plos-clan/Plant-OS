@@ -220,7 +220,6 @@ do_init_seg_register:
 	; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 entering_v86:
 	mov ebp, esp                 ; save stack pointer
-	
 	push dword [ebp + 4]         ; ss
 	push dword [ebp + 8]         ; esp
 	pushfd                       ; eflags
@@ -228,5 +227,30 @@ entering_v86:
 	push dword [ebp + 12]        ; cs
 	push dword [ebp + 16]        ; eip
 	iret
-	[SECTION .data]
+
+bits 16
+global v86_test, v86_test_end
+v86_test:
+	xchg bx, bx
+	mov ax,0xb800
+	mov es,ax
+.1:
+	mov byte [es:0],'V'
+	mov byte [es:1],0x0f
+	mov byte [es:2],'M'
+	mov byte [es:3],0x0f
+	mov byte [es:4],'8'
+	mov byte [es:5],0x0f
+	mov byte [es:6],'0'
+	mov byte [es:7],0x0f
+	mov byte [es:8],'8'
+	mov byte [es:9],0x0f
+	mov byte [es:10],'6'
+	mov byte [es:11],0x0f
+	jmp .1
+	jmp $
+
+v86_test_end:
+
+[SECTION .data]
 testsize: dd 0

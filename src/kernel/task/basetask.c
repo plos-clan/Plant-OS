@@ -319,15 +319,38 @@ void draw(int n) {
     }
   }
 }
+void         entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
+void         v86_test();
+void         v86_test_end();
+extern TSS32 tss;
+void         v86_task() {
+
+  u32   pde   = current_task()->pde;
+  void *code  = page_malloc_one();
+  void *stack = page_malloc_one();
+  memcpy(code, v86_test, (u32)v86_test_end - (u32)v86_test);
+  page_link_addr_pde(0x2000, pde, (u32)code);
+
+  page_link_addr_pde(0x1000, pde, (u32)stack);
+  page_link_addr_pde(0x0, pde, 0x0);
+  for (int i = 0xa0000; i < 0x100000; i += 4096) {
+    page_link_addr_pde(i, pde, i);
+  }
+  tss.esp0   = current_task()->top;
+  tss.eflags = 0x202 | (1 << 17);
+  entering_v86(0x1ff, 0, 0x200, 0);
+  for (;;)
+    ;
+}
 
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
   check_device();
 
-  byte *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
-  klogd("ok vram = %p", vram);
-  memset(vram, 0, screen_w * screen_h * 4);
+  // byte *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
+  // klogd("ok vram = %p", vram);
+  // memset(vram, 0, screen_w * screen_h * 4);
 
 #if 0
   for (volatile size_t i = 0;; i++) {
@@ -350,16 +373,16 @@ void init() {
   vfs_mkdir("/dev");
   vfs_mount(NULL, vfs_open("/dev"));
 
-  vfs_mkdir("/fatfs1");
-  vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
+  // vfs_mkdir("/fatfs1");
+  // vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 
-  auto font1 = load_font("/fatfs1/font1.plff");
-  // auto font2 = load_font("/fatfs1/font2.plff");
+  // auto font1 = load_font("/fatfs1/font1.plff");
+  // // auto font2 = load_font("/fatfs1/font2.plff");
 
-  auto tty = plty_alloc(vram, screen_w, screen_h, font1);
-  // plty_addfont(tty, font2);
+  // auto tty = plty_alloc(vram, screen_w, screen_h, font1);
+  // // plty_addfont(tty, font2);
 
-  plty_set_default(tty);
+  // plty_set_default(tty);
 
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
@@ -393,6 +416,7 @@ void init() {
   // extern void sound_test2();
   // init_sound_mixer();
   create_task(shell, 1, 1);
+  create_task(v86_task, 1, 1);
   // create_task(sound_test, 1, 1);
   // create_task(sound_mixer_task, 1, 1);
   // create_task(sound_test1, 1, 1);
