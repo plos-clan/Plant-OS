@@ -13,8 +13,6 @@ int  os_execute(char *filename, char *line);
 void idle_loop() {
   infinite_loop task_next();
 }
-void insert_char(char *str, int pos, char ch);
-void delete_char(char *str, int pos);
 
 #if 0
 ssize_t input(char *ptr, size_t len) {
@@ -329,7 +327,7 @@ void init() {
   klogd("ok vram = %p", vram);
   memset(vram, 0, screen_w * screen_h * 4);
 
-#if 0
+#if 1
   for (volatile size_t i = 0;; i++) {
     draw(i);
     vbe_flip();

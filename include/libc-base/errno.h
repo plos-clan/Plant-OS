@@ -1,5 +1,7 @@
 #pragma once
 
+// C 标准的 errno
+
 #define ESUCCESS        0   //!
 #define EPERM           1   // Operation not permitted
 #define ENOENT          2   // No such file or directory

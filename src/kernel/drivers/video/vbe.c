@@ -101,7 +101,8 @@ int vbe_set_buffer(int xoff, int yoff) {
   now_xoff = xoff, now_yoff = yoff;
   regs16 r = {.ax = 0x4f07, .bx = 0x0000, .cx = xoff, .dx = yoff};
   asm16_int(0x10, &r);
-  return r.ax;
+  if (r.ax != 0x004f) kloge("Error when vbe_set_buffer");
+  return r.ax == 0x004f ? 0 : -1;
 }
 
 int vbe_flip() {
