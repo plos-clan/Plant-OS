@@ -4,7 +4,9 @@
 #define _plos_c_xtoa_buf_len 32
 extern char _plos_c_xtoa_buf[_plos_c_xtoa_buf_len];
 
+// 查找表：0123456789abcd...
 extern const char _plos_lut_alnum_lower[62];
+// 查找表：0123456789ABCD...
 extern const char _plos_lut_alnum_upper[62];
 
 // 这些函数将数字转换为字符串形式

@@ -1,6 +1,8 @@
 #pragma once
 #include "00-include.h"
 
+// 抽象的 RGB 宏
+
 #if LITTLE_ENDIAN
 #  if COLOR_READABLE_HEX
 #    define RGBA(r, g, b, a) ((u32)(u8)(r) << 24 | (u32)(u8)(g) << 16 | (u32)(u8)(b) << 8 | (u8)(a))

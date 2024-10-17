@@ -21,6 +21,12 @@
 
 #define used_val(val) ({ asm volatile("" : "r,m"(val) : : "memory"); })
 
+/**
+ *\brief 加载 GDT
+ *
+ *\param addr     GDT 地址
+ *\param len      GDT 条目数
+ */
 finline void load_gdt(void *addr, size_t len) {
   struct __PACKED__ {
     u16   limit;
@@ -29,6 +35,12 @@ finline void load_gdt(void *addr, size_t len) {
   asm volatile("lgdt %0\n\t" ::"m"(gdt_r));
 }
 
+/**
+ *\brief 加载 IDT
+ *
+ *\param addr     IDT 地址
+ *\param len      IDT 条目数
+ */
 finline void load_idt(void *addr, size_t len) {
   struct __PACKED__ {
     u16   limit;

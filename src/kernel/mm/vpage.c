@@ -236,9 +236,10 @@ void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   current_task()->pde = pde_backup;
   asm_set_cr3(pde_backup);
 }
+
 u32 page_get_alloced() {
   u32 r = 0;
-  for (int i = 0; i < PADDING_UP(memsize, PAGE_SIZE) / PAGE_SIZE; i++) {
+  for (int i = 0; i < PADDING_UP(total_mem_size, PAGE_SIZE) / PAGE_SIZE; i++) {
     if (pages[i].count) { r++; }
   }
   return r;
@@ -249,7 +250,7 @@ void page_links_pde(u32 start, u32 numbers, u32 pde) {
   int times = 0;
   u32 a[2];
   int j = 0;
-  for (i = IDX(memsize) - 1; i >= 0 && times < numbers; i--) {
+  for (i = IDX(total_mem_size) - 1; i >= 0 && times < numbers; i--) {
     if (pages[i].count == 0) {
       u32 addr         = PAGE(i);
       pages[i].task_id = get_tid(current_task());
@@ -414,7 +415,7 @@ void *page_malloc_one_mark(u32 tid) {
 }
 
 void *page_malloc_one_count_from_4gb() {
-  for (int i = IDX(memsize) - 1; i >= 0; i--) {
+  for (int i = IDX(total_mem_size) - 1; i >= 0; i--) {
     if (pages[i].count == 0) {
       u32 addr         = PAGE(i);
       pages[i].task_id = get_tid(current_task());

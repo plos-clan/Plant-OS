@@ -1,10 +1,11 @@
 #include <kernel.h>
 
 struct MOUSE_DEC mdec;
-size_t           memsize;
+size_t           total_mem_size;
 byte            *IVT;
 
 void abort() {
+  kloge("aborted");
   infinite_loop {
     asm_cli, asm_hlt;
   }
@@ -16,7 +17,7 @@ void *pci_addr_base;
 
 void sysinit() {
   do_init_seg_register();
-  memsize = memtest(0x00400000, 0xbfffffff);
+  total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_page();
   IVT = page_alloc(0x500);
 
@@ -47,10 +48,11 @@ void sysinit() {
   vdisk_init();
   vfs_init();
 
-  if (memsize < 256 * 1024 * 1024) {
+  if (total_mem_size < 256 * 1024 * 1024) {
     fatal("You should have at least 256MB memory in your pc to start Plant-OS.");
   } else {
-    info("the memory test has been passed! Your PC has %dMB memory", memsize / (1024 * 1024));
+    info("the memory test has been passed! Your PC has %dMB memory",
+         total_mem_size / (1024 * 1024));
   }
   init_keyboard();
 }

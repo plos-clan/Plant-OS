@@ -4,7 +4,7 @@
 
 dlimport bool __libc_init_mman();
 
-dlimport int main(int argc, char **argv, char **envp);
+dlimport int main(int argc, char **argv, char **envp); // lto 时如果在这边报 warning 别管
 
 void __libc_start_main() {
   int volatile argc;

@@ -51,87 +51,165 @@ typedef struct vsound {
 } *vsound_t;
 
 /**
- * \brief 注册音频设备
+ *\brief 注册音频设备
  *
- * \param device 要注册的音频设备
- * \return 注册是否成功
+ *\param device 要注册的音频设备
+ *\return 注册是否成功
  */
 bool vsound_regist(vsound_t device);
 
 /**
- * \brief 设置音频设备支持的格式
+ *\brief 设置音频设备支持的格式
  *
- * \param device 音频设备
- * \param fmt 支持的格式
- * \return 设置是否成功
+ *\param device 音频设备
+ *\param fmt 支持的格式
+ *\return 设置是否成功
  */
 bool vsound_set_supported_fmt(vsound_t device, i16 fmt);
 
 /**
- * \brief 设置音频设备支持的采样率
+ *\brief 设置音频设备支持的采样率
  *
- * \param device 音频设备
- * \param rate 支持的采样率
- * \return 设置是否成功
+ *\param device 音频设备
+ *\param rate 支持的采样率
+ *\return 设置是否成功
  */
 bool vsound_set_supported_rate(vsound_t device, i32 rate);
 
 /**
- * \brief 设置音频设备支持的通道数
+ *\brief 设置音频设备支持的通道数
  *
- * \param device 音频设备
- * \param ch 支持的通道数
- * \return 设置是否成功
+ *\param device 音频设备
+ *\param ch 支持的通道数
+ *\return 设置是否成功
  */
 bool vsound_set_supported_ch(vsound_t device, i16 ch);
 
 /**
- * \brief 设置音频设备支持的多种格式
+ *\brief 设置音频设备支持的多种格式
  *
- * \param device 音频设备
- * \param fmts 支持的格式数组
- * \param len 数组长度
- * \return 设置是否成功
+ *\param device 音频设备
+ *\param fmts 支持的格式数组
+ *\param len 数组长度
+ *\return 设置是否成功
  */
 bool vsound_set_supported_fmts(vsound_t device, const i16 *fmts, ssize_t len);
 
 /**
- * \brief 设置音频设备支持的多种采样率
+ *\brief 设置音频设备支持的多种采样率
  *
- * \param device 音频设备
- * \param rates 支持的采样率数组
- * \param len 数组长度
- * \return 设置是否成功
+ *\param device 音频设备
+ *\param rates 支持的采样率数组
+ *\param len 数组长度
+ *\return 设置是否成功
  */
 bool vsound_set_supported_rates(vsound_t device, const i32 *rates, ssize_t len);
 
 /**
- * \brief 设置音频设备支持的多种通道数
+ *\brief 设置音频设备支持的多种通道数
  *
- * \param device 音频设备
- * \param chs 支持的通道数数组
- * \param len 数组长度
- * \return 设置是否成功
+ *\param device 音频设备
+ *\param chs 支持的通道数数组
+ *\param len 数组长度
+ *\return 设置是否成功
  */
 bool vsound_set_supported_chs(vsound_t device, const i16 *chs, ssize_t len);
 
 void vsound_addbuf(vsound_t device, void *buf);
 void vsound_addbufs(vsound_t device, void *const *bufs, ssize_t len);
 
-void sb16_init();
-void sb16_regist();
-
 int vsound_played(vsound_t snd);      // 播放完一个缓冲区调用一次
 int vsound_clearbuffer(vsound_t snd); // 清空所有缓冲区
 
+/**
+ *\brief 查找声音对象
+ * 
+ *\param name 声音对象的名称
+ *\return vsound_t 返回找到的声音对象
+ */
 vsound_t vsound_find(cstr name);
-int      vsound_open(vsound_t name);
-int      vsound_close(vsound_t snd);
-int      vsound_play(vsound_t snd);
-int      vsound_pause(vsound_t snd);
-int      vsound_drop(vsound_t snd);
-int      vsound_drain(vsound_t snd);
-ssize_t  vsound_read(vsound_t snd, void *data, size_t len);
-ssize_t  vsound_write(vsound_t snd, const void *data, size_t len);
-f32      vsound_getvol(vsound_t snd);
-int      vsound_setvol(vsound_t snd, f32 vol);
+
+/**
+ *\brief 打开声音对象
+ * 
+ *\param name 声音对象
+ *\return int 成功返回0，失败返回错误码
+ */
+int vsound_open(vsound_t name);
+
+/**
+ *\brief 关闭声音对象
+ * 
+ *\param snd 声音对象
+ *\return int 成功返回0，失败返回错误码
+ */
+int vsound_close(vsound_t snd);
+
+/**
+ *\brief 播放声音对象
+ * 
+ *\param snd 声音对象
+ *\return int 成功返回0，失败返回错误码
+ */
+int vsound_play(vsound_t snd);
+
+/**
+ *\brief 暂停声音对象
+ * 
+ *\param snd 声音对象
+ *\return int 成功返回0，失败返回错误码
+ */
+int vsound_pause(vsound_t snd);
+
+/**
+ *\brief 丢弃声音对象
+ * 
+ *\param snd 声音对象
+ *\return int 成功返回0，失败返回错误码
+ */
+int vsound_drop(vsound_t snd);
+
+/**
+ *\brief 排空声音对象
+ * 
+ *\param snd 声音对象
+ *\return int 成功返回0，失败返回错误码
+ */
+int vsound_drain(vsound_t snd);
+
+/**
+ *\brief 读取声音数据
+ * 
+ *\param snd 声音对象
+ *\param data 数据缓冲区
+ *\param len 要读取的数据长度
+ *\return ssize_t 读取的数据长度，失败返回-1
+ */
+ssize_t vsound_read(vsound_t snd, void *data, size_t len);
+
+/**
+ *\brief 写入声音数据
+ * 
+ *\param snd 声音对象
+ *\param data 数据缓冲区
+ *\param len 要写入的数据长度
+ *\return ssize_t 写入的数据长度，失败返回-1
+ */
+ssize_t vsound_write(vsound_t snd, const void *data, size_t len);
+
+/**
+ *\brief 获取声音对象的音量
+ * 
+ *\param snd 声音对象
+ *\return f32 返回音量值
+ */
+f32 vsound_getvol(vsound_t snd);
+
+/**
+ *\brief 设置声音对象的音量
+ * 
+ *\param snd 声音对象
+ *\param vol 音量值
+ *\return int 成功返回0，失败返回错误码
+ */
+int vsound_setvol(vsound_t snd, f32 vol);

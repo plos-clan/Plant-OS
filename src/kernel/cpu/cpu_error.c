@@ -58,22 +58,6 @@ void SetCatchEip(u32 eip) {
   }
 }
 
-void print_32bits_ascil(u32 n);
-
-void insert_char(char *str, int pos, char ch) {
-  int i;
-  for (i = strlen(str); i >= pos; i--) {
-    str[i + 1] = str[i];
-  }
-  str[pos] = ch;
-}
-void delete_char(char *str, int pos) {
-  int i;
-  for (i = pos; i < strlen(str); i++) {
-    str[i] = str[i + 1];
-  }
-}
-
 mtask *last_fpu_task = NULL;
 void   fpu_disable() {
   asm_set_ts, asm_set_em;

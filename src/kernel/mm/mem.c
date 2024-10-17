@@ -15,7 +15,7 @@ u32 memtest(u32 start, u32 end) {
     asm_set_flags(asm_get_flags() & ~EFLAGS_AC_BIT);
   }
 
-  if (flg486) asm_set_nw, asm_set_cd;
+  if (flg486) asm_set_cd, asm_set_nw;
 
   size_t size = memtest_sub(start, end);
 
