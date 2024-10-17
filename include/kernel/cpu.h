@@ -30,6 +30,31 @@ typedef struct intr_frame_t {
   u32 ss;
 } intr_frame_t;
 
+typedef struct v86_frame_t {
+  u32 edi;
+  u32 esi;
+  u32 ebp;
+  // 虽然 pushad 把 esp 也压入，但 esp 是不断变化的，所以会被 popad 忽略
+  u32 esp_dummy;
+
+  u32 ebx;
+  u32 edx;
+  u32 ecx;
+  u32 eax;
+
+  u32 gs;
+  u32 fs;
+  u32 es;
+  u32 ds;
+
+  u32 error;
+  u32 eip;
+  u32 cs;
+  u32 eflags;
+  u32 esp;
+  u32 ss;
+} v86_frame_t;
+
 typedef struct __PACKED__ fpu_regs {
   u16 control;
   u16 RESERVED1;
@@ -53,11 +78,13 @@ typedef struct __PACKED__ fpu_regs {
 #define SA_RPL3          3
 #define GET_SEL(cs, rpl) ((cs & SA_RPL_MASK & SA_TI_MASK) | (rpl))
 
-typedef struct TSS32 {
-  i32 backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
-  i32 eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
-  i32 es, cs, ss, ds, fs, gs;
-  i32 ldtr, iomap;
+typedef struct __PACKED__ TSS32 {
+  i32     backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
+  i32     eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+  i32     es, cs, ss, ds, fs, gs;
+  i32     ldtr;
+  u16     trap, iomap;
+  uint8_t io_map[8192];
 } TSS32;
 
 #define IDT_ADDR 0x0026f800 // IDT 地址

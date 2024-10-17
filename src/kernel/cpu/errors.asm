@@ -114,21 +114,24 @@ asm_error12:
 	call ERROR12
 	iret
 asm_error13:
-	cli
-	PUSHAD
-	mov ax, ss                   ; 切fs gs
-	mov ds, ax
-	mov es, ax
-	POPAD
-	mov esi, 0xb8000
-	mov byte [esi], 'G'
-	inc esi
-	mov byte [esi], 0x0c
-	inc esi
-	mov byte [esi], 'P'
-	inc esi
-	mov byte [esi], 0x0c
-	jmp $
+	push ds
+	push es
+	push fs
+	push gs
+	pusha
+	mov ax,ss
+	mov ds,ax
+	mov es,ax
+	mov gs,ax
+	mov fs,ax
+	call ERROR13
+	popa
+	pop gs
+	pop fs
+	pop es
+	pop ds
+	add esp, 4
+	xchg bx, bx
 	iret
 	EXTERN Print_Hex
 asm_error14:

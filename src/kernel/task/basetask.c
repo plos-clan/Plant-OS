@@ -338,7 +338,12 @@ void         v86_task() {
   }
   tss.esp0   = current_task()->top;
   tss.eflags = 0x202 | (1 << 17);
-  entering_v86(0x1ff, 0, 0x200, 0);
+  memset(tss.io_map, 0, sizeof(tss.io_map));
+  tss.iomap                 = ((u32)offsetof(TSS32, io_map));
+  current_task()->v86_mode  = 1;
+  current_task()->user_mode = 1;
+  current_task()->v86_if    = 1;
+  entering_v86(0x100, 0xfff, 0x200, 0);
   for (;;)
     ;
 }
@@ -415,6 +420,7 @@ void init() {
   // extern void sound_test1();
   // extern void sound_test2();
   // init_sound_mixer();
+  screen_clear();
   create_task(shell, 1, 1);
   create_task(v86_task, 1, 1);
   // create_task(sound_test, 1, 1);

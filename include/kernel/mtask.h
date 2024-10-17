@@ -65,6 +65,8 @@ struct __PACKED__ mtask {
   u32           signal_disable;
   list_t        subtasks; // 子任务
   u64           cpu_time; // CPU 时间
+  u32           v86_mode; // 8086模式
+  u32           v86_if;   // 8086中断
 };
 
 mtask *current_task();
@@ -76,7 +78,8 @@ void   task_next();
 void   task_exit(u32 status);
 mtask *get_task(u32 tid);
 
-#define get_tid(n) ((n)->tid)
+#define get_tid(n)     ((n)->tid)
+#define offsetof(s, m) (size_t) & (((s *)0)->m)
 
 void task_fall_blocked(enum STATE state);
 void idle_loop();

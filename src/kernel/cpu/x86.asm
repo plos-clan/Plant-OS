@@ -230,26 +230,28 @@ entering_v86:
 
 bits 16
 global v86_test, v86_test_end
-v86_test:
-	xchg bx, bx
-	mov ax,0xb800
-	mov es,ax
-.1:
-	mov byte [es:0],'V'
-	mov byte [es:1],0x0f
-	mov byte [es:2],'M'
-	mov byte [es:3],0x0f
-	mov byte [es:4],'8'
-	mov byte [es:5],0x0f
-	mov byte [es:6],'0'
-	mov byte [es:7],0x0f
-	mov byte [es:8],'8'
-	mov byte [es:9],0x0f
-	mov byte [es:10],'6'
-	mov byte [es:11],0x0f
-	jmp .1
-	jmp $
 
+v86_test:
+	mov ax,cs
+	mov es,ax
+	xchg bx, bx
+	mov si,msg-v86_test
+	call printstr
+
+
+	; jmp .2
+	jmp $
+msg: db "The message is shown in V86 mode by int 10h",0
+printstr:
+	mov ah, 0x0e
+	mov al,[es:si]
+	cmp al,0
+	je .1
+	int 0x10
+	inc si
+	jmp printstr
+.1:
+	ret
 v86_test_end:
 
 [SECTION .data]
