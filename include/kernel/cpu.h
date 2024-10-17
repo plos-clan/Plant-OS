@@ -152,6 +152,7 @@ typedef struct regs16 {
 
 void asm_int32(u8 intnum, regs16 *regs);
 void asm16_int(u8 intnum, regs16 *regs);
+void v86_int(u8 intnum, regs16 *regs);
 void do_init_seg_register();
 void init_page();
 void init_gdtidt();

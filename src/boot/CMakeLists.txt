@@ -5,7 +5,7 @@ add_efi(boot efi.c -e efi_main)
 add_custom_target(
   make ALL
   COMMAND cd "${EXECUTABLE_OUTPUT_PATH}" && "${CMAKE_CURRENT_SOURCE_DIR}/make.sh"
-  DEPENDS boot loader kernel apps)
+  DEPENDS boot loader kernel apps v86_service)
 add_custom_target(
   run
   COMMAND cd "${EXECUTABLE_OUTPUT_PATH}" && "${CMAKE_CURRENT_SOURCE_DIR}/run.sh"
