@@ -4,7 +4,7 @@
 	GLOBAL move_cursor_by_idx
 	GLOBAL memtest_sub, farjmp, farcall, start_app
 	GLOBAL return_to_app, do_init_seg_register, entering_v86
-
+	
 	section .text
 	%define ADR_BOTPAK 0x0
 farjmp:                       ; void farjmp(int eip, int cs);
@@ -70,7 +70,7 @@ mts_nomore:
 	POP ESI
 	POP EDI
 	RET
-
+	
 move_cursor_by_idx:           ;移动光标
 	mov dx, 03d4h                ;03d4h是索引端口
 	mov al, 0eh                  ;内部的0eh位置存放着光标位置的高八位
@@ -227,30 +227,6 @@ entering_v86:
 	push dword [ebp + 12]        ; cs
 	push dword [ebp + 16]        ; eip
 	iret
-
-bits 16
-global v86_test, v86_test_end
-
-v86_test:
-	mov ax,cs
-	mov es,ax
-	xchg bx, bx
-	mov si,msg-v86_test
-	call printstr
-	; jmp .2
-	jmp $
-msg: db "The message is shown in V86 mode by int 10h",0
-printstr:
-	mov ah, 0x0e
-	mov al,[es:si]
-	cmp al,0
-	je .1
-	int 0x10
-	inc si
-	jmp printstr
-.1:
-	ret
-v86_test_end:
-
-[SECTION .data]
+	
+	[SECTION .data]
 testsize: dd 0

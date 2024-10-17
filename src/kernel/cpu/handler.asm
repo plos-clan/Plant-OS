@@ -4,7 +4,7 @@
 	EXTERN inthandler21, inthandler20, syscall, inthandler2c, signal_deal
 	GLOBAL asm_inthandler36, asm_inthandler2c, floppy_int, interrput_exit
 	section .text
-
+	
 asm_inthandler36:
 	push ds
 	push es
@@ -19,7 +19,7 @@ asm_inthandler36:
 	pop es
 	pop ds
 	iret
-
+	
 	extern flint
 floppy_int:
 	push ds
@@ -121,7 +121,7 @@ asm_sb16_handler:
 	pop es
 	pop ds
 	iret
-
+	
 asm_hda_handler:
 	push ds
 	push es
@@ -135,7 +135,7 @@ asm_hda_handler:
 	pop es
 	pop ds
 	iret
-
+	
 	EXTERN ide_irq, rtc_irq
 	GLOBAL asm_ide_irq
 asm_ide_irq:

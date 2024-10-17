@@ -119,11 +119,11 @@ asm_error13:
 	push fs
 	push gs
 	pusha
-	mov ax,ss
-	mov ds,ax
-	mov es,ax
-	mov gs,ax
-	mov fs,ax
+	mov ax, ss
+	mov ds, ax
+	mov es, ax
+	mov gs, ax
+	mov fs, ax
 	call ERROR13
 	popa
 	pop gs

@@ -318,9 +318,6 @@ void draw(int n) {
   }
 }
 
-void v86_test();
-void v86_test_end();
-
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
@@ -369,13 +366,6 @@ void init() {
   //   }
   // }
 
-  // extern void sound_test();
-
-  // extern void init_sound_mixer();
-  // extern void sound_mixer_task();
-  // extern void sound_test1();
-  // extern void sound_test2();
-  // init_sound_mixer();
   screen_clear();
   create_task(v86_task, 1, 1);
   check_device();
@@ -383,7 +373,22 @@ void init() {
   klogd("ok vram = %p", vram);
   memset(vram, 0, screen_w * screen_h * 4);
 
-#if 0
+#if 0 // 尝试 os-terminal 库
+  void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
+                     void (*free)(void *));
+  void terminal_destroy();
+  void terminal_flush();
+  void terminal_advance_state_single(char c);
+  void terminal_advance_state(char *s);
+  void terminal_set_auto_flush(unsigned int auto_flush);
+
+  terminal_init(screen_w, screen_h, (u32 *)vram, malloc, free);
+  terminal_set_auto_flush(true);
+
+  terminal_advance_state("Hello world!");
+#endif
+
+#if 1
   for (volatile size_t i = 0;; i++) {
     draw(i);
     vbe_flip();
@@ -397,6 +402,14 @@ void init() {
 
   plty_set_default(tty);
   create_task(shell, 1, 1);
+
+  // extern void sound_test();
+
+  // extern void init_sound_mixer();
+  // extern void sound_mixer_task();
+  // extern void sound_test1();
+  // extern void sound_test2();
+  // init_sound_mixer();
 
   // create_task(sound_test, 1, 1);
   // create_task(sound_mixer_task, 1, 1);
