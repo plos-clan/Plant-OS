@@ -132,7 +132,8 @@ void ERROR7(u32 eip) {
 #define VALID_FLAGS            0xDFF
 #define EFLAG_VM               (1 << 17)
 #define EFLAG_IF               (1 << 9)
-void ERROR13(u32 eip) {
+extern byte *IVT;
+void         ERROR13(u32 eip) {
   if (current_task()->v86_mode == 0) {
     error("fault, gp");
     syscall_exit(1);
@@ -148,7 +149,7 @@ void ERROR13(u32 eip) {
   bool      is_operand32, is_address32;
   ip           = (uint8_t *)(FP_TO_LINEAR(frame->cs, frame->eip));
   stack        = (uint16_t *)(FP_TO_LINEAR(frame->ss, frame->esp));
-  ivt          = (uint16_t *)(0x0);
+  ivt          = (uint16_t *)(IVT);
   stack32      = (uint32_t *)(FP_TO_LINEAR(frame->ss, frame->esp));
   is_operand32 = is_address32 = false;
   while (true) {
@@ -207,6 +208,11 @@ void ERROR13(u32 eip) {
 
     case 0xcd: /* INT n */
       switch (ip[1]) {
+      case 0x30:
+        // printf("int 0x30\n");
+        frame->eip += 2;
+        task_next();
+        return;
       default:
         stack      -= 3;
         frame->esp  = ((frame->esp & 0xffff) - 6) & 0xffff;
@@ -219,7 +225,6 @@ void ERROR13(u32 eip) {
           stack[2] |= EFLAG_IF;
         else
           stack[2] &= ~EFLAG_IF;
-
         frame->cs  = ivt[ip[1] * 2 + 1];
         frame->eip = ivt[ip[1] * 2];
         return;

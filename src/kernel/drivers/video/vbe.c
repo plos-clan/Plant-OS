@@ -15,33 +15,33 @@ void *vbe_backbuffer;
 #if 0
 void SwitchToText8025_BIOS() {
   regs16 regs = {.ax = 0x0003};
-  asm16_int(0x10, &regs);
+  v86_int(0x10, &regs);
 }
 
 void SwitchTo320X200X256_BIOS() {
   regs16 regs;
   regs.ax = 0x0013;
-  asm16_int(0x10, &regs);
+  v86_int(0x10, &regs);
 }
 #endif
 
 char *GetSVGACharOEMString() {
   regs16 regs = {.ax = 0x4f00, .es = 0x07e0, .di = 0x0000};
-  asm16_int(0x10, &regs);
+  v86_int(0x10, &regs);
   VESAControllerInfo *info = (VESAControllerInfo *)VBEINFO_ADDR;
   return rmfarptr2ptr(info->oemString);
 }
 
 int vbe_get_controller_info(VESAControllerInfo *addr) {
   regs16 r = {.ax = 0x4f00, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
-  asm16_int(0x10, &r);
+  v86_int(0x10, &r);
   return r.ax;
 }
 
 int vbe_get_mode_info(u16 mode, VESAModeInfo *addr) {
   mode     |= MASK(14);
   regs16 r  = {.ax = 0x4f01, .cx = mode, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
-  asm16_int(0x10, &r);
+  v86_int(0x10, &r);
   return r.ax;
 }
 
@@ -49,10 +49,10 @@ void *vbe_set_mode(u16 mode) {
   mode        |= MASK(14);
   var    addr  = (VESAModeInfo *)VBEMODEINFO_ADDR;
   regs16 r1    = {.ax = 0x4f01, .cx = mode, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
-  asm16_int(0x10, &r1);
+  v86_int(0x10, &r1);
   if (r1.ax != 0x004f) fatal("Error when vbe_set_mode");
   regs16 r2 = {.ax = 0x4f02, .bx = mode};
-  asm16_int(0x10, &r2);
+  v86_int(0x10, &r2);
   if (r2.ax != 0x004f) fatal("Error when vbe_set_mode");
   now_width       = addr->width;
   now_height      = addr->height;
@@ -100,7 +100,7 @@ void *vbe_match_and_set_mode(int width, int height, int bpp) {
 int vbe_set_buffer(int xoff, int yoff) {
   now_xoff = xoff, now_yoff = yoff;
   regs16 r = {.ax = 0x4f07, .bx = 0x0000, .cx = xoff, .dx = yoff};
-  asm16_int(0x10, &r);
+  v86_int(0x10, &r);
   if (r.ax != 0x004f) kloge("Error when vbe_set_buffer");
   return r.ax == 0x004f ? 0 : -1;
 }

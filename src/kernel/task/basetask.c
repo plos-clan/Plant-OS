@@ -147,6 +147,7 @@ void pci_list() {
 
 #include <magic.h>
 
+void        v86_task();
 static cstr filetype_from_name(cstr path) {
   auto file = vfs_open(path);
   if (file == null) return null;
@@ -239,7 +240,6 @@ void shell() {
       char *dir_name = ch + 7;
       int   ret      = vfs_unmount(dir_name);
       if (ret == -1) { printf("umount %s failed\n", dir_name); }
-
     } else {
       char       *path = exec_name_from_cmdline(ch);
       cstr        type = filetype_from_name(path);
@@ -317,50 +317,13 @@ void draw(int n) {
     }
   }
 }
-void         entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
-void         v86_test();
-void         v86_test_end();
-extern TSS32 tss;
-void         v86_task() {
 
-  u32   pde   = current_task()->pde;
-  void *code  = page_malloc_one();
-  void *stack = page_malloc_one();
-  memcpy(code, v86_test, (u32)v86_test_end - (u32)v86_test);
-  page_link_addr_pde(0x2000, pde, (u32)code);
-
-  page_link_addr_pde(0x1000, pde, (u32)stack);
-  page_link_addr_pde(0x0, pde, 0x0);
-  for (int i = 0xa0000; i < 0x100000; i += 4096) {
-    page_link_addr_pde(i, pde, i);
-  }
-  tss.esp0   = current_task()->top;
-  tss.eflags = 0x202 | (1 << 17);
-  memset(tss.io_map, 0, sizeof(tss.io_map));
-  tss.iomap                 = ((u32)offsetof(TSS32, io_map));
-  current_task()->v86_mode  = 1;
-  current_task()->user_mode = 1;
-  current_task()->v86_if    = 1;
-  entering_v86(0x100, 0xfff, 0x200, 0);
-  for (;;)
-    ;
-}
+void v86_test();
+void v86_test_end();
 
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-  check_device();
-
-  // byte *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
-  // klogd("ok vram = %p", vram);
-  // memset(vram, 0, screen_w * screen_h * 4);
-
-#if 0
-  for (volatile size_t i = 0;; i++) {
-    draw(i);
-    vbe_flip();
-  }
-#endif
 
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
@@ -376,16 +339,11 @@ void init() {
   vfs_mkdir("/dev");
   vfs_mount(NULL, vfs_open("/dev"));
 
-  // vfs_mkdir("/fatfs1");
-  // vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
+  vfs_mkdir("/fatfs1");
+  vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 
-  // auto font1 = load_font("/fatfs1/font1.plff");
-  // // auto font2 = load_font("/fatfs1/font2.plff");
-
-  // auto tty = plty_alloc(vram, screen_w, screen_h, font1);
-  // // plty_addfont(tty, font2);
-
-  // plty_set_default(tty);
+  vfs_mkdir("/fatfs2");
+  vfs_mount("/dev/floppy", vfs_open("/fatfs2"));
 
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
@@ -419,8 +377,27 @@ void init() {
   // extern void sound_test2();
   // init_sound_mixer();
   screen_clear();
-  create_task(shell, 1, 1);
   create_task(v86_task, 1, 1);
+  check_device();
+  byte *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
+  klogd("ok vram = %p", vram);
+  memset(vram, 0, screen_w * screen_h * 4);
+
+#if 0
+  for (volatile size_t i = 0;; i++) {
+    draw(i);
+    vbe_flip();
+  }
+#endif
+  auto font1 = load_font("/fatfs1/font1.plff");
+  // auto font2 = load_font("/fatfs1/font2.plff");
+
+  auto tty = plty_alloc(vram, screen_w, screen_h, font1);
+  // plty_addfont(tty, font2);
+
+  plty_set_default(tty);
+  create_task(shell, 1, 1);
+
   // create_task(sound_test, 1, 1);
   // create_task(sound_mixer_task, 1, 1);
   // create_task(sound_test1, 1, 1);
