@@ -26,15 +26,16 @@ static char eos[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'f', 'J', 'K', 'S',
 // end of string,
 // vt100控制字符中可能的结束符号
 
-finline int t_isdigit(int c) {
+finline bool t_isdigit(int c) {
   return (c >= '0' && c <= '9');
 }
 
-finline int t_is_eos(char ch) {
-  for (int i = 0; i < sizeof(eos); i++) {
-    if (ch == eos[i]) return 1;
+finline bool t_is_eos(char ch) {
+#pragma unroll
+  for (size_t i = 0; i < lengthof(eos); i++) {
+    if (ch == eos[i]) return true;
   }
-  return 0;
+  return false;
 }
 
 static int parse_vt100(struct tty *res, char *string) {
@@ -443,15 +444,6 @@ void print(cstr str) {
     tty_default->print(tty_default, str);
   } else {
     task->TTY->print(task->TTY, str);
-  }
-}
-
-void GotoXy_No_Safe(int x1, int y1) {
-  mtask *task = current_task();
-  if (task->TTY->is_using != 1) {
-    tty_default->MoveCursor(tty_default, x1, y1);
-  } else {
-    task->TTY->MoveCursor(task->TTY, x1, y1);
   }
 }
 

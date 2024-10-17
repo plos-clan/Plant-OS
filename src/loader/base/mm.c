@@ -2,7 +2,9 @@
 
 #define EFLAGS_AC_BIT 0x00040000
 
-u32 memtest(u32 start, u32 end) {
+size_t memtest_sub(size_t, size_t);
+
+size_t memtest(size_t start, size_t end) {
   bool flg486 = false;
 
   // 确认CPU是386还是486以上的
