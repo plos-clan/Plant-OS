@@ -355,7 +355,7 @@ void init() {
   // klogd("ok vram = %p", vram);
   // memset(vram, 0, screen_w * screen_h * 4);
 
-#if 1
+#if 0
   for (volatile size_t i = 0;; i++) {
     draw(i);
     vbe_flip();
