@@ -220,7 +220,6 @@ do_init_seg_register:
 	; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 entering_v86:
 	mov ebp, esp                 ; save stack pointer
-	
 	push dword [ebp + 4]         ; ss
 	push dword [ebp + 8]         ; esp
 	pushfd                       ; eflags
@@ -228,5 +227,30 @@ entering_v86:
 	push dword [ebp + 12]        ; cs
 	push dword [ebp + 16]        ; eip
 	iret
-	[SECTION .data]
+
+bits 16
+global v86_test, v86_test_end
+
+v86_test:
+	mov ax,cs
+	mov es,ax
+	xchg bx, bx
+	mov si,msg-v86_test
+	call printstr
+	; jmp .2
+	jmp $
+msg: db "The message is shown in V86 mode by int 10h",0
+printstr:
+	mov ah, 0x0e
+	mov al,[es:si]
+	cmp al,0
+	je .1
+	int 0x10
+	inc si
+	jmp printstr
+.1:
+	ret
+v86_test_end:
+
+[SECTION .data]
 testsize: dd 0

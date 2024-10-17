@@ -66,7 +66,7 @@ set_optim_flag("-g -O2") # 请一直开启调试符号
 # set_optim_flag("-O2") # 测试通过
 # set_optim_flag("-O3") # 测试通过
 
-add_compile_flag("-finstrument-functions") # 日志需要
+# add_compile_flag("-finstrument-functions") # 日志需要
 
 # add_compile_flag("-w") # 如果你不想编译器输出 warning
 

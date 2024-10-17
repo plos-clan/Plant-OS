@@ -47,3 +47,4 @@ void  page_link(u32 addr);
 void  page_link_share(u32 addr);
 void  page_unlink(u32 addr);
 u32   page_get_alloced();
+void  page_link_addr_pde(u32 addr, u32 pde, u32 map_addr);

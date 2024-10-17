@@ -76,6 +76,7 @@ static void init_task(mtask *t, int id) {
   t->keyfifo          = NULL;
   t->mousefifo        = NULL;
   t->signal           = 0;
+  t->v86_mode         = 0;
   lock_init(&t->ipc_header.l);
   t->ipc_header.now = 0;
   for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
@@ -149,7 +150,13 @@ void task_next() {
   }
 H:
   if (next == NULL) next = idle_task;
-  if (next->user_mode == 1) tss.esp0 = next->top;
+  if (next->user_mode == 1 || next->v86_mode == 1) {
+    tss.esp0 = next->top;
+    if (next->v86_mode == 1)
+      tss.iomap = ((u32)offsetof(TSS32, io_map));
+    else
+      tss.iomap = 0;
+  }
   if (next->urgent) next->urgent = 0;
   if (next->ready) next->ready = 0;
   int         current_fpu_flag = mtask_current->fpu_flag;
@@ -303,8 +310,9 @@ void into_mtask() {
   fpu_disable();
   SegmentDescriptor *gdt = (SegmentDescriptor *)GDT_ADDR;
   memset(&tss, 0, sizeof(tss));
+  memset(tss.io_map, 0, sizeof(tss.io_map));
   tss.ss0 = 1 * 8;
-  set_segmdesc(gdt + 103, 103, (int)&tss, AR_TSS32);
+  set_segmdesc(gdt + 103, sizeof(TSS32), (int)&tss, AR_TSS32);
   load_tr(103 * 8);
   idle_task = create_task(idle_loop, 1, 3);
   create_task(init, 5, 1);

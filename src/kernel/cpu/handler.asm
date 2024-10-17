@@ -206,6 +206,7 @@ asm_net_api:
 	pop ds
 	iret
 asm_inthandler20:
+	
 	push ds
 	push es
 	push fs
