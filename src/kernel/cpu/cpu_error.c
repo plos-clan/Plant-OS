@@ -149,7 +149,11 @@ void ERROR7(u32 eip) {
 #define EFLAG_VM               (1 << 17)
 #define EFLAG_IF               (1 << 9)
 void ERROR13(u32 eip) {
-
+  if (current_task()->v86_mode == 0) {
+    error("fault, gp");
+    syscall_exit(1);
+    infinite_loop;
+  }
   volatile v86_frame_t *frame = (v86_frame_t *)((volatile u32)(&eip));
   asm volatile("" : : "g"(frame));
   // 打印frame所有成员

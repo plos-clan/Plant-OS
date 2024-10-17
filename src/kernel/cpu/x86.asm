@@ -237,8 +237,6 @@ v86_test:
 	xchg bx, bx
 	mov si,msg-v86_test
 	call printstr
-
-
 	; jmp .2
 	jmp $
 msg: db "The message is shown in V86 mode by int 10h",0
