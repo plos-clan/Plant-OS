@@ -54,6 +54,8 @@ void v86_int(byte intnum, regs16 *regs) {
 
   for (i16 value = 0; !atom_cexch(&v86_requests->status, &value, 1); value = 0) {
     klogd("v86_int wait, status is %d\n", value);
+    task_run(get_task(v86_service_tid));
+    task_next();
   }
 
   v86_requests->regs = *regs; // 写入数据

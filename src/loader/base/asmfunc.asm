@@ -6,7 +6,7 @@ GLOBAL asm_get_flags, asm_set_flags
 GLOBAL loader_main
 EXTERN DOSLDR_MAIN                                              ; 在 loader.c 那里定义
 EXTERN flint                                                    ; 在 fdc.c 中定义
-GLOBAL memtest_sub, empty_inthandler
+GLOBAL memtest_sub
 GLOBAL move_cursor_by_idx
 GLOBAL floppy_int
 [SECTION .text]
@@ -73,8 +73,6 @@ mts_nomore:
 
 move_cursor_by_idx: ;移动光标
 	ret
-empty_inthandler:
-	iret
 
 	global _IN
 _IN:

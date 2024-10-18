@@ -2,8 +2,6 @@
 
 // GDTIDT的初始化
 
-void empty_inthandler();
-
 void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
@@ -27,6 +25,12 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
   return;
 }
 
+void default_inthandler() __attr(naked);
+
+void default_inthandler() {
+  asm volatile("iret\n\t");
+}
+
 void init_gdtidt() {
   var gdt = (SegmentDescriptor *)GDT_ADDR;
   var idt = (GateDescriptor *)IDT_ADDR;
@@ -42,7 +46,7 @@ void init_gdtidt() {
 
   // 初始化 IDT
   for (size_t i = 0; i < IDT_LEN; i++) {
-    set_gatedesc(idt + i, (size_t)empty_inthandler, 2 * 8, AR_INTGATE32);
+    set_gatedesc(idt + i, (size_t)default_inthandler, 2 * 8, AR_INTGATE32);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 }

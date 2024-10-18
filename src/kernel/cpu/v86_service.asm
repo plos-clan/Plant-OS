@@ -8,7 +8,10 @@
 entry:
 	mov ax, 0x300
 	mov ds, ax
+	jmp .check_state
 .wait_loop:
+	int 0x30                     ; 请求调度
+.check_state:
 	mov ax, [0]
 	cmp ax, 2                    ; 等待请求
 	jne .wait_loop

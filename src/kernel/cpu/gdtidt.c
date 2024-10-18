@@ -23,9 +23,9 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
   gd->offset_high  = (offset >> 16) & 0xffff;
 }
 
-void empty_inthandler() __attr(naked);
+void default_inthandler() __attr(naked);
 
-void empty_inthandler() {
+void default_inthandler() {
   asm volatile("iret\n\t");
 }
 
@@ -63,7 +63,7 @@ void init_gdtidt() {
   var idt = (GateDescriptor *)IDT_ADDR;
   for (size_t i = 0; i < IDT_LEN; i++) {
     int ar = (i >= 0x30 && handlers[i]) ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
-    set_gatedesc(idt + i, (size_t)handlers[i] ?: (size_t)empty_inthandler, 2 * 8, ar);
+    set_gatedesc(idt + i, (size_t)handlers[i] ?: (size_t)default_inthandler, 2 * 8, ar);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 }
