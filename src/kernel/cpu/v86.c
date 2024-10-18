@@ -14,8 +14,8 @@ void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 
 extern TSS32 tss;
 static u32   v86_service_tid = 0;
-
-void v86_task() {
+mtask       *v86_using_task  = null;
+void         v86_task() {
   klogd("v86_task is starting.");
   // 分配内存保存请求
   v86_bios_request_t ptr = page_malloc_one();
@@ -55,7 +55,7 @@ void v86_int(byte intnum, regs16 *regs) {
   for (i16 value = 0; !atom_cexch(&v86_requests->status, &value, 1); value = 0) {
     klogd("v86_int wait, status is %d\n", value);
   }
-
+  v86_using_task     = current_task();
   v86_requests->regs = *regs; // 写入数据
   v86_requests->func = intnum;
 
@@ -66,7 +66,7 @@ void v86_int(byte intnum, regs16 *regs) {
     task_next();
   }
 
-  *regs = v86_requests->regs; // 读出数据
-
+  *regs          = v86_requests->regs; // 读出数据
+  v86_using_task = null;
   atom_store(&v86_requests->status, 0); // 发送请求
 }

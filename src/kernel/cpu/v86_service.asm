@@ -11,6 +11,7 @@ entry:
 .wait_loop:
 	mov ax, [0]
 	cmp ax, 2                    ; 等待请求
+	int 0x30                     ; 请求调度
 	jne .wait_loop
 .process_request:
 	mov bx, [2]
