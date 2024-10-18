@@ -142,11 +142,12 @@ void         ERROR13(u32 eip) {
   volatile v86_frame_t *frame = (v86_frame_t *)((volatile u32)(&eip));
   asm volatile("" : : "g"(frame));
   // 打印frame所有成员
-  uint8_t  *ip;
-  uint16_t *stack, *ivt;
-  uint32_t *stack32;
-  mtask    *current = current_task();
-  bool      is_operand32, is_address32;
+  uint8_t      *ip;
+  uint16_t     *stack, *ivt;
+  uint32_t     *stack32;
+  mtask        *current = current_task();
+  extern mtask *v86_using_task;
+  bool          is_operand32, is_address32;
   ip           = (uint8_t *)(FP_TO_LINEAR(frame->cs, frame->eip));
   stack        = (uint16_t *)(FP_TO_LINEAR(frame->ss, frame->esp));
   ivt          = (uint16_t *)(IVT);
@@ -211,6 +212,7 @@ void         ERROR13(u32 eip) {
       case 0x30:
         // printf("int 0x30\n");
         frame->eip += 2;
+        if (v86_using_task) { task_run(v86_using_task); }
         task_next();
         return;
       default:
