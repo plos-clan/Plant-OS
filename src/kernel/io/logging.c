@@ -98,6 +98,7 @@ enum {
 //* ----------------------------------------------------------------------------------------------------
 
 void klog_raw(cstr s) {
+  var flag = asm_get_flags();
   asm_cli;
   log_out32(ID_MSG);
   log_outs("Unknown");
@@ -107,10 +108,11 @@ void klog_raw(cstr s) {
   log_out32(cpuid_coreid);
   log_out32(-1);
   log_outs(s);
-  asm_sti;
+  asm_set_flags(flag);
 }
 
 void klog(cstr type, cstr file, cstr func, int line, cstr _rest fmt, ...) {
+  var flag = asm_get_flags();
   asm_cli;
   static char buf[4096];
   va_list     va;
@@ -118,7 +120,7 @@ void klog(cstr type, cstr file, cstr func, int line, cstr _rest fmt, ...) {
   vsprintf(buf, fmt, va);
   va_end(va);
   log_outs(buf);
-  asm_sti;
+  asm_set_flags(flag);
 }
 
 static char print_buf[4096];
@@ -170,12 +172,14 @@ finline void log_outs(cstr s) {
 }
 
 void klog_raw(cstr s) {
+  var flag = asm_get_flags();
   asm_cli;
   log_outs(s);
-  asm_sti;
+  asm_set_flags(flag);
 }
 
 void klog(cstr _rest fmt, ...) {
+  var flag = asm_get_flags();
   asm_cli;
   static char buf[4096];
   va_list     va;
@@ -183,7 +187,7 @@ void klog(cstr _rest fmt, ...) {
   vsprintf(buf, fmt, va);
   va_end(va);
   log_outs(buf);
-  asm_sti;
+  asm_set_flags(flag);
 }
 
 static char print_buf[4096];

@@ -35,6 +35,7 @@ char *GetSVGACharOEMString() {
 int vbe_get_controller_info(VESAControllerInfo *addr) {
   regs16 r = {.ax = 0x4f00, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
   v86_int(0x10, &r);
+  if (r.ax != 0x004f) kloge("Error when vbe_get_controller_info, rets %04x", r.ax);
   return r.ax;
 }
 
@@ -42,6 +43,7 @@ int vbe_get_mode_info(u16 mode, VESAModeInfo *addr) {
   mode     |= MASK(14);
   regs16 r  = {.ax = 0x4f01, .cx = mode, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
   v86_int(0x10, &r);
+  if (r.ax != 0x004f) kloge("Error when vbe_get_mode_info, mode %04x rets %04x", mode, r.ax);
   return r.ax;
 }
 
@@ -50,10 +52,12 @@ void *vbe_set_mode(u16 mode) {
   var    addr  = (VESAModeInfo *)VBEMODEINFO_ADDR;
   regs16 r1    = {.ax = 0x4f01, .cx = mode, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
   v86_int(0x10, &r1);
-  if (r1.ax != 0x004f) fatal("Error when vbe_set_mode");
+  assert(r1.ax == 0x004f, "Error when vbe_set_mode");
+
   regs16 r2 = {.ax = 0x4f02, .bx = mode};
   v86_int(0x10, &r2);
-  if (r2.ax != 0x004f) fatal("Error when vbe_set_mode");
+  assert(r2.ax == 0x004f, "Error when vbe_set_mode");
+
   now_width       = addr->width;
   now_height      = addr->height;
   vbe_frontbuffer = (void *)addr->physbase;
@@ -67,10 +71,11 @@ void vbe_print_all_modes() {
   var vbe   = (VESAControllerInfo *)VBEINFO_ADDR;
   var modes = (u16 *)rmfarptr2ptr(vbe->videoModes);
   var info  = (VESAModeInfo *)VBEMODEINFO_ADDR;
-  vbe_get_controller_info(vbe);
+  int ret   = vbe_get_controller_info(vbe);
+  assert(ret == 0x004f, "vbe_get_controller_info failed.");
   for (size_t i = 0; modes[i] != U16_MAX; i++) {
     int ret = vbe_get_mode_info(modes[i], info);
-    if (ret != 0x004f) fatal("Error when vbe_get_mode_info");
+    if (ret != 0x004f) continue;
     klogd("Mode: %04x %4d x %4d x %4d", modes[i], info->width, info->height, info->bitsPerPixel);
   }
 }
@@ -79,10 +84,11 @@ int vbe_match_mode(int width, int height, int bpp) {
   var vbe   = (VESAControllerInfo *)VBEINFO_ADDR;
   var modes = (u16 *)rmfarptr2ptr(vbe->videoModes);
   var info  = (VESAModeInfo *)VBEMODEINFO_ADDR;
-  vbe_get_controller_info(vbe);
+  int ret   = vbe_get_controller_info(vbe);
+  assert(ret == 0x004f, "vbe_get_controller_info failed.");
   for (size_t i = 0; modes[i] != U16_MAX; i++) {
     int ret = vbe_get_mode_info(modes[i], info);
-    if (ret != 0x004f) fatal("Error when vbe_get_mode_info");
+    if (ret != 0x004f) continue;
     klogd("%04x:%dx%dx%d", modes[i], info->width, info->height, info->bitsPerPixel);
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
       return modes[i];

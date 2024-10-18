@@ -1,4 +1,5 @@
 #include <kernel.h>
+
 typedef struct __PACKED__ {
   i16    status; // 0 idle
                  // 1 request
@@ -15,7 +16,8 @@ void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 extern TSS32 tss;
 static u32   v86_service_tid = 0;
 mtask       *v86_using_task  = null;
-void         v86_task() {
+
+void v86_task() {
   klogd("v86_task is starting.");
   // 分配内存保存请求
   v86_bios_request_t ptr = page_malloc_one();
@@ -57,11 +59,14 @@ void v86_int(byte intnum, regs16 *regs) {
     task_run(get_task(v86_service_tid));
     task_next();
   }
+
   v86_using_task     = current_task();
   v86_requests->regs = *regs; // 写入数据
   v86_requests->func = intnum;
 
   atom_store(&v86_requests->status, 2); // 发送请求
+  task_run(get_task(v86_service_tid));
+  task_next();
 
   while (atom_load(&v86_requests->status) != 3) { // 等待完成
     task_run(get_task(v86_service_tid));
@@ -70,5 +75,6 @@ void v86_int(byte intnum, regs16 *regs) {
 
   *regs          = v86_requests->regs; // 读出数据
   v86_using_task = null;
-  atom_store(&v86_requests->status, 0); // 发送请求
+
+  atom_store(&v86_requests->status, 0); // 完成
 }
