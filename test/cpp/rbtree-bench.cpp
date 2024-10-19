@@ -3,8 +3,6 @@
 #include <random>
 #include <string>
 
-#include <iostream>
-
 #define NO_STD 0
 #include <data-structure.hpp>
 

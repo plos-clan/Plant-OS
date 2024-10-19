@@ -41,6 +41,22 @@ finline double ceil(double x) {
   return (double)((long)x + 1);
 }
 
+finline float fminf(float x, float y) {
+  return x < y ? x : y;
+}
+
+finline double fmin(double x, double y) {
+  return x < y ? x : y;
+}
+
+finline float fmaxf(float x, float y) {
+  return x > y ? x : y;
+}
+
+finline double fmax(double x, double y) {
+  return x > y ? x : y;
+}
+
 #endif
 
 //* ----------------------------------------------------------------------------------------------------

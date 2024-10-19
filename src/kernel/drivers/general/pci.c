@@ -4,12 +4,14 @@
 #define PCI_DATA_PORT    0xCFC
 #define mem_mapping      0
 #define input_output     1
+
 typedef struct base_address_register {
   int prefetchable;
   u8 *address;
   u32 size;
   int type;
 } base_address_register;
+
 u32 read_pci(u8 bus, u8 device, u8 function, u8 registeroffset) {
   u32 id = 1 << 31 | ((bus & 0xff) << 16) | ((device & 0x1f) << 11) | ((function & 0x07) << 8) |
            (registeroffset & 0xfc);
@@ -17,23 +19,28 @@ u32 read_pci(u8 bus, u8 device, u8 function, u8 registeroffset) {
   u32 result = asm_in32(PCI_DATA_PORT);
   return result >> (8 * (registeroffset % 4));
 }
+
 u32 read_bar_n(u8 bus, u8 device, u8 function, u8 bar_n) {
   u32 bar_offset = 0x10 + 4 * bar_n;
   return read_pci(bus, device, function, bar_offset);
 }
+
 void write_pci(u8 bus, u8 device, u8 function, u8 registeroffset, u32 value) {
   u32 id = 1 << 31 | ((bus & 0xff) << 16) | ((device & 0x1f) << 11) | ((function & 0x07) << 8) |
            (registeroffset & 0xfc);
   asm_out32(PCI_COMMAND_PORT, id);
   asm_out32(PCI_DATA_PORT, value);
 }
+
 u32 pci_read_command_status(u8 bus, u8 slot, u8 func) {
   return read_pci(bus, slot, func, 0x04);
 }
+
 // write command status register
 void pci_write_command_status(u8 bus, u8 slot, u8 func, u32 value) {
   write_pci(bus, slot, func, 0x04, value);
 }
+
 base_address_register get_base_address_register(u8 bus, u8 device, u8 function, u8 bar) {
   base_address_register result;
 
@@ -59,12 +66,15 @@ base_address_register get_base_address_register(u8 bus, u8 device, u8 function, 
   }
   return result;
 }
+
 u8 pci_get_drive_irq(u8 bus, u8 slot, u8 func) {
   return (u8)read_pci(bus, slot, func, 0x3c);
 }
+
 void pci_set_drive_irq(u8 bus, u8 slot, u8 func, u8 irq) {
   write_pci(bus, slot, func, 0x3c, read_pci(bus, slot, func, 0x3c) & ~(0xff) | irq);
 }
+
 u32 pci_get_port_base(u8 bus, u8 slot, u8 func) {
   u32 io_port = 0;
   for (int i = 0; i < 6; i++) {
@@ -73,13 +83,13 @@ u32 pci_get_port_base(u8 bus, u8 slot, u8 func) {
   }
   return io_port;
 }
+
 void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func) {
   extern void *pci_addr_base;
-  u8          *pci_drive = (void *)pci_addr_base;
+  u8          *pci_drive = pci_addr_base;
   for (;; pci_drive += 0x110 + 4) {
     if (pci_drive[0] == 0xff) {
-      struct pci_config_space_public *pci_config_space_puclic;
-      pci_config_space_puclic = (struct pci_config_space_public *)(pci_drive + 0x0c);
+      var pci_config_space_puclic = (struct pci_config_space_public *)(pci_drive + 0x0c);
       if (pci_config_space_puclic->VendorID == vendor_id &&
           pci_config_space_puclic->DeviceID == device_id) {
         *bus  = pci_drive[1];
@@ -92,12 +102,16 @@ void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func) {
     }
   }
 }
+
 void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
   u32 cmd = 0;
   cmd     = 0x80000000 + (u32)adder + ((u32)f << 8) + ((u32)equipment << 11) + ((u32)bus << 16);
   // cmd = cmd | 0x01;
   asm_out32(PCI_COMMAND_PORT, cmd);
 }
+
+// TODO 重构循环体到新函数
+
 void init_pci(void *addr_base) {
   u32 i, BUS, Equipment, F, ADDER, *i1;
   u8 *PCI_DATA = (void *)addr_base, *PCI_DATA1;
@@ -212,6 +226,7 @@ void init_pci(void *addr_base) {
   }
   //函数执行完PCI_DATA就是PCI设备表的结束地址
 }
+
 void pci_classcode_print(struct pci_config_space_public *pci_config_space_puclic) {
   u8 *pci_drive = (u8 *)pci_config_space_puclic - 12;
   printf("BUS:%02x ", pci_drive[1]);

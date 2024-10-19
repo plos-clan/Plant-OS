@@ -8,13 +8,13 @@ void plty_tty_putchar(struct tty *tty, int ch) {
   if (ch == '\b') {
     tty->gotoxy(tty, tty->x - 1, tty->y);
     plty_putc(plty, ' ');
-    plty_flush(plty);
     tty->x = plty_getcurx(plty);
     tty->y = plty_getcury(plty);
     tty->gotoxy(tty, tty->x - 1, tty->y);
+    plty_flush(plty);
   } else {
     plty_pututf8c(plty, ch);
-    plty_flush(plty);
+    if (ch == '\n' || ch == '\r') plty_flush(plty);
     tty->x = plty_getcurx(plty);
     tty->y = plty_getcury(plty);
   }
@@ -45,13 +45,16 @@ static int default_tty_fifo_status(struct tty *res) {
 static int default_tty_fifo_get(struct tty *res) {
   return cir_queue8_get(task_get_key_queue(current_task()));
 }
-
+void plty_tty_flush(struct tty *tty) {
+  plty_t plty = (plty_t)tty->vram;
+  plty_flush(plty);
+}
 struct tty *plty_set_tty(plty_t plty) {
   plty->auto_flush = false;
   plty->show_cur   = true;
   struct tty *tty  = tty_alloc(plty, plty->ncols, plty->nlines, plty_tty_putchar,
                                plty_tty_move_cursor, plty_tty_clear, plty_tty_screen_ne, null,
-                               default_tty_fifo_status, default_tty_fifo_get);
+                               default_tty_fifo_status, default_tty_fifo_get, plty_tty_flush);
   return tty;
 }
 

@@ -4,7 +4,7 @@ void AddVal(uintptr_t val, struct List *Obj) {
   while (Obj->next != NULL)
     Obj = Obj->next;
   Obj              = Obj->ctl->end;
-  struct List *new = (struct List *)page_malloc(sizeof(struct List));
+  struct List *new = (struct List *)page_alloc(sizeof(struct List));
   Obj->next        = new;
   Obj->ctl->end    = new;
   new->prev        = Obj;
@@ -51,8 +51,8 @@ void DeleteVal(size_t count, struct List *Obj) {
   Obj->ctl->all--;
 }
 struct List *NewList() {
-  struct List    *Obj = (struct List *)page_malloc(sizeof(struct List));
-  struct ListCtl *ctl = (struct ListCtl *)page_malloc(sizeof(struct ListCtl));
+  struct List    *Obj = (struct List *)page_alloc(sizeof(struct List));
+  struct ListCtl *ctl = (struct ListCtl *)page_alloc(sizeof(struct ListCtl));
   Obj->ctl            = ctl;
   Obj->ctl->start     = Obj;
   Obj->ctl->end       = Obj;

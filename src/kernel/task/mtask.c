@@ -1,16 +1,18 @@
 // This code is released under the MIT License
 
 #include <kernel.h>
+
 #pragma clang optimize off
+
 #define STACK_SIZE 1024 * 1024
 
 void free_pde(u32 addr);
 
-struct TSS32 tss;
-mtask       *idle_task;
-mtask       *mtask_current = NULL;
+TSS32  tss;
+mtask *idle_task;
+mtask *mtask_current = NULL;
 // rbtree_t     tasks;
-mtask       *tasks[256] = {NULL};
+mtask *tasks[256] = {NULL};
 
 mtask *next_set = NULL;
 mtask  empty_task;
@@ -74,6 +76,7 @@ static void init_task(mtask *t, int id) {
   t->keyfifo          = NULL;
   t->mousefifo        = NULL;
   t->signal           = 0;
+  t->v86_mode         = 0;
   lock_init(&t->ipc_header.l);
   t->ipc_header.now = 0;
   for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
@@ -147,7 +150,13 @@ void task_next() {
   }
 H:
   if (next == NULL) next = idle_task;
-  if (next->user_mode == 1) tss.esp0 = next->top;
+  if (next->user_mode == 1 || next->v86_mode == 1) {
+    tss.esp0 = next->top;
+    if (next->v86_mode == 1)
+      tss.iomap = ((u32)offsetof(TSS32, io_map));
+    else
+      tss.iomap = 0;
+  }
   if (next->urgent) next->urgent = 0;
   if (next->ready) next->ready = 0;
   int         current_fpu_flag = mtask_current->fpu_flag;
@@ -170,15 +179,15 @@ finline int alloc_tid() {
   return next_tid++;
 }
 
-mtask *create_task(u32 eip, u32 esp, u32 ticks, u32 floor) {
+mtask *create_task(void *func, u32 ticks, u32 floor) {
   mtask *t = malloc(sizeof(*t));
   init_task(t, alloc_tid());
 
   if (t == null) return null;
-  u32 esp_alloced = (u32)page_malloc(STACK_SIZE) + STACK_SIZE;
+  u32 esp_alloced = (u32)page_alloc(STACK_SIZE) + STACK_SIZE;
   change_page_task_id(t->tid, (void *)(esp_alloced - STACK_SIZE), STACK_SIZE);
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
-  t->esp->eip  = eip;                                                // 设置跳转地址
+  t->esp->eip  = (size_t)func;                                       // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
   if (mtask_current == NULL) {
     asm_cli;
@@ -208,14 +217,6 @@ mtask *get_task(u32 tid) {
   if (task->state == READY) return NULL;
   return task;
 }
-
-// enum {
-//   THREAD_IDLE,    // 线程被创建但未运行
-//   THREAD_RUNNING, // 线程正在运行
-//   THREAD_WAITING, // 线程正在等待被调度
-//   THREAD_STOPPED, // 线程已暂停
-//   THREAD_DEAD,    // 线程已结束
-// };
 
 void task_to_user_mode(u32 eip, u32 esp) {
   u32 addr = (u32)mtask_current->top;
@@ -269,7 +270,7 @@ void task_kill(u32 tid) {
   asm_cli;
   if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }
   free_pde(task->pde);
-  gc(tid); // 释放内存
+  task_free_all_pages(tid); // 释放内存
   if (task->press_key_fifo) {
     page_free(task->press_key_fifo->buf, 4096);
     free(task->press_key_fifo);
@@ -307,13 +308,14 @@ void into_mtask() {
   asm volatile("fninit");
   asm volatile("fnsave (%%eax) \n" ::"a"(&public_fpu));
   fpu_disable();
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
+  SegmentDescriptor *gdt = (SegmentDescriptor *)GDT_ADDR;
   memset(&tss, 0, sizeof(tss));
+  memset(tss.io_map, 0, sizeof(tss.io_map));
   tss.ss0 = 1 * 8;
-  set_segmdesc(gdt + 103, 103, (int)&tss, AR_TSS32);
+  set_segmdesc(gdt + 103, sizeof(TSS32), (int)&tss, AR_TSS32);
   load_tr(103 * 8);
-  idle_task = create_task((u32)idle_loop, 0, 1, 3);
-  create_task((u32)init, 0, 5, 1);
+  idle_task = create_task(idle_loop, 1, 3);
+  create_task(init, 5, 1);
   asm_set_em, asm_set_ts, asm_set_ne;
   task_start(task_by_id(0));
 }
@@ -397,7 +399,7 @@ void task_fall_blocked(enum STATE state) {
   task_next();
 }
 
-extern struct PAGE_INFO *pages;
+extern PageInfo *pages;
 
 void task_exit(u32 status) {
   if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
@@ -415,7 +417,7 @@ void task_exit(u32 status) {
   task->state  = DIED;
   asm_set_cr3(PDE_ADDRESS);
   free_pde(task->pde);
-  gc(tid); // 释放内存
+  task_free_all_pages(tid); // 释放内存
   if (task->press_key_fifo) {
     page_free(task->press_key_fifo->buf, 4096);
     free(task->press_key_fifo);
@@ -519,7 +521,7 @@ int task_fork() {
   int  tid   = 0;
   tid        = m->tid;
   memcpy(m, current_task(), sizeof(mtask));
-  u32 stack = (u32)page_malloc(STACK_SIZE);
+  u32 stack = (u32)page_alloc(STACK_SIZE);
   change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;
   memcpy((void *)stack, (void *)(m->top - STACK_SIZE), STACK_SIZE);
@@ -530,13 +532,13 @@ int task_fork() {
   if (current_task()->press_key_fifo) {
     m->press_key_fifo = malloc(sizeof(struct event));
     memcpy(m->press_key_fifo, current_task()->press_key_fifo, sizeof(struct event));
-    m->press_key_fifo->buf = page_malloc(4096);
+    m->press_key_fifo->buf = page_alloc(4096);
     memcpy(m->press_key_fifo->buf, current_task()->press_key_fifo->buf, 4096);
   }
   if (current_task()->release_keyfifo) {
     m->release_keyfifo = malloc(sizeof(struct event));
     memcpy(m->release_keyfifo, current_task()->release_keyfifo, sizeof(struct event));
-    m->release_keyfifo->buf = page_malloc(4096);
+    m->release_keyfifo->buf = page_alloc(4096);
     memcpy(m->release_keyfifo->buf, current_task()->release_keyfifo->buf, 4096);
   }
   if (current_task()->keyfifo) {

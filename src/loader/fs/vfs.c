@@ -109,7 +109,7 @@ bool vfs_unmount_disk(u8 drive) {
 }
 bool vfs_readfile(char *path, char *buffer) {
   PDEBUG("Readfile %s to %08x\n", path, buffer);
-  char *new_path = (char *)page_malloc(strlen(path) + 1);
+  char *new_path = (char *)page_alloc(strlen(path) + 1);
   strcpy(new_path, path);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -122,7 +122,7 @@ bool vfs_readfile(char *path, char *buffer) {
   return result;
 }
 bool vfs_writefile(char *path, char *buffer, int size) {
-  char *new_path = (char *)page_malloc(strlen(path) + 1);
+  char *new_path = (char *)page_alloc(strlen(path) + 1);
   strcpy(new_path, path);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -135,7 +135,7 @@ bool vfs_writefile(char *path, char *buffer, int size) {
   return result;
 }
 u32 vfs_filesize(char *filename) {
-  char *new_path = page_malloc(strlen(filename) + 1);
+  char *new_path = page_alloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -151,7 +151,7 @@ List *vfs_listfile(char *dictpath) { // dictpath == "" 则表示当前路径
   if (strcmp(dictpath, "") == 0) {
     return vfs_now->ListFile(vfs_now, dictpath);
   } else {
-    char *new_path = page_malloc(strlen(dictpath) + 1);
+    char *new_path = page_alloc(strlen(dictpath) + 1);
     strcpy(new_path, dictpath);
     vfs_t *vfs = ParsePath(new_path);
     if (vfs == NULL) {
@@ -166,7 +166,7 @@ List *vfs_listfile(char *dictpath) { // dictpath == "" 则表示当前路径
 }
 bool vfs_delfile(char *filename) {
   PDEBUG("Delete file %s.\n", filename);
-  char *new_path = page_malloc(strlen(filename) + 1);
+  char *new_path = page_alloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -179,7 +179,7 @@ bool vfs_delfile(char *filename) {
   return result;
 }
 bool vfs_deldir(char *dictname) {
-  char *new_path = page_malloc(strlen(dictname) + 1);
+  char *new_path = page_alloc(strlen(dictname) + 1);
   strcpy(new_path, dictname);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -192,7 +192,7 @@ bool vfs_deldir(char *dictname) {
   return result;
 }
 bool vfs_createfile(char *filename) {
-  char *new_path = page_malloc(strlen(filename) + 1);
+  char *new_path = page_alloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -205,7 +205,7 @@ bool vfs_createfile(char *filename) {
   return result;
 }
 bool vfs_createdict(char *filename) {
-  char *new_path = page_malloc(strlen(filename) + 1);
+  char *new_path = page_alloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -218,7 +218,7 @@ bool vfs_createdict(char *filename) {
   return result;
 }
 bool vfs_renamefile(char *filename, char *filename_of_new) {
-  char *new_path = page_malloc(strlen(filename) + 1);
+  char *new_path = page_alloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -231,7 +231,7 @@ bool vfs_renamefile(char *filename, char *filename_of_new) {
   return result;
 }
 bool vfs_attrib(char *filename, ftype type) {
-  char *new_path = page_malloc(strlen(filename) + 1);
+  char *new_path = page_alloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -252,7 +252,7 @@ bool vfs_format(u8 disk_number, char *FSName) {
   return false;
 }
 vfs_file *vfs_fileinfo(char *filename) {
-  char *new_path = page_malloc(strlen(filename) + 1);
+  char *new_path = page_alloc(strlen(filename) + 1);
   strcpy(new_path, filename);
   vfs_t *vfs = ParsePath(new_path);
   if (vfs == NULL) {
@@ -282,7 +282,7 @@ bool vfs_change_disk(u8 drive) {
     return false; // 没有mount
   }
   PDEBUG("Changing......");
-  vfs_now = page_malloc(sizeof(vfs_t));
+  vfs_now = page_alloc(sizeof(vfs_t));
   memcpy(vfs_now, f, sizeof(vfs_t));
   f->CopyCache(vfs_now, f);
   vfs_now->path = NewList();
@@ -308,7 +308,7 @@ bool vfs_change_disk_for_task(u8 drive, struct TASK *task) {
     return false; // 没有mount
   }
   PDEBUG("Changing......");
-  vfs(task) = page_malloc(sizeof(vfs_t));
+  vfs(task) = page_alloc(sizeof(vfs_t));
   memcpy(vfs(task), f, sizeof(vfs_t));
   f->CopyCache(vfs(task), f);
   vfs(task)->path = NewList();

@@ -1,12 +1,9 @@
 	[BITS 32]
 	section .data
-	GLOBAL asm_inthandler21, asm_inthandler20, asm_inthandler72
+	GLOBAL asm_inthandler21, asm_inthandler20
 	EXTERN inthandler21, inthandler20, syscall, inthandler2c, signal_deal
 	GLOBAL asm_inthandler36, asm_inthandler2c, floppy_int, interrput_exit
 	section .text
-	global empty_inthandler
-empty_inthandler:
-	iret
 	
 asm_inthandler36:
 	push ds
@@ -22,32 +19,7 @@ asm_inthandler36:
 	pop es
 	pop ds
 	iret
-	extern custom_inthandler
-asm_inthandler72:
-	push ds
-	push es
-	push fs
-	push gs
-	pusha
-	PUSH DS
-	PUSH ES
-	PUSHAD                       ; 用于保存的PUSH
-	PUSHAD
-	MOV AX, SS
-	MOV DS, AX                   ; 将操作系统用段地址存入DS和ES
-	MOV ES, AX
-	;CALL custom_inthandler
-	ADD ESP, 32
-	call signal_deal
-	POPAD
-	POP ES
-	POP DS
-	add esp, 32
-	pop gs
-	pop fs
-	pop es
-	pop ds
-	iret
+	
 	extern flint
 floppy_int:
 	push ds
@@ -142,26 +114,14 @@ asm_sb16_handler:
 	push fs
 	push gs
 	pusha
-	PUSH ES
-	PUSH DS
-	PUSHAD
-	MOV EAX, ESP
-	PUSH EAX
-	MOV AX, SS
-	MOV DS, AX
-	MOV ES, AX
-	CALL sb16_handler
-	POP EAX
-	;call signal_deal
-	POPAD
-	POP DS
-	POP ES
+	call sb16_handler
 	popa
 	pop gs
 	pop fs
 	pop es
 	pop ds
 	iret
+	
 asm_hda_handler:
 	push ds
 	push es
@@ -175,6 +135,7 @@ asm_hda_handler:
 	pop es
 	pop ds
 	iret
+	
 	EXTERN ide_irq, rtc_irq
 	GLOBAL asm_ide_irq
 asm_ide_irq:
@@ -245,6 +206,7 @@ asm_net_api:
 	pop ds
 	iret
 asm_inthandler20:
+	
 	push ds
 	push es
 	push fs

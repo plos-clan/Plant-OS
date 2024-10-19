@@ -1,7 +1,12 @@
 #pragma once
 #include <define.h>
 
-// 声明
+//* ----------------------------------------------------------------------------------------------------
+//; 声明
+//* ----------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------
+//; 标准库函数
 
 #if NO_STD
 #  define IAPI finline
@@ -43,10 +48,50 @@ IAPI int   bcmp(const void *s1, const void *s2, size_t n) __THROW __deprecated;
 #undef OAPI
 #undef SAPI
 
-// 非标准库函数
-finline void *memdup(const void *s, size_t n);
+// --------------------------------------------------
+//; 非标准库函数
 
-// 定义
+finline u8 *memcpy8(u8 *_rest _d, const u8 *_rest _s, size_t _n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+finline u16 *memcpy16(u16 *_rest _d, const u16 *_rest _s, size_t _n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+finline u32 *memcpy32(u32 *_rest _d, const u32 *_rest _s, size_t _n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+finline u64 *memcpy64(u64 *_rest _d, const u64 *_rest _s, size_t _n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+
+finline void *lgmemcpy(void *dst, const void *src, size_t n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+finline u8 *lgmemcpy8(u8 *dst, const u8 *src, size_t n) __THROW __nnull(1, 2) __attr_readonly(2, 3)
+    __attr_writeonly(1, 3);
+finline u16 *lgmemcpy16(u16 *dst, const u16 *src, size_t n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+finline u32 *lgmemcpy32(u32 *dst, const u32 *src, size_t n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+finline u64 *lgmemcpy64(u64 *dst, const u64 *src, size_t n) __THROW __nnull(1, 2)
+    __attr_readonly(2, 3) __attr_writeonly(1, 3);
+
+finline u8  *memset8(u8 *_s, u8 _c, size_t _n) __THROW __nnull(1) __attr_writeonly(1, 3);
+finline u16 *memset16(u16 *_s, u16 _c, size_t _n) __THROW __nnull(1) __attr_writeonly(1, 3);
+finline u32 *memset32(u32 *_s, u32 _c, size_t _n) __THROW __nnull(1) __attr_writeonly(1, 3);
+finline u64 *memset64(u64 *_s, u64 _c, size_t _n) __THROW __nnull(1) __attr_writeonly(1, 3);
+
+finline void *lgmemset(void *_s, byte _c, size_t _n) __THROW __nnull(1) __attr_writeonly(1, 3);
+finline u8   *lgmemset8(u8 *s, u8 c, size_t n) __THROW __nnull(1) __attr_writeonly(1, 3);
+finline u16  *lgmemset16(u16 *s, u16 c, size_t n) __THROW __nnull(1) __attr_writeonly(1, 3);
+finline u32  *lgmemset32(u32 *s, u32 c, size_t n) __THROW __nnull(1) __attr_writeonly(1, 3);
+finline u64  *lgmemset64(u64 *s, u64 c, size_t n) __THROW __nnull(1) __attr_writeonly(1, 3);
+
+finline void *memdup(const void *s, size_t n) __nnull(1) __attr_readonly(1, 2) __attr_malloc;
+
+//* ----------------------------------------------------------------------------------------------------
+//; 定义
+//* ----------------------------------------------------------------------------------------------------
+
+#define MEM_LARGE_SIZE 16384
+
+// --------------------------------------------------
+//; 标准库函数
 
 #if NO_STD
 
@@ -344,3 +389,158 @@ finline int bcmp(const void *s1, const void *s2, size_t n) noexcept {
 }
 
 #endif
+
+// --------------------------------------------------
+//; 非标准库函数
+
+#if __x86_64__
+#  define RAX "rax"
+#  define RBX "rbx"
+#  define RCX "rcx"
+#  define RDX "rdx"
+#  define RSI "rsi"
+#  define RDI "rdi"
+#  define RBP "rbp"
+#  define RSP "rsp"
+#else
+#  define RAX "eax"
+#  define RBX "ebx"
+#  define RCX "ecx"
+#  define RDX "edx"
+#  define RSI "esi"
+#  define RDI "edi"
+#  define RBP "ebp"
+#  define RSP "esp"
+#endif
+
+finline u8 *memcpy8(u8 *_rest _d, const u8 *_rest _s, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE) return lgmemcpy8(_d, _s, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _d[i] = _s[i];
+  }
+  return _d;
+}
+finline u16 *memcpy16(u16 *_rest _d, const u16 *_rest _s, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE / 2) return lgmemcpy16(_d, _s, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _d[i] = _s[i];
+  }
+  return _d;
+}
+finline u32 *memcpy32(u32 *_rest _d, const u32 *_rest _s, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE / 4) return lgmemcpy32(_d, _s, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _d[i] = _s[i];
+  }
+  return _d;
+}
+finline u64 *memcpy64(u64 *_rest _d, const u64 *_rest _s, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE / 8) return lgmemcpy64(_d, _s, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _d[i] = _s[i];
+  }
+  return _d;
+}
+
+finline void *lgmemcpy(void *dst, const void *src, size_t n) noexcept {
+  return (void *)lgmemcpy8((u8 *)dst, (const u8 *)src, n);
+}
+finline u8 *lgmemcpy8(u8 *dst, const u8 *src, size_t n) noexcept {
+  register size_t _dst asm(RDI) = (size_t)dst;
+  register size_t _src asm(RSI) = (size_t)src;
+  register size_t _n asm(RCX)   = n;
+  asm volatile("rep movsb\n\t" ::: "memory");
+  return dst;
+}
+finline u16 *lgmemcpy16(u16 *dst, const u16 *src, size_t n) noexcept {
+  register size_t _dst asm(RDI) = (size_t)dst;
+  register size_t _src asm(RSI) = (size_t)src;
+  register size_t _n asm(RCX)   = n;
+  asm volatile("rep movsw\n\t" ::: "memory");
+  return dst;
+}
+finline u32 *lgmemcpy32(u32 *dst, const u32 *src, size_t n) noexcept {
+  register size_t _dst asm(RDI) = (size_t)dst;
+  register size_t _src asm(RSI) = (size_t)src;
+  register size_t _n asm(RCX)   = n;
+  asm volatile("rep movsl\n\t" ::: "memory");
+  return dst;
+}
+finline u64 *lgmemcpy64(u64 *dst, const u64 *src, size_t n) noexcept {
+#if __x86_64__
+  register size_t _dst asm(RDI) = (size_t)dst;
+  register size_t _src asm(RSI) = (size_t)src;
+  register size_t _n asm(RCX)   = n;
+  asm volatile("rep movsq\n\t" ::: "memory");
+  return dst;
+#else
+  return (u64 *)lgmemcpy32((u32 *)dst, (u32 *)src, n * 2);
+#endif
+}
+
+finline u8 *memset8(u8 *_s, u8 _c, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE) return lgmemset8(_s, _c, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _s[i] = _c;
+  }
+  return _s;
+}
+finline u16 *memset16(u16 *_s, u16 _c, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE / 2) return lgmemset16(_s, _c, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _s[i] = _c;
+  }
+  return _s;
+}
+finline u32 *memset32(u32 *_s, u32 _c, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE / 4) return lgmemset32(_s, _c, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _s[i] = _c;
+  }
+  return _s;
+}
+finline u64 *memset64(u64 *_s, u64 _c, size_t _n) noexcept {
+  if (_n >= MEM_LARGE_SIZE / 8) return lgmemset64(_s, _c, _n);
+  for (size_t i = 0; i < _n; i++) {
+    _s[i] = _c;
+  }
+  return _s;
+}
+
+finline void *lgmemset(void *_s, byte _c, size_t _n) noexcept {
+  return (void *)lgmemset8((u8 *)_s, _c, _n);
+}
+finline u8 *lgmemset8(u8 *s, u8 c, size_t n) noexcept {
+  register size_t _dst asm(RDI)  = (size_t)s;
+  register u8     _src asm("al") = c;
+  register size_t _n asm(RCX)    = n;
+  asm volatile("rep stosb\n\t" ::: "memory");
+  return s;
+}
+finline u16 *lgmemset16(u16 *s, u16 c, size_t n) noexcept {
+  register size_t _dst asm(RDI)  = (size_t)s;
+  register u16    _src asm("ax") = c;
+  register size_t _n asm(RCX)    = n;
+  asm volatile("rep stosw\n\t" ::: "memory");
+  return s;
+}
+finline u32 *lgmemset32(u32 *s, u32 c, size_t n) noexcept {
+  register size_t _dst asm(RDI)   = (size_t)s;
+  register u32    _src asm("eax") = c;
+  register size_t _n asm(RCX)     = n;
+  asm volatile("rep stosl\n\t" ::: "memory");
+  return s;
+}
+finline u64 *lgmemset64(u64 *s, u64 c, size_t n) noexcept {
+#if __x86_64__
+  register size_t _dst asm(RDI)   = (size_t)s;
+  register u32    _src asm("rax") = c;
+  register size_t _n asm(RCX)     = n;
+  asm volatile("rep stosq\n\t" ::: "memory");
+#else
+  for (size_t i = 0; i < n; i++) {
+    s[i] = c;
+  }
+#endif
+  return s;
+}

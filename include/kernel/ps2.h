@@ -9,15 +9,18 @@
 #define MOUSE_ROLL_DOWN 2
 
 struct MOUSE_DEC {
-  u8   buf[4], phase;
+  byte buf[4];
+  byte phase;
   int  x, y, btn;
   int  sleep;
   char roll;
 };
 
-void                    wait_KBC_sendready();
-void                    mouse_sleep(struct MOUSE_DEC *mdec);
-void                    init_keyboard();
-int                     getch();
+void wait_KBC_sendready();
+void mouse_sleep(struct MOUSE_DEC *mdec);
+void init_keyboard();
+int  getch();
+
 extern struct MOUSE_DEC mdec;
-void                    mouse_ready(struct MOUSE_DEC *mdec);
+
+void mouse_ready(struct MOUSE_DEC *mdec);

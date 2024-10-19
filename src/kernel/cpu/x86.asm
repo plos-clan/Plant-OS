@@ -1,17 +1,12 @@
 	[BITS 32]
 	section .data
 	GLOBAL asm_get_flags, asm_set_flags
-	GLOBAL load_gdtr, load_idtr
 	GLOBAL move_cursor_by_idx
 	GLOBAL memtest_sub, farjmp, farcall, start_app
-	GLOBAL load_tr
-	GLOBAL get_eip, return_to_app, do_init_seg_register, entering_v86
-str: db 'Yun Xing Ni Ma De Kernel Xiang Si Shi Bu Shi', 0
+	GLOBAL return_to_app, do_init_seg_register, entering_v86
+	
 	section .text
 	%define ADR_BOTPAK 0x0
-get_eip:                      ; int get_eip();
-	mov eax, [esp]
-	ret
 farjmp:                       ; void farjmp(int eip, int cs);
 	pushad
 	JMP FAR [ESP + 36]           ; eip, cs
@@ -22,9 +17,6 @@ farcall:                      ; void farjmp(int eip, int cs);
 	call FAR [ESP + 36]          ; eip, cs
 	popad
 	RET
-load_tr:
-	ltr [esp + 4]
-	ret
 	EXTERN clear
 	EXTERN Print_Hex
 	EXTERN Clear_A_Line
@@ -77,18 +69,6 @@ mts_nomore:
 	POP EBX
 	POP ESI
 	POP EDI
-	RET
-	
-load_gdtr:                    ; void load_gdtr(int limit, int addr);
-	MOV AX, [ESP + 4]            ; limit
-	MOV [ESP + 6], AX
-	LGDT [ESP + 6]
-	RET
-	
-load_idtr:                    ; void load_idtr(int limit, int addr);
-	MOV AX, [ESP + 4]            ; limit
-	MOV [ESP + 6], AX
-	LIDT [ESP + 6]
 	RET
 	
 move_cursor_by_idx:           ;移动光标
@@ -240,7 +220,6 @@ do_init_seg_register:
 	; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 entering_v86:
 	mov ebp, esp                 ; save stack pointer
-	
 	push dword [ebp + 4]         ; ss
 	push dword [ebp + 8]         ; esp
 	pushfd                       ; eflags
@@ -248,5 +227,6 @@ entering_v86:
 	push dword [ebp + 12]        ; cs
 	push dword [ebp + 16]        ; eip
 	iret
+	
 	[SECTION .data]
 testsize: dd 0

@@ -2,9 +2,9 @@
 
 #define EFLAGS_AC_BIT 0x00040000
 
-u32 memtest_sub(u32, u32);
+size_t memtest_sub(size_t, size_t);
 
-u32 memtest(u32 start, u32 end) {
+size_t memtest(size_t start, size_t end) {
   bool flg486 = false;
 
   // 确认CPU是386还是486以上的
@@ -15,11 +15,11 @@ u32 memtest(u32 start, u32 end) {
     asm_set_flags(asm_get_flags() & ~EFLAGS_AC_BIT);
   }
 
-  if (flg486) asm_set_cd;
+  if (flg486) asm_set_cd, asm_set_nw;
 
   size_t size = memtest_sub(start, end);
 
-  if (flg486) asm_clr_cd;
+  if (flg486) asm_clr_nw, asm_clr_cd;
 
   return size;
 }
@@ -48,14 +48,3 @@ size_t malloc_usable_size(void *ptr) {
 void *realloc(void *ptr, size_t size) {
   return mpool_realloc(&pool, ptr, size);
 }
-
-// 老旧代码
-// void *kmalloc(int size) {
-//   return malloc(size);
-// }
-// void kfree(void *p) {
-//   free(p);
-// }
-// void *krealloc(void *ptr, u32 size) {
-//   return realloc(ptr, size);
-// }

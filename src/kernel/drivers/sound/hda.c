@@ -348,7 +348,7 @@ void hda_init() {
   write_pci(hda_bus, hda_slot, hda_func, 0x04,
             ((read_pci(hda_bus, hda_slot, hda_func, 0x04) & ~(1 << 10)) | (1 << 2) |
              (1 << 1))); // enable interrupts, enable bus mastering, enable MMIO space
-  hda_buffer_ptr = page_malloc(4096 * 2);
+  hda_buffer_ptr = page_alloc(4096 * 2);
   info("hda card found at bus %d slot %d func %d", hda_bus, hda_slot, hda_func);
   hda_base = read_bar_n(hda_bus, hda_slot, hda_func, 0);
   info("hda base address: 0x%x", hda_base);
@@ -378,7 +378,7 @@ void hda_init() {
   output_buffer = page_malloc_one_no_mark();
 
   irq_mask_clear(0xb);
-  register_intr_handler(0xb + 0x20, (u32)asm_hda_handler);
+  regist_intr_handler(0xb + 0x20, asm_hda_handler);
   mem_set32(hda_base + 0x20, (1 << 31) | (1 << input_stream_count));
 
   info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));
@@ -588,10 +588,10 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
   mem_set8(output_base + 0x0, 0b110);
 }
 
-void hda_stop(void) {
+void hda_stop() {
   mem_set8(output_base + 0x0, 0);
 }
-void hda_continue(void) {
+void hda_continue() {
   mem_set8(output_base + 0x0, 0b110);
 }
 u32 hda_get_bytes_sent() {

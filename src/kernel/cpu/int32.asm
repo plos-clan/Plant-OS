@@ -16,25 +16,25 @@
 	;
 	; Notes: This file is in NASM syntax.
 	; Turn off paging before calling these functions.
-	; int32() resets all selectors.
+	; asm_int32() resets all selectors.
 	;
 	; C Prototype:
-	; void _cdelc int32(u8 intnum, regs16 * regs);
+	; void _cdelc asm_int32(u8 intnum, regs16 * regs);
 	;
 	; Example of usage:
 	; regs.ax = 0x0013;
-	; int32(0x10, &regs);
+	; asm_int32(0x10, &regs);
 	; memset((char * )0xA0000, 1, (320 * 200));
 	; memset((char * )0xA0000 + (100 * 320 + 80), 14, 80);
 	; regs.ax = 0x0000;
-	; int32(0x16, &regs);
+	; asm_int32(0x16, &regs);
 	; regs.ax = 0x0003;
-	; int32(0x10, &regs);
+	; asm_int32(0x10, &regs);
 	;
 	;
 	; 改写（原来根本用不了） + 注释翻译 By zhouzhihao 2022
 	;
-	global int32
+	global asm_int32
 	
 	struc regs16
 	.di resw 1
@@ -67,7 +67,7 @@
 	out dx, al
 	popa
 	%endmacro
-int32:
+asm_int32:
 	cli                          ; 禁止中断
 	mov eax, 0x400000
 	mov cr3, eax

@@ -44,8 +44,8 @@ set_optim_flag("-g -O1") # 调试开 O1
 add_compile_flag("-march=native")
 
 include(cmake/optim) # 优化选项
-# include(cmake/lto) # 链接时优化
-# include(cmake/code-gc) # 删除重复代码
+include(cmake/lto) # 链接时优化
+include(cmake/code-gc) # 删除重复代码
 
 include(cmake/disable-warning)
 
@@ -61,10 +61,14 @@ add_subdirectory(util)
 set_compile_flag("-std=gnu2x" "-std=gnu++2b") # 使用新的 C/C++ 版本
 set_link_flag("")
 
-set_optim_flag("-g -O1")
+set_optim_flag("-g -O2") # 请一直开启调试符号
 # set_optim_flag("-O1") # 测试通过
 # set_optim_flag("-O2") # 测试通过
-# set_optim_flag("-O3") # 编译错误
+# set_optim_flag("-O3") # 测试通过
+
+# add_compile_flag("-finstrument-functions") # 日志需要
+
+# add_compile_flag("-w") # 如果你不想编译器输出 warning
 
 # if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #   add_compile_flag("-emit-obj") # 不输出 llvm-ir
@@ -74,8 +78,8 @@ set_optim_flag("-g -O1")
 # add_link_flag("-nolibc -Qn")
 
 include(cmake/optim) # 优化选项
-# include(cmake/lto) # 链接时优化
-# include(cmake/code-gc) # 删除重复代码
+include(cmake/lto) # 链接时优化
+include(cmake/code-gc) # 删除重复代码
 
 # 其它选项
 add_compile_flag("-fno-optimize-sibling-calls") # 关闭尾递归优化

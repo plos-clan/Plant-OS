@@ -1,6 +1,8 @@
 #pragma once
 #include <define.h>
 
+// 将字符串转换为数字
+
 #define isdigit2(c)  ((c) == '0' || (c) == '1')
 #define isdigit8(c)  ('0' <= (c) && (c) <= '7')
 #define isdigit(c)   ('0' <= (c) && (c) <= '9')
@@ -206,18 +208,21 @@ __(strto);
 #undef __strb16to
 #undef __strto
 
-#define __stof(_t_, _type_) dlimport _type_ strto##_t_(cstr _rest s, char **_rest e);
+#define __stof(_t_, _type_)                                                                        \
+  dlimport _type_ strto##_t_(cstr _rest s, char **_rest e) __THROW __nnull(1)
 
 __stof(f, float);
 __stof(d, double);
 
 #define _stof(t) __stof(t, t)
 
+#ifndef NO_STD // TODO 找到声明冲突的原因
 _stof(f32);
 _stof(f64);
-#if defined(__x86_64__) && !NO_EXTFLOAT
+#  if defined(__x86_64__) && !NO_EXTFLOAT
 _stof(f16);
 _stof(f128);
+#  endif
 #endif
 
 #undef _stof

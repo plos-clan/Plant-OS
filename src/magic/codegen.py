@@ -68,10 +68,14 @@ code = '''
 #include <define.h>
 
 static const cstr mime_types[] = {
-$$$
+$$ mime_types $$
 };
 
-dlexport cstr filetype(const void *data, size_t size) @@@
+static const cstr descriptions[] = {
+$$ descriptions $$
+};
+
+dlexport cstr filetype(const void *data, size_t size) $$ fn-filetype $$
 '''
 
 
@@ -97,8 +101,9 @@ def gencode(prefix: bytes, nchar: int):
   return code
 
 
-code = code.replace('$$$', '\n'.join([f'    "{data.mime}",' for data in mimes_list]))
-code = code.replace('@@@', gencode(b'', 0))
+code = code.replace('$$ mime_types $$', '\n'.join([f'    "{data.mime}",' for data in mimes_list]))
+code = code.replace('$$ descriptions $$', '\n'.join([f'    "{data.des}",' for data in mimes_list]))
+code = code.replace('$$ fn-filetype $$', gencode(b'', 0))
 
 with open('filetype.c', 'w') as f:
   f.write(code)

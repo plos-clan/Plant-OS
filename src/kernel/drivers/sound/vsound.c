@@ -51,7 +51,10 @@ bool vsound_regist(vsound_t device) {
 
 bool vsound_set_supported_fmt(vsound_t device, i16 fmt) {
   if (device == null) return false;
-  if (fmt >= SOUND_FMT_CNT) return false;
+  if (fmt >= SOUND_FMT_CNT) {
+    klogw("不支持的采样格式 %d", fmt);
+    return false;
+  }
   device->supported_fmts |= MASK32(fmt);
   return true;
 }
@@ -59,14 +62,20 @@ bool vsound_set_supported_fmt(vsound_t device, i16 fmt) {
 bool vsound_set_supported_rate(vsound_t device, i32 rate) {
   if (device == null) return false;
   int id = samplerate_id(rate);
-  if (id < 0) return false;
+  if (id < 0) {
+    klogw("不支持的采样率 %d", rate);
+    return false;
+  }
   device->supported_rates |= MASK32(id);
   return true;
 }
 
 bool vsound_set_supported_ch(vsound_t device, i16 ch) {
   if (device == null) return false;
-  if (ch < 1 || ch > 16) return false;
+  if (ch < 1 || ch > 16) {
+    klogw("不支持的声道数 %d", ch);
+    return false;
+  }
   device->supported_chs |= MASK32(ch - 1);
   return true;
 }
@@ -76,13 +85,19 @@ bool vsound_set_supported_fmts(vsound_t device, const i16 *fmts, ssize_t len) {
   size_t nseted = 0;
   if (len < 0) {
     for (size_t i = 0; fmts[i] >= 0; i++) {
-      if (fmts[i] >= SOUND_FMT_CNT) continue;
+      if (fmts[i] >= SOUND_FMT_CNT) {
+        klogw("不支持的采样格式 %d", fmts[i]);
+        continue;
+      }
       device->supported_fmts |= MASK32(fmts[i]);
       nseted++;
     }
   } else {
     for (size_t i = 0; i < len; i++) {
-      if (fmts[i] >= SOUND_FMT_CNT) continue;
+      if (fmts[i] >= SOUND_FMT_CNT) {
+        klogw("不支持的采样格式 %d", fmts[i]);
+        continue;
+      }
       device->supported_fmts |= MASK32(fmts[i]);
       nseted++;
     }
@@ -96,14 +111,20 @@ bool vsound_set_supported_rates(vsound_t device, const i32 *rates, ssize_t len) 
   if (len < 0) {
     for (size_t i = 0; rates[i] > 0; i++) {
       int id = samplerate_id(rates[i]);
-      if (id < 0) continue;
+      if (id < 0) {
+        klogw("不支持的采样率 %d", rates[i]);
+        continue;
+      }
       device->supported_rates |= MASK32(id);
       nseted++;
     }
   } else {
     for (size_t i = 0; i < len; i++) {
       int id = samplerate_id(rates[i]);
-      if (id < 0) continue;
+      if (id < 0) {
+        klogw("不支持的采样率 %d", rates[i]);
+        continue;
+      }
       device->supported_rates |= MASK32(id);
       nseted++;
     }
@@ -116,13 +137,19 @@ bool vsound_set_supported_chs(vsound_t device, const i16 *chs, ssize_t len) {
   size_t nseted = 0;
   if (len < 0) {
     for (size_t i = 0; chs[i] > 0; i++) {
-      if (chs[i] < 1 || chs[i] > 16) continue;
+      if (chs[i] < 1 || chs[i] > 16) {
+        klogw("不支持的声道数 %d", chs[i]);
+        continue;
+      }
       device->supported_chs |= MASK32(chs[i] - 1);
       nseted++;
     }
   } else {
     for (size_t i = 0; i < len; i++) {
-      if (chs[i] < 1 || chs[i] > 16) continue;
+      if (chs[i] < 1 || chs[i] > 16) {
+        klogw("不支持的声道数 %d", chs[i]);
+        continue;
+      }
       device->supported_chs |= MASK32(chs[i] - 1);
       nseted++;
     }

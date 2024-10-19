@@ -104,7 +104,7 @@ static void sb16_do_dma() {
   }
 
   byte mode = (sb.auto_mode ? 16 : 0) | 0x48; // 0x48 为播放 0x44 为录音
-  dma_start(mode, sb.dma_channel, sb.addr2, dmasize, sb.depth == 16);
+  dma_start(mode, sb.dma_channel, sb.addr2, dmasize);
   if (sb.auto_mode) {
     sb_send(sb.depth == 8 ? CMD_AUTO_OUT8 : CMD_AUTO_OUT16);
   } else {
@@ -138,7 +138,7 @@ static void sb16_do_close() {
 
 static vsound_t snd;
 
-void sb16_handler(int *esp) {
+void sb16_handler() {
   send_eoi(SB16_IRQ);
 
   asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);
@@ -163,7 +163,7 @@ void sb16_init() {
   sb.use_task = null;
   sb.status   = STAT_OFF;
   irq_mask_clear(SB16_IRQ);
-  register_intr_handler(SB16_IRQ + 0x20, (u32)asm_sb16_handler);
+  regist_intr_handler(SB16_IRQ + 0x20, asm_sb16_handler);
 }
 
 static void sb_reset() {
@@ -284,7 +284,7 @@ static int sb16_start_dma(vsound_t vsound, void *addr) {
   }
 
   byte mode = (sb.auto_mode ? 16 : 0) | 0x48; // 0x48 为播放 0x44 为录音
-  dma_start(mode, sb.dma_channel, addr, dmasize, sb.depth == 16);
+  dma_start(mode, sb.dma_channel, addr, dmasize);
   if (sb.auto_mode) {
     sb_send(sb.depth == 8 ? CMD_AUTO_OUT8 : CMD_AUTO_OUT16);
   } else {

@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-bool elf32Validate(Elf32_Ehdr *hdr) {
+bool elf32_is_validate(Elf32_Ehdr *hdr) {
   return *(u32 *)hdr->e_ident == ELF_MAGIC;
 }
 
@@ -37,7 +37,7 @@ u32 load_elf(Elf32_Ehdr *hdr) {
   return hdr->e_entry;
 }
 
-void elf32LoadData(Elf32_Ehdr *elfhdr, u8 *ptr) {
+void elf32_load_data(Elf32_Ehdr *elfhdr, u8 *ptr) {
   u8 *p = (u8 *)elfhdr;
   for (int i = 0; i < elfhdr->e_shnum; i++) {
     Elf32_Shdr *shdr = (Elf32_Shdr *)(p + elfhdr->e_shoff + sizeof(Elf32_Shdr) * i);

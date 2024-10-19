@@ -20,6 +20,7 @@ struct tty {
                    u8 color); // Draw_Box函数
   int (*fifo_status)(struct tty *res);
   int (*fifo_get)(struct tty *res);
+  void (*flush)(struct tty *res);
   u32 reserved[4]; // 保留项
 
   //////////////实现VT100需要的//////////////////
@@ -35,8 +36,9 @@ struct tty {
 struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct tty *res, int c),
                       void (*MoveCursor)(struct tty *res, int x, int y),
                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
-                      void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1, byte color),
-                      int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res));
+                      void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1, u8 color),
+                      int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res),
+                      void (*flush)(struct tty *res));
 void        init_tty();
 
 // textmode
@@ -48,3 +50,4 @@ void Draw_Box_TextMode(struct tty *res, int x, int y, int x1, int y1, u8 color);
 void AddShell_TextMode();
 void SwitchShell_TextMode(int i);
 bool now_tty_TextMode(struct tty *res);
+void screen_flush();

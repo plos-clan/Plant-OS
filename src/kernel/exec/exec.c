@@ -6,20 +6,16 @@
 
 void task_to_user_mode_elf(char *filename);
 
-extern char             *shell_data;
-extern struct TSS32      tss;
-extern struct PAGE_INFO *pages;
+extern char     *shell_data;
+extern TSS32     tss;
+extern PageInfo *pages;
 
-void task_to_user_mode_shell();
+static void task_to_user_mode_shell();
 
 #define IDX(addr)  ((u32)(addr) >> 12)           // 获取 addr 的页索引
 #define DIDX(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
 #define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
-
-static u32 padding_up(u32 num, u32 size) {
-  return (num + size - 1) / size;
-}
 
 void task_app() {
   klogd("task_app");
@@ -34,7 +30,7 @@ void task_app() {
   filename             = (char *)r[0];
   current_task()->line = (char *)r[1];
   klogd("我爱你");
-  page_free_one(r);
+  page_free(r, PAGE_SIZE);
   klogd("%08x", current_task()->top);
   // klogd("%p %d", current_task()->nfs, vfs_filesize("testapp.bin"));
   char *kfifo = (char *)page_malloc_one();
@@ -53,7 +49,7 @@ void task_app() {
   asm_set_cr3(PDE_ADDRESS);
   current_task()->pde = PDE_ADDRESS;
   klogd("P1 %08x", current_task()->pde);
-  for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
+  for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
 
     if ((*pde_entry & PAGE_SHARED) || pages[IDX(*pde_entry)].count > 1) {
@@ -65,7 +61,7 @@ void task_app() {
         u32 old    = *pde_entry & 0xfffff000;
         u32 attr   = *pde_entry & 0xfff;
         *pde_entry = (u32)page_malloc_one_count_from_4gb();
-        memcpy((void *)(*pde_entry), (void *)old, 0x1000);
+        memcpy((void *)(*pde_entry), (void *)old, PAGE_SIZE);
         pages[IDX(old)].count--;
         *pde_entry |= PAGE_USER | PAGE_P | PAGE_WRABLE;
       } else {
@@ -74,7 +70,7 @@ void task_app() {
       }
     }
     u32 p = *pde_entry & (0xfffff000);
-    for (int j = 0; j < 0x1000; j += 4) {
+    for (int j = 0; j < PAGE_SIZE; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
       if ((*pte_entry & PAGE_SHARED)) {
         *pte_entry &= 0xfffff000;
@@ -106,7 +102,7 @@ void task_shell() {
   u32 pde = current_task()->pde;
   asm_cli;
   asm_set_cr3(PDE_ADDRESS);
-  for (int i = DIDX(0x70000000) * 4; i < 0x1000; i += 4) {
+  for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
     if ((*pde_entry & PAGE_SHARED) || pages[IDX(*pde_entry)].count > 1) {
 
@@ -114,7 +110,7 @@ void task_shell() {
         u32 old    = *pde_entry & 0xfffff000;
         u32 attr   = *pde_entry & 0xfff;
         *pde_entry = (u32)page_malloc_one_count_from_4gb();
-        memcpy((void *)(*pde_entry), (void *)old, 0x1000);
+        memcpy((void *)(*pde_entry), (void *)old, PAGE_SIZE);
         pages[IDX(old)].count--;
         *pde_entry |= PAGE_USER | PAGE_P | PAGE_WRABLE;
       } else {
@@ -124,7 +120,7 @@ void task_shell() {
     } else {
     }
     u32 p = *pde_entry & (0xfffff000);
-    for (int j = 0; j < 0x1000; j += 4) {
+    for (int j = 0; j < PAGE_SIZE; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
       if ((*pte_entry & PAGE_SHARED)) {
         *pte_entry &= 0xfffff000;
@@ -138,7 +134,7 @@ void task_shell() {
   infinite_loop;
 }
 
-void task_to_user_mode_shell() {
+static void task_to_user_mode_shell() {
   u32 addr = (u32)current_task()->top;
 
   addr                 -= sizeof(intr_frame_t);
@@ -161,7 +157,7 @@ void task_to_user_mode_shell() {
   iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp    = NULL; // 设置用户态堆栈
   char *p        = shell_data;
-  if (!elf32Validate((Elf32_Ehdr *)p)) {
+  if (!elf32_is_validate((Elf32_Ehdr *)p)) {
     extern mtask *mouse_use_task;
     if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
     // list_free_with(vfs_now->path, free);
@@ -171,14 +167,14 @@ void task_to_user_mode_shell() {
     task_exit(-1);
     infinite_loop;
   }
-  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + 0x1000;
-  u32 pg         = padding_up(*(current_task()->alloc_size), 0x1000);
+  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + PAGE_SIZE;
+  u32 pg         = PADDING_UP(*(current_task()->alloc_size), PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < pg + 128; i++) {
     // klog("%d\n",i);
-    page_link(alloc_addr + i * 0x1000);
+    page_link(alloc_addr + i * PAGE_SIZE);
   }
-  u32 alloced_esp  = alloc_addr + 128 * 0x1000;
-  alloc_addr      += 128 * 0x1000;
+  u32 alloced_esp  = alloc_addr + 128 * PAGE_SIZE;
+  alloc_addr      += 128 * PAGE_SIZE;
   iframe->esp      = alloced_esp;
   page_link(0xf0000000);
   *(u8 *)(0xf0000000)        = 1;
@@ -240,10 +236,10 @@ void task_to_user_mode_elf(char *filename) {
   tss.eflags     = 0x202;
   u32 sz         = file->size;
   klogd("%d", sz);
-  char *p = page_malloc(sz);
+  char *p = page_alloc(sz);
   vfs_read(file, p, 0, sz);
   klogd();
-  if (!elf32Validate((Elf32_Ehdr *)p)) {
+  if (!elf32_is_validate((Elf32_Ehdr *)p)) {
     klogd();
     extern mtask *mouse_use_task;
     page_free(p, sz);
@@ -258,8 +254,8 @@ void task_to_user_mode_elf(char *filename) {
     task_exit(-1);
     infinite_loop;
   }
-  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + 0x1000;
-  u32 pg         = padding_up(*(current_task()->alloc_size), PAGE_SIZE);
+  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + PAGE_SIZE;
+  u32 pg         = PADDING_UP(*(current_task()->alloc_size), PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < pg + 128 * 4; i++) {
     page_link(alloc_addr + i * PAGE_SIZE);
   }
@@ -296,7 +292,7 @@ int os_execute(char *filename, char *line) {
 
   klogd("execute: %s %s", filename, line);
 
-  mtask *t = create_task((u32)task_app, 0, 1, 1);
+  mtask *t = create_task(task_app, 1, 1);
   // 轮询
   t->train = 0;
 
@@ -349,7 +345,7 @@ int os_execute(char *filename, char *line) {
 }
 
 int os_execute_shell(char *line) {
-  mtask *t                  = create_task((u32)task_shell, 0, 1, 1);
+  mtask *t                  = create_task(task_shell, 1, 1);
   t->train                  = 1;
   int old                   = current_task()->sigint_up;
   current_task()->sigint_up = 0;
@@ -372,7 +368,7 @@ int os_execute_shell(char *line) {
 }
 
 void os_execute_no_ret(char *filename, char *line) {
-  mtask      *t          = create_task((u32)task_app, 0, 1, 1);
+  mtask      *t          = create_task(task_app, 1, 1);
   struct tty *tty_backup = current_task()->TTY;
   t->TTY                 = current_task()->TTY;
   current_task()->TTY    = NULL;

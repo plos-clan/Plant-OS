@@ -1,10 +1,8 @@
+#include <loader.h>
 
 // GDTIDT的初始化
-//  Copyright (C) 2021-2022 zhouzhihao & min0911_
-//  ------------------------------------------------
-#include <loader.h>
-void empty_inthandler();
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
+
+void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
     limit /= 0x1000;
@@ -18,7 +16,7 @@ void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, u32 limit, int base, int ar) {
   return;
 }
 
-void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) {
+void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
   gd->offset_low   = offset & 0xffff;
   gd->selector     = selector;
   gd->dw_count     = (ar >> 8) & 0xff;
@@ -27,34 +25,28 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar) 
   return;
 }
 
-void init_gdtidt(void) {
-  struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-  struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  int                        i;
+void default_inthandler() __attr(naked);
 
-  /* GDT初始化 */
-  for (i = 0; i <= LIMIT_GDT / 8; i++) {
+void default_inthandler() {
+  asm volatile("iret\n\t");
+}
+
+void init_gdtidt() {
+  var gdt = (SegmentDescriptor *)GDT_ADDR;
+  var idt = (GateDescriptor *)IDT_ADDR;
+
+  // 初始化 GDT
+  for (int i = 0; i < GDT_LEN; i++) {
     set_segmdesc(gdt + i, 0, 0, 0);
   }
   set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
   set_segmdesc(gdt + 2, 0xffffffff, 0x00000000, AR_CODE32_ER);
   set_segmdesc(gdt + 4, 0xffffffff, 0x00000000, AR_CODE32_ER);
-  load_gdtr(LIMIT_GDT, ADR_GDT); // 加载GDT表
+  load_gdt(gdt, GDT_LEN);
 
-  /* IDT */
-  for (i = 0; i <= LIMIT_IDT / 8; i++) {
-    set_gatedesc(idt + i, 0, 0, 0);
+  // 初始化 IDT
+  for (size_t i = 0; i < IDT_LEN; i++) {
+    set_gatedesc(idt + i, (size_t)default_inthandler, 2 * 8, AR_INTGATE32);
   }
-  load_idtr(LIMIT_IDT, ADR_IDT); // 加载IDT表
-  /* IDT初始化*/
-  for (int i = 0; i < 0xff; i++) {
-    // 为了防止报#GP异常，将所有中断处理函数的地址设置为0
-    set_gatedesc(idt + i, (int)empty_inthandler, 2 * 8, AR_INTGATE32);
-  }
-  return;
-}
-// 注册中断处理函数
-void register_intr_handler(int num, int addr) {
-  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  set_gatedesc(idt + num, addr, 2 * 8, AR_INTGATE32);
+  load_idt(idt, IDT_LEN); // 加载IDT表
 }

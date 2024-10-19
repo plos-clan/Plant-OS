@@ -30,8 +30,7 @@ void init_pit() {
 }
 
 struct TIMER *timer_alloc() {
-  int i;
-  for (i = 0; i < MAX_TIMER; i++) {
+  for (int i = 0; i < MAX_TIMER; i++) {
     if (timerctl.timers0[i].flags == 0) {
       timerctl.timers0[i].flags  = TIMER_FLAGS_ALLOC;
       timerctl.timers0[i].waiter = NULL;
@@ -102,6 +101,7 @@ static u32 count       = 0;
 uint64_t   global_time = 0;
 
 void inthandler20(int cs, int *esp) {
+  // klogd("*");
   // printk("CS:EIP=%04x:%08x\n",current_task()->tss.cs,esp[-10]);
   asm_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
   extern mtask *mtask_current;
@@ -133,6 +133,7 @@ void inthandler20(int cs, int *esp) {
   }
   timerctl.t0   = timer;
   timerctl.next = timer->timeout;
+
   asm_sti;
   if (mtask_current) task_next();
 }

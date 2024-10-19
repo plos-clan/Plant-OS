@@ -4,7 +4,7 @@
  */
 #include <loader.h>
 volatile int floppy_int_count = 0;
-void         floppy_int(void);
+void         floppy_int();
 typedef struct DrvGeom {
   u8 heads;
   u8 tracks;
@@ -69,8 +69,8 @@ void floppy_init() {
     return;
   }
   //设置软盘驱动器的中断服务程序
-  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  set_gatedesc(idt + 0x26, (int)floppy_int, 4 * 8, AR_INTGATE32);
+  GateDescriptor *idt = (GateDescriptor *)IDT_ADDR;
+  set_gatedesc(idt + 0x26, (size_t)floppy_int, 4 * 8, AR_INTGATE32);
   ClearMaskIrq(0x6); //清除IRQ6的中断
   klogf("FLOPPY DISK:RESETING\n");
   reset(); //重置软盘驱动器
@@ -123,7 +123,7 @@ void reset() {
 
   dchange = 0; //清除“磁盘更改”状态（将dchange设置为false，让别的函数知道磁盘更改状态已经被清楚了）
 }
-void motoron(void) {
+void motoron() {
   if (!motor) {
     mtick = -1; /* 停止电机计时 */
     asm_out8(FDC_DOR, 0x1c);
@@ -134,12 +134,12 @@ void motoron(void) {
 }
 
 /* 关闭电机 */
-void motoroff(void) {
+void motoroff() {
   if (motor) { mtick = 13500; /* 重新初始化电机计时器 */ }
 }
 
 /* 重新校准驱动器 */
-void recalibrate(void) {
+void recalibrate() {
   /* 先启用电机 */
   motoron();
 
@@ -282,10 +282,10 @@ int fdc_rw(int block, u8 *blockbuff, int read, u32 nosectors) {
 
     /* 发送命令 */
     if (read) {
-      dma8_recv(2, (void *)tbaddr, nosectors * 512);
+      dma_recv(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_READ);
     } else {
-      dma8_send(2, (void *)tbaddr, nosectors * 512);
+      dma_send(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_WRITE);
     }
 
@@ -361,10 +361,10 @@ int fdc_rw_ths(int track, int head, int sector, u8 *blockbuff, int read, u32 nos
     asm_out8(FDC_CCR, 0);
 
     if (read) {
-      dma8_recv(2, (void *)tbaddr, nosectors * 512);
+      dma_recv(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_READ);
     } else {
-      dma8_send(2, (void *)tbaddr, nosectors * 512);
+      dma_send(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_WRITE);
     }
 

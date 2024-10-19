@@ -2,22 +2,17 @@
 
 #include <libc-base.h>
 
-struct MT19937 {
-  u32  mt[624];
-  uint i;
-};
-
-void MT19937_init(struct MT19937 *ctx, u32 seed) {
-  ctx->i     = 0;
+void MT19937_init(MT19937 *ctx, u32 seed) {
+  ctx->idx   = 0;
   ctx->mt[0] = seed;
-  for (uint i = 1; i < 624; i++) {
+  for (u32 i = 1; i < 624; i++) {
     u32 n      = ctx->mt[i - 1] ^ (ctx->mt[i - 1] >> 30);
     ctx->mt[i] = 0x6c078965 * n + i;
   }
 }
 
-void MT19937_generate(struct MT19937 *ctx) {
-  for (uint i = 1; i < 623; i++) {
+void MT19937_generate(MT19937 *ctx) {
+  for (u32 i = 1; i < 623; i++) {
     u32 y      = (ctx->mt[i] & 0x80000000) + (ctx->mt[i + 1] & 0x7fffffff);
     ctx->mt[i] = (y >> 1) ^ ctx->mt[(i + 397) % 624];
     if (y & 1) ctx->mt[i] ^= 0x9908b0df;
@@ -27,9 +22,9 @@ void MT19937_generate(struct MT19937 *ctx) {
   if (y & 1) ctx->mt[623] ^= 0x9908b0df;
 }
 
-u32 MT19937_extract(struct MT19937 *ctx) {
-  if (ctx->i >= 624) MT19937_generate(ctx);
-  u32 y  = ctx->mt[ctx->i++];
+u32 MT19937_extract(MT19937 *ctx) {
+  if (ctx->idx >= 624) MT19937_generate(ctx);
+  u32 y  = ctx->mt[ctx->idx++];
   y     ^= (y >> 11);
   y     ^= (y << 7) & 0x9d2c5680;
   y     ^= (y << 15) & 0xefc60000;
@@ -90,6 +85,7 @@ int rand() {
   rand_seed ^= rand_seed << 5;
   return rand_seed & INT_MAX;
 }
+
 void srand(uint seed) {
   rand_seed = seed;
 }

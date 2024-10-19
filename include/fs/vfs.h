@@ -2,6 +2,8 @@
 #include <data-structure.h>
 #include <libc-base.h>
 
+// * 所有时间请使用 GMT 时间 *
+
 // 读写时请 padding 到 PAGE_SIZE 的整数倍
 #define FILE_BLKSIZE PAGE_SIZE
 
@@ -20,7 +22,11 @@ typedef int (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size);
 
 typedef int (*vfs_stat_t)(void *file, vfs_node_t node);
 
+// 创建一个文件或文件夹
 typedef int (*vfs_mk_t)(void *parent, cstr name, vfs_node_t node);
+
+// 映射文件从 offset 开始的 size 大小
+typedef void *(*vfs_mapfile_t)(void *file, size_t offset, size_t size);
 
 enum {
   file_none,   // 未获取信息
@@ -56,6 +62,7 @@ struct vfs_node {
   u16        fsid;        // 文件系统的 id
   void      *handle;      // 操作文件的句柄
   list_t     child;       //
+  vfs_node_t root;        // 根目录
 };
 
 struct fd {
@@ -90,3 +97,4 @@ int        vfs_mkdir(cstr name);
 int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size);
 int vfs_mkfile(cstr name);
 int vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size);
+int vfs_unmount(cstr path);

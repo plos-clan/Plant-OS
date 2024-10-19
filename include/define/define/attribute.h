@@ -47,7 +47,7 @@
 #  define __attr_readonly(...)
 #  define __attr_writeonly(...)
 #else
-#  define __attr_access(x)      __attr(access x)
+#  define __attr_access(x)      __attr(access x) // 这个 redefine 没有问题，忽略掉
 #  define __attr_readonly(...)  __attr(access(read_only, ##__VA_ARGS__))
 #  define __attr_writeonly(...) __attr(access(write_only, ##__VA_ARGS__))
 #endif
@@ -62,6 +62,8 @@
 #define __deprecated __attr(deprecated)
 
 #define USED __attr(used)
+
+#define __nif __attr(no_instrument_function)
 
 // __attribute__((overloadable)) 是 clang 扩展，使 C 函数可以被重载
 
@@ -85,7 +87,7 @@
 #  define dlprotected __attr(visibility("protected"))
 #endif
 #if DEBUG
-#  define finline static
+#  define finline static __nif
 #else
-#  define finline static inline __attr(always_inline)
+#  define finline static inline __attr(always_inline) __nif
 #endif

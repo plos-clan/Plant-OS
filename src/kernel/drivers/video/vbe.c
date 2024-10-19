@@ -6,92 +6,169 @@
 
 #define rmfarptr2ptr(x) ((void *)((x).seg * 0x10 + (x).offset))
 
-int check_vbe_mode(int mode, struct VBEINFO *vinfo) {
-  regs16 regs;
-  regs.ax = 0x4f01;
-  regs.cx = mode + 0x4000;
-  regs.es = (int)(vinfo) / 0x10;
-  regs.di = (int)(vinfo) % 0x10;
-  asm16_int(0x10, &regs);
-  if (regs.ax != 0x004f) return -1;
-  return 0;
-}
+static int now_width = 0, now_height = 0;
+static int now_xoff = 0, now_yoff = 0;
 
-int SwitchVBEMode(int mode) {
-  struct VBEINFO *vinfo = (struct VBEINFO *)VBEINFO_ADDRESS;
-  if (check_vbe_mode(mode, vinfo) != 0) return -1;
-  regs16 regs;
-  regs.ax = 0x4f02;
-  regs.bx = mode + 0x4000;
-  asm16_int(0x10, &regs);
-  return 0;
-}
+void *vbe_frontbuffer;
+void *vbe_backbuffer;
 
+#if 0
 void SwitchToText8025_BIOS() {
   regs16 regs = {.ax = 0x0003};
-  asm16_int(0x10, &regs);
-  //   init_palette();
-  //   screen_clear();
+  v86_int(0x10, &regs);
 }
 
 void SwitchTo320X200X256_BIOS() {
   regs16 regs;
   regs.ax = 0x0013;
-  asm16_int(0x10, &regs);
+  v86_int(0x10, &regs);
 }
-
-void *GetSVGACardMemAddress() {
-  struct VBEINFO *vinfo = (struct VBEINFO *)VBEINFO_ADDRESS;
-  return (void *)(vinfo->vram);
-}
+#endif
 
 char *GetSVGACharOEMString() {
   regs16 regs = {.ax = 0x4f00, .es = 0x07e0, .di = 0x0000};
-  asm16_int(0x10, &regs);
-
-  VESAControllerInfo *info = (VESAControllerInfo *)VBEINFO_ADDRESS;
+  v86_int(0x10, &regs);
+  VESAControllerInfo *info = (VESAControllerInfo *)VBEINFO_ADDR;
   return rmfarptr2ptr(info->oemString);
 }
 
-VESAModeInfo *GetVESAModeInfo(volatile int mode) {
-  regs16 r;
-  r.ax = 0x4f01;
-  r.cx = mode + 0x4000;
-  r.es = 0x0700;
-  r.di = 0x0000;
-  asm16_int(0x10, &r);
-  if (r.ax != 0x004f) return NULL;
-  return (VESAModeInfo *)(0x7000);
+int vbe_get_controller_info(VESAControllerInfo *addr) {
+  regs16 r = {.ax = 0x4f00, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
+  v86_int(0x10, &r);
+  if (r.ax != 0x004f) kloge("Error when vbe_get_controller_info, rets %04x", r.ax);
+  return r.ax;
+}
+
+int vbe_get_mode_info(u16 mode, VESAModeInfo *addr) {
+  mode     |= MASK(14);
+  regs16 r  = {.ax = 0x4f01, .cx = mode, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
+  v86_int(0x10, &r);
+  if (r.ax != 0x004f) kloge("Error when vbe_get_mode_info, mode %04x rets %04x", mode, r.ax);
+  return r.ax;
+}
+
+void *vbe_set_mode(u16 mode) {
+  mode        |= MASK(14);
+  var    addr  = (VESAModeInfo *)VBEMODEINFO_ADDR;
+  regs16 r1    = {.ax = 0x4f01, .cx = mode, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
+  v86_int(0x10, &r1);
+  assert(r1.ax == 0x004f, "Error when vbe_set_mode");
+
+  regs16 r2 = {.ax = 0x4f02, .bx = mode};
+  v86_int(0x10, &r2);
+  assert(r2.ax == 0x004f, "Error when vbe_set_mode");
+
+  now_width       = addr->width;
+  now_height      = addr->height;
+  vbe_frontbuffer = (void *)addr->physbase;
+  vbe_backbuffer  = (void *)addr->physbase + addr->width * addr->height * addr->bitsPerPixel / 8;
+  return vbe_frontbuffer;
 }
 
 // 获取所有支持的模式
 // 在屏幕上打印，模式号，分辨率，色深
-void get_all_mode() {
-  regs16 regs = {.ax = 0x4f00, .es = 0x07e0, .di = 0x0000};
-  asm16_int(0x10, &regs);
-
-  auto vbe  = (VESAControllerInfo *)VBEINFO_ADDRESS;
-  u16 *mode = (u16 *)rmfarptr2ptr(vbe->videoModes);
-  for (size_t c = 0; mode[c] != U16_MAX; c++) {
-    VESAModeInfo *info = GetVESAModeInfo(mode[c]);
-    klogd("Mode: %04x %4d x %4d x %4d", mode[c], info->width, info->height, info->bitsPerPixel);
+void vbe_print_all_modes() {
+  var vbe   = (VESAControllerInfo *)VBEINFO_ADDR;
+  var modes = (u16 *)rmfarptr2ptr(vbe->videoModes);
+  var info  = (VESAModeInfo *)VBEMODEINFO_ADDR;
+  int ret   = vbe_get_controller_info(vbe);
+  assert(ret == 0x004f, "vbe_get_controller_info failed.");
+  for (size_t i = 0; modes[i] != U16_MAX; i++) {
+    int ret = vbe_get_mode_info(modes[i], info);
+    if (ret != 0x004f) continue;
+    klogd("Mode: %04x %4d x %4d x %4d", modes[i], info->width, info->height, info->bitsPerPixel);
   }
 }
 
-void *set_mode(int width, int height, int bpp) {
-  regs16 regs = {.ax = 0x4f00, .es = 0x07e0, .di = 0x0000};
-  asm16_int(0x10, &regs);
-
-  auto          vbe  = (VESAControllerInfo *)VBEINFO_ADDRESS;
-  volatile u16 *mode = (u16 *)rmfarptr2ptr(vbe->videoModes);
-  for (size_t c = 0; mode[c] != U16_MAX; c++) {
-    volatile VESAModeInfo *info = GetVESAModeInfo(mode[c]);
-    // klogd("%04x:%dx%dx%d", mode[c], info->width, info->height, info->bitsPerPixel);
+int vbe_match_mode(int width, int height, int bpp) {
+  var vbe   = (VESAControllerInfo *)VBEINFO_ADDR;
+  var modes = (u16 *)rmfarptr2ptr(vbe->videoModes);
+  var info  = (VESAModeInfo *)VBEMODEINFO_ADDR;
+  int ret   = vbe_get_controller_info(vbe);
+  assert(ret == 0x004f, "vbe_get_controller_info failed.");
+  for (size_t i = 0; modes[i] != U16_MAX; i++) {
+    int ret = vbe_get_mode_info(modes[i], info);
+    if (ret != 0x004f) continue;
+    klogd("%04x:%dx%dx%d", modes[i], info->width, info->height, info->bitsPerPixel);
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
-      SwitchVBEMode(mode[c]);
-      volatile struct VBEINFO *v = (struct VBEINFO *)VBEINFO_ADDRESS;
-      return v->vram;
+      return modes[i];
     }
   }
-  return null;
+  return -1;
 }
+
+void *vbe_match_and_set_mode(int width, int height, int bpp) {
+  int mode = vbe_match_mode(width, height, bpp);
+  if (mode < 0) return null;
+  return vbe_set_mode(mode);
+}
+
+int vbe_set_buffer(int xoff, int yoff) {
+  now_xoff = xoff, now_yoff = yoff;
+  regs16 r = {.ax = 0x4f07, .bx = 0x0000, .cx = xoff, .dx = yoff};
+  v86_int(0x10, &r);
+  if (r.ax != 0x004f) kloge("Error when vbe_set_buffer");
+  return r.ax == 0x004f ? 0 : -1;
+}
+
+int vbe_flip() {
+  void *temp      = vbe_frontbuffer;
+  vbe_frontbuffer = vbe_backbuffer;
+  vbe_backbuffer  = temp;
+  return vbe_set_buffer(now_xoff, now_yoff ? 0 : now_height);
+}
+
+int vbe_flush(const void *buf) {
+  if (vbe_backbuffer == null) return -1;
+  lgmemcpy32(vbe_backbuffer, buf, now_width * now_height);
+  return vbe_flip();
+}
+
+int vbe_clear(byte r, byte g, byte b) {
+  lgmemset32(vbe_backbuffer, r << 16 | g << 8 | b, now_width * now_height);
+  return vbe_flip();
+}
+
+typedef union PMInfoBlock {
+  struct {
+    u32  signature;       // PM Info Block Signature
+    u16  entry_point;     // Offset of PM entry point within BIOS
+    u16  pm_initialize;   //  Offset of PM initialization entry point
+    u16  bios_data_sel;   // Selector to BIOS data area emulation block
+    u16  A0000_sel;       // Selector to access A0000h physical mem
+    u16  B0000_sel;       // Selector to access B0000h physical mem
+    u16  B8000_sel;       // Selector to access B8000h physical mem
+    u16  code_seg_sel;    // Selector to access code segment as data
+    bool in_protect_mode; // Set to 1 when in protected mode
+    byte checksum;        // Checksum byte for structure
+  };
+  byte data[20];
+} PMInfoBlock;
+
+#define BIOS_ADDR ((void *)0xc0000)
+#define BIOS_SIZE ((size_t)0x8000 * 4)
+
+static void vbe_find_pminfo() {
+  void *bios_copy = malloc(BIOS_SIZE);
+  memcpy(bios_copy, BIOS_ADDR, BIOS_SIZE);
+  PMInfoBlock *info = null;
+  for (size_t i = 0; i < BIOS_SIZE - sizeof(PMInfoBlock); i++) {
+    PMInfoBlock *blk = BIOS_ADDR + i;
+    if (blk->signature != MAGIC32('P', 'M', 'I', 'D')) continue;
+    klogd("Found PMInfoBlock signature at %p", blk);
+    byte sum = 0;
+#pragma unroll
+    for (size_t i = 0; i < sizeof(*blk); i++) {
+      sum += blk->data[i];
+    }
+    if (sum != 0) continue;
+    info = blk;
+    break;
+  }
+  if (info == null) {
+    klogw("No PMInfoBlock found in BIOS");
+    return;
+  }
+}
+
+void vbe_init() {}

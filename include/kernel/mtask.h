@@ -65,6 +65,8 @@ struct __PACKED__ mtask {
   u32           signal_disable;
   list_t        subtasks; // 子任务
   u64           cpu_time; // CPU 时间
+  u32           v86_mode; // 8086模式
+  u32           v86_if;   // 8086中断
 };
 
 mtask *current_task();
@@ -76,16 +78,17 @@ void   task_next();
 void   task_exit(u32 status);
 mtask *get_task(u32 tid);
 
-#define get_tid(n) ((n)->tid)
+#define get_tid(n)     ((n)->tid)
+#define offsetof(s, m) (size_t) & (((s *)0)->m)
 
-void         task_fall_blocked(enum STATE state);
-void         idle_loop();
-void         init();
-//#define vfs_now current_task()->nfs
+void task_fall_blocked(enum STATE state);
+void idle_loop();
+void init();
+
 cir_queue8_t task_get_key_queue(mtask *task);
 cir_queue8_t task_get_mouse_fifo(mtask *task);
 void         into_mtask();
-mtask       *create_task(u32 eip, u32 esp, u32 ticks, u32 floor);
+mtask       *create_task(void *func, u32 ticks, u32 floor);
 void         task_exit(u32 status);
 int          waittid(u32 tid);
 void         task_set_fifo(mtask *task, cir_queue8_t kfifo, cir_queue8_t mfifo);

@@ -1,5 +1,7 @@
 #include <kernel.h>
 
+// TODO 重构
+
 int  DisableExpFlag = 0;
 u32  CatchEIP       = 0;
 char flagOfexp      = 0;
@@ -53,22 +55,6 @@ void SetCatchEip(u32 eip) {
     CatchEIP = eip;
   } else {
     current_task()->CatchEIP = eip;
-  }
-}
-
-void print_32bits_ascil(u32 n);
-
-void insert_char(char *str, int pos, char ch) {
-  int i;
-  for (i = strlen(str); i >= pos; i--) {
-    str[i + 1] = str[i];
-  }
-  str[pos] = ch;
-}
-void delete_char(char *str, int pos) {
-  int i;
-  for (i = pos; i < strlen(str); i++) {
-    str[i] = str[i + 1];
   }
 }
 
@@ -142,16 +128,138 @@ void ERROR7(u32 eip) {
   }
   fpu_enable(current_task());
 }
+#define FP_TO_LINEAR(seg, off) ((u32)(seg << 4) + (u32)off)
+#define VALID_FLAGS            0xDFF
+#define EFLAG_VM               (1 << 17)
+#define EFLAG_IF               (1 << 9)
+extern byte *IVT;
+void         ERROR13(u32 eip) {
+  if (current_task()->v86_mode == 0) {
+    error("fault, gp");
+    syscall_exit(1);
+    infinite_loop;
+  }
+  volatile v86_frame_t *frame = (v86_frame_t *)((volatile u32)(&eip));
+  asm volatile("" : : "g"(frame));
+  // 打印frame所有成员
+  uint8_t      *ip;
+  uint16_t     *stack, *ivt;
+  uint32_t     *stack32;
+  mtask        *current = current_task();
+  extern mtask *v86_using_task;
+  bool          is_operand32, is_address32;
+  ip           = (uint8_t *)(FP_TO_LINEAR(frame->cs, frame->eip));
+  stack        = (uint16_t *)(FP_TO_LINEAR(frame->ss, frame->esp));
+  ivt          = (uint16_t *)(IVT);
+  stack32      = (uint32_t *)(FP_TO_LINEAR(frame->ss, frame->esp));
+  is_operand32 = is_address32 = false;
+  while (true) {
+    switch (ip[0]) {
+    case 0x66: /* O32 */
+      is_operand32 = true;
+      ip++;
+      frame->eip = (uint16_t)(frame->eip + 1);
+      break;
 
-void ERROR13(u32 eip) {
-  kloge("ERROR GP!!!!");
-  while (true)
-    ;
+    case 0x67: /* A32 */
+      is_address32 = true;
+      ip++;
+      frame->eip = (uint16_t)(frame->eip + 1);
+      break;
+
+    case 0x9c: /* PUSHF */
+
+      if (is_operand32) {
+        frame->esp = ((frame->esp & 0xffff) - 4) & 0xffff;
+        stack32--;
+        stack32[0] = frame->eflags & VALID_FLAGS;
+
+        if (current->v86_if)
+          stack32[0] |= EFLAG_IF;
+        else
+          stack32[0] &= ~EFLAG_IF;
+      } else {
+        frame->esp = ((frame->esp & 0xffff) - 2) & 0xffff;
+        stack--;
+        stack[0] = (uint16_t)frame->eflags;
+
+        if (current->v86_if)
+          stack[0] |= EFLAG_IF;
+        else
+          stack[0] &= ~EFLAG_IF;
+      }
+
+      frame->eip = (uint16_t)(frame->eip + 1);
+      return;
+
+    case 0x9d: /* POPF */
+
+      if (is_operand32) {
+        frame->eflags   = EFLAG_IF | EFLAG_VM | (stack32[0] & VALID_FLAGS);
+        current->v86_if = (stack32[0] & EFLAG_IF) != 0;
+        frame->esp      = ((frame->esp & 0xffff) + 4) & 0xffff;
+      } else {
+        frame->eflags   = EFLAG_IF | EFLAG_VM | stack[0];
+        current->v86_if = (stack[0] & EFLAG_IF) != 0;
+        frame->esp      = ((frame->esp & 0xffff) + 2) & 0xffff;
+      }
+
+      frame->eip = (uint16_t)(frame->eip + 1);
+      return;
+
+    case 0xcd: /* INT n */
+      switch (ip[1]) {
+      case 0x30:
+        // printf("int 0x30\n");
+        frame->eip += 2;
+        if (v86_using_task) { task_run(v86_using_task); }
+        task_next();
+        return;
+      default:
+        stack      -= 3;
+        frame->esp  = ((frame->esp & 0xffff) - 6) & 0xffff;
+
+        stack[0] = (uint16_t)(frame->eip + 2);
+        stack[1] = frame->cs;
+        stack[2] = (uint16_t)frame->eflags;
+
+        if (current->v86_if)
+          stack[2] |= EFLAG_IF;
+        else
+          stack[2] &= ~EFLAG_IF;
+        frame->cs  = ivt[ip[1] * 2 + 1];
+        frame->eip = ivt[ip[1] * 2];
+        return;
+      }
+
+      break;
+
+    case 0xcf: /* IRET */
+      frame->eip      = stack[0];
+      frame->cs       = stack[1];
+      frame->eflags   = EFLAG_IF | EFLAG_VM | stack[2];
+      current->v86_if = (stack[2] & EFLAG_IF) != 0;
+
+      frame->esp = ((frame->esp & 0xffff) + 6) & 0xffff;
+      return;
+
+    case 0xfa: /* CLI */
+      current->v86_if = false;
+      frame->eip      = (uint16_t)(frame->eip + 1);
+      return;
+
+    case 0xfb: /* STI */
+      current->v86_if = true;
+      frame->eip      = (uint16_t)(frame->eip + 1);
+      return;
+    default: error("unhandled opcode 0x%x\n", ip[0]); return;
+    }
+  }
+  infinite_loop;
 }
 
 void KILLAPP(int eip, int ec) {
-  while (true)
-    ;
+  infinite_loop;
 }
 
 void KILLAPP0(int ec, int tn) {

@@ -1,14 +1,14 @@
 #include <kernel.h>
 
-void reset(void);
-void recalibrate(void);
+void reset();
+void recalibrate();
 int  fdc_rw(int block, byte *blockbuff, int read, u64 nosectors);
 
 volatile int floppy_int_count = 0;
 
 mtask *waiter;
 
-void floppy_int(void);
+void floppy_int();
 void wait_floppy_interrupt();
 
 mtask *floppy_use;
@@ -94,8 +94,8 @@ void floppy_init() {
     return;
   }
   // 设置软盘驱动器的中断服务程序
-  struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
-  set_gatedesc(idt + 0x26, (int)floppy_int, 2 * 8, AR_INTGATE32);
+  GateDescriptor *idt = (GateDescriptor *)IDT_ADDR;
+  set_gatedesc(idt + 0x26, (size_t)floppy_int, 2 * 8, AR_INTGATE32);
   irq_mask_clear(0x6); // 清除IRQ6的中断
   printi("FLOPPY DISK:RESETING");
   reset(); // 重置软盘驱动器
@@ -326,10 +326,10 @@ int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
 
     /* 发送命令 */
     if (read) {
-      dma8_recv(2, (void *)tbaddr, nosectors * 512);
+      dma_recv(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_READ);
     } else {
-      dma8_send(2, (void *)tbaddr, nosectors * 512);
+      dma_send(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_WRITE);
     }
 
@@ -405,10 +405,10 @@ int fdc_rw_ths(int track, int head, int sector, byte *blockbuff, int read, u64 n
     asm_out8(FDC_CCR, 0);
 
     if (read) {
-      dma8_recv(2, (void *)tbaddr, nosectors * 512);
+      dma_recv(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_READ);
     } else {
-      dma8_send(2, (void *)tbaddr, nosectors * 512);
+      dma_send(2, (void *)tbaddr, nosectors * 512);
       sendbyte(CMD_WRITE);
     }
 

@@ -30,7 +30,7 @@ typedef struct plac_decompress {
   cb_plac_decompress_t cb_mdct_data;
 } *plac_decompress_t;
 
-// block_len 应为 1024
+// block_len 应为 1024 修改可能导致错误
 plac_compress_t plac_compress_alloc();
 void            plac_compress_free(plac_compress_t plac);
 void            plac_write_header_v0(plac_compress_t plac, u16 samplerate, u32 nsamples);
@@ -40,7 +40,7 @@ void            plac_write_data(plac_compress_t plac, quantized_t q);
 void            plac_compress_block(plac_compress_t plac, f32 *block, size_t len);
 void            plac_compress_final(plac_compress_t plac);
 
-// block_len 应为 1024
+// block_len 应为 1024 修改可能导致错误
 plac_decompress_t plac_decompress_alloc(const void *buffer, size_t size);
 void              plac_decompress_free(plac_decompress_t plac);
 bool              plac_read_header(plac_decompress_t plac, u32 *samplerate, u64 *nsamples);

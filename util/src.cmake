@@ -1,3 +1,5 @@
+utillib(asio)
+
 utillib(libc-base)
 libdef(util-libc-base NO_STD=0)
 

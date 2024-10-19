@@ -54,19 +54,20 @@ static int default_tty_fifo_status(struct tty *res) {
 static int default_tty_fifo_get(struct tty *res) {
   return cir_queue8_get(task_get_key_queue(current_task()));
 }
-
-void init_tty() {
+static void default_flush(struct tty *res) {}
+void        init_tty() {
   tty_default = tty_alloc((void *)0xb8000, 80, 25, putchar_TextMode, MoveCursor_TextMode,
-                          clear_TextMode, screen_ne_TextMode, Draw_Box_TextMode,
-                          default_tty_fifo_status, default_tty_fifo_get);
+                                 clear_TextMode, screen_ne_TextMode, Draw_Box_TextMode,
+                                 default_tty_fifo_status, default_tty_fifo_get, default_flush);
 }
 
 struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct tty *res, int c),
                       void (*MoveCursor)(struct tty *res, int x, int y),
                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
                       void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1, u8 color),
-                      int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res)) {
-  struct tty *res  = (struct tty *)page_malloc(sizeof(struct tty));
+                      int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res),
+                      void (*flush)(struct tty *res)) {
+  struct tty *res  = (struct tty *)page_alloc(sizeof(struct tty));
   res->is_using    = 1;
   res->x           = 0;
   res->y           = 0;
@@ -86,6 +87,7 @@ struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct t
   res->cur_moving  = 1;
   res->vt100       = 0;
   res->buf_p       = 0;
+  res->flush       = flush;
   memset(res->buffer, 0, sizeof(res->buffer));
   res->done        = 0;
   res->mode        = 0;

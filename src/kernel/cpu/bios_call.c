@@ -6,11 +6,14 @@ extern byte *IVT;
 
 #pragma clang optimize off
 
-void asm16_int(u8 intnum, regs16 *regs) {
+void asm_int32(byte intnum, regs16 *regs);
+
+void asm16_int(byte intnum, regs16 *regs) {
+  var flag = asm_get_flags();
   asm_set_cr3(PDE_ADDRESS);
-  memcpy(null, IVT, 0x1000); // 这是正确的，忽略这个 warning
-  int32(intnum, regs);
+  memcpy(null, IVT, PAGE_SIZE); // 这是正确的，忽略这个 warning
+  asm_int32(intnum, regs);
   asm_set_cr3(current_task()->pde);
   init_pic();
-  asm_sti;
+  asm_set_flags(flag);
 }

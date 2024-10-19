@@ -1,36 +1,34 @@
 #pragma once
 #include <define.h>
 
-void dma_start(byte mode, byte channel, void *address, uint length, bool is_16bit);
+/**
+ *\brief 向 DMA 控制器发送命令
+ *
+ *\param mode     DMA 模式
+ *\param channel  DMA 通道
+ *\param address  发送的数据起始地址
+ *\param size     发送数据的大小
+ */
+void dma_start(byte mode, byte channel, void *address, size_t size);
 
-finline void dma_send(byte channel, void *address, uint length, bool is_16bit) {
-  dma_start(0x48, channel, address, length, is_16bit);
+/**
+ *\brief 使用 DMA 发送数据
+ *
+ *\param channel  DMA 通道
+ *\param address  发送的数据起始地址
+ *\param size     发送数据的大小
+ */
+finline void dma_send(byte channel, void *address, size_t size) {
+  dma_start(0x48, channel, address, size);
 }
 
-finline void dma_recv(byte channel, void *address, uint length, bool is_16bit) {
-  dma_start(0x44, channel, address, length, is_16bit);
-}
-
-finline void dma8_start(byte mode, byte channel, void *address, uint length) {
-  dma_start(mode, channel, address, length, false);
-}
-
-finline void dma8_send(byte channel, void *address, uint length) {
-  dma_send(channel, address, length, false);
-}
-
-finline void dma8_recv(byte channel, void *address, uint length) {
-  dma_recv(channel, address, length, false);
-}
-
-finline void dma16_start(byte mode, byte channel, void *address, uint length) {
-  dma_start(mode, channel, address, length, true);
-}
-
-finline void dma16_send(byte channel, void *address, uint length) {
-  dma_send(channel, address, length, true);
-}
-
-finline void dma16_recv(byte channel, void *address, uint length) {
-  dma_recv(channel, address, length, true);
+/**
+ *\brief 使用 DMA 接收数据
+ *
+ *\param channel  DMA 通道
+ *\param address  接收数据的起始地址
+ *\param size     接收数据的大小
+ */
+finline void dma_recv(byte channel, void *address, size_t size) {
+  dma_start(0x44, channel, address, size);
 }

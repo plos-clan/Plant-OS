@@ -1,10 +1,10 @@
 #include <loader.h>
 
-void _IN(int cs, int eip);
+void into_kernel(int cs, int eip);
 
 struct TASK MainTask;
 
-bool elf32Validate(Elf32_Ehdr *hdr) {
+bool elf32_is_validate(Elf32_Ehdr *hdr) {
   return hdr->e_ident[EI_MAG0] == ELFMAG0 && hdr->e_ident[EI_MAG1] == ELFMAG1 &&
          hdr->e_ident[EI_MAG2] == ELFMAG2 && hdr->e_ident[EI_MAG3] == ELFMAG3;
 }
@@ -51,7 +51,6 @@ int get_vdisk_type(int drive);
 void DOSLDR_MAIN() {
   u32 memtotal = 128 * 1024 * 1024;
   memman_init((void *)0x00600000, memtotal - 0x00600000);
-  // asm("mov $0x00650000,%esp");
   screen_clear();
   init_gdtidt();
   init_pic();
@@ -60,7 +59,6 @@ void DOSLDR_MAIN() {
   init_vfs();
   floppy_init();
   Register_fat_fileSys();
-  // reg_pfs();
   vdisk vd;
   vd.flag  = 1;
   vd.Read  = NULL;
@@ -111,14 +109,14 @@ void DOSLDR_MAIN() {
     infinite_loop;
   }
   // printf("fp = %08x\n%d\n",fp, fp->size);
-  char *s = page_malloc(sz);
+  char *s = page_alloc(sz);
   klogf("Will load in %08x size = %08x\n", s, sz);
   vfs_readfile(path, s);
   klogf("Loading...\n");
   u32 entry = load_elf((Elf32_Ehdr *)s);
 
   // printf("ESP:%08x\n", *(u32 *)(0x00280000 + 12));
-  _IN(2 * 8, entry);
+  into_kernel(2 * 8, entry);
 }
 
 struct TASK *NowTask() {

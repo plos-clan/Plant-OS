@@ -3,20 +3,29 @@
 #include "fatfs/ff.h"
 #include <fs.h>
 
-static FATFS volume[10];
-static int   fatfs_id = 0;
+static FATFS      volume[10];
+static vfs_node_t drive_number_mapping[10] = {null};
+static int        fatfs_id                 = 0;
 typedef struct file {
   char *path;
   void *handle;
 } *file_t;
 
+static int alloc_number() {
+  for (int i = 0; i < 10; i++)
+    if (drive_number_mapping[i] == null) return i;
+  error("No available drive number");
+  return -1;
+}
+vfs_node_t fatfs_get_node_by_number(int number) {
+  if (number < 0 || number >= 10) return null;
+  return drive_number_mapping[number];
+}
 int fatfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   file_t p        = parent;
   char  *new_path = malloc(strlen(p->path) + strlen(name) + 1 + 1);
   sprintf(new_path, "%s/%s", p->path, name);
-  FIL     fp;
   FRESULT res = f_mkdir(new_path);
-  f_close(&fp);
   free(new_path);
   if (res != FR_OK) { return -1; }
   return 0;
@@ -102,14 +111,17 @@ void fatfs_close(file_t handle) {
     res = f_close(handle->handle);
   }
   free(handle->path);
+  free(handle->handle);
   free(handle);
   assert(res == FR_OK);
 }
 
 int fatfs_mount(cstr src, vfs_node_t node) {
-  if(!src) return -1;
-  int drive  = *(int *)src;
-  assert(drive < 10 && drive >= 0);
+  if (!src) return -1;
+  int drive = alloc_number();
+  assert(drive != -1);
+  drive_number_mapping[drive] = vfs_open(src);
+  assert(drive_number_mapping[drive] != null);
   char *path = malloc(3);
   bzero(path, 0);
   sprintf(path, "%d:", drive);
@@ -138,7 +150,15 @@ int fatfs_mount(cstr src, vfs_node_t node) {
   return 0;
 }
 
-void fatfs_unmount(void *root) {}
+void fatfs_unmount(void *root) {
+  file_t f      = root;
+  int    number = f->path[0] - '0';
+  f_closedir(f->handle);
+  f_unmount(f->path);
+  free(f->path);
+  free(f->handle);
+  free(f);
+}
 
 int fatfs_stat(void *handle, vfs_node_t node) {
   file_t  f = handle;

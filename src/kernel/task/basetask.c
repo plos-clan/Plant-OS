@@ -13,8 +13,6 @@ int  os_execute(char *filename, char *line);
 void idle_loop() {
   infinite_loop task_next();
 }
-void insert_char(char *str, int pos, char ch);
-void delete_char(char *str, int pos);
 
 #if 0
 ssize_t input(char *ptr, size_t len) {
@@ -72,6 +70,7 @@ void list_files(char *path) {
 
 int readline_getch() {
   int ch;
+  screen_flush();
   while ((ch = getch()) == 0) {}
   if (ch == -1) return PL_READLINE_KEY_UP;
   if (ch == -2) return PL_READLINE_KEY_DOWN;
@@ -91,6 +90,12 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("pcils", words, true, ' ');
   pl_readline_word_maker_add("exit", words, true, ' ');
   pl_readline_word_maker_add("clear", words, true, ' ');
+  pl_readline_word_maker_add("read", words, true, ' ');
+  pl_readline_word_maker_add("stdout_test", words, true, ' ');
+  pl_readline_word_maker_add("mkdir", words, true, ' ');
+  pl_readline_word_maker_add("mount", words, true, ' ');
+  pl_readline_word_maker_add("file", words, true, ' ');
+  pl_readline_word_maker_add("umount", words, true, ' ');
 
   if (buf[0] != '/' && strlen(buf)) { return; }
   char *s = malloc(strlen(buf) + 2);
@@ -99,7 +104,6 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     for (int i = strlen(s); i >= 0; i--) {
       if (s[i] == '/') {
         s[i + 1] = '\0';
-        klogw("%s", s);
         break;
       }
     }
@@ -118,9 +122,8 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 
   // 添加words中的单词
   list_foreach(p->child, i) {
-    vfs_node_t c = (vfs_node_t)i->data;
-    klogd("%s", c->name);
-    char *new_path = pathcat(s, c->name);
+    vfs_node_t c        = (vfs_node_t)i->data;
+    char      *new_path = pathcat(s, c->name);
     if (c->type == file_dir) {
       pl_readline_word_maker_add(new_path, words, false, '/');
     } else {
@@ -131,8 +134,8 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   free(s);
 }
 void pci_list() {
-  extern int pci_addr_base;
-  u8        *pci_drive = (u8 *)pci_addr_base;
+  extern void *pci_addr_base;
+  u8          *pci_drive = (u8 *)pci_addr_base;
   //输出PCI表的内容
   for (int line = 0;; pci_drive += 0x110 + 4, line++) {
     if (pci_drive[0] == 0xff)
@@ -144,6 +147,7 @@ void pci_list() {
 
 #include <magic.h>
 
+void        v86_task();
 static cstr filetype_from_name(cstr path) {
   auto file = vfs_open(path);
   if (file == null) return null;
@@ -163,12 +167,12 @@ void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
   void *kbuf  = page_malloc_one();
-  cir_queue8_init(kfifo, 0x1000, kbuf);
+  cir_queue8_init(kfifo, PAGE_SIZE, kbuf);
   current_task()->keyfifo = (cir_queue8_t)kfifo;
   char         *path      = malloc(1024);
   char         *ch        = malloc(255);
   pl_readline_t n;
-  n = pl_readline_init(readline_getch, putchar, flush, handle_tab);
+  n = pl_readline_init(readline_getch, putchar, screen_flush, handle_tab);
   sprintf(path, "/");
   while (true) {
     char buf[255];
@@ -198,6 +202,9 @@ void shell() {
       syscall_exit(0);
     } else if (streq(ch, "clear")) {
       screen_clear();
+    } else if (streq(ch, "stdout_test")) {
+      vfs_node_t stdout = vfs_open("/dev/stdout");
+      vfs_write(stdout, "Hello, world!\n", 0, 14);
     } else if (strneq(ch, "file ", 5)) {
       cstr path = ch + 5;
       cstr type = filetype_from_name(path);
@@ -206,6 +213,33 @@ void shell() {
       } else {
         printf("unknown file\n");
       }
+    } else if (strneq(ch, "read ", 5)) {
+      char      *s = ch + 5;
+      vfs_node_t p = vfs_open(s);
+      if (!p) {
+        printf("open %s failed\n", s);
+        continue;
+      }
+      if (p->type == file_dir) {
+        printf("not a file\n");
+        continue;
+      }
+      size_t size = p->size;
+      byte  *buf  = malloc(size);
+      vfs_read(p, buf, 0, size);
+      printf("%s\n", buf);
+      free(buf);
+    } else if (strneq(ch, "mkdir ", 6)) {
+      vfs_mkdir(ch + 6);
+    } else if (strneq(ch, "mount ", 6)) {
+      // 用strtok分割参数
+      char *dev_name = strtok(ch + 6, " ");
+      char *dir_name = strtok(null, " ");
+      vfs_mount(dev_name, vfs_open(dir_name));
+    } else if (strneq(ch, "umount ", 7)) {
+      char *dir_name = ch + 7;
+      int   ret      = vfs_unmount(dir_name);
+      if (ret == -1) { printf("umount %s failed\n", dir_name); }
     } else {
       char       *path = exec_name_from_cmdline(ch);
       cstr        type = filetype_from_name(path);
@@ -260,8 +294,6 @@ void stdout_write(int drive, u8 *buffer, u32 number, u32 lba) {
   }
 }
 
-void *vram_addr;
-
 char *GetSVGACharOEMString();
 bool  is_vbox = false;
 void  check_device() {
@@ -276,16 +308,20 @@ void  check_device() {
   }
   free(s);
 }
+
+void draw(int n) {
+  u32 *buf = vbe_backbuffer;
+  for (size_t y = 0; y < screen_h; y++) {
+    for (size_t x = 0; x < screen_w; x++) {
+      buf[y * screen_w + x] = (0xff8000 + x + n) & 0xffffff;
+    }
+  }
+}
+
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-  check_device();
 
-  // klogd("Set Mode");
-
-  byte *vram = set_mode(screen_w, screen_h, 32);
-  klogd("ok vram = %p", vram);
-  memset(vram, 0, screen_w * screen_h * 4);
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   vdisk vd;
@@ -299,22 +335,12 @@ void init() {
 
   vfs_mkdir("/dev");
   vfs_mount(NULL, vfs_open("/dev"));
-  int s = 0;
-  vfs_mkdir("/fatfs0");
-  vfs_mount((cstr)&s, vfs_open("/fatfs0"));
-  s++;
+
   vfs_mkdir("/fatfs1");
-  vfs_mount((cstr)&s, vfs_open("/fatfs1"));
+  vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 
-  vram_addr = vram;
-
-  auto font1 = load_font("/fatfs1/font1.plff");
-  // auto font2 = load_font("/fatfs1/font2.plff");
-
-  auto tty = plty_alloc(vram, screen_w, screen_h, font1);
-  // plty_addfont(tty, font2);
-
-  plty_set_default(tty);
+  vfs_mkdir("/fatfs2");
+  vfs_mount("/dev/floppy", vfs_open("/fatfs2"));
 
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
@@ -340,19 +366,55 @@ void init() {
   //   }
   // }
 
-  extern void sound_test();
+  screen_clear();
+  create_task(v86_task, 1, 1);
+  check_device();
+  byte *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
+  klogd("ok vram = %p", vram);
+  memset(vram, 0, screen_w * screen_h * 4);
+
+#if 0 // 尝试 os-terminal 库
+  void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
+                     void (*free)(void *));
+  void terminal_destroy();
+  void terminal_flush();
+  void terminal_advance_state_single(char c);
+  void terminal_advance_state(char *s);
+  void terminal_set_auto_flush(unsigned int auto_flush);
+
+  terminal_init(screen_w, screen_h, (u32 *)vram, malloc, free);
+  terminal_set_auto_flush(true);
+
+  terminal_advance_state("Hello world!");
+#endif
+
+#if 1
+  for (volatile size_t i = 0;; i++) {
+    draw(i);
+    vbe_flip();
+  }
+#endif
+  auto font1 = load_font("/fatfs1/font1.plff");
+  // auto font2 = load_font("/fatfs1/font2.plff");
+
+  auto tty = plty_alloc(vram, screen_w, screen_h, font1);
+  // plty_addfont(tty, font2);
+
+  plty_set_default(tty);
+  create_task(shell, 1, 1);
+
+  // extern void sound_test();
 
   // extern void init_sound_mixer();
   // extern void sound_mixer_task();
   // extern void sound_test1();
   // extern void sound_test2();
   // init_sound_mixer();
-  create_task((u32)idle_loop, 0, 1, 1);
-  create_task((u32)shell, 0, 1, 1);
-  // create_task((u32)sound_test, 0, 1, 1);
-  // create_task((u32)sound_mixer_task, 0, 1, 1);
-  // create_task((u32)sound_test1, 0, 1, 1);
-  // create_task((u32)sound_test2, 0, 1, 1);
+
+  // create_task(sound_test, 1, 1);
+  // create_task(sound_mixer_task, 1, 1);
+  // create_task(sound_test1, 1, 1);
+  // create_task(sound_test2, 1, 1);
 
   infinite_loop task_next();
 }
