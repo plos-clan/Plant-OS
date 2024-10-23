@@ -1,9 +1,5 @@
 #include <kernel.h>
 
-#pragma GCC optimize("O0")
-
-#pragma clang optimize off
-
 #define rmfarptr2ptr(x) ((void *)((x).seg * 0x10 + (x).offset))
 
 static int now_width = 0, now_height = 0;
@@ -25,18 +21,18 @@ void SwitchTo320X200X256_BIOS() {
 }
 #endif
 
-char *GetSVGACharOEMString() {
-  regs16 regs = {.ax = 0x4f00, .es = 0x07e0, .di = 0x0000};
-  v86_int(0x10, &regs);
-  VESAControllerInfo *info = (VESAControllerInfo *)VBEINFO_ADDR;
-  return rmfarptr2ptr(info->oemString);
-}
-
 int vbe_get_controller_info(VESAControllerInfo *addr) {
   regs16 r = {.ax = 0x4f00, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
   v86_int(0x10, &r);
   if (r.ax != 0x004f) kloge("Error when vbe_get_controller_info, rets %04x", r.ax);
+  klogd("你有 %dMiB 的显存", addr->totalMemory * 64 / 1024);
   return r.ax;
+}
+
+char *GetSVGACharOEMString() {
+  var vbe = (VESAControllerInfo *)VBEINFO_ADDR;
+  vbe_get_controller_info(vbe);
+  return rmfarptr2ptr(vbe->oemString);
 }
 
 int vbe_get_mode_info(u16 mode, VESAModeInfo *addr) {
@@ -57,6 +53,9 @@ void *vbe_set_mode(u16 mode) {
   regs16 r2 = {.ax = 0x4f02, .bx = mode};
   v86_int(0x10, &r2);
   assert(r2.ax == 0x004f, "Error when vbe_set_mode");
+
+  klogd("设置 VBE 模式成功，该模式需要 %dMiB 显存",
+        addr->height * addr->width * (addr->bitsPerPixel / 8) / 1024 / 1024);
 
   now_width       = addr->width;
   now_height      = addr->height;
@@ -89,7 +88,7 @@ int vbe_match_mode(int width, int height, int bpp) {
   for (size_t i = 0; modes[i] != U16_MAX; i++) {
     int ret = vbe_get_mode_info(modes[i], info);
     if (ret != 0x004f) continue;
-    klogd("%04x:%dx%dx%d", modes[i], info->width, info->height, info->bitsPerPixel);
+    // klogd("%04x:%dx%dx%d", modes[i], info->width, info->height, info->bitsPerPixel);
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
       return modes[i];
     }
