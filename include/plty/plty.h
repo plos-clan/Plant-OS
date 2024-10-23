@@ -12,32 +12,59 @@
 // TODO 支持转义序列
 // TODO 支持输入
 
+// TODO 完成优化
 typedef struct plty_char {
   font_char_t ch;
   color_t     fg, bg;
 } *plty_char_t;
 
+typedef struct plty_char ***plty_fontbuf_t;
+
+// 缓冲一行的字符
+typedef struct plty_linebuf {
+  void *buf;
+} *plty_linebuf_t;
+
+// typedef struct plty_cur {
+//   u32     x;    // 当前位置的 x 坐标
+//   u32     y;    // 当前位置的 y 坐标
+//   color_t fg;   // 前景色
+//   color_t bg;   // 背景色
+//   u32     oldx; // 上一位置的 x 坐标
+//   u32     oldy; // 上一位置的 y 坐标
+// } *plty_cur_t;
+
+enum plty_cur_style {
+  plty_cur_block, // 块状光标
+  plty_cur_line,  // 线状光标
+  plty_cur_under, // 下划线光标
+};
+
 typedef struct plty {
-  plty_char_t text;               // 行缓冲区
-  plty_char_t text2;              // 行缓冲区
-  u32         ncols;              // 每行的字符数
-  u32         nlines;             // 行数
-  u16         charw, charh;       // 字符的宽高
-  void       *vram;               // 显存
-  void       *backbuf;            // 后台缓冲区
-  u32         width;              // 终端的宽度
-  u32         height;             // 终端的高度
-  plff_t      fonts[4];           // 字体
-  color_t     fg, bg;             // 前景色和背景色
-  u32         cur_x, cur_y;       // 当前光标的位置
-  color_t     cur_fg, cur_bg;     // 当前字符的颜色
-  u32         cur_oldx, cur_oldy; // 当前光标的位置
-  bool        auto_flush;         // 在换行时自动刷新
-  bool        show_cur;           // 在换行时自动刷新
-  char       *input_buf;          // 输入缓冲区
-  size_t      input_bufsize;      // 输入缓冲区大小
-  void (*flipbuf)();              //
+  plty_char_t    text;               // 行缓冲区
+  plty_char_t    text2;              // 行缓冲区
+  u32            ncols, nlines;      // 列数 行数
+  u16            charw, charh;       // 字符的宽高
+  void          *vram;               // 显存
+  void          *backbuf;            // 后台缓冲区
+  u32            width, height;      // 终端的宽高
+  plff_t         fonts[4];           // 字体
+  plty_fontbuf_t fontbuf;            // 字体缓冲区
+  color_t        fg, bg;             // 前景色和背景色
+  u32            cur_x, cur_y;       // 光标的当前位置
+  color_t        cur_fg, cur_bg;     // 新字符的颜色
+  u32            cur_oldx, cur_oldy; // 光标的上一位置
+  bool           auto_flush;         // 在换行时自动刷新
+  bool           show_cur;           // 显示光标
+  bool           cur_flush;          // 光标是否闪烁
+  u8             cur_style;          // 光标样式
+  char          *input_buf;          // 输入缓冲区
+  size_t         input_bufsize;      // 输入缓冲区大小
+  void (*flipbuf)();                 // 缓冲区翻转函数
+  bool dirty;                        // 是否需要刷新
 } *plty_t;
+
+void plty_clear_fontbuf(plty_t tty);
 
 /**
  *\brief 创建一个终端对象
@@ -260,3 +287,7 @@ void plty_pututf8c(plty_t tty, byte c);
  *\param s 字符串
  */
 void plty_puts(plty_t tty, cstr s);
+
+void plty_set_autoflush(plty_t tty, bool b);
+
+bool plty_get_autoflush(plty_t tty);

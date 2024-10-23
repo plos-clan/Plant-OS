@@ -375,30 +375,46 @@ void init() {
 
 #if 0 // 尝试 os-terminal 库
   void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
-                     void (*free)(void *));
+                     void (*free)(void *), void (*serial)(const char *s));
   void terminal_destroy();
   void terminal_flush();
   void terminal_advance_state_single(char c);
   void terminal_advance_state(char *s);
   void terminal_set_auto_flush(unsigned int auto_flush);
 
-  terminal_init(screen_w, screen_h, (u32 *)vram, malloc, free);
+  terminal_init(screen_w, screen_h, (u32 *)vram, malloc, free, klog_raw);
   terminal_set_auto_flush(true);
 
-  terminal_advance_state("Hello world!");
+  terminal_advance_state("Hello world!\n");
+  terminal_advance_state("你好，世界！\n");
+
+  infinite_loop;
 #endif
 
-#if 1
+#if 0
   for (volatile size_t i = 0;; i++) {
     draw(i);
     vbe_flip();
   }
 #endif
+
   auto font1 = load_font("/fatfs1/font1.plff");
   // auto font2 = load_font("/fatfs1/font2.plff");
 
   auto tty = plty_alloc(vram, screen_w, screen_h, font1);
   // plty_addfont(tty, font2);
+
+#if 0
+  char s[128];
+  for (size_t i = 0;; i++) {
+    sprintf(s,
+            i & 1 ? "Hello, Plant-OS! A simple OS used to study made by several students.  x%08d\n"
+                  : " Hello, Plant-OS! A simple OS used to study made by several students. x%08d\n",
+            i);
+    plty_puts(tty, s);
+    plty_flush(tty);
+  }
+#endif
 
   plty_set_default(tty);
   create_task(shell, 1, 1);
