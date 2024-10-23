@@ -17,7 +17,11 @@ check_command() {
 }
 
 check() {
-  $* &>/dev/null
+  if [ "$GITHUB_ACTIONS" = "true" ]; then
+    $*
+  else
+    $* &>/dev/null
+  fi
   retcode=$?
   if [ $retcode -ne 0 ]; then
     fail "执行命令 $* 失败"
@@ -69,7 +73,7 @@ if [ -d './bin' ] || [ -d './build' ] || [ -d './lib' ]; then
   rm -r ./lib
 fi
 
-info 开始配置 Plant-OS 项目
+info '开始配置 Plant-OS 项目'
 
 info 创建目录
 mkdir -p bin
@@ -92,19 +96,24 @@ info 下载并解压系统必须资源文件...
 check curl -O 'https://plos-resources.pages.dev/resource-files.zip'
 check unzip resource-files.zip
 check rm resource-files.zip
-info 下载并解压其它资源文件...
-check curl -O 'https://plos-resources.pages.dev/ext-resources.zip'
-check unzip ext-resources.zip
-check rm ext-resources.zip
-check curl -O 'https://plos-resources.pages.dev/Ligconsolata-Regular.ttf'
-check curl -O 'https://plos-resources.pages.dev/SourceHanSans-Light.ttc'
+if [ "$GITHUB_ACTIONS" = "true" ]; then
+  info 'GitHub Actions 中跳过下载并解压其它资源文件'
+else
+  info 下载并解压其它资源文件...
+  check curl -O 'https://plos-resources.pages.dev/ext-resources.zip'
+  check unzip ext-resources.zip
+  check rm ext-resources.zip
+  check curl -O 'https://plos-resources.pages.dev/Ligconsolata-Regular.ttf'
+  check curl -O 'https://plos-resources.pages.dev/SourceHanSans-Light.ttc'
+fi
 cd ..
 
-info 成功配置 Plant-OS 项目
+info '成功配置 Plant-OS 项目'
 
 cd build
-info 初始化 CMake 并进行编译测试
+info '初始化 CMake 并进行编译测试'
 check_command gcc '需要使用 gcc 来编译项目'
+check_command nasm '需要使用 nasm 来编译项目'
 check_command mformat '需要使用 mformat 来格式化软盘'
 check_command cmake '需要使用 cmake 来编译项目'
 check_command qemu-img '需要使用 qemu-img 来创建磁盘镜像'
@@ -114,10 +123,21 @@ info 开始编译...
 check make make
 cd ..
 
-cd bin
-info 运行 Plant-OS
-check_command qemu-system-i386 '需要使用 qemu-system-i386 来运行 Plant-OS'
-check ./run.sh
-cd ..
+if [ "$GITHUB_ACTIONS" = "true" ]; then
+  info 'GitHub Actions 中跳过运行'
+else
+  cd bin
+  info '运行 Plant-OS'
+  check_command qemu-system-i386 '需要使用 qemu-system-i386 来运行 Plant-OS'
+  check ./run.sh
+  cd ..
+fi
+
+if [ "$GITHUB_ACTIONS" = "true" ]; then
+  info 'GitHub Actions 中拷贝 readme license 和 requirements 文件'
+  cp README.md bin/
+  cp LICENSE bin/
+  cp src/boot/requirements.txt bin/
+fi
 
 info 配置脚本结束
