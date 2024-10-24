@@ -16,8 +16,6 @@ struct tty {
   void (*screen_ne)(struct tty *res);                 // screen_ne函数
   void (*gotoxy)(struct tty *res, int x, int y);      // gotoxy函数
   void (*print)(struct tty *res, const char *string); // print函数
-  void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1,
-                   u8 color); // Draw_Box函数
   int (*fifo_status)(struct tty *res);
   int (*fifo_get)(struct tty *res);
   void (*flush)(struct tty *res);
@@ -36,7 +34,6 @@ struct tty {
 struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct tty *res, int c),
                       void (*MoveCursor)(struct tty *res, int x, int y),
                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
-                      void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1, u8 color),
                       int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res),
                       void (*flush)(struct tty *res));
 void        init_tty();
@@ -46,8 +43,4 @@ void MoveCursor_TextMode(struct tty *res, int x, int y);
 void putchar_TextMode(struct tty *res, int c);
 void screen_ne_TextMode(struct tty *res);
 void clear_TextMode(struct tty *res);
-void Draw_Box_TextMode(struct tty *res, int x, int y, int x1, int y1, u8 color);
-void AddShell_TextMode();
-void SwitchShell_TextMode(int i);
-bool now_tty_TextMode(struct tty *res);
 void screen_flush();

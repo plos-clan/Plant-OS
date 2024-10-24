@@ -61,7 +61,7 @@ static byte         statsz    = 0;
 static byte         sr0       = 0;
 static byte         fdc_track = 0xff;
 static DrvGeom      geometry  = {DG144_HEADS, DG144_TRACKS, DG144_SPT};
-u64                 tbaddr    = 0x80000L; /* 位于1M以下的轨道缓冲器的物理地址 */
+size_t              tbaddr    = 0x80000L; /* 位于1M以下的轨道缓冲器的物理地址 */
 
 void sendbyte(int byte);
 int  getbyte();
