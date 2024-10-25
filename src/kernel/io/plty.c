@@ -53,7 +53,7 @@ struct tty *plty_set_tty(plty_t plty) {
   plty->auto_flush = false;
   plty->show_cur   = true;
   struct tty *tty  = tty_alloc(plty, plty->ncols, plty->nlines, plty_tty_putchar,
-                               plty_tty_move_cursor, plty_tty_clear, plty_tty_screen_ne, null,
+                               plty_tty_move_cursor, plty_tty_clear, plty_tty_screen_ne,
                                default_tty_fifo_status, default_tty_fifo_get, plty_tty_flush);
   return tty;
 }

@@ -1,8 +1,8 @@
 #include <kernel.h>
 
-void reset();
-void recalibrate();
-int  fdc_rw(int block, byte *blockbuff, int read, u64 nosectors);
+static void reset();
+static void recalibrate();
+static int  fdc_rw(int block, byte *blockbuff, int read, u64 nosectors);
 
 volatile int floppy_int_count = 0;
 
@@ -61,10 +61,10 @@ static byte         statsz    = 0;
 static byte         sr0       = 0;
 static byte         fdc_track = 0xff;
 static DrvGeom      geometry  = {DG144_HEADS, DG144_TRACKS, DG144_SPT};
-u64                 tbaddr    = 0x80000L; /* 位于1M以下的轨道缓冲器的物理地址 */
+static size_t       tbaddr    = 0x80000L; /* 位于1M以下的轨道缓冲器的物理地址 */
 
-void sendbyte(int byte);
-int  getbyte();
+static void sendbyte(int byte);
+static int  getbyte();
 
 #define SECTORS_ONCE 4
 static void Read(int drive, byte *buffer, uint number, uint lba) {
@@ -115,10 +115,6 @@ void floppy_init() {
 }
 
 void flint(int *esp) {
-  /**
-   * 软盘中断服务程序（C语言），这个中断的入口在nasmfunc.asm中
-   * */
-
   floppy_int_count = 1; // 设置中断计数器为1，代表中断已经发生（或者是系统已经收到了中断）
   asm_out8(0x20, 0x20); // 发送EOI信号，告诉PIC，我们已经处理完了这个中断
   // task_run(waiter);
@@ -130,7 +126,7 @@ void set_waiter(mtask *t) {
   waiter = t;
 }
 
-void reset() {
+static void reset() {
   set_waiter(current_task());
   /* 停止软盘电机并禁用IRQ和DMA传输 */
   asm_out8(FDC_DOR, 0);
@@ -169,12 +165,12 @@ void motoron() {
 }
 
 /* 关闭电机 */
-void motoroff() {
+static void motoroff() {
   if (motor) { mtick = 13500; /* 重新初始化电机计时器 */ }
 }
 
 /* 重新校准驱动器 */
-void recalibrate() {
+static void recalibrate() {
   set_waiter(current_task());
   /* 先启用电机 */
   motoron();
@@ -216,18 +212,12 @@ static int fdc_seek(int track) {
     return 1; // 成功了
 }
 
-void sendbyte(int byte) // 向软盘控制器发送一个字节
-{
-  volatile int msr; // 注意：这里是volatile，这样可以保证msr的值不会被优化掉
-  int          tmo; // 超时计数器
-
-  for (tmo = 0; tmo < 128; tmo++) // 这里我们只给128次尝试的机会
-  {
-    msr = asm_in8(FDC_MSR);
-    if ((msr & 0xc0) == 0x80) // 如果软盘驱动器的状态寄存器的低6位是0x80，说明软盘能够接受新的数据
-    {
-      // 哈，程序如果执行到这里，可不就说明软盘驱动器可以接受新的数据了吗？
-      // 那就发送呗
+// 向软盘控制器发送一个字节
+static void sendbyte(int byte) {
+  for (int tmo = 0; tmo < 128; tmo++) { // 这里我们只给128次尝试的机会
+    int msr = asm_in8(FDC_MSR);
+    if ((msr & 0xc0) == 0x80) {
+      // 如果软盘驱动器的状态寄存器的低6位是0x80，说明软盘能够接受新的数据
       asm_out8(FDC_DATA, byte);
       return;
     }
@@ -235,17 +225,11 @@ void sendbyte(int byte) // 向软盘控制器发送一个字节
   }
 }
 
-int getbyte() {
-  int msr; // 软盘驱动器状态寄存器
-  int tmo; // 软盘驱动器状态寄存器的超时计数器
-
-  for (tmo = 0; tmo < 128; tmo++) // 这里我们只给128次尝试的机会
-  {
-    msr = asm_in8(FDC_MSR);
-    if ((msr & 0xd0) ==
-        0xd0) // 如果软盘控制器的状态寄存器的低五位是0xd0，说明我们能够从软盘DATA寄存器中读取
-    {
-      // 能读取了？那就读取吧，读完再返回回去
+static int getbyte() {
+  for (int tmo = 0; tmo < 128; tmo++) { // 这里我们只给128次尝试的机会
+    int msr = asm_in8(FDC_MSR);
+    if ((msr & 0xd0) == 0xd0) {
+      // 如果软盘控制器的状态寄存器的低五位是0xd0，说明我们能够从软盘DATA寄存器中读取
       return (byte)asm_in8(FDC_DATA);
     }
     asm_in8(0x80); /* 延时 */
@@ -272,17 +256,17 @@ void wait_floppy_interrupt() {
   waiter           = NULL;
 }
 
-void block2hts(int block, int *track, int *head, int *sector) {
+static void block2hts(int block, int *track, int *head, int *sector) {
   *track  = (block / 18) / 2;
   *head   = (block / 18) % 2;
   *sector = block % 18 + 1;
 }
 
-void hts2block(int track, int head, int sector, int *block) {
+static void hts2block(int track, int head, int sector, int *block) {
   *block = track * 18 * 2 + head * 18 + sector;
 }
 
-int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
+static int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
   set_waiter(current_task());
   int   head, track, sector, tries, copycount = 0;
   byte *p_tbaddr = (byte *)0x80000; // 512byte

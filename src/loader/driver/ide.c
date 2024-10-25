@@ -1,7 +1,11 @@
 #include <loader.h>
-static inline void nul(char *f, ...) {}
+
+finline void nul(char *f, ...) {}
 #define printk nul
-u8 ide_read(u8 channel, u8 reg);
+
+static u8   ide_read(u8 channel, u8 reg);
+static void ide_write(u8 channel, u8 reg, u8 data);
+
 #define inb                     asm_in8
 #define outb                    asm_out8
 #define ATA_SR_BSY              0x80 // Busy

@@ -1,0 +1,65 @@
+# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      # Set up a matrix to run the following 3 configurations:
+      # 1. <Windows, Release, latest MSVC compiler toolchain on the default runner image, default generator>
+      # 2. <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
+      # 3. <Linux, Release, latest Clang compiler toolchain on the default runner image, default generator>
+      #
+      # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang]
+        include:
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y nasm mtools qemu-system-i386 libfreetype-dev extra-cmake-modules
+
+      - name: Build
+        shell: bash
+        run: ./init.sh
+
+      - name: Upload (clang)
+        uses: actions/upload-artifact@v4
+        if: matrix.c_compiler == 'clang'
+        with:
+          name: Plant-OS (clang)
+          path: |
+            ${{ github.workspace }}/bin/
+          compression-level: 9
+
+      - name: Upload (gcc)
+        uses: actions/upload-artifact@v4
+        if: matrix.c_compiler == 'gcc'
+        with:
+          name: Plant-OS (gcc)
+          path: |
+            ${{ github.workspace }}/bin/
+          compression-level: 9

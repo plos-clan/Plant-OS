@@ -586,7 +586,6 @@ finline char *stpcpy(char *_rest d, cstr _rest s) noexcept {
 #  if __has(stpcpy)
   return __builtin_stpcpy(d, s);
 #  else
-  char *_d = d;
   while ((*d++ = *s++) != '\0') {}
   return d - 1;
 #  endif
@@ -596,8 +595,7 @@ finline char *stpncpy(char *_rest d, cstr _rest s, size_t n) noexcept {
 #  if __has(stpncpy)
   return __builtin_stpncpy(d, s, n);
 #  else
-  char *_d = d;
-  cstr  e  = s + n;
+  cstr e = s + n;
   while (s < e && (*d++ = *s++) != '\0') {}
   return d - 1;
 #  endif

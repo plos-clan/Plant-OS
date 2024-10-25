@@ -1,7 +1,7 @@
 #include <kernel.h>
 
-u8 value_pic0 = 0xfb;
-u8 value_pic1 = 0xff;
+static u8 value_pic0 = 0xfb;
+static u8 value_pic1 = 0xff;
 
 void init_pic() {
   asm_out8(PIC0_IMR, 0xff); /* 初始化，所有中断均被屏蔽 */

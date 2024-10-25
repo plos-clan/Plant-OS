@@ -26,10 +26,6 @@ static char eos[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'f', 'J', 'K', 'S',
 // end of string,
 // vt100控制字符中可能的结束符号
 
-finline bool t_isdigit(int c) {
-  return (c >= '0' && c <= '9');
-}
-
 finline bool t_is_eos(char ch) {
 #pragma unroll
   for (size_t i = 0; i < lengthof(eos); i++) {
@@ -44,7 +40,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -56,7 +52,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -68,7 +64,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -80,7 +76,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -92,7 +88,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -104,7 +100,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -116,7 +112,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -125,12 +121,11 @@ static int parse_vt100(struct tty *res, char *string) {
     return 1;
   }
   case MODE_H: {
-    int  k = 0;
-    char dig_string[2][81];
-    memset(dig_string, 0, sizeof(dig_string)); // 全部设置为0
+    int  k                 = 0;
+    char dig_string[2][81] = {};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) {
+      if (!isdigit(string[i])) {
         if (string[i] == ';') { // 分号
           k++;
           j = 0;
@@ -158,7 +153,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -188,7 +183,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -225,7 +220,7 @@ static int parse_vt100(struct tty *res, char *string) {
     char dig_string[81] = {0};
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) return 0;
+      if (!isdigit(string[i])) return 0;
       dig_string[j++] = string[i];
     }
     int delta = atol(dig_string);
@@ -240,7 +235,7 @@ static int parse_vt100(struct tty *res, char *string) {
     memset(dig_string, 0, sizeof(dig_string)); // 全部设置为0
     for (int i = 2, j = 0; string[i]; i++) {
       if (t_is_eos(string[i])) break;
-      if (!t_isdigit(string[i])) {
+      if (!isdigit(string[i])) {
         if (string[i] == ';') { // 分号
           k++;
           j = 0;
@@ -353,7 +348,7 @@ void t_putchar(struct tty *res, char ch) {
       }
       res->vt100 = 0;
       return;
-    } else if (!t_isdigit(ch) && ch != ';') {
+    } else if (!isdigit(ch) && ch != ';') {
       for (int i = 0; i < res->buf_p; i++) {
         res->putchar(res, res->buffer[i]);
       }
@@ -453,14 +448,5 @@ void gotoxy(int x1, int y1) {
     tty_default->gotoxy(tty_default, x1, y1);
   } else {
     task->TTY->gotoxy(task->TTY, x1, y1);
-  }
-}
-
-void Text_Draw_Box(int x, int y, int x1, int y1, u8 color) {
-  mtask *task = current_task();
-  if (task->TTY->is_using != 1) {
-    tty_default->Draw_Box(tty_default, x, y, x1, y1, color);
-  } else {
-    task->TTY->Draw_Box(task->TTY, x, y, x1, y1, color);
   }
 }

@@ -32,8 +32,7 @@ void putchar_TextMode(struct tty *res, int c) {
     *(byte *)(res->vram + res->y * res->xsize * 2 + res->x * 2 - 2 + 1) = res->color;
     res->MoveCursor(res, res->x - 1, res->y);
     return;
-  } else if (c == '\t') {
-    // 制表符
+  } else if (c == '\t') { // 制表符
     res->print(res, "    ");
     return;
   } else if (c == '\r') {
@@ -70,28 +69,4 @@ void clear_TextMode(struct tty *res) {
   }
   res->gotoxy(res, 0, 0);
   res->Raw_y = 0;
-}
-
-// TODO 移除函数
-void Draw_Box_TextMode(struct tty *res, int x, int y, int x1, int y1, byte color) {
-  for (int i = y; i < y1; i++) {
-    for (int j = x; j < x1; j++) {
-      *(byte *)(res->vram + i * 160 + j * 2 + 1) = color;
-    }
-  }
-}
-
-// TODO 移除函数
-void AddShell_TextMode() {}
-
-// TODO 移除函数
-void SwitchShell_TextMode(int i) {}
-
-// TODO 移除函数
-bool now_tty_TextMode(struct tty *res) {
-  if (res->vram == (void *)0xb8000) {
-    return true;
-  } else {
-    return false;
-  }
 }

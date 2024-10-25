@@ -51,20 +51,21 @@ static void tty_gotoxy(struct tty *res, int x, int y) {
 static int default_tty_fifo_status(struct tty *res) {
   return cir_queue8_len(task_get_key_queue(current_task()));
 }
+
 static int default_tty_fifo_get(struct tty *res) {
   return cir_queue8_get(task_get_key_queue(current_task()));
 }
+
 static void default_flush(struct tty *res) {}
 void        init_tty() {
-  tty_default = tty_alloc((void *)0xb8000, 80, 25, putchar_TextMode, MoveCursor_TextMode,
-                                 clear_TextMode, screen_ne_TextMode, Draw_Box_TextMode,
-                                 default_tty_fifo_status, default_tty_fifo_get, default_flush);
+  tty_default =
+      tty_alloc((void *)0xb8000, 80, 25, putchar_TextMode, MoveCursor_TextMode, clear_TextMode,
+                       screen_ne_TextMode, default_tty_fifo_status, default_tty_fifo_get, default_flush);
 }
 
 struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct tty *res, int c),
                       void (*MoveCursor)(struct tty *res, int x, int y),
                       void (*clear)(struct tty *res), void (*screen_ne)(struct tty *res),
-                      void (*Draw_Box)(struct tty *res, int x, int y, int x1, int y1, u8 color),
                       int (*fifo_status)(struct tty *res), int (*fifo_get)(struct tty *res),
                       void (*flush)(struct tty *res)) {
   struct tty *res  = (struct tty *)page_alloc(sizeof(struct tty));
@@ -78,7 +79,6 @@ struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct t
   res->MoveCursor  = MoveCursor;
   res->clear       = clear;
   res->screen_ne   = screen_ne;
-  res->Draw_Box    = Draw_Box;
   res->gotoxy      = tty_gotoxy;
   res->print       = tty_print;
   res->fifo_status = fifo_status;
@@ -95,10 +95,12 @@ struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct t
   list_append(tty_list, res);
   return res;
 }
+
 void tty_free(struct tty *res) {
   list_delete(tty_list, res);
   page_free((void *)res, sizeof(struct tty));
 }
+
 struct tty *tty_set(mtask *task, struct tty *res) {
   if (res->is_using == 1) {
     struct tty *old = task->TTY;
@@ -107,6 +109,7 @@ struct tty *tty_set(mtask *task, struct tty *res) {
   }
   return NULL;
 }
+
 struct tty *tty_set_default(struct tty *res) {
   if (res->is_using == 1) {
     struct tty *old = tty_default;
@@ -115,15 +118,18 @@ struct tty *tty_set_default(struct tty *res) {
   }
   return NULL;
 }
+
 void tty_set_reserved(struct tty *res, u32 reserved1, u32 reserved2, u32 reserved3, u32 reserved4) {
   res->reserved[0] = reserved1;
   res->reserved[1] = reserved2;
   res->reserved[2] = reserved3;
   res->reserved[3] = reserved4;
 }
+
 void tty_stop_cursor_moving(struct tty *t) {
   t->cur_moving = 0;
 }
+
 void tty_start_curor_moving(struct tty *t) {
   t->cur_moving = 1;
   t->MoveCursor(t, t->x, t->y);

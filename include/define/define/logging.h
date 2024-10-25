@@ -19,8 +19,7 @@
 #define STR_FATAL "[" COLOR_FATAL "Fatal" CEND "] "
 
 static const char *_log_basename_(const char *path) {
-  static char name[128];
-  int         i = 0;
+  int i = 0;
   while (path[i])
     i++;
   for (i--; i >= 0; i--) {

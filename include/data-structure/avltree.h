@@ -190,7 +190,7 @@ static avltree_t avltree_balance(avltree_t node) {
 }
 
 static avltree_t avltree_alloc(int32_t key, void *value) {
-  avltree_t node = malloc(sizeof(*node));
+  avltree_t node = (avltree_t)malloc(sizeof(*node));
   node->key      = key;
   node->value    = value;
   node->left     = null;

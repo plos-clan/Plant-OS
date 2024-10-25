@@ -3,15 +3,43 @@
 #include "color-match.h"
 #include <plty.h>
 
+// TODO 完成优化
+
+// ----------------------------------------------------------------------------------------------------
+//; 字体缓存
+
+static void fontbuf_free(plty_fontbuf_t buf) {
+  if (buf == null) return;
+  for (size_t i = 0; i < 256; i++) {
+    if (buf[i] == null) continue;
+    for (size_t j = 0; j < 256; j++) {
+      if (buf[i][j] == null) continue;
+      free(buf[i][j]);
+    }
+    free(buf[i]);
+  }
+  free(buf);
+}
+
+static void *getfont(plty_t tty, u32 ch) {}
+
+void plty_clear_fontbuf(plty_t tty) {
+  if (tty == null) return;
+  fontbuf_free(tty->fontbuf);
+  tty->fontbuf = null;
+}
 // ----------------------------------------------------------------------------------------------------
 
 static struct font_char empty_char;
 
 plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
+  if (vram == null || width == 0 || height == 0 || font == null) return null;
+  if (width > 131072 || height > 131072) ERROR_P(1, "tty too large");
   size_t font_width  = ((font_getchar(font, 'A') ?: &empty_char)->advance ?: font->height / 2) + 1;
   size_t font_height = font->height + 2;
-  plty_t tty         = malloc(sizeof(*tty));
-  if (tty == null) return null;
+  if (font_width > 32768 || font_height > 32768) ERROR_P(1, "font too large");
+  plty_t tty = malloc(sizeof(*tty));
+  if (tty == null) ERROR_P(1, "out of memory");
   tty->vram       = vram;
   tty->backbuf    = null;
   tty->width      = width;
@@ -26,6 +54,7 @@ plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
   tty->fonts[1]   = null;
   tty->fonts[2]   = null;
   tty->fonts[3]   = null;
+  tty->fontbuf    = null;
   tty->fg         = (color_t){255, 255, 255, 255};
   tty->bg         = (color_t){0, 0, 0, 255};
   tty->cur_x      = 0;
@@ -34,7 +63,15 @@ plty_t plty_alloc(void *vram, size_t width, size_t height, plff_t font) {
   tty->cur_bg     = tty->bg;
   tty->auto_flush = false;
   tty->show_cur   = false;
+  tty->cur_style  = plty_cur_block;
   tty->flipbuf    = null;
+  tty->dirty      = false;
+  if (tty->text == null || tty->text2 == null) {
+    free(tty->text);
+    free(tty->text2);
+    free(tty);
+    ERROR_P(1, "out of memory");
+  }
   plty_clear(tty);
   return tty;
 }
@@ -63,6 +100,7 @@ void plty_addfont(plty_t tty, plff_t font) {
   }
 }
 
+// 判断两个字符缓存是否相同
 finline bool cheq(plty_char_t c1, plty_char_t c2) {
   if (c1->ch != c2->ch) return false;
   if (c1->ch) {
@@ -76,6 +114,7 @@ finline bool cheq(plty_char_t c1, plty_char_t c2) {
   return true;
 }
 
+// 在显存中输出一个字符
 static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
   struct __PACKED__ {
     byte b, g, r, a;
@@ -95,14 +134,10 @@ static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
   x *= tty->charw, y *= tty->charh;
   const auto charw = cw * tty->charw;
   for (i32 dy = 0; dy < tty->charh; dy++) {
-    const i32 vy = y + dy;
-    if (vy < 0) continue;
-    if (vy >= tty->height) break;
+    const i32  vy = y + dy;
     const bool by = dy < ch->top || dy >= ch->top + ch->height;
     for (i32 dx = 0; dx < charw; dx++) {
-      const i32 vx = x + dx;
-      if (vx < 0) continue;
-      if (vx >= tty->width) break;
+      const i32  vx    = x + dx;
       const bool bx    = dx < ch->left || dx >= ch->left + ch->width;
       const auto vramp = &vram[vy * tty->width + vx];
       if (ch == null || by || bx) {
@@ -125,8 +160,8 @@ static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
   return cw;
 }
 
-void plty_flush(plty_t tty) {
-  if (tty == null) return;
+// 刷新显存
+static void plty_do_flush(plty_t tty) {
   if (tty->backbuf != null) {
     void *temp   = tty->vram;
     tty->vram    = tty->backbuf;
@@ -150,8 +185,14 @@ void plty_flush(plty_t tty) {
   memcpy(tty->text2, tty->text, tty->ncols * tty->nlines * sizeof(*tty->text));
 }
 
+void plty_flush(plty_t tty) {
+  if (tty == null || !tty->dirty) return;
+  plty_do_flush(tty);
+}
+
 void plty_clear(plty_t tty) {
   if (tty == null) return;
+  tty->dirty = true;
   for (u32 i = 0; i < tty->ncols * tty->nlines; i++) {
     tty->text[i].ch = null;
     tty->text[i].fg = tty->fg;
@@ -165,6 +206,7 @@ void plty_clear(plty_t tty) {
 
 void plty_scroll(plty_t tty) {
   if (tty == null) return;
+  tty->dirty = true;
   for (u32 i = 0; i < tty->ncols * (tty->nlines - 1); i++) {
     tty->text[i] = tty->text[i + tty->ncols];
   }
@@ -200,10 +242,12 @@ color_t plty_getpbg(plty_t tty, i32 x, i32 y) {
 }
 
 void plty_setpfg(plty_t tty, i32 x, i32 y, color_t fg) {
+  tty->dirty                       = true;
   tty->text[y * tty->ncols + x].fg = fg;
 }
 
 void plty_setpbg(plty_t tty, i32 x, i32 y, color_t bg) {
+  tty->dirty                       = true;
   tty->text[y * tty->ncols + x].bg = bg;
 }
 
@@ -211,6 +255,7 @@ u32 plty_getch(plty_t tty, i32 x, i32 y) {
   return tty->text[y * tty->ncols + x].ch->code;
 }
 
+// 获取字符的字形
 static font_char_t plty_getfontch(plty_t tty, u32 ch) {
   font_char_t _ch = null;
 #pragma unroll
@@ -221,6 +266,7 @@ static font_char_t plty_getfontch(plty_t tty, u32 ch) {
 }
 
 void plty_setch(plty_t tty, i32 x, i32 y, u32 ch) {
+  tty->dirty                       = true;
   tty->text[y * tty->ncols + x].ch = plty_getfontch(tty, ch);
   tty->text[y * tty->ncols + x].fg = tty->cur_fg;
   tty->text[y * tty->ncols + x].bg = tty->cur_bg;
@@ -240,6 +286,7 @@ u32 plty_getcury(plty_t tty) {
 }
 
 void plty_setcur(plty_t tty, u32 x, u32 y) {
+  if (tty->show_cur) tty->dirty = true;
   size_t i = y * tty->ncols + x;
   if (i >= tty->ncols * tty->nlines) i = tty->ncols * tty->nlines - 1;
   while (tty->text[i].ch == &empty_char) {
@@ -250,6 +297,7 @@ void plty_setcur(plty_t tty, u32 x, u32 y) {
 }
 
 void plty_curnext(plty_t tty, u32 n) {
+  if (tty->show_cur) tty->dirty = true;
   size_t i = tty->cur_y * tty->ncols + tty->cur_x;
   for (; n > 0; i++) {
     if (i == tty->ncols * tty->nlines - 1) {
@@ -264,6 +312,7 @@ void plty_curnext(plty_t tty, u32 n) {
 }
 
 void plty_curprev(plty_t tty, u32 n) {
+  if (tty->show_cur) tty->dirty = true;
   size_t i = tty->cur_y * tty->ncols + tty->cur_x;
   for (; n > 0; i--) {
     if (i == 0) break;
@@ -273,6 +322,7 @@ void plty_curprev(plty_t tty, u32 n) {
   tty->cur_y = i / tty->ncols;
 }
 
+// 换行
 static void plty_lf(plty_t tty) {
   for (u32 i = tty->cur_x; i < tty->ncols; i++) {
     tty->text[tty->cur_y * tty->ncols + i].ch = null;
@@ -289,6 +339,7 @@ static void plty_lf(plty_t tty) {
 }
 
 static void plty_putc_raw(plty_t tty, u32 c) {
+  if (tty->show_cur) tty->dirty = true;
   if (c == '\r') {
     tty->cur_x = 0;
     return;
