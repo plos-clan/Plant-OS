@@ -16,11 +16,11 @@ void *pci_addr_base;
 #pragma clang optimize off
 
 void sysinit() {
-  do_init_seg_register();
+  // do_init_seg_register();
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_page();
-  IVT = page_alloc(0x500);
 
+  IVT = page_alloc(0x500);
   memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
   // init_gdtidt();
   init_pic();
@@ -49,9 +49,9 @@ void sysinit() {
   vfs_init();
 
   if (total_mem_size < 256 * 1024 * 1024) {
-    fatal("You should have at least 256MB memory in your pc to start Plant-OS.");
+    fatal("You should have at least 256MiB memory in your pc to start Plant-OS.");
   } else {
-    info("the memory test has been passed! Your PC has %dMB memory",
+    info("the memory test has been passed! Your PC has %dMiB memory",
          total_mem_size / (1024 * 1024));
   }
   init_keyboard();

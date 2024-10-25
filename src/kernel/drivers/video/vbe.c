@@ -8,24 +8,16 @@ static int now_xoff = 0, now_yoff = 0;
 void *vbe_frontbuffer;
 void *vbe_backbuffer;
 
-#if 0
-void SwitchToText8025_BIOS() {
+void vbe_set_mode_8025() {
   regs16 regs = {.ax = 0x0003};
   v86_int(0x10, &regs);
 }
-
-void SwitchTo320X200X256_BIOS() {
-  regs16 regs;
-  regs.ax = 0x0013;
-  v86_int(0x10, &regs);
-}
-#endif
 
 int vbe_get_controller_info(VESAControllerInfo *addr) {
   regs16 r = {.ax = 0x4f00, .es = (size_t)addr / 16, .di = (size_t)addr % 16};
   v86_int(0x10, &r);
   if (r.ax != 0x004f) kloge("Error when vbe_get_controller_info, rets %04x", r.ax);
-  klogd("你有 %dMiB 的显存", addr->totalMemory * 64 / 1024);
+  klogd("你有 %dMiB %dKiB 的显存", addr->totalMemory * 64 / 1024, addr->totalMemory * 64 % 1024);
   return r.ax;
 }
 
@@ -54,8 +46,8 @@ void *vbe_set_mode(u16 mode) {
   v86_int(0x10, &r2);
   assert(r2.ax == 0x004f, "Error when vbe_set_mode");
 
-  klogd("设置 VBE 模式成功，该模式需要 %dMiB 显存",
-        addr->height * addr->width * (addr->bitsPerPixel / 8) / 1024 / 1024);
+  size_t size = addr->width * addr->height * addr->bitsPerPixel / 8;
+  klogd("设置 VBE 模式成功，该模式需要 %dMiB %dKiB 显存", size / 1024 / 1024, size / 1024 % 1024);
 
   now_width       = addr->width;
   now_height      = addr->height;
@@ -88,7 +80,6 @@ int vbe_match_mode(int width, int height, int bpp) {
   for (size_t i = 0; modes[i] != U16_MAX; i++) {
     int ret = vbe_get_mode_info(modes[i], info);
     if (ret != 0x004f) continue;
-    // klogd("%04x:%dx%dx%d", modes[i], info->width, info->height, info->bitsPerPixel);
     if (info->width == width && info->height == height && info->bitsPerPixel == bpp) {
       return modes[i];
     }

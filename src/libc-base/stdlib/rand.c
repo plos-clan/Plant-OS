@@ -79,18 +79,18 @@ extern int setstate_r(char *__restrict __statebuf, struct random_data *__restric
 
 static uint rand_seed = 1;
 
-int rand() {
+dlexport int rand() {
   rand_seed ^= rand_seed << 13;
   rand_seed ^= rand_seed >> 17;
   rand_seed ^= rand_seed << 5;
   return rand_seed & INT_MAX;
 }
 
-void srand(uint seed) {
+dlexport void srand(uint seed) {
   rand_seed = seed;
 }
 
-int rand_r(uint *_seed) {
+dlexport int rand_r(uint *_seed) {
   uint seed  = *_seed;
   seed      ^= seed << 13;
   seed      ^= seed >> 17;

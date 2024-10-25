@@ -69,83 +69,83 @@ typedef struct __PACKED__ {
 #define VBEMODEINFO_ADDR 0x7000
 
 /**
- * \brief 初始化VBE
+ *\brief 初始化VBE
  */
 void vbe_init();
 
 /**
- * \brief 获取VBE控制器信息
+ *\brief 获取VBE控制器信息
  *
- * \param addr 指向存储控制器信息的结构体的指针
- * \return 成功返回0，失败返回非0值
+ *\param addr 指向存储控制器信息的结构体的指针
+ *\return 成功返回0，失败返回非0值
  */
 int vbe_get_controller_info(VESAControllerInfo *addr);
 
 /**
- * \brief 获取VBE模式信息
+ *\brief 获取VBE模式信息
  *
- * \param mode VBE模式编号
- * \param addr 指向存储模式信息的结构体的指针
- * \return 成功返回0，失败返回非0值
+ *\param mode VBE模式编号
+ *\param addr 指向存储模式信息的结构体的指针
+ *\return 成功返回0，失败返回非0值
  */
 int vbe_get_mode_info(u16 mode, VESAModeInfo *addr);
 
 /**
- * \brief 打印所有可用的VBE模式
+ *\brief 打印所有可用的VBE模式
  */
 void vbe_print_all_modes();
 
 /**
- * \brief 匹配指定分辨率和颜色深度的VBE模式
+ *\brief 匹配指定分辨率和颜色深度的VBE模式
  *
- * \param width  宽度
- * \param height 高度
- * \param bpp    每像素位数
- * \return 成功返回模式编号，失败返回-1
+ *\param width  宽度
+ *\param height 高度
+ *\param bpp    每像素位数
+ *\return 成功返回模式编号，失败返回-1
  */
 int vbe_match_mode(int width, int height, int bpp);
 
 /**
- * \brief 匹配并设置指定分辨率和颜色深度的VBE模式
+ *\brief 匹配并设置指定分辨率和颜色深度的VBE模式
  *
- * \param width  宽度
- * \param height 高度
- * \param bpp    每像素位数
- * \return 返回指向设置模式后的帧缓冲区的指针，如果失败则返回NULL
+ *\param width  宽度
+ *\param height 高度
+ *\param bpp    每像素位数
+ *\return 返回指向设置模式后的帧缓冲区的指针，如果失败则返回NULL
  */
 void *vbe_match_and_set_mode(int width, int height, int bpp);
 
 /**
- * \brief 设置帧缓冲区偏移
+ *\brief 设置帧缓冲区偏移
  *
- * \param xoff X轴偏移
- * \param yoff Y轴偏移
- * \return 成功返回0，失败返回非0值
+ *\param xoff X轴偏移
+ *\param yoff Y轴偏移
+ *\return 成功返回0，失败返回非0值
  */
 int vbe_set_buffer(int xoff, int yoff);
 
 /**
- * \brief 翻转帧缓冲区
+ *\brief 翻转帧缓冲区
  *
- * \return 成功返回0，失败返回非0值
+ *\return 成功返回0，失败返回非0值
  */
 int vbe_flip();
 
 /**
- * \brief 刷新帧缓冲区
+ *\brief 刷新帧缓冲区
  *
- * \param buf 指向要刷新的缓冲区的指针
- * \return 成功返回0，失败返回非0值
+ *\param buf 指向要刷新的缓冲区的指针
+ *\return 成功返回0，失败返回非0值
  */
 int vbe_flush(const void *buf);
 
 /**
- * \brief 清除屏幕
+ *\brief 清除屏幕
  *
- * \param r 红色分量
- * \param g 绿色分量
- * \param b 蓝色分量
- * \return 成功返回0，失败返回非0值
+ *\param r 红色分量
+ *\param g 绿色分量
+ *\param b 蓝色分量
+ *\return 成功返回0，失败返回非0值
  */
 int vbe_clear(byte r, byte g, byte b);
 

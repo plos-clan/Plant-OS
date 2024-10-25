@@ -7,7 +7,7 @@
     size_t          __arg1         = (size_t)(port);                                               \
     register size_t _a1 asm("edx") = __arg1;                                                       \
     asm volatile("inb %%dx, %%al\n\t" : "=a"(data) : "r"(_a1) : "memory");                         \
-    data;                                                                                          \
+    (u8) data;                                                                                     \
   })
 
 #define asm_in16(port)                                                                             \
@@ -16,7 +16,7 @@
     size_t          __arg1         = (size_t)(port);                                               \
     register size_t _a1 asm("edx") = __arg1;                                                       \
     asm volatile("inw %%dx, %%ax\n\t" : "=a"(data) : "r"(_a1) : "memory");                         \
-    data;                                                                                          \
+    (u16) data;                                                                                    \
   })
 
 #define asm_in32(port)                                                                             \
@@ -25,7 +25,7 @@
     size_t          __arg1         = (size_t)(port);                                               \
     register size_t _a1 asm("edx") = __arg1;                                                       \
     asm volatile("inl %%dx, %%eax\n\t" : "=a"(data) : "r"(_a1) : "memory");                        \
-    data;                                                                                          \
+    (u32) data;                                                                                    \
   })
 
 #define asm_out8(port, data)                                                                       \

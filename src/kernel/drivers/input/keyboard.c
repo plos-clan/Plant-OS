@@ -4,18 +4,18 @@
 #define KEYCMD_WRITE_MODE    0x60
 #define KBC_MODE             0x47
 
-int input_char_inSM();
+static int input_char_inSM();
 
 static int caps_lock, shift, e0_flag = 0, ctrl = 0;
 
-char keytable[0x54] = { // 按下Shift
+static char keytable[0x54] = { // 按下Shift
     0,   0x01, '!', '@', '#', '$', '%',  '^', '&', '*', '(', ')', '_', '+', '\b', '\t', 'Q',
     'W', 'E',  'R', 'T', 'Y', 'U', 'I',  'O', 'P', '{', '}', 10,  0,   'A', 'S',  'D',  'F',
     'G', 'H',  'J', 'K', 'L', ':', '\"', '~', 0,   '|', 'Z', 'X', 'C', 'V', 'B',  'N',  'M',
     '<', '>',  '?', 0,   '*', 0,   ' ',  0,   0,   0,   0,   0,   0,   0,   0,    0,    0,
     0,   0,    0,   '7', 'D', '8', '-',  '4', '5', '6', '+', '1', '2', '3', '0',  '.'};
 
-char keytable1[0x54] = { // 未按下Shift
+static char keytable1[0x54] = { // 未按下Shift
     0,   0x01, '1', '2', '3', '4', '5',  '6', '7', '8',  '9', '0', '-', '=', '\b', '\t', 'q',
     'w', 'e',  'r', 't', 'y', 'u', 'i',  'o', 'p', '[',  ']', 10,  0,   'a', 's',  'd',  'f',
     'g', 'h',  'j', 'k', 'l', ';', '\'', '`', 0,   '\\', 'z', 'x', 'c', 'v', 'b',  'n',  'm',
@@ -85,26 +85,22 @@ int tty_fifo_get() {
   }
 }
 
-int input_char_inSM() {
+static int input_char_inSM() {
   int    i;
   mtask *task = current_task();
   while (1) {
     if ((tty_fifo_status() != 0)) {
       // 返回扫描码
       i = tty_fifo_get(); // 从FIFO缓冲区中取出扫描码
-      if (i != -1) { break; }
+      if (i != -1) break;
     }
   }
   return i;
 }
 
-int kbhit() {
-  return tty_fifo_status() != 0; // 进程的键盘FIFO缓冲区是否为空
-}
-
 // 扫描码转化ASCII码
 // 逻辑与getch函数大同小异
-int sc2a(int sc) {
+static int sc2a(int sc) {
   int ch = sc;
   if (ch > 0x80) {
     ch -= 0x80;

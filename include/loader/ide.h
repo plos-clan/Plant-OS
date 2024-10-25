@@ -18,7 +18,6 @@ struct IDEHardDiskInfomationBlock {
   char ID[40];
 };
 void ide_read_buffer(u8 channel, u8 reg, u32 buffer, u32 quads);
-void ide_write(u8 channel, u8 reg, u8 data);
 void ide_read_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi);
 void ide_write_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi);
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
