@@ -318,6 +318,8 @@ void draw(int n) {
   }
 }
 
+#pragma clang optimize off
+
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
@@ -369,9 +371,9 @@ void init() {
   screen_clear();
   create_task(v86_task, 1, 1);
   check_device();
-  byte *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
+  u32 *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
-  memset(vram, 0, screen_w * screen_h * 4);
+  lgmemset32(vram, 0, screen_w * screen_h);
 
 #if 0 // 尝试 os-terminal 库
   void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
@@ -382,7 +384,7 @@ void init() {
   void terminal_advance_state(char *s);
   void terminal_set_auto_flush(unsigned int auto_flush);
 
-  terminal_init(screen_w, screen_h, (u32 *)vram, malloc, free, klog_raw);
+  terminal_init(screen_w, screen_h, vram, malloc, free, klog_raw);
   terminal_set_auto_flush(true);
 
   terminal_advance_state("Hello world!\n");
