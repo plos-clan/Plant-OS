@@ -67,12 +67,5 @@ mts_nomore:
 move_cursor_by_idx:           ;移动光标
 	ret
 	
-	global into_kernel
-into_kernel:
-	mov ebx, [esp + 4]
-	mov edx, [esp + 8]
-	push ebx
-	push edx
-	jmp far [esp]
 	[SECTION .data]
 testsize: dd 0

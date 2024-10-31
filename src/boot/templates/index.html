@@ -66,9 +66,9 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow-md p-2">
       <div class="mb-4 border-b border-gray-200">
-        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
           <template x-for="tab in ['types', 'files', 'funcs', 'cpus', 'threads']" :key="tab">
-            <li class="mr-2" role="presentation">
+            <li class="ml-1 mr-1">
               <button class="inline-block p-4 rounded-t-lg border-b-2"
                 :class="{'border-blue-600 text-blue-600': activeTab === tab, 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300': activeTab !== tab}"
                 @click="activeTab = tab" type="button" role="tab"

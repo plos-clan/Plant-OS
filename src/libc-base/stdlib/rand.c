@@ -57,13 +57,13 @@ extern char *setstate(char *__statebuf) __THROW __nonnull((1));
    state, rather than global state variables.  */
 
 struct random_data {
-  int32_t *fptr;      /* Front pointer.  */
-  int32_t *rptr;      /* Rear pointer.  */
-  int32_t *state;     /* Array of state values.  */
-  int      rand_type; /* Type of random number generator.  */
-  int      rand_deg;  /* Degree of random number generator.  */
-  int      rand_sep;  /* Distance between front and rear.  */
-  int32_t *end_ptr;   /* Pointer behind state table.  */
+  i32 *fptr;      /* Front pointer.  */
+  i32 *rptr;      /* Rear pointer.  */
+  i32 *state;     /* Array of state values.  */
+  int  rand_type; /* Type of random number generator.  */
+  int  rand_deg;  /* Degree of random number generator.  */
+  int  rand_sep;  /* Distance between front and rear.  */
+  i32 *end_ptr;   /* Pointer behind state table.  */
 };
 
 extern int random_r(struct random_data *__restrict __buf, int32_t *__restrict __result)

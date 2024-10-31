@@ -5,6 +5,7 @@
 	;
 	; Copyright (C) 2024~ plos - clan
 	;
+	bits 32
 	magic equ 0xe85250d6
 	i386 equ 0
 	length equ header_end - header_start
@@ -28,8 +29,8 @@ header_end:
 _start:
 	cli
 	call init_gdtidt
-jmp 2 * 8:next
-next:
+	jmp 2 * 8:.next
+.next:
 	mov ax, 1 * 8
 	mov ds, ax
 	mov es, ax
@@ -38,6 +39,9 @@ next:
 	mov fs, ax
 	mov esp, stack_end
 	jmp kernel_main
+	jmp header_start
+	
 	section .bss
-stack: resb 0x1000
+stack:
+	resb 0x1000
 stack_end:
