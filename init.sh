@@ -118,7 +118,7 @@ check_command mformat '需要使用 mformat 来格式化软盘'
 check_command cmake '需要使用 cmake 来编译项目'
 check_command qemu-img '需要使用 qemu-img 来创建磁盘镜像'
 check_command objcopy '需要使用 objcopy 来处理二进制文件'
-check cmake ..
+check cmake .. $*
 info 开始编译...
 check make make
 cd ..
