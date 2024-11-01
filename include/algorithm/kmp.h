@@ -22,7 +22,7 @@ static ssize_t kmp_nsearch(cstr text, i32 textlen, cstr pattern, i32 patternlen)
     }
     if (j == patternlen) {
       free(lps);
-      return i - j;
+      return i - j + 1;
     }
   }
 
@@ -35,7 +35,7 @@ static ssize_t kmp_search(cstr text, cstr pattern) {
 }
 
 static void *kmp_nprepare(cstr pattern, i32 patternlen) {
-  i32 *data = (i32 *)malloc(1 + PADDING_UP(patternlen, 4) + patternlen * 4);
+  i32 *data = (i32 *)calloc(1 + PADDING_UP(patternlen, 4) / 4 + patternlen, 4);
   data[0]   = patternlen;
   memcpy(data + 1, pattern, patternlen);
   i32 *lps = data + 1 + PADDING_UP(patternlen, 4) / 4;
@@ -49,17 +49,17 @@ static void *kmp_nprepare(cstr pattern, i32 patternlen) {
     }
   }
 
-  return lps - 1;
+  return data;
 }
 
 static void *kmp_prepare(cstr pattern) {
   return kmp_nprepare(pattern, strlen(pattern));
 }
 
-static ssize_t kmp_nrun(cstr text, i32 textlen, void *data) {
-  i32  patternlen = *(i32 *)data;
+static ssize_t kmp_nrun(cstr text, i32 textlen, const void *data) {
+  i32  patternlen = *(const i32 *)data;
   cstr pattern    = (cstr)data + 4;
-  i32 *lps        = (i32 *)data + 1 + PADDING_UP(patternlen, 4) / 4;
+  var  lps        = (const i32 *)data + 1 + PADDING_UP(patternlen, 4) / 4;
 
   for (int i = 0, j = 0; i < textlen; i++) {
     if (pattern[j] == text[i]) {
@@ -68,7 +68,7 @@ static ssize_t kmp_nrun(cstr text, i32 textlen, void *data) {
       j = lps[j - 1];
       i--;
     }
-    if (j == patternlen) return i - j;
+    if (j == patternlen) return i - j + 1;
   }
 
   return -1;
