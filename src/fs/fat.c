@@ -127,6 +127,8 @@ int fatfs_mount(cstr src, vfs_node_t node) {
   sprintf(path, "%d:", drive);
   FRESULT r = f_mount(&volume[drive], path, 1);
   if (r != FR_OK) {
+    vfs_close(drive_number_mapping[drive]);
+    drive_number_mapping[drive] = null;
     free(path);
     return -1;
   }
@@ -151,8 +153,9 @@ int fatfs_mount(cstr src, vfs_node_t node) {
 }
 
 void fatfs_unmount(void *root) {
-  file_t f      = root;
-  int    number = f->path[0] - '0';
+  file_t f                     = root;
+  int    number                = f->path[0] - '0';
+  drive_number_mapping[number] = null;
   f_closedir(f->handle);
   f_unmount(f->path);
   free(f->path);

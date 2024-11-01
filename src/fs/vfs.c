@@ -36,7 +36,7 @@ finline void do_open(vfs_node_t file) {
 
 finline void do_update(vfs_node_t file) {
   assert(file->fsid != 0 || file->type != file_none);
-  if (file->type == file_none) do_open(file);
+  if (file->type == file_none || file->handle == null) do_open(file);
   assert(file->type != file_none);
 }
 
@@ -177,6 +177,9 @@ err:
   free(path);
   return null;
 }
+void vfs_update(vfs_node_t node) {
+  do_update(node);
+}
 void devfs_regist();
 bool vfs_init() {
   for (size_t i = 0; i < sizeof(struct vfs_callback) / sizeof(void *); i++) {
@@ -186,6 +189,8 @@ bool vfs_init() {
   fatfs_regist();
   tmpfs_regist();
   devfs_regist();
+  iso9660_regist();
+
   rootdir       = vfs_node_alloc(null, null);
   rootdir->type = file_dir;
   return true;
@@ -231,6 +236,7 @@ int vfs_mount(cstr src, vfs_node_t node) {
   if (node->type != file_dir) return -1;
   void *handle = null;
   for (int i = 1; i < fs_nextid; i++) {
+    // printf("trying %d", i);
     if (fs_callbacks[i]->mount(src, node) == 0) {
       node->fsid = i;
       node->root = node;
@@ -266,8 +272,8 @@ int vfs_unmount(cstr path) {
       cur->root   = node->root;
       cur->handle = null;
       cur->child  = null;
-      cur->type   = file_none;
-      do_update(cur);
+      // cur->type   = file_none;
+      if (cur->fsid) do_update(cur);
       return 0;
     }
   }

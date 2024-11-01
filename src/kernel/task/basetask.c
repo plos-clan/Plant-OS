@@ -63,7 +63,7 @@ void list_files(char *path) {
   assert(p->type == file_dir);
   list_foreach(p->child, i) {
     vfs_node_t c = (vfs_node_t)i->data;
-    printf("%!8s ", c->name);
+    printf("%s\t ", c->name);
   }
   printf("\n");
 }
@@ -225,8 +225,9 @@ void shell() {
         continue;
       }
       size_t size = p->size;
-      byte  *buf  = malloc(size);
+      byte  *buf  = malloc(size + 1);
       vfs_read(p, buf, 0, size);
+      buf[size] = '\0';
       printf("%s\n", buf);
       free(buf);
     } else if (strneq(ch, "mkdir ", 6)) {
