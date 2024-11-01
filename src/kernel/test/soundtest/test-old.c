@@ -144,9 +144,9 @@ void qoa_player(cstr path) {
   snd->rate     = qoa.samplerate;
   snd->volume   = 1;
   vsound_open(snd);
-  for (int i = 0; i < qoa.samples; i += 2048) {
+  for (int i = 0; i < qoa.samples; i += snd->bufsize / qoa.channels) {
     klogd("writing %d samples", i);
-    vsound_write(snd, data + i * qoa.channels, 2048);
+    vsound_write(snd, data + i * qoa.channels, snd->bufsize / qoa.channels);
     printf("\r%d/%d sec", (int)((float)i / (float)qoa.samplerate),
            (int)((float)qoa.samples / (float)qoa.samplerate));
   }
