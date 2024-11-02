@@ -58,7 +58,7 @@ static const cstr descriptions[] = {
     "RAR archive file",
     "ZIP archive file",
     "Advanced Audio Coding file",
-    "MP3 audio file",
+    "MP3 audio file with ID3 tags",
     "Ogg Vorbis audio file",
     "Waveform Audio file",
     "WebM audio file",
@@ -441,6 +441,17 @@ dlexport cstr filetype(const void *data, size_t size) {
       if (size == 2) return null;
       byte b = ((const byte *)data)[2];
       if (b == 255) return mime_types[20];
+      return null;
+    }
+    return null;
+  }
+  if (b == 73) {
+    if (size == 1) return null;
+    byte b = ((const byte *)data)[1];
+    if (b == 68) {
+      if (size == 2) return null;
+      byte b = ((const byte *)data)[2];
+      if (b == 51) return mime_types[13];
       return null;
     }
     return null;

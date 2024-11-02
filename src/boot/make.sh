@@ -20,4 +20,5 @@ mcopy -i hd.img font2.plff ::
 mcopy -i hd.img audio.plac ::
 mcopy -i hd.img world_execute_me.qoa ::
 mcopy -i hd.img do_you_hear_the_people_sing.qoa ::
+mcopy -i hd.img fly_my_wings.mp3 ::
 mcopy -i hd.img disk.img ::

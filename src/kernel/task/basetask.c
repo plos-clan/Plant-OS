@@ -124,6 +124,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   list_foreach(p->child, i) {
     vfs_node_t c        = (vfs_node_t)i->data;
     char      *new_path = pathcat(s, c->name);
+    vfs_update(c);
     if (c->type == file_dir) {
       pl_readline_word_maker_add(new_path, words, false, '/');
     } else {
@@ -246,6 +247,7 @@ void shell() {
       cstr        type = filetype_from_name(path);
       extern void plac_player(cstr path);
       extern void qoa_player(cstr path);
+      void        mp3_player(cstr path);
       if (streq(type, "application/x-executable")) {
         int status = os_execute(path, ch);
         printf("%s exited with code %d\n", path, status);
@@ -253,6 +255,8 @@ void shell() {
         qoa_player(path);
       } else if (streq(type, "audio/x-plac")) {
         plac_player(path);
+      } else if (streq(type, "audio/mpeg")) {
+        mp3_player(path);
       } else {
         printf("bad command\n");
       }

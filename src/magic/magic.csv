@@ -14,6 +14,7 @@ application/x-rar-compressed;hex;52 61 72 21 1a 07 00;rar;RAR archive file
 application/zip;hex;50 4b 03 04;zip;ZIP archive file
 audio/aac;hex;ff f1;aac;Advanced Audio Coding file
 audio/mpeg;hex;ff fb;mp3;MP3 audio file
+audio/mpeg;str;ID3;mp3;MP3 audio file with ID3 tags
 audio/ogg;hex;4f 67 67 53;ogg;Ogg Vorbis audio file
 audio/wav;hex;52 49 46 46;wav;Waveform Audio file
 audio/webm;hex;1a 45 df a3;weba;WebM audio file

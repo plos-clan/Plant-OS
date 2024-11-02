@@ -92,8 +92,13 @@ void sound_test() {
 #  define QOA_IMPLEMENTATION
 #  define QOA_NO_STDIO
 #  include "../../../audio/qoa.h"
+
 #  include <audio.h>
 #  include <sound.h>
+
+#  define DR_MP3_IMPLEMENTATION
+#  define DR_MP3_NO_STDIO
+#  include "../../../audio/dr_mp3.h"
 
 finline f32 my_sqrt(f32 x) {
   f32 guess = .6;
@@ -155,6 +160,31 @@ void qoa_player(cstr path) {
   free(buf1);
   printf("\n");
 }
+void mp3_player(cstr path) {
+  vfs_node_t n    = vfs_open(path);
+  void      *buf1 = malloc(n->size);
+  vfs_read(n, buf1, 0, n->size);
+  drmp3_uint64 samples;
+
+  drmp3_config mp3;
+  short *data   = drmp3_open_memory_and_read_pcm_frames_s16(buf1, n->size, &mp3, &samples, NULL);
+  snd           = vsound_find("hda");
+  snd->fmt      = SOUND_FMT_S16;
+  snd->channels = mp3.channels;
+  snd->rate     = mp3.sampleRate;
+  snd->volume   = 1;
+  vsound_open(snd);
+  for (int i = 0; i < samples; i += snd->bufsize / mp3.channels) {
+    klogd("writing %d samples", i);
+    vsound_write(snd, data + i * mp3.channels, snd->bufsize / mp3.channels);
+    printf("\r%d/%d sec", (int)((float)i / (float)mp3.sampleRate),
+           (int)((float)samples / (float)mp3.sampleRate));
+  }
+  vsound_close(snd);
+  free(data);
+  free(buf1);
+}
+
 void plac_player(cstr path) {
   auto  file = vfs_open(path);
   byte *buf  = malloc(file->size);
