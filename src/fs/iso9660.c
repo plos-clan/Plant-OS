@@ -1,7 +1,6 @@
 // This code is released under the MIT License
 
 #include <fs.h>
-
 #define L9660_SEEK_END -1
 #define L9660_SEEK_SET 0
 #define L9660_SEEK_CUR +1
@@ -438,7 +437,14 @@ int iso9660_readfile(file_t file, void *addr, size_t offset, size_t size) {
   l9660_status st;
   st = l9660_seek(fp, SEEK_SET, offset);
   if (st != L9660_OK) return -1;
-  st = l9660_read(fp, addr, size, null);
+  size_t read = 0;
+  size_t total_read = 0;
+  while (total_read < size) {
+    st = l9660_read(fp, (char *)addr + total_read, size - total_read, &read);
+    if (st != L9660_OK) return -1;
+    total_read += read;
+    if (read == 0) break;
+  }
   if (st != L9660_OK) return -1;
   return 0;
 }

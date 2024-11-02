@@ -17,10 +17,9 @@ static int devfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   node->fsid = 0; // 交给vfs处理
   return 0;
 }
-static void dummy() {
-}
+static void dummy() {}
 // offset 必须能被扇区大小整除
-static int devfs_read(void *file, void *addr, size_t offset, size_t size) {
+static int  devfs_read(void *file, void *addr, size_t offset, size_t size) {
   int dev_id = (int)file;
   int sector_size;
   if (vdisk_ctl[dev_id].flag == 0) return -1;
