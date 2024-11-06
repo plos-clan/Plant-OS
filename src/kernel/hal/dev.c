@@ -4,6 +4,7 @@ int          devfs_id = 0;
 rbtree_sp_t  dev_rbtree;
 extern vdisk vdisk_ctl[26];
 int          devfs_mount(cstr src, vfs_node_t node) {
+  if (src != null) return -1;
   node->fsid = devfs_id;
   for (int i = 0; have_vdisk(i); i++) {
     vfs_child_append(node, vdisk_ctl[i].DriveName, null);
@@ -60,7 +61,15 @@ static int devfs_write(void *file, const void *addr, size_t offset, size_t size)
   }
   return 0;
 }
+int devfs_stat(void *handle, vfs_node_t node) {
+  if (node->type == file_dir) return 0;
+  node->handle = rbtree_sp_get(dev_rbtree, node->name);
+  node->type   = file_block;
+  node->size   = disk_Size((int)node->handle);
+  return 0;
+}
 static void devfs_open(void *parent, cstr name, vfs_node_t node) {
+  if (node->type == file_dir) return;
   node->handle = rbtree_sp_get(dev_rbtree, name);
   node->type   = file_block;
   node->size   = disk_Size((int)node->handle);
@@ -72,7 +81,7 @@ static struct vfs_callback callbacks = {
     .mkfile  = (void *)dummy,
     .open    = devfs_open,
     .close   = (void *)dummy,
-    .stat    = (void *)dummy,
+    .stat    = devfs_stat,
     .read    = devfs_read,
     .write   = devfs_write,
 };

@@ -152,7 +152,7 @@ asm_ide_irq:
 	MOV AX, SS
 	MOV DS, AX
 	MOV ES, AX
-	;CALL ide_irq
+	CALL ide_irq
 	POP EAX
 	;call signal_deal
 	POPAD

@@ -63,7 +63,7 @@ void list_files(char *path) {
   assert(p->type == file_dir);
   list_foreach(p->child, i) {
     vfs_node_t c = (vfs_node_t)i->data;
-    printf("%!8s ", c->name);
+    printf("%s\t ", c->name);
   }
   printf("\n");
 }
@@ -124,6 +124,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   list_foreach(p->child, i) {
     vfs_node_t c        = (vfs_node_t)i->data;
     char      *new_path = pathcat(s, c->name);
+    vfs_update(c);
     if (c->type == file_dir) {
       pl_readline_word_maker_add(new_path, words, false, '/');
     } else {
@@ -225,9 +226,30 @@ void shell() {
         continue;
       }
       size_t size = p->size;
-      byte  *buf  = malloc(size);
+      byte  *buf  = malloc(size + 1);
       vfs_read(p, buf, 0, size);
+      buf[size] = '\0';
       printf("%s\n", buf);
+      free(buf);
+    } else if (strneq(ch, "readhex ", 8)) {
+      char      *s = ch + 8;
+      vfs_node_t p = vfs_open(s);
+      if (!p) {
+        printf("open %s failed\n", s);
+        continue;
+      }
+      if (p->type == file_dir) {
+        printf("not a file\n");
+        continue;
+      }
+      size_t size = p->size;
+      byte  *buf  = malloc(size);
+      memset(buf, 0, size);
+      vfs_read(p, buf, 0, size);
+      for (size_t i = 0; i < size; i++) {
+        printf("%02x ", buf[i]);
+      }
+      printf("\n");
       free(buf);
     } else if (strneq(ch, "mkdir ", 6)) {
       vfs_mkdir(ch + 6);
@@ -245,6 +267,7 @@ void shell() {
       cstr        type = filetype_from_name(path);
       extern void plac_player(cstr path);
       extern void qoa_player(cstr path);
+      void        mp3_player(cstr path);
       if (streq(type, "application/x-executable")) {
         int status = os_execute(path, ch);
         printf("%s exited with code %d\n", path, status);
@@ -252,6 +275,8 @@ void shell() {
         qoa_player(path);
       } else if (streq(type, "audio/x-plac")) {
         plac_player(path);
+      } else if (streq(type, "audio/mpeg")) {
+        mp3_player(path);
       } else {
         printf("bad command\n");
       }

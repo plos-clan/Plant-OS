@@ -1,7 +1,6 @@
 #pragma once
 #include <data-structure.h>
 #include <libc-base.h>
-
 // * 所有时间请使用 GMT 时间 *
 
 // 读写时请 padding 到 PAGE_SIZE 的整数倍
@@ -90,11 +89,14 @@ int vfs_regist(cstr name, vfs_callback_t callback);
 
 void tmpfs_regist();
 void fatfs_regist();
+void iso9660_regist();
 
 vfs_node_t vfs_open(cstr str);
 int        vfs_mkdir(cstr name);
 
-int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size);
-int vfs_mkfile(cstr name);
-int vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size);
-int vfs_unmount(cstr path);
+int  vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size);
+int  vfs_mkfile(cstr name);
+int  vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size);
+int  vfs_unmount(cstr path);
+int  vfs_close(vfs_node_t node);
+void vfs_update(vfs_node_t node);
