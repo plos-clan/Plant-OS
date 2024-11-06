@@ -1,0 +1,41 @@
+"<div>":
+  - text/html
+
+"#include":
+  - text/x-csrc
+  - text/x-c++src
+
+function:
+  - text/javascript
+
+typedef:
+  - text/x-csrc
+  - text/x-c++src
+
+class:
+  - text/x-c++src
+  - text/x-java-source
+  - text/x-csharp
+  - text/x-objective-c
+
+import:
+  - text/x-python
+  - text/x-java-source
+
+package:
+  - text/x-java-source
+
+def:
+  - text/x-python
+
+struct:
+  - text/x-csrc
+  - text/x-c++src
+
+enum:
+  - text/x-csrc
+  - text/x-c++src
+  - text/x-java-source
+  - text/x-csharp
+  - text/x-objective-c
+  - text/x-python
