@@ -84,18 +84,18 @@ OAPI char *strerror_r(int e, char *buf, size_t n) __THROW; // GNU 版本
 
 //; 自定义函数
 
-OAPI u32    utf8to32c(cstr8 *sp);
-OAPI size_t utf8to32s(u32 *d, cstr8 s);
-OAPI u32   *utf8to32a(cstr8 s);
-OAPI u32    utf16to32c(cstr16 *sp);
-OAPI size_t utf16to32s(u32 *d, cstr16 s);
-OAPI u32   *utf16to32a(cstr16 s);
-OAPI size_t utf32to8c(u32 c, u8 *s);
-OAPI size_t utf32to8s(u8 *d, cstr32 s);
-OAPI u8    *utf32to8a(cstr32 s);
-OAPI size_t utf32to16c(u32 c, u16 *s);
-OAPI size_t utf32to16s(u16 *d, cstr32 s);
-OAPI u16   *utf32to16a(cstr32 s);
+OAPI u32     utf8to32c(cstr8 *sp);
+OAPI size_t  utf8to32s(u32 *d, cstr8 s);
+OAPI u32    *utf8to32a(cstr8 s);
+OAPI u32     utf16to32c(cstr16 *sp);
+OAPI size_t  utf16to32s(u32 *d, cstr16 s);
+OAPI u32    *utf16to32a(cstr16 s);
+OAPI ssize_t utf32to8c(u32 c, u8 *s);
+OAPI size_t  utf32to8s(u8 *d, cstr32 s);
+OAPI u8     *utf32to8a(cstr32 s);
+OAPI ssize_t utf32to16c(u32 c, u16 *s);
+OAPI size_t  utf32to16s(u16 *d, cstr32 s);
+OAPI u16    *utf32to16a(cstr32 s);
 
 #undef IAPI
 #undef OAPI
