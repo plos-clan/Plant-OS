@@ -15,10 +15,9 @@ void init_pit() {
   asm_out8(0x43, 0x34);
   asm_out8(0x40, 0x9c);
   asm_out8(0x40, 0x2e);
-  int           i;
   struct TIMER *t;
   timerctl.count = 0;
-  for (i = 0; i < MAX_TIMER; i++) {
+  for (int i = 0; i < MAX_TIMER; i++) {
     timerctl.timers0[i].flags = 0; /* 没有使用 */
   }
   t           = timer_alloc(); /* 取得一个 */

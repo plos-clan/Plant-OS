@@ -16,7 +16,6 @@ void *pci_addr_base;
 #pragma clang optimize off
 
 void sysinit() {
-  // do_init_seg_register();
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_page();
 

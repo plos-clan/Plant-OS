@@ -467,6 +467,6 @@ void bios_fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
   r.dx = N(head, 0);
   r.es = 0x7e0;
   r.bx = 0;
-  asm16_int(0x13, &r);
+  v86_int(0x13, &r);
   if (read) { memcpy(blockbuff, p_tbaddr, 512); }
 }

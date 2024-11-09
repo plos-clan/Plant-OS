@@ -3,7 +3,7 @@
 	GLOBAL asm_get_flags, asm_set_flags
 	GLOBAL move_cursor_by_idx
 	GLOBAL memtest_sub, farjmp, farcall, start_app
-	GLOBAL return_to_app, do_init_seg_register, entering_v86
+	GLOBAL return_to_app, entering_v86
 	
 	section .text
 	%define ADR_BOTPAK 0x0
@@ -210,13 +210,7 @@ task_start:
 	; pop ds
 	; ret
 	; retuen_to_app_end:
-do_init_seg_register:
-	pusha
-	mov ax, 1 * 8
-	mov gs, ax
-	mov fs, ax
-	popa
-	ret
+
 	; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 entering_v86:
 	mov ebp, esp                 ; save stack pointer

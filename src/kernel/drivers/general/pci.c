@@ -41,7 +41,7 @@ void pci_write_command_status(u8 bus, u8 slot, u8 func, u32 value) {
   write_pci(bus, slot, func, 0x04, value);
 }
 
-base_address_register get_base_address_register(u8 bus, u8 device, u8 function, u8 bar) {
+static base_address_register get_base_address_register(u8 bus, u8 device, u8 function, u8 bar) {
   base_address_register result;
 
   u32 headertype = read_pci(bus, device, function, 0x0e) & 0x7e;
