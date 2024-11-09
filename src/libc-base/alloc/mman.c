@@ -70,6 +70,7 @@ dlexport void mman_setcb(mman_t man, cb_reqmem_t reqmem, cb_delmem_t delmem) {
 #define RESERVED_SIZE (PADDING(sizeof(struct mman_pool)) + 6 * sizeof(size_t))
 
 static bool mman_reqmem(mman_t man, size_t size) {
+  size += sizeof(struct mman_pool) + 4 * sizeof(size_t);
   if (man->cb_reqmem == null) return false;
   if (size > SIZE_2M) return false;
 #if !ALLOC_FORCE_2M_PAGE
@@ -161,7 +162,7 @@ dlexport void *mman_aligned_alloc(mman_t man, size_t size, size_t align) {
   if (align < 2 * sizeof(size_t)) return mman_alloc(man, size); // 对齐小于 2 倍指针大小
   size = size == 0 ? 2 * sizeof(size_t) : PADDING(size); // 保证最小分配 2 个字长且对齐到 2 倍字长
 
-  if (size >= ALLOC_LARGE_BLK_SIZE) {
+  if (size >= ALLOC_LARGE_BLK_SIZE || align >= ALLOC_LARGE_BLK_SIZE) {
     void *ptr = large_blk_alloc(size, man->large, man->cb_reqmem, man->cb_delmem);
     if ((size_t)ptr % align != 0) { // TODO 让这种情况永远不会出现
       large_blk_free(man->large, ptr, man->cb_delmem);
@@ -175,15 +176,15 @@ dlexport void *mman_aligned_alloc(mman_t man, size_t size, size_t align) {
                   ?: freelist_aligned_match(&man->large_blk, size, align);
 
   if (ptr == null) { // 不足就分配
-    if (!mman_reqmem(man, size)) return null;
+    if (!mman_reqmem(man, size + align)) return null;
     ptr = freelist_aligned_match(&man->large_blk, size, align);
-    if (ptr == null) return null; // TODO 让这种情况永远不会出现
   }
 
-  size_t offset = (size_t)ptr % align;
+  size_t offset = PADDING_UP(ptr, align) - (size_t)ptr;
   if (offset > 0) {
     void *new_ptr = blk_split(ptr, offset - 2 * sizeof(size_t));
-    do_free(man, new_ptr);
+    do_free(man, ptr);
+    ptr = new_ptr;
   }
 
   try_split_and_free(man, ptr, size);

@@ -107,7 +107,7 @@ finline void *freelists_match(freelists_t lists, size_t size) {
 finline void *freelist_aligned_match(freelist_t *list_p, size_t size, size_t align) {
   for (freelist_t list = *list_p; list != null; list = list->next) {
     ssize_t tgt_size = aligned_size_of(list, align);
-    if (tgt_size >= size) {
+    if (tgt_size >= (ssize_t)size) {
       *list_p = freelist_detach(*list_p, list);
       return list;
     }
@@ -130,7 +130,7 @@ finline void *freelists_aligned_match(freelists_t lists, size_t size, size_t ali
   for (; id < FREELIST_NUM; id++) {
     for (freelist_t list = lists[id]; list != null; list = list->next) {
       ssize_t tgt_size = aligned_size_of(list, align);
-      if (tgt_size >= size) return freelists_detach(lists, id, list);
+      if (tgt_size >= (ssize_t)size) return freelists_detach(lists, id, list);
     }
   }
   return null;

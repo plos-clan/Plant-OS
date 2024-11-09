@@ -120,15 +120,15 @@ dlexport void *mpool_aligned_alloc(mpool_t pool, size_t size, size_t align) {
                   ?: freelist_aligned_match(&pool->large_blk, size, align);
 
   if (ptr == null) { // 不足就分配
-    if (!mpool_reqmem(pool, size)) return null;
+    if (!mpool_reqmem(pool, size + align)) return null;
     ptr = freelist_aligned_match(&pool->large_blk, size, align);
-    if (ptr == null) return null; // TODO 让这种情况永远不会出现
   }
 
-  size_t offset = (size_t)ptr % align;
+  size_t offset = PADDING_UP(ptr, align) - (size_t)ptr;
   if (offset > 0) {
     void *new_ptr = blk_split(ptr, offset - 2 * sizeof(size_t));
-    do_free(pool, new_ptr);
+    do_free(pool, ptr);
+    ptr = new_ptr;
   }
 
   try_split_and_free(pool, ptr, size);
