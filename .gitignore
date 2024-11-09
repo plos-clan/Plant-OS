@@ -1,6 +1,7 @@
 .cache
 .vscode
 .VSCodeCounter
+.xmake
 bin
 build
 lib
