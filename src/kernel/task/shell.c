@@ -171,6 +171,9 @@ void shell() {
     if (!strlen(ch)) continue;
     if (strneq(ch, "cd ", 3)) {
       char *s = ch + 3;
+      if (s[strlen(s) - 1] == '/') {
+        s[strlen(s) - 1] = '\0';
+      }
       if (streq(s, ".")) continue;
       if (streq(s, "..")) {
         if (streq(s, "/")) continue;
@@ -180,10 +183,18 @@ void shell() {
         if (strlen(path) == 0) strcpy(path, "/");
         continue;
       }
-      if (streq(path, "/"))
-        sprintf(path, "%s%s", path, s);
-      else
+      char *old = strdup(path);
+      if (streq(path, "/")) sprintf(path, "%s%s", path, s);
+      if (s[0] == '/') {
+        strcpy(path, s);
+      } else
         sprintf(path, "%s/%s", path, s);
+      if (vfs_open(path) == null) {
+        printf("cd: %s: No such directory\n", s);
+        sprintf(path, "%s", old);
+        free(old);
+        continue;
+      }
     } else if (streq(ch, "ls")) {
       list_files(path);
     } else if (streq(ch, "pcils")) {
