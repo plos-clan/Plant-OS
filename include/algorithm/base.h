@@ -7,4 +7,4 @@
 #include "../libc-base/string/str.h"
 #include "../libc-base/thread/spin.h"
 
-dlimport int printf(cstr _rest fmt, ...);
+dlimport int printf(cstr _rest fmt, ...) __THROWNL __attr(format(printf, 1, 2));

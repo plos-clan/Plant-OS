@@ -1,7 +1,7 @@
 #pragma once
 #include <define.h>
 
-finline u32 memhash($void *_rest src, size_t len) {
+finline u32 memhash(const void *_rest src, size_t len) {
   if (!src) return 0;
   u32 h = 0;
   for (size_t i = 0; i < len; i++)
@@ -9,7 +9,7 @@ finline u32 memhash($void *_rest src, size_t len) {
   return h;
 }
 
-finline u32 strnhash($void *_rest src, size_t len) {
+finline u32 strnhash(const void *_rest src, size_t len) {
   if (!src) return 0;
   u32 h = 0;
   for (size_t i = 0; (($byte *)src)[i] && i < len; i++)
