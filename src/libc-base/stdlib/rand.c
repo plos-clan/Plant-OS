@@ -20,6 +20,7 @@ void MT19937_generate(MT19937 *ctx) {
   u32 y        = (ctx->mt[623] & 0x80000000) + (ctx->mt[0] & 0x7fffffff);
   ctx->mt[623] = (y >> 1) ^ ctx->mt[396];
   if (y & 1) ctx->mt[623] ^= 0x9908b0df;
+  ctx->idx = 0;
 }
 
 u32 MT19937_extract(MT19937 *ctx) {
