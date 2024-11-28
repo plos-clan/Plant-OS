@@ -87,26 +87,26 @@ finline double fmax(double x, double y) {
 // --------------------------------------------------
 //; 平方 立方
 
-finline int square(int x) {
+finline __attr(const) int square(int x) {
   return x * x;
 }
 
-finline float squaref(float x) {
+finline __attr(const) float squaref(float x) {
   return x * x;
 }
 
-finline int cube(int x) {
+finline __attr(const) int cube(int x) {
   return x * x * x;
 }
 
-finline float cubef(float x) {
+finline __attr(const) float cubef(float x) {
   return x * x * x;
 }
 
 // --------------------------------------------------
 //;
 
-finline int gcd(int a, int b) {
+finline __attr(const) int gcd(int a, int b) {
   while (b != 0) {
     int t = b;
     b     = a % b;
@@ -115,7 +115,7 @@ finline int gcd(int a, int b) {
   return a;
 }
 
-finline long gcdl(long a, long b) {
+finline __attr(const) long gcdl(long a, long b) {
   while (b != 0) {
     long t = b;
     b      = a % b;
@@ -124,7 +124,7 @@ finline long gcdl(long a, long b) {
   return a;
 }
 
-finline u64 factorial(u32 n) {
+finline __attr(const) u64 factorial(u32 n) {
   u64 result = 1;
   for (u32 i = 2; i <= n; i++) {
     result *= i;

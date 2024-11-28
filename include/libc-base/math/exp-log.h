@@ -10,7 +10,7 @@
 // --------------------------------------------------
 //; 对数 指数
 
-finline f32 exp2f(f32 x) {
+finline __attr(const) f32 exp2f(f32 x) {
   f32 y;
   i32 e;
   e   = (i32)(x + 127);
@@ -21,7 +21,7 @@ finline f32 exp2f(f32 x) {
   return (x + 1) * y;
 }
 
-finline f32 log2f(f32 x) {
+finline __attr(const) f32 log2f(f32 x) {
   i32 y;
   f32 r;
   y   = *(i32 *)&x;
@@ -34,7 +34,7 @@ finline f32 log2f(f32 x) {
   return r;
 }
 
-finline f64 exp2(f64 x) {
+finline __attr(const) f64 exp2(f64 x) {
   f64 y;
   i64 e;
   e   = (i64)(x + 1023);
@@ -45,7 +45,7 @@ finline f64 exp2(f64 x) {
   return (x + 1) * y;
 }
 
-finline f64 log2(f64 x) {
+finline __attr(const) f64 log2(f64 x) {
   i64 y;
   f64 r;
   y   = *(i64 *)&x;
@@ -58,15 +58,15 @@ finline f64 log2(f64 x) {
   return r;
 }
 
-finline float expf(float x) {
+finline __attr(const) float expf(float x) {
   return exp2f(x * 1.442695040888963f);
 }
 
-finline double exp(double x) {
+finline __attr(const) double exp(double x) {
   return exp2(x * 1.442695040888963);
 }
 
-finline f32 powfu(f32 a, u32 b) {
+finline __attr(const) f32 powfu(f32 a, u32 b) {
   f32 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -76,11 +76,11 @@ finline f32 powfu(f32 a, u32 b) {
   return r;
 }
 
-finline f32 powfi(f32 a, i32 b) {
+finline __attr(const) f32 powfi(f32 a, i32 b) {
   return b < 0 ? 1 / powfu(a, -b) : powfu(a, b);
 }
 
-finline i32 powi32(i32 a, u32 b) {
+finline __attr(const) i32 powi32(i32 a, u32 b) {
   i32 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -90,7 +90,7 @@ finline i32 powi32(i32 a, u32 b) {
   return r;
 }
 
-finline f64 powu(f64 a, u64 b) {
+finline __attr(const) f64 powu(f64 a, u64 b) {
   f64 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -100,11 +100,11 @@ finline f64 powu(f64 a, u64 b) {
   return r;
 }
 
-finline f64 powi(f64 a, i64 b) {
+finline __attr(const) f64 powi(f64 a, i64 b) {
   return b < 0 ? 1 / powu(a, -b) : powu(a, b);
 }
 
-finline i64 powi64(i64 a, u64 b) {
+finline __attr(const) i64 powi64(i64 a, u64 b) {
   i64 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -115,30 +115,30 @@ finline i64 powi64(i64 a, u64 b) {
 }
 
 #  if __has(pow)
-finline f32 powf(f32 a, f32 b) {
+finline __attr(const) f32 powf(f32 a, f32 b) {
   return __builtin_powf(a, b);
 }
-finline f64 pow(f64 a, f64 b) {
+finline __attr(const) f64 pow(f64 a, f64 b) {
   return __builtin_pow(a, b);
 }
 #  else
-finline f32 powf(f32 a, f32 b) {
+finline __attr(const) f32 powf(f32 a, f32 b) {
   i32 c  = b;
   b     -= c;
   return exp2(b * log2(a)) * powfi(a, c);
 }
-finline f64 pow(f64 a, f64 b) {
+finline __attr(const) f64 pow(f64 a, f64 b) {
   i64 c  = b;
   b     -= c;
   return exp2(b * log2(a)) * powi(a, c);
 }
 #  endif
 
-finline float logf(float x) {
+finline __attr(const) float logf(float x) {
   return log2f(x) * 0.693147180559945f;
 }
 
-finline double log(double x) {
+finline __attr(const) double log(double x) {
   return log2(x) * 0.693147180559945;
 }
 
