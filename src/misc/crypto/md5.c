@@ -40,13 +40,6 @@ static const u32 MD5_ac[4][16] = {
      0xeb86d391}
 };
 
-typedef struct _MD5_t {
-  byte b[64]; // 输入缓冲区
-  byte p;     // 输入缓冲区指针
-  u64  s;     // 大小
-  u32  h[4];  // hash值
-} MD5_t;
-
 static void MD5_iterate(MD5_t *_rest m) {
   u32 temp; // 临时变量
 
