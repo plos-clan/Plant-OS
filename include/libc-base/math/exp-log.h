@@ -10,7 +10,7 @@
 // --------------------------------------------------
 //; 对数 指数
 
-inline_const f32 exp2f(f32 x) {
+inline_const_ncexpr f32 exp2f(f32 x) {
   f32 y;
   i32 e;
   e   = (i32)(x + 127);
@@ -21,7 +21,7 @@ inline_const f32 exp2f(f32 x) {
   return (x + 1) * y;
 }
 
-inline_const f32 log2f(f32 x) {
+inline_const_ncexpr f32 log2f(f32 x) {
   i32 y;
   f32 r;
   y   = *(i32 *)&x;
@@ -34,7 +34,7 @@ inline_const f32 log2f(f32 x) {
   return r;
 }
 
-inline_const f64 exp2(f64 x) {
+inline_const_ncexpr f64 exp2(f64 x) {
   f64 y;
   i64 e;
   e   = (i64)(x + 1023);
@@ -45,7 +45,7 @@ inline_const f64 exp2(f64 x) {
   return (x + 1) * y;
 }
 
-inline_const f64 log2(f64 x) {
+inline_const_ncexpr f64 log2(f64 x) {
   i64 y;
   f64 r;
   y   = *(i64 *)&x;
@@ -58,11 +58,11 @@ inline_const f64 log2(f64 x) {
   return r;
 }
 
-inline_const float expf(float x) {
+inline_const_ncexpr float expf(float x) {
   return exp2f(x * 1.442695040888963f);
 }
 
-inline_const double exp(double x) {
+inline_const_ncexpr double exp(double x) {
   return exp2(x * 1.442695040888963);
 }
 
@@ -122,24 +122,33 @@ inline_const f64 pow(f64 a, f64 b) {
   return __builtin_pow(a, b);
 }
 #  else
-inline_const f32 powf(f32 a, f32 b) {
+inline_const_ncexpr f32 powf(f32 a, f32 b) {
   i32 c  = b;
   b     -= c;
   return exp2(b * log2(a)) * powfi(a, c);
 }
-inline_const f64 pow(f64 a, f64 b) {
+inline_const_ncexpr f64 pow(f64 a, f64 b) {
   i64 c  = b;
   b     -= c;
   return exp2(b * log2(a)) * powi(a, c);
 }
 #  endif
 
-inline_const float logf(float x) {
+#  if __has(log)
+inline_const f32 logf(f32 x) {
+  return __builtin_logf(x);
+}
+inline_const f64 log(double x) {
+  return __builtin_log(x);
+}
+#  else
+inline_const_ncexpr float logf(float x) {
   return log2f(x) * 0.693147180559945f;
 }
 
-inline_const double log(double x) {
+inline_const_ncexpr double log(double x) {
   return log2(x) * 0.693147180559945;
 }
+#  endif
 
 #endif
