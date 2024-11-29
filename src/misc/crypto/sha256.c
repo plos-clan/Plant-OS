@@ -33,18 +33,7 @@ static const u32 SHA256_K[64] = {
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2, //
 };
 
-typedef struct _SHA256_t SHA256_t;
-
-struct _SHA256_t {
-  byte b[64]; // 输入缓冲区
-  byte p;     // 输入缓冲区指针
-  u64  s;     // 大小
-  u32  h[8];  // hash值
-};
-
 static void SHA256_iterate(SHA256_t *_rest s) {
-  if (!s) return;
-
   u32 temp1, temp2; // 临时变量
   u32 word[64];     // （SHA256）字
 
@@ -113,12 +102,12 @@ const void *SHA256_end(SHA256_t *_rest s) {
   return s->h;
 }
 
-const void *SHA256_val(SHA256_t *_rest s) {
+const void *SHA256_val(const SHA256_t *_rest s) {
   if (!s) return NULL;
   return s->h;
 }
 
-void SHA256_print(SHA256_t *_rest s) {
+void SHA256_print(const SHA256_t *_rest s) {
   if (!s) return;
   for (int i = 0; i < 8; i++) {
     printf("%08x", s->h[i]);

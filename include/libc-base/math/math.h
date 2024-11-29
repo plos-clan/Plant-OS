@@ -7,6 +7,18 @@
 
 #if NO_STD
 
+inline_const int abs(int x) {
+  return x < 0 ? -x : x;
+}
+
+inline_const float fabsf(float x) {
+  return x < 0 ? -x : x;
+}
+
+inline_const double fabs(double x) {
+  return x < 0 ? -x : x;
+}
+
 #  ifndef __cplusplus
 
 #    define abs(x)                                                                                 \
@@ -17,43 +29,43 @@
 
 #  endif
 
-finline float fmodf(float x, float y) {
+inline_const float fmodf(float x, float y) {
   return x - (int)(x / y) * y;
 }
 
-finline double fmod(double x, double y) {
+inline_const double fmod(double x, double y) {
   return x - (long)(x / y) * y;
 }
 
-finline float floorf(float x) {
+inline_const float floorf(float x) {
   return (float)((int)x);
 }
 
-finline double floor(double x) {
+inline_const double floor(double x) {
   return (double)((long)x);
 }
 
-finline float ceilf(float x) {
-  return (float)((int)x + 1);
+inline_const float ceilf(float x) {
+  return (float)((int)x + ((int)x != x ? 1 : 0));
 }
 
-finline double ceil(double x) {
-  return (double)((long)x + 1);
+inline_const double ceil(double x) {
+  return (double)((long)x + ((long)x != x ? 1 : 0));
 }
 
-finline float fminf(float x, float y) {
+inline_const float fminf(float x, float y) {
   return x < y ? x : y;
 }
 
-finline double fmin(double x, double y) {
+inline_const double fmin(double x, double y) {
   return x < y ? x : y;
 }
 
-finline float fmaxf(float x, float y) {
+inline_const float fmaxf(float x, float y) {
   return x > y ? x : y;
 }
 
-finline double fmax(double x, double y) {
+inline_const double fmax(double x, double y) {
   return x > y ? x : y;
 }
 
@@ -87,26 +99,26 @@ finline double fmax(double x, double y) {
 // --------------------------------------------------
 //; 平方 立方
 
-finline __attr(const) int square(int x) {
+inline_const int square(int x) {
   return x * x;
 }
 
-finline __attr(const) float squaref(float x) {
+inline_const float squaref(float x) {
   return x * x;
 }
 
-finline __attr(const) int cube(int x) {
+inline_const int cube(int x) {
   return x * x * x;
 }
 
-finline __attr(const) float cubef(float x) {
+inline_const float cubef(float x) {
   return x * x * x;
 }
 
 // --------------------------------------------------
 //;
 
-finline __attr(const) int gcd(int a, int b) {
+inline_const int gcd(int a, int b) {
   while (b != 0) {
     int t = b;
     b     = a % b;
@@ -115,7 +127,7 @@ finline __attr(const) int gcd(int a, int b) {
   return a;
 }
 
-finline __attr(const) long gcdl(long a, long b) {
+inline_const long gcdl(long a, long b) {
   while (b != 0) {
     long t = b;
     b      = a % b;
@@ -124,7 +136,7 @@ finline __attr(const) long gcdl(long a, long b) {
   return a;
 }
 
-finline __attr(const) u64 factorial(u32 n) {
+inline_const u64 factorial(u32 n) {
   u64 result = 1;
   for (u32 i = 2; i <= n; i++) {
     result *= i;

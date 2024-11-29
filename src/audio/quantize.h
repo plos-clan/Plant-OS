@@ -4,7 +4,7 @@
 
 #include <audio.h>
 
-void quantize(quantized_t q) {
+static void quantize(quantized_t q) {
   if (q->nbit == 0) goto zero;
   f32 max = q->dataf[0];
   f32 min = q->dataf[0];
@@ -31,7 +31,7 @@ zero:
   }
 }
 
-void dequantize(quantized_t q) {
+static void dequantize(quantized_t q) {
   f32 max = (f32)q->max / 256;
   f32 min = (f32)q->min / 256;
   if (q->nbit == 0) {
@@ -46,7 +46,7 @@ void dequantize(quantized_t q) {
   }
 }
 
-f32 quantize_diff(quantized_t q) {
+static f32 quantize_diff(quantized_t q) {
   f32 max = (f32)q->max / 256;
   f32 min = (f32)q->min / 256;
   if (q->nbit == 0) {
@@ -65,7 +65,7 @@ f32 quantize_diff(quantized_t q) {
   return diff / q->len;
 }
 
-void best_quantize(quantized_t q, size_t from, size_t to, f32 target) {
+static void best_quantize(quantized_t q, size_t from, size_t to, f32 target) {
   for (size_t nbit = from; nbit <= to; nbit++) {
     q->nbit = nbit;
     quantize(q);
@@ -73,7 +73,7 @@ void best_quantize(quantized_t q, size_t from, size_t to, f32 target) {
   }
 }
 
-f32 diff(f32 *a, f32 *b, size_t len) {
+static f32 diff(f32 *a, f32 *b, size_t len) {
   f32 d = 0;
   for (size_t i = 0; i < len; i++) {
     d += (a[i] - b[i]) * (a[i] - b[i]);

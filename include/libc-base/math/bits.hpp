@@ -53,20 +53,20 @@ __(u64, clzll)
 // --------------------------------------------------
 //; 位逆序
 
-finline __attr(const) auto bit_reverse(u8 x) {
+inline_const auto bit_reverse(u8 x) {
   x = ((x & 0x55) << 1) | ((x >> 1) & 0x55);
   x = ((x & 0x33) << 2) | ((x >> 2) & 0x33);
   x = ((x & 0x0f) << 4) | ((x >> 4) & 0x0f);
   return x;
 }
-finline __attr(const) auto bit_reverse(u16 x) {
+inline_const auto bit_reverse(u16 x) {
   x = ((x & 0x5555) << 1) | ((x >> 1) & 0x5555);
   x = ((x & 0x3333) << 2) | ((x >> 2) & 0x3333);
   x = ((x & 0x0f0f) << 4) | ((x >> 4) & 0x0f0f);
   x = ((x & 0x00ff) << 8) | ((x >> 8) & 0x00ff);
   return x;
 }
-finline __attr(const) auto bit_reverse(u32 x) {
+inline_const auto bit_reverse(u32 x) {
   x = ((x & 0x55555555) << 1) | ((x >> 1) & 0x55555555);
   x = ((x & 0x33333333) << 2) | ((x >> 2) & 0x33333333);
   x = ((x & 0x0f0f0f0f) << 4) | ((x >> 4) & 0x0f0f0f0f);
@@ -74,7 +74,7 @@ finline __attr(const) auto bit_reverse(u32 x) {
   x = (x << 16) | (x >> 16);
   return x;
 }
-finline __attr(const) auto bit_reverse(u64 x) {
+inline_const auto bit_reverse(u64 x) {
   x = ((x & 0x5555555555555555) << 1) | ((x >> 1) & 0x5555555555555555);
   x = ((x & 0x3333333333333333) << 2) | ((x >> 2) & 0x3333333333333333);
   x = ((x & 0x0f0f0f0f0f0f0f0f) << 4) | ((x >> 4) & 0x0f0f0f0f0f0f0f0f);
@@ -87,19 +87,19 @@ finline __attr(const) auto bit_reverse(u64 x) {
 // --------------------------------------------------
 //; 字节逆序
 
-finline __attr(const) auto byteswap(u8 x) {
+inline_const auto byteswap(u8 x) {
   return x;
 }
-finline __attr(const) auto byteswap(u16 x) {
+inline_const auto byteswap(u16 x) {
   x = ((x & 0x00ff) << 8) | ((x >> 8) & 0x00ff);
   return x;
 }
-finline __attr(const) auto byteswap(u32 x) {
+inline_const auto byteswap(u32 x) {
   x = ((x & 0x00ff00ff) << 8) | ((x >> 8) & 0x00ff00ff);
   x = (x << 16) | (x >> 16);
   return x;
 }
-finline __attr(const) auto byteswap(u64 x) {
+inline_const auto byteswap(u64 x) {
   x = ((x & 0x00ff00ff00ff00ff) << 8) | ((x >> 8) & 0x00ff00ff00ff00ff);
   x = ((x & 0x0000ffff0000ffff) << 16) | ((x >> 16) & 0x0000ffff0000ffff);
   x = (x << 32) | (x >> 32);

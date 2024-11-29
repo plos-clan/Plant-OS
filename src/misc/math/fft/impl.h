@@ -20,10 +20,10 @@ static bool fft_inited = false;
 #if __has(cexp)
 #  define cexp(x) __builtin_cexp(x)
 #else
-finline __attr(const) f64 _fmod(f64 x, f64 y) {
+inline_const f64 _fmod(f64 x, f64 y) {
   return x - (i32)(x / y) * y;
 }
-finline __attr(const) f64 _exp(f64 x) {
+inline_const f64 _exp(f64 x) {
   f64 sum  = 1;
   f64 term = 1;
   for (int i = 1; term > F64_EPSILON; i++) {
@@ -32,7 +32,7 @@ finline __attr(const) f64 _exp(f64 x) {
   }
   return sum;
 }
-finline __attr(const) f64 _sin(f64 x) {
+inline_const f64 _sin(f64 x) {
   x         = _fmod(x, 2 * PI);
   f64  sum  = x;
   f64  term = x;
@@ -46,7 +46,7 @@ finline __attr(const) f64 _sin(f64 x) {
   }
   return sum;
 }
-finline __attr(const) f64 _cos(f64 x) {
+inline_const f64 _cos(f64 x) {
   x         = _fmod(x, 2 * PI);
   f64  sum  = 1;
   f64  term = 1;
@@ -60,7 +60,7 @@ finline __attr(const) f64 _cos(f64 x) {
   }
   return sum;
 }
-finline __attr(const) cf64 _cexp(cf64 z) {
+inline_const cf64 _cexp(cf64 z) {
   double exp_real = _exp(__real__ z);
   f64    real     = exp_real * _cos(__imag__ z);
   f64    imag     = exp_real * _sin(__imag__ z);

@@ -93,3 +93,15 @@
 #endif
 
 #define NAKED __attr(naked)
+
+#ifdef __cplusplus
+#  define inline_const finline __attr(const) constexpr
+#  define inline_pure  finline __attr(pure)
+#  define constfn      __attr(const) constexpr auto
+#  define purefn       __attr(pure) auto
+#else
+#  define inline_const finline __attr(const)
+#  define inline_pure  finline __attr(pure)
+#  define constfn      __attr(const)
+#  define purefn       __attr(pure)
+#endif

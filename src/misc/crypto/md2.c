@@ -35,17 +35,7 @@ static const u8 MD2_S[256] = {
     0xDB, 0x99, 0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14, //
 };
 
-typedef struct _MD2_t MD2_t;
-
-struct _MD2_t {
-  byte b[16];
-  byte p;
-  byte c[16]; // cksm 不知道啥用，反正计算要用到
-  byte h[16]; // hash值
-};
-
 static void MD2_iterate(MD2_t *_rest m) {
-
   byte h[48];
 
   byte t;
@@ -78,7 +68,6 @@ static void MD2_iterate(MD2_t *_rest m) {
 void MD2_init(MD2_t *_rest m) {
   if (!m) return;
   *m = (MD2_t){};
-  //   memset(m, 0, sizeof(MD2_t));
 }
 
 void MD2_input(MD2_t *_rest m, const void *_rest data, size_t len) {
@@ -106,12 +95,12 @@ const void *MD2_end(MD2_t *_rest m) {
   return m->h;
 }
 
-const void *MD2_val(MD2_t *_rest m) {
+const void *MD2_val(const MD2_t *_rest m) {
   if (!m) return NULL;
   return m->h;
 }
 
-void MD2_print(MD2_t *_rest m) {
+void MD2_print(const MD2_t *_rest m) {
   if (!m) return;
   for (int i = 0; i < 16; i++) {
     printf("%02x", m->h[i]);
