@@ -45,9 +45,9 @@ int rw_vdisk(int drive, u32 lba, u8 *buffer, u32 number, int read) {
   }
   if (vdisk_ctl[indx].flag) {
     if (read) {
-      vdisk_ctl[indx].Read(drive, buffer, number, lba);
+      vdisk_ctl[indx].read(drive, buffer, number, lba);
     } else {
-      vdisk_ctl[indx].Write(drive, buffer, number, lba);
+      vdisk_ctl[indx].write(drive, buffer, number, lba);
     }
     return 1; // 成功
   } else {

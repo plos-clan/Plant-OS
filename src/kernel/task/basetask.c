@@ -89,8 +89,8 @@ void init() {
   vd.flag        = 1;
   vd.sector_size = 1;
   vd.size        = 1;
-  vd.Read        = (void *)stdout_read;
-  vd.Write       = stdout_write;
+  vd.read        = (void *)stdout_read;
+  vd.write       = stdout_write;
   regist_vdisk(vd);
 
   vfs_mkdir("/fatfs1");

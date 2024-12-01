@@ -55,8 +55,8 @@ void DOSLDR_MAIN() {
   Register_fat_fileSys();
   vdisk vd;
   vd.flag  = 1;
-  vd.Read  = NULL;
-  vd.Write = NULL;
+  vd.read  = NULL;
+  vd.write = NULL;
   vd.size  = 1;
   regist_vdisk(vd);
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);

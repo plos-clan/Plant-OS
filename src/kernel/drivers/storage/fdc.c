@@ -106,8 +106,8 @@ void floppy_init() {
 #endif
   vdisk vd;
   strcpy(vd.DriveName, "floppy");
-  vd.Read        = Read;
-  vd.Write       = Write;
+  vd.read        = Read;
+  vd.write       = Write;
   vd.size        = 1474560;
   vd.flag        = 1;
   vd.sector_size = 512;

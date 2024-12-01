@@ -226,8 +226,8 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       } else {
         vd.flag = 1;
       }
-      vd.Read  = Read;
-      vd.Write = Write;
+      vd.read  = Read;
+      vd.write = Write;
       vd.size  = ide_devices[i].Size / 2 * 1024;
       regist_vdisk(vd);
     }

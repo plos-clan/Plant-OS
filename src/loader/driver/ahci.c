@@ -416,8 +416,8 @@ OK:
     klog("ports %d: total sector = %d\n", ports[i], buf.lba_capacity);
     vdisk vd;
     vd.flag  = 1;
-    vd.Read  = ahci_vdisk_read;
-    vd.Write = ahci_vdisk_write;
+    vd.read  = ahci_vdisk_read;
+    vd.write = ahci_vdisk_write;
     vd.size  = buf.lba_capacity * 512;
     u8 drive = regist_vdisk(vd);
     klog("drive: %c\n", drive);
