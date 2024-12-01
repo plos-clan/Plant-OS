@@ -229,7 +229,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       vd.Read  = Read;
       vd.Write = Write;
       vd.size  = ide_devices[i].Size / 2 * 1024;
-      register_vdisk(vd);
+      regist_vdisk(vd);
     }
 }
 u8 ide_read(u8 channel, u8 reg) {

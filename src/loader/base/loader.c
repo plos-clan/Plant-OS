@@ -58,7 +58,7 @@ void DOSLDR_MAIN() {
   vd.Read  = NULL;
   vd.Write = NULL;
   vd.size  = 1;
-  register_vdisk(vd);
+  regist_vdisk(vd);
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   ahci_init();
   char default_drive;

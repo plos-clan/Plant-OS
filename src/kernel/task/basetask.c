@@ -80,7 +80,8 @@ static void draw(int n) {
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
-
+  vfs_mkdir("/dev");
+  vfs_mount(NULL, vfs_open("/dev"));
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   vdisk vd;
@@ -90,10 +91,7 @@ void init() {
   vd.size        = 1;
   vd.Read        = (void *)stdout_read;
   vd.Write       = stdout_write;
-  register_vdisk(vd);
-
-  vfs_mkdir("/dev");
-  vfs_mount(NULL, vfs_open("/dev"));
+  regist_vdisk(vd);
 
   vfs_mkdir("/fatfs1");
   vfs_mount("/dev/ide0", vfs_open("/fatfs1"));

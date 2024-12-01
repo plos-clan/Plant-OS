@@ -1,6 +1,5 @@
 qemu-system-i386 \
   -smp sockets=1,cores=2,threads=2,maxcpus=4 \
-  -bios seabios.bin \
   -m 256 \
   -vga std -global VGA.vgamem_mb=32 \
   -net nic,model=pcnet -net user \

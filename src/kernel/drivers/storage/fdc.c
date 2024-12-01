@@ -111,7 +111,7 @@ void floppy_init() {
   vd.size        = 1474560;
   vd.flag        = 1;
   vd.sector_size = 512;
-  register_vdisk(vd);
+  regist_vdisk(vd);
 }
 
 void flint(int *esp) {

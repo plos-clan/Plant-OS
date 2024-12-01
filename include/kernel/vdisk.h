@@ -11,11 +11,14 @@ typedef struct {
 } vdisk;
 
 int  vdisk_init();
-int  register_vdisk(vdisk vd);
+int  regist_vdisk(vdisk vd);
 int  logout_vdisk(int drive);
-void Disk_Read(u32 lba, u32 number, void *buffer, int drive);
-u32  disk_Size(int drive);
-bool DiskReady(int drive);
-void Disk_Write(u32 lba, u32 number, const void *buffer, int drive);
+void vdisk_read(u32 lba, u32 number, void *buffer, int drive);
+u32  disk_size(int drive);
+bool disk_ready(int drive);
+void vdisk_write(u32 lba, u32 number, const void *buffer, int drive);
 bool CDROM_Read(u32 lba, u32 number, void *buffer, int drive);
 bool have_vdisk(int drive);
+
+// from devfs
+void devfs_regist_dev(int drive_id);

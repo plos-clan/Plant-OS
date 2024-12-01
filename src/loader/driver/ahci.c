@@ -419,7 +419,7 @@ OK:
     vd.Read  = ahci_vdisk_read;
     vd.Write = ahci_vdisk_write;
     vd.size  = buf.lba_capacity * 512;
-    u8 drive = register_vdisk(vd);
+    u8 drive = regist_vdisk(vd);
     klog("drive: %c\n", drive);
     drive_mapping[drive] = ports[i];
   }

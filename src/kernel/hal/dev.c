@@ -3,15 +3,25 @@
 int          devfs_id = 0;
 rbtree_sp_t  dev_rbtree;
 extern vdisk vdisk_ctl[26];
+vfs_node_t   devfs_root = null;
 int          devfs_mount(cstr src, vfs_node_t node) {
   if (src != null) return -1;
-  node->fsid = devfs_id;
-  for (int i = 0; have_vdisk(i); i++) {
-    vfs_child_append(node, vdisk_ctl[i].DriveName, null);
-    rbtree_sp_insert(dev_rbtree, vdisk_ctl[i].DriveName, (void *)i);
+  if (devfs_root) {
+    error("devfs has been mounted");
+    return -1;
   }
+  node->fsid = devfs_id;
+  devfs_root = node;
   return 0;
 }
+
+void devfs_regist_dev(int drive_id) {
+  if (have_vdisk(drive_id)) {
+    vfs_child_append(devfs_root, vdisk_ctl[drive_id].DriveName, null);
+    rbtree_sp_insert(dev_rbtree, vdisk_ctl[drive_id].DriveName, (void *)drive_id);
+  }
+}
+
 static int devfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   klogw("You cannot create directory in devfs");
   node->fsid = 0; // 交给vfs处理
@@ -32,7 +42,7 @@ static int  devfs_read(void *file, void *addr, size_t offset, size_t size) {
     buf = page_alloc(padding_up_to_sector_size);
   }
   int sectors_to_do = size / sector_size;
-  Disk_Read(offset / sector_size, sectors_to_do, buf, dev_id);
+  vdisk_read(offset / sector_size, sectors_to_do, buf, dev_id);
   if (padding_up_to_sector_size != size) {
     memcpy(addr, buf, size);
     page_free(buf, padding_up_to_sector_size);
@@ -54,7 +64,7 @@ static int devfs_write(void *file, const void *addr, size_t offset, size_t size)
     memcpy(buf, addr, size);
   }
   int sectors_to_do = size / sector_size;
-  Disk_Write(offset / sector_size, sectors_to_do, buf, dev_id);
+  vdisk_write(offset / sector_size, sectors_to_do, buf, dev_id);
   if (padding_up_to_sector_size != size) {
     memcpy(buf, addr, size);
     page_free(buf, padding_up_to_sector_size);
@@ -65,14 +75,14 @@ int devfs_stat(void *handle, vfs_node_t node) {
   if (node->type == file_dir) return 0;
   node->handle = rbtree_sp_get(dev_rbtree, node->name);
   node->type   = file_block;
-  node->size   = disk_Size((int)node->handle);
+  node->size   = disk_size((int)node->handle);
   return 0;
 }
 static void devfs_open(void *parent, cstr name, vfs_node_t node) {
   if (node->type == file_dir) return;
   node->handle = rbtree_sp_get(dev_rbtree, name);
   node->type   = file_block;
-  node->size   = disk_Size((int)node->handle);
+  node->size   = disk_size((int)node->handle);
 }
 static struct vfs_callback callbacks = {
     .mount   = devfs_mount,
@@ -103,7 +113,7 @@ int dev_get_size(char *path) {
   if (node == null) return -1;
   if (node->fsid != devfs_id) return -1; //不是devfs
   int dev_id = (int)node->handle;
-  int size   = disk_Size(dev_id);
+  int size   = disk_size(dev_id);
   return size;
 }
 
