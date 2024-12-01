@@ -6,6 +6,8 @@ extern "C" {
 #endif
 #include "misc/00-include.h"
 #include "misc/color.h"
+#include "misc/crypto/codec.h"
+#include "misc/crypto/hash.h"
 #include "misc/file.h"
 #include "misc/math/fft.h"
 #include "misc/math/mdct.h"

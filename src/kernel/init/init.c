@@ -16,6 +16,27 @@ void *pci_addr_base;
 #pragma clang optimize off
 
 void sysinit() {
+  u16 ax_value = 0x1234; // 16位寄存器值
+  u8  al_value = 0x56;   // 8位寄存器值
+  u16 result16;
+  u8  result8;
+
+  // 使用内联汇编传入16位寄存器
+  asm volatile("movw %1, %%ax\n\t"
+               "movw %%ax, %0\n\t"
+               : "=r"(result16) // 输出操作数
+               : "r"(ax_value)  // 输入操作数
+               : "%ax"          // 被修改的寄存器
+  );
+
+  // 使用内联汇编传入8位寄存器
+  asm volatile("movb %1, %%al\n\t"
+               "movb %%al, %0\n\t"
+               : "=r"(result8) // 输出操作数
+               : "r"(al_value) // 输入操作数
+               : "%al"         // 被修改的寄存器
+  );
+
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_page();
 
@@ -46,6 +67,10 @@ void sysinit() {
   hda_regist();
   vdisk_init();
   vfs_init();
+  devfs_regist();
+  fatfs_regist();
+  tmpfs_regist();
+  iso9660_regist();
 
   if (total_mem_size < 256 * 1024 * 1024) {
     fatal("You should have at least 256MiB memory in your pc to start Plant-OS.");

@@ -13,14 +13,14 @@ extern "C++" {
 //; 三角函数
 
 #  if __has(sin)
-static f32 sinf(f32 x) {
+static __attr(const) f32 sinf(f32 x) {
   return __builtin_sinf(x);
 }
-static f64 sin(f64 x) {
+static __attr(const) f64 sin(f64 x) {
   return __builtin_sin(x);
 }
 #  else
-static f32 sinf(f32 x) {
+static __attr(const) f32 sinf(f32 x) {
   x         = fmodf(x, (f32)(2 * PI));
   f32  sum  = x;
   f32  term = x;
@@ -34,7 +34,7 @@ static f32 sinf(f32 x) {
   }
   return sum;
 }
-static f64 sin(f64 x) {
+static __attr(const) f64 sin(f64 x) {
   x         = fmod(x, 2 * PI);
   f64  sum  = x;
   f64  term = x;
@@ -51,14 +51,14 @@ static f64 sin(f64 x) {
 #  endif
 
 #  if __has(cos)
-static f32 cosf(f32 x) {
+static __attr(const) f32 cosf(f32 x) {
   return __builtin_cosf(x);
 }
-static f64 cos(f64 x) {
+static __attr(const) f64 cos(f64 x) {
   return __builtin_cos(x);
 }
 #  else
-static f32 cosf(f32 x) {
+static __attr(const) f32 cosf(f32 x) {
   x         = fmodf(x, (f32)(2 * PI));
   f32  sum  = 1;
   f32  term = 1;
@@ -72,7 +72,7 @@ static f32 cosf(f32 x) {
   }
   return sum;
 }
-static f64 cos(f64 x) {
+static __attr(const) f64 cos(f64 x) {
   x         = fmod(x, 2 * PI);
   f64  sum  = 1;
   f64  term = 1;
@@ -89,48 +89,48 @@ static f64 cos(f64 x) {
 #  endif
 
 #  if __has(sincos)
-static void sincosf(f32 x, f32 *s, f32 *c) {
+static __attr(const) void sincosf(f32 x, f32 *s, f32 *c) {
   __builtin_sincosf(x, s, c);
 }
-static void sincos(f64 x, f64 *s, f64 *c) {
+static __attr(const) void sincos(f64 x, f64 *s, f64 *c) {
   __builtin_sincos(x, s, c);
 }
 #  else
-static void sincosf(f32 x, f32 *s, f32 *c) {
+static __attr(const) void sincosf(f32 x, f32 *s, f32 *c) {
   *s = sinf(x);
   *c = cosf(x);
 }
-static void sincos(f64 x, f64 *s, f64 *c) {
+static __attr(const) void sincos(f64 x, f64 *s, f64 *c) {
   *s = sin(x);
   *c = cos(x);
 }
 #  endif
 
 #  if __has(tan)
-static f32 tanf(f32 x) {
+static __attr(const) f32 tanf(f32 x) {
   return __builtin_tanf(x);
 }
-static f64 tan(f64 x) {
+static __attr(const) f64 tan(f64 x) {
   return __builtin_tan(x);
 }
 #  else
-static f32 tanf(f32 x) {
+static __attr(const) f32 tanf(f32 x) {
   return sinf(x) / cosf(x);
 }
-static f64 tan(f64 x) {
+static __attr(const) f64 tan(f64 x) {
   return sin(x) / cos(x);
 }
 #  endif
 
 #  if __has(asin)
-static f32 asinf(f32 x) {
+static __attr(const) f32 asinf(f32 x) {
   return __builtin_asinf(x);
 }
-static f64 asin(f64 x) {
+static __attr(const) f64 asin(f64 x) {
   return __builtin_asin(x);
 }
 #  else
-static f32 asinf(f32 x) {
+static __attr(const) f32 asinf(f32 x) {
   f32 sum  = x;
   f32 term = x;
   int n    = 1;
@@ -141,7 +141,7 @@ static f32 asinf(f32 x) {
   }
   return sum;
 }
-static f64 asin(f64 x) {
+static __attr(const) f64 asin(f64 x) {
   f64 sum  = x;
   f64 term = x;
   int n    = 1;
@@ -155,30 +155,30 @@ static f64 asin(f64 x) {
 #  endif
 
 #  if __has(acos)
-static f32 acosf(f32 x) {
+static __attr(const) f32 acosf(f32 x) {
   return __builtin_acosf(x);
 }
-static f64 acos(f64 x) {
+static __attr(const) f64 acos(f64 x) {
   return __builtin_acos(x);
 }
 #  else
-static f32 acosf(f32 x) {
+static __attr(const) f32 acosf(f32 x) {
   return (f32)(PI / 2) - asinf(x);
 }
-static f64 acos(f64 x) {
+static __attr(const) f64 acos(f64 x) {
   return PI / 2 - asin(x);
 }
 #  endif
 
 #  if __has(atan)
-static f32 atanf(f32 x) {
+static __attr(const) f32 atanf(f32 x) {
   return __builtin_atanf(x);
 }
-static f64 atan(f64 x) {
+static __attr(const) f64 atan(f64 x) {
   return __builtin_atan(x);
 }
 #  else
-static f32 atanf(f32 x) {
+static __attr(const) f32 atanf(f32 x) {
   f32  sum  = x;
   f32  term = x;
   int  n    = 1;
@@ -191,7 +191,7 @@ static f32 atanf(f32 x) {
   }
   return sum;
 }
-static f64 atan(f64 x) {
+static __attr(const) f64 atan(f64 x) {
   f64  sum  = x;
   f64  term = x;
   int  n    = 1;
@@ -207,14 +207,14 @@ static f64 atan(f64 x) {
 #  endif
 
 #  if __has(atan2)
-static f32 atan2f(f32 x, f32 y) {
+static __attr(const) f32 atan2f(f32 x, f32 y) {
   return __builtin_atan2f(x, y);
 }
-static f64 atan2(f64 x, f64 y) {
+static __attr(const) f64 atan2(f64 x, f64 y) {
   return __builtin_atan2(x, y);
 }
 #  else
-static f32 atan2f(f32 y, f32 x) {
+static __attr(const) f32 atan2f(f32 y, f32 x) {
   if (x > 0) return atanf(y / x);
   if (x < 0 && y >= 0) return atanf(y / x) + (f32)PI;
   if (x < 0 && y < 0) return atanf(y / x) - (f32)PI;
@@ -222,7 +222,7 @@ static f32 atan2f(f32 y, f32 x) {
   if (x == 0 && y < 0) return -(f32)(PI / 2);
   return 0;
 }
-static f64 atan2(f64 y, f64 x) {
+static __attr(const) f64 atan2(f64 y, f64 x) {
   if (x > 0) return atan(y / x);
   if (x < 0 && y >= 0) return atan(y / x) + PI;
   if (x < 0 && y < 0) return atan(y / x) - PI;

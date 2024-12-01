@@ -1,8 +1,8 @@
 #include <sound.h>
 
-const int index_adjust[8] = {-1, -1, -1, -1, 2, 4, 6, 8};
+static const int index_adjust[8] = {-1, -1, -1, -1, 2, 4, 6, 8};
 
-const int step_table[89] = {
+static const int step_table[89] = {
     7,     8,     9,     10,    11,    12,    13,    14,    16,    17,    19,   21,    23,
     25,    28,    31,    34,    37,    41,    45,    50,    55,    60,    66,   73,    80,
     88,    97,    107,   118,   130,   143,   157,   173,   190,   209,   230,  253,   279,
@@ -11,7 +11,7 @@ const int step_table[89] = {
     3660,  4026,  4428,  4871,  5358,  5894,  6484,  7132,  7845,  8630,  9493, 10442, 11487,
     12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767};
 
-void sound_ima_adpcm_encode(ImaAdpcmCtx *ctx, void *dst, i16 *src, size_t len) {
+void sound_ima_adpcm_encode(ImaAdpcmCtx *ctx, void *dst, const i16 *src, size_t len) {
   for (size_t i = 0; i < len; i++) {
     int delta = src[i] - ctx->prev_sample;
     int sb    = delta < 0 ? 8 : 0;
@@ -30,7 +30,7 @@ void sound_ima_adpcm_encode(ImaAdpcmCtx *ctx, void *dst, i16 *src, size_t len) {
   }
 }
 
-void sound_ima_adpcm_decode(ImaAdpcmCtx *ctx, i16 *dst, void *src, size_t len) {
+void sound_ima_adpcm_decode(ImaAdpcmCtx *ctx, i16 *dst, const void *src, size_t len) {
   for (size_t i = 0; i < len; i++) {
     int  code         = i % 2 == 0 ? ((byte *)src)[i / 2] & 0x0f : ((byte *)src)[i / 2] >> 4;
     bool sb           = code & 8;

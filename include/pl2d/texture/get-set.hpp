@@ -5,34 +5,34 @@ namespace pl2d {
 
 template <typename T>
 auto BaseTexture<T>::get(i32 x, i32 y) -> T & {
-  cpp::clamp(x, 0, (i32)width - 1);
-  cpp::clamp(y, 0, (i32)height - 1);
+  x = cpp::clamp(x, 0, (i32)width - 1);
+  y = cpp::clamp(y, 0, (i32)height - 1);
   return pixels[y * pitch + x];
 }
 template <typename T>
 auto BaseTexture<T>::get(i32 x, i32 y) const -> const T & {
-  cpp::clamp(x, 0, (i32)width - 1);
-  cpp::clamp(y, 0, (i32)height - 1);
+  x = cpp::clamp(x, 0, (i32)width - 1);
+  y = cpp::clamp(y, 0, (i32)height - 1);
   return pixels[y * pitch + x];
 }
 template <typename T>
 auto BaseTexture<T>::get(i32 x, i32 y, T &p) -> BaseTexture & {
-  cpp::clamp(x, 0, (i32)width - 1);
-  cpp::clamp(y, 0, (i32)height - 1);
+  x = cpp::clamp(x, 0, (i32)width - 1);
+  y = cpp::clamp(y, 0, (i32)height - 1);
   p = pixels[y * pitch + x];
   return *this;
 }
 template <typename T>
 auto BaseTexture<T>::get(i32 x, i32 y, T &p) const -> const BaseTexture & {
-  cpp::clamp(x, 0, (i32)width - 1);
-  cpp::clamp(y, 0, (i32)height - 1);
+  x = cpp::clamp(x, 0, (i32)width - 1);
+  y = cpp::clamp(y, 0, (i32)height - 1);
   p = pixels[y * pitch + x];
   return *this;
 }
 template <typename T>
 auto BaseTexture<T>::set(i32 x, i32 y, const T &p) -> BaseTexture & {
-  cpp::clamp(x, 0, (i32)width - 1);
-  cpp::clamp(y, 0, (i32)height - 1);
+  x                     = cpp::clamp(x, 0, (i32)width - 1);
+  y                     = cpp::clamp(y, 0, (i32)height - 1);
   pixels[y * pitch + x] = p;
   return *this;
 }

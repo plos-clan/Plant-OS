@@ -30,7 +30,7 @@
 
 #ifdef __cplusplus
 #  define __THROW      noexcept(true)
-#  define __THROWNL    noexcept(true)
+#  define __THROWNL    __attr(nothrow) // 使用 noexcept(true) 时出现奇怪编译错误
 #  define __NTH(fct)   __LEAF_ATTR fct __THROW
 #  define __NTHNL(fct) fct __THROW
 #else
@@ -90,4 +90,20 @@
 #  define finline static __nif
 #else
 #  define finline static inline __attr(always_inline) __nif
+#endif
+
+#define NAKED __attr(naked)
+
+#ifdef __cplusplus
+#  define inline_const        finline __attr(const) constexpr
+#  define inline_const_ncexpr finline __attr(const)
+#  define inline_pure         finline __attr(pure)
+#  define constfn             __attr(const) constexpr auto
+#  define purefn              __attr(pure) auto
+#else
+#  define inline_const        finline __attr(const)
+#  define inline_const_ncexpr finline __attr(const)
+#  define inline_pure         finline __attr(pure)
+#  define constfn             __attr(const)
+#  define purefn              __attr(pure)
 #endif

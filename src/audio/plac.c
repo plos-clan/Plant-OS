@@ -8,9 +8,9 @@
 #include "quantize.h"
 #include "volume.h"
 
-void _plac_compress_block(f32 *block, void *_plac);
+static void _plac_compress_block(f32 *block, void *_plac);
 
-void _plac_decompress_block(f32 *block, void *_plac);
+static void _plac_decompress_block(f32 *block, void *_plac);
 
 #define block_len 2048
 
@@ -86,7 +86,7 @@ void plac_write_data(plac_compress_t plac, quantized_t q) {
   mobitstream_free(s);
 }
 
-void _plac_compress_block(f32 *block, void *_plac) {
+static void _plac_compress_block(f32 *block, void *_plac) {
   plac_compress_t plac = _plac;
   volume_fine_tuning(block, block_len);
   mulaw_compress(block, block_len);
@@ -178,7 +178,7 @@ void plac_read_data(plac_decompress_t plac, quantized_t q) {
   free(buf);
 }
 
-void _plac_decompress_block(f32 *block, void *_plac) {
+static void _plac_decompress_block(f32 *block, void *_plac) {
   plac_decompress_t plac = _plac;
   if (plac->callback) plac->callback(block, block_len, plac->userdata);
 }

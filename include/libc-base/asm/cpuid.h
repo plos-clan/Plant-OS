@@ -1,8 +1,6 @@
 #pragma once
 #include <define.h>
 
-#pragma GCC system_header
-
 #define cpuid(id, eax, ebx, ecx, edx)                                                              \
   ({ asm volatile("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(id)); })
 
