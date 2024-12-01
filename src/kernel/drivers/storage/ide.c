@@ -166,7 +166,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
         if ((status & ATA_SR_ERR)) {
           err = 1;
           break;
-        }                                                           // If Err, Device is not ATA.
+        } // If Err, Device is not ATA.
         if (!(status & ATA_SR_BSY) && (status & ATA_SR_DRQ)) break; // Everything is right.
       }
 
@@ -228,7 +228,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
     if (ide_devices[i].Reserved == 1) {
       info("%d Found %s Drive %dMB - %s", i, ide_devices[i].Type ? "ATAPI" : "ATA",
            ide_devices[i].Size / 1024 / 2, ide_devices[i].Model);
-      sprintf(vd.DriveName, "ide%d", i);
+      sprintf(vd.drive_name, "ide%d", i);
       if (ide_devices[i].Type == IDE_ATAPI) {
         vd.flag = 2;
       } else {

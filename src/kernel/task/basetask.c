@@ -85,7 +85,7 @@ void init() {
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   vdisk vd;
-  strcpy(vd.DriveName, "stdout");
+  strcpy(vd.drive_name, "stdout");
   vd.flag        = 1;
   vd.sector_size = 1;
   vd.size        = 1;

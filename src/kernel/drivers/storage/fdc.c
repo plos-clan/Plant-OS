@@ -105,7 +105,7 @@ void floppy_init() {
 
 #endif
   vdisk vd;
-  strcpy(vd.DriveName, "floppy");
+  strcpy(vd.drive_name, "floppy");
   vd.read        = Read;
   vd.write       = Write;
   vd.size        = 1474560;

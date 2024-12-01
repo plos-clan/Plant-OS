@@ -7,7 +7,7 @@ typedef struct {
   int  flag;
   u32  size;        // 大小
   u32  sector_size; // 扇区大小
-  char DriveName[50];
+  char drive_name[50];
 } vdisk;
 
 int  vdisk_init();

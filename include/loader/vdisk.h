@@ -6,7 +6,7 @@ typedef struct {
   void (*write)(int drive, u8 *buffer, u32 number, u32 lba);
   int  flag;
   u32  size; // 大小
-  char DriveName[50];
+  char drive_name[50];
 } vdisk;
 
 int  vdisk_init();

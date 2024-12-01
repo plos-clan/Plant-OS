@@ -17,8 +17,8 @@ int          devfs_mount(cstr src, vfs_node_t node) {
 
 void devfs_regist_dev(int drive_id) {
   if (have_vdisk(drive_id)) {
-    vfs_child_append(devfs_root, vdisk_ctl[drive_id].DriveName, null);
-    rbtree_sp_insert(dev_rbtree, vdisk_ctl[drive_id].DriveName, (void *)drive_id);
+    vfs_child_append(devfs_root, vdisk_ctl[drive_id].drive_name, null);
+    rbtree_sp_insert(dev_rbtree, vdisk_ctl[drive_id].drive_name, (void *)drive_id);
   }
 }
 
