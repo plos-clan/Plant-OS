@@ -83,12 +83,12 @@ void physical_mman_free(void *ptr, size_t size) {}
  */
 void physical_mman_ref(void *ptr, size_t size) {
   if ((size_t)ptr & (PAGE_SIZE - 1)) fatal("传入参数未对齐 ptr: %p", ptr);
-  if (size & (PAGE_SIZE - 1)) fatal("传入参数未对齐 size: %p", size);
+  if (size & (PAGE_SIZE - 1)) fatal("传入参数未对齐 size: %08x", size);
 }
 
 void physical_mman_unref(void *ptr, size_t size) {
   if ((size_t)ptr & (PAGE_SIZE - 1)) fatal("传入参数未对齐 ptr: %p", ptr);
-  if (size & (PAGE_SIZE - 1)) fatal("传入参数未对齐 size: %p", size);
+  if (size & (PAGE_SIZE - 1)) fatal("传入参数未对齐 size: %08x", size);
 }
 
 size_t physical_mman_rc(void *ptr) {

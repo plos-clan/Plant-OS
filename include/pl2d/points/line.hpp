@@ -31,6 +31,9 @@ struct BaseLine {
   // 将线段剪切，保留矩形内的区域
   // 如果线段完全在 rect 外部，返回 false，否则返回 true
   auto clamp(const BaseRect<T> &rect) -> bool;
+  // 将线段剪切，保留矩形内的区域
+  // 剪切后的线段保存在 l 中
+  // 如果线段完全在 rect 外部，返回 false，否则返回 true
   auto clamp(const BaseRect<T> &rect, BaseLine &l) const -> bool;
 };
 
