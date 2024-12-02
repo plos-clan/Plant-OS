@@ -1,7 +1,5 @@
 #include <loader.h>
 
-void into_kernel(int cs, int eip);
-
 struct TASK MainTask;
 
 bool elf32_is_validate(Elf32_Ehdr *hdr) {
@@ -34,37 +32,33 @@ void read_pci_class(u8 bus, u8 device, u8 function, u8 *class_code, u8 *subclass
   *subclass_code = (class_register >> 16) & 0xFF;
 }
 
-int is_ide_device(u8 bus, u8 device, u8 function) {
+static bool is_ide_device(u8 bus, u8 device, u8 function) {
   u8 class_code, subclass_code;
   // 读取设备类别和子类别
   read_pci_class(bus, device, function, &class_code, &subclass_code);
   // 检查设备类别和子类别是否符合IDE设备的类别码
-  if (class_code == 0x01 && subclass_code == 0x01) {
-    return 1; // 是IDE设备
-  } else {
-    return 0; // 不是IDE设备
-  }
+  return class_code == 0x01 && subclass_code == 0x01;
 }
 
 int get_vdisk_type(int drive);
 
 void DOSLDR_MAIN() {
+  // init_gdtidt();
+  init_pic();
+  asm_sti; // IDT/PIC的初始化已经完成，于是开放CPU的中断
   u32 memtotal = 128 * 1024 * 1024;
   memman_init((void *)0x00600000, memtotal - 0x00600000);
   screen_clear();
-  init_gdtidt();
-  init_pic();
-  asm_sti; /* IDT/PIC的初始化已经完成，于是开放CPU的中断 */
   vdisk_init();
   init_vfs();
   floppy_init();
   Register_fat_fileSys();
   vdisk vd;
   vd.flag  = 1;
-  vd.Read  = NULL;
-  vd.Write = NULL;
+  vd.read  = NULL;
+  vd.write = NULL;
   vd.size  = 1;
-  register_vdisk(vd);
+  regist_vdisk(vd);
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   ahci_init();
   char default_drive;
@@ -115,8 +109,8 @@ void DOSLDR_MAIN() {
   klogf("Loading...\n");
   u32 entry = load_elf((Elf32_Ehdr *)s);
 
-  // printf("ESP:%08x\n", *(u32 *)(0x00280000 + 12));
-  into_kernel(2 * 8, entry);
+  asm volatile("push %0\n\t"
+               "ret\n\t" ::"r"(entry));
 }
 
 struct TASK *NowTask() {

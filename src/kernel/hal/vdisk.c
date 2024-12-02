@@ -2,7 +2,6 @@
 
 #include <kernel.h>
 
-int getReadyDisk(); // init.c
 
 vdisk vdisk_ctl[26];
 
@@ -14,11 +13,12 @@ int vdisk_init() {
   return 0;
 }
 
-int register_vdisk(vdisk vd) {
+int regist_vdisk(vdisk vd) {
   for (int i = 0; i < 26; i++) {
     if (!vdisk_ctl[i].flag) {
-      vdisk_ctl[i] = vd; // 找到了！
-      return i;          // 注册成功，返回drive
+      vdisk_ctl[i] = vd;   // 找到了！
+      devfs_regist_dev(i); // 注册设备
+      return i;            // 注册成功，返回drive
     }
   }
   printe("not found\n");
@@ -45,9 +45,9 @@ int rw_vdisk(int drive, u32 lba, u8 *buffer, u32 number, int read) {
   }
   if (vdisk_ctl[indx].flag) {
     if (read) {
-      vdisk_ctl[indx].Read(drive, buffer, number, lba);
+      vdisk_ctl[indx].read(drive, buffer, number, lba);
     } else {
-      vdisk_ctl[indx].Write(drive, buffer, number, lba);
+      vdisk_ctl[indx].write(drive, buffer, number, lba);
     }
     return 1; // 成功
   } else {
@@ -115,19 +115,21 @@ void drive_semaphore_give(u32 drive_code) {
 }
 
 #define SECTORS_ONCE 8
-void Disk_Read(u32 lba, u32 number, void *buffer, int drive) {
+void vdisk_read(u32 lba, u32 number, void *buffer, int drive) {
   if (have_vdisk(drive)) {
     if (drive_semaphore_take(get_drive_code((u8 *)"DISK_DRIVE"))) {
+      // printk("*buffer(%d %d) = %02x\n",lba,number,*(u8 *)buffer);
       for (int i = 0; i < number; i += SECTORS_ONCE) {
         int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
-        rw_vdisk(drive, lba + i, buffer + i * 512, sectors, 1);
+        rw_vdisk(drive, lba + i, (u8 *)((u32)buffer + i * vdisk_ctl[drive].sector_size), sectors,
+                 1);
       }
       drive_semaphore_give(get_drive_code((u8 *)"DISK_DRIVE"));
     }
   }
 }
 
-u32 disk_Size(int drive) {
+u32 disk_size(int drive) {
   u8 drive1 = drive;
   if (have_vdisk(drive1)) {
     int indx = drive1;
@@ -140,25 +142,22 @@ u32 disk_Size(int drive) {
   return 0;
 }
 
-bool DiskReady(int drive) {
+bool disk_ready(int drive) {
   return have_vdisk(drive);
 }
 
-int getReadyDisk() {
-  return 0;
-}
 
-void Disk_Write(u32 lba, u32 number, const void *buffer, int drive) {
+void vdisk_write(u32 lba, u32 number, const void *buffer, int drive) {
   //  printk("%d\n",lba);
   if (have_vdisk(drive)) {
     if (drive_semaphore_take(get_drive_code((u8 *)"DISK_DRIVE"))) {
       // printk("*buffer(%d %d) = %02x\n",lba,number,*(u8 *)buffer);
       for (int i = 0; i < number; i += SECTORS_ONCE) {
         int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
-        rw_vdisk(drive, lba + i, (u8 *)((u32)buffer + i * vdisk_ctl[drive].sector_size), sectors, 0);
+        rw_vdisk(drive, lba + i, (u8 *)((u32)buffer + i * vdisk_ctl[drive].sector_size), sectors,
+                 0);
       }
       drive_semaphore_give(get_drive_code((u8 *)"DISK_DRIVE"));
     }
   }
 }
-

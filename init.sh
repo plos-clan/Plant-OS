@@ -88,6 +88,11 @@ ln -s ../src/boot/netlog.py netlog.py &>/dev/null
 ln -s ../src/boot/templates templates &>/dev/null
 cd ..
 
+# 由于挂载资源的网站在某些地区无法正常访问，因此我们提供了一些等效的资源网站
+# 开发者如果因网络问题无法下载资源，可以替换域名后尝试
+# 目前支持的镜像资源站有：
+# plos-rsc.github.io
+
 cd bin
 info 下载资源文件
 check_command curl '需要使用 curl 来下载资源文件'
@@ -118,7 +123,7 @@ check_command mformat '需要使用 mformat 来格式化软盘'
 check_command cmake '需要使用 cmake 来编译项目'
 check_command qemu-img '需要使用 qemu-img 来创建磁盘镜像'
 check_command objcopy '需要使用 objcopy 来处理二进制文件'
-check cmake ..
+check cmake .. $*
 info 开始编译...
 check make make
 cd ..

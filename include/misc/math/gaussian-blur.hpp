@@ -25,11 +25,11 @@ dlimport void gaussian_kernel_1(f32 *kernel, i32 size, f32 sigma);
 dlimport void gaussian_kernel_2(f64 *kernel, i32 size, f64 sigma);
 dlimport void gaussian_kernel_2(f32 *kernel, i32 size, f32 sigma);
 
-dlimport void gaussian_blur(f64 *dst, f64 *src, i32 len, f64 *kernel, i32 size);
-dlimport void gaussian_blur(f32 *dst, f32 *src, i32 len, f32 *kernel, i32 size);
+dlimport void gaussian_blur(f64 *dst, const f64 *src, i32 len, f64 *kernel, i32 size);
+dlimport void gaussian_blur(f32 *dst, const f32 *src, i32 len, f32 *kernel, i32 size);
 
-dlimport void gaussian_blur(f64 *dst, f64 *src, i32 len, i32 size, f64 sigma);
-dlimport void gaussian_blur(f32 *dst, f32 *src, i32 len, i32 size, f32 sigma);
+dlimport void gaussian_blur(f64 *dst, const f64 *src, i32 len, i32 size, f64 sigma);
+dlimport void gaussian_blur(f32 *dst, const f32 *src, i32 len, i32 size, f32 sigma);
 
 dlimport void gaussian_blur(f64 *data, i32 len, f64 *kernel, i32 size);
 dlimport void gaussian_blur(f32 *data, i32 len, f32 *kernel, i32 size);

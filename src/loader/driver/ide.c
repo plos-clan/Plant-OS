@@ -156,7 +156,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
         if ((status & ATA_SR_ERR)) {
           err = 1;
           break;
-        }                                                           // If Err, Device is not ATA.
+        } // If Err, Device is not ATA.
         if (!(status & ATA_SR_BSY) && (status & ATA_SR_DRQ)) break; // Everything is right.
       }
 
@@ -220,16 +220,16 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
              (const char *[]){"ATA", "ATAPI"}[ide_devices[i].Type], /* Type */
              ide_devices[i].Size / 1024 / 2,                        /* Size */
              ide_devices[i].Model);
-      strcpy(vd.DriveName, (cstr)ide_devices[i].Model);
+      strcpy(vd.drive_name, (cstr)ide_devices[i].Model);
       if (ide_devices[i].Type == IDE_ATAPI) {
         vd.flag = 2;
       } else {
         vd.flag = 1;
       }
-      vd.Read  = Read;
-      vd.Write = Write;
+      vd.read  = Read;
+      vd.write = Write;
       vd.size  = ide_devices[i].Size / 2 * 1024;
-      register_vdisk(vd);
+      regist_vdisk(vd);
     }
 }
 u8 ide_read(u8 channel, u8 reg) {

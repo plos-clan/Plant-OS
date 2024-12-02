@@ -1,0 +1,9 @@
+text/html:
+  magic: "<!DOCTYPE html"
+  encoding: utf-8
+  alias: html
+  description: HTML document
+  extension: html
+  mime: text/html
+  priority: 10
+  signature: 0

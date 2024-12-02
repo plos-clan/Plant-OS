@@ -1,21 +1,26 @@
 #pragma once
 #include <libc-base.h>
 
+#if SIZE_MAX < UINT32_MAX
+#  error "The size of size_t is too small."
+#endif
+
 #define FREE_FLAG ((size_t)1) // 块释放标记
-#define AREA_FLAG ((size_t)2) // 分配区头尾标记 (防止块查找越界)
-#define SIZE_FLAG ((size_t)4) // 2M 分配区标记
+#define AREA_FLAG ((size_t)2) // 分配区头尾标记 (防止块查找越界) (禁止为块设置该标记)
+#define SIZE_FLAG ((size_t)4) // 2M 分配区标记 (仅对多分配区有效) (为 2M 分配区内所有块设置该标记)
 #define FLAG_BITS ((size_t)7) // 所有标志位
 
 // 两倍字长对齐和 16k 对齐
 #define PADDING(size)     (((size) + 2 * sizeof(size_t) - 1) & ~(2 * sizeof(size_t) - 1))
 #define PADDING_4k(size)  (((size) + SIZE_4k - 1) & ~(size_t)(SIZE_4k - 1))
-#define PADDING_16k(size) (((size) + 16384 - 1) & ~(size_t)(16384 - 1))
+#define PADDING_16k(size) (((size) + SIZE_16k - 1) & ~(size_t)(SIZE_16k - 1))
 #define PADDING_2M(size)  (((size) + SIZE_2M - 1) & ~(size_t)(SIZE_2M - 1))
+#define PADDING_1G(size)  (((size) + SIZE_1G - 1) & ~(size_t)(SIZE_1G - 1))
 
-#define blk_prevtail(ptr)       (((size_t *)ptr)[-2])
-#define blk_head(ptr)           (((size_t *)ptr)[-1])
-#define blk_tail(ptr, size)     (((size_t *)(ptr + size))[0])
-#define blk_nexthead(ptr, size) (((size_t *)(ptr + size))[1])
+#define blk_prevtail(ptr)       (((size_t *)ptr)[-2])         // 上一个块的尾部标记
+#define blk_head(ptr)           (((size_t *)ptr)[-1])         // 块头部标记
+#define blk_tail(ptr, size)     (((size_t *)(ptr + size))[0]) // 块尾部标记
+#define blk_nexthead(ptr, size) (((size_t *)(ptr + size))[1]) // 下一个块的头部标记
 
 #define blk_noprev(ptr)       ((bool)(blk_prevtail(ptr) & AREA_FLAG))       // 是否有上一个块
 #define blk_nonext(ptr, size) ((bool)(blk_nexthead(ptr, size) & AREA_FLAG)) // 是否有下一个块
@@ -101,7 +106,7 @@ finline void *blk_mergenext(void *ptr, blk_detach_t detach, void *data) {
   return ptr;
 }
 /**
- *\brief 尝试合并前后相邻块 (会清除块标记!)
+ *\brief 尝试合并前后相邻块 (会清除块释放标记!)
  *
  *\param ptr      块指针
  *\param detach   用于(可合并时)将相邻块从空闲链表中移除的回调
@@ -122,11 +127,11 @@ finline void *blk_trymerge(void *ptr, blk_detach_t detach, void *data) {
 }
 
 /**
- *\brief 将一个块分割成两个 (会清除块标记!)
+ *\brief 将一个块分割成两个 (会清除块释放标记!)
  *
  *\param ptr      块指针
- *\param size     分割出第一个块的大小
- *\return value
+ *\param size     分割出第一个块的大小 (必须对齐到 2 倍字长!)
+ *\return 第二个块的指针
  */
 finline void *blk_split(void *ptr, size_t size) {
   bool   is_2M   = blk_area_is_2M(ptr);

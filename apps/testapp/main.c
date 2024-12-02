@@ -8,5 +8,6 @@ int main(int argc, char **argv) {
   for (int i = 0; i < argc; i++) {
     printf("argv[%d]: %s\n", i, argv[i]);
   }
+  printf("%p\n", aligned_alloc(4096, 114));
   return 0;
 }

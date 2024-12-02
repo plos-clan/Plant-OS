@@ -2,7 +2,7 @@
 
 void ide_irq();
 
-void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
+void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
     limit /= 0x1000;
@@ -15,7 +15,7 @@ void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
   sd->base_high    = (base >> 24) & 0xff;
 }
 
-void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
+void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar) {
   gd->offset_low   = offset & 0xffff;
   gd->selector     = selector;
   gd->dw_count     = (ar >> 8) & 0xff;
@@ -23,13 +23,11 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
   gd->offset_high  = (offset >> 16) & 0xffff;
 }
 
-void default_inthandler() __attr(naked);
-
-void default_inthandler() {
+__attr(naked) void default_inthandler() {
   asm volatile("iret\n\t");
 }
 
-static const void *handlers[IDT_LEN] = {
+static void (*const handlers[IDT_LEN])() = {
     [0x00] = asm_error0,       [0x01] = asm_error1,  [0x03] = asm_error3,  [0x04] = asm_error4,
     [0x05] = asm_error5,       [0x06] = asm_error6,  [0x07] = asm_error7,  [0x08] = asm_error8,
     [0x09] = asm_error9,       [0x0a] = asm_error10, [0x0b] = asm_error11, [0x0c] = asm_error12,
@@ -63,7 +61,7 @@ void init_gdtidt() {
   var idt = (GateDescriptor *)IDT_ADDR;
   for (size_t i = 0; i < IDT_LEN; i++) {
     int ar = (i >= 0x30 && handlers[i]) ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
-    set_gatedesc(idt + i, (size_t)handlers[i] ?: (size_t)default_inthandler, 2 * 8, ar);
+    set_gatedesc(idt + i, (size_t)(handlers[i] ?: &default_inthandler), 2 * 8, ar);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 }

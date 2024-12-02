@@ -1,0 +1,26 @@
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  ubscan(
+    bool #
+    builtin #
+    bounds #
+    enum #
+    float-cast-overflow #
+    float-divide-by-zero #
+    implicit-unsigned-integer-truncation #
+    implicit-integer-sign-change #
+    integer-divide-by-zero #
+    implicit-bitfield-conversion #
+    nonnull-attribute #
+    # null #
+    nullability #
+    # pointer-overflow #
+    return #
+    returns-nonnull-attribute #
+    shift #
+    unsigned-shift-base #
+    signed-integer-overflow #
+    unreachable #
+    unsigned-integer-overflow #
+    vla-bound #
+  )
+endif()

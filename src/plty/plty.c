@@ -324,11 +324,6 @@ void plty_curprev(plty_t tty, u32 n) {
 
 // 换行
 static void plty_lf(plty_t tty) {
-  for (u32 i = tty->cur_x; i < tty->ncols; i++) {
-    tty->text[tty->cur_y * tty->ncols + i].ch = null;
-    tty->text[tty->cur_y * tty->ncols + i].fg = tty->cur_fg;
-    tty->text[tty->cur_y * tty->ncols + i].bg = tty->cur_bg;
-  }
   tty->cur_x = 0;
   if (tty->cur_y == tty->nlines - 1) {
     plty_scroll(tty);

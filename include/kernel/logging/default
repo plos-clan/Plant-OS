@@ -1,18 +1,19 @@
 #pragma once
 #include <libc-base.h>
 
-dlimport void klog_raw(cstr s) __THROW;
+dlimport void klog_raw(cstr s) __THROW __nnull(1);
 
 // 请勿直接调用此函数
-dlimport void klog(cstr _rest fmt, ...) __THROW;
+dlimport void klog(cstr _rest fmt, ...) __THROWNL __nnull(1) __attr(format(printf, 1, 2));
 
 // 请勿直接调用此函数
-dlimport void kprintf(cstr _rest fmt1, cstr _rest fmt2, ...) __THROW;
+dlimport void kprintf(cstr _rest fmt1, cstr _rest fmt2, ...) __THROWNL __nnull(1, 2)
+    __attr(format(printf, 1, 3), format(printf, 2, 3));
 
 #undef STR_LOGINFO_FILE
 #undef STR_LOGINFO_FUNC
-#define STR_LOGINFO_FILE "[" CRGB(192, 128, 255) "%!8s" CEND "] "
-#define STR_LOGINFO_FUNC "[" CRGB(0, 255, 255) "%!8s" CEND ":" CRGB(255, 128, 192) "%-5d" CEND "] "
+#define STR_LOGINFO_FILE "[" CRGB(192, 128, 255) "%12s" CEND "] "
+#define STR_LOGINFO_FUNC "[" CRGB(0, 255, 255) "%20s" CEND ":" CRGB(255, 128, 192) "%-4d" CEND "] "
 
 #define __LOG(type, fmt, ...)                                                                      \
   klog(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n", ARG_LOGINFO, ##__VA_ARGS__)
@@ -35,13 +36,13 @@ dlimport void kprintf(cstr _rest fmt1, cstr _rest fmt2, ...) __THROW;
 #define _STR_ERROR "[" _COLOR_ERROR "Error" CEND "] "
 #define _STR_FATAL "[" _COLOR_FATAL "Fatal" CEND "] "
 
-#define _STR_LOGINFO_FILE "[\033[1;35m%!8s" CEND "] "
-#define _STR_LOGINFO_FUNC "[\033[1;36m%!8s" CEND ":\033[1;35m%-5d" CEND "] "
+#define _STR_LOGINFO_FILE "[\033[1;35m%12s" CEND "] "
+#define _STR_LOGINFO_FUNC "[\033[1;36m%20s" CEND ":\033[1;35m%-4d" CEND "] "
 #define _STR_LOGINFO      _STR_LOGINFO_FILE _STR_LOGINFO_FUNC
 
 #undef _LOG
 #define _LOG(type, fmt, ...)                                                                       \
-  kprintf(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n",                         \
+  kprintf(CONCAT(STR, type) STR_LOGINFO   CONCAT(COLOR, type) fmt CEND "\n",                       \
           CONCAT(_STR, type) _STR_LOGINFO CONCAT(_COLOR, type) fmt CEND "\n", ARG_LOGINFO,         \
           ##__VA_ARGS__)
 

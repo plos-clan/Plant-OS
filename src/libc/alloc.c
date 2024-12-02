@@ -34,11 +34,7 @@ void *reallocarray(void *ptr, size_t n, size_t size) {
 }
 
 void *aligned_alloc(size_t align, size_t size) {
-  if (!(align & (align - 1)) && align <= 2 * sizeof(size_t)) return mman_alloc(&mman, size);
-  void *ptr = malloc(size + align - 1);
-  if (ptr == null) return null;
-  ptr = (ptr + align - 1) - (size_t)(ptr + align - 1) % align;
-  return ptr;
+  return mman_aligned_alloc(&mman, size, align);
 }
 
 size_t malloc_usable_size(void *ptr) {
@@ -46,11 +42,11 @@ size_t malloc_usable_size(void *ptr) {
 }
 
 void *memalign(size_t align, size_t size) {
-  return aligned_alloc(align, size);
+  return mman_aligned_alloc(&mman, size, align);
 }
 
 int posix_memalign(void **memptr, size_t alignment, size_t size) {
-  void *ptr = aligned_alloc(alignment, size);
+  void *ptr = mman_aligned_alloc(&mman, size, alignment);
   if (ptr == null) return 1;
   *memptr = ptr;
   return 0;

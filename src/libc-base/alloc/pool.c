@@ -92,16 +92,43 @@ finline bool try_split_and_free(mpool_t pool, void *ptr, size_t size) {
 }
 
 dlexport void *mpool_alloc(mpool_t pool, size_t size) {
-  if (size == 0) size = 2 * sizeof(size_t);
-  size = PADDING(size);
+  size = size == 0 ? 2 * sizeof(size_t) : PADDING(size); // 保证最小分配 2 个字长且对齐到 2 倍字长
 
-  void *ptr = freelists_match(pool->freed, size);
-
-  if (ptr == null) ptr = freelist_match(&pool->large_blk, size);
+  // 优先从空闲链表中分配
+  void *ptr = freelists_match(pool->freed, size) ?: freelist_match(&pool->large_blk, size);
 
   if (ptr == null) { // 不足就分配
     if (!mpool_reqmem(pool, size)) return null;
     ptr = freelist_match(&pool->large_blk, size);
+  }
+
+  try_split_and_free(pool, ptr, size);
+
+  size = blk_size(ptr);
+  blk_setalloced(ptr, size);
+  pool->alloced_size += size;
+  return ptr;
+}
+
+dlexport void *mpool_aligned_alloc(mpool_t pool, size_t size, size_t align) {
+  if (align & (align - 1)) return null;                           // 不是 2 的幂次方
+  if (align < 2 * sizeof(size_t)) return mpool_alloc(pool, size); // 对齐小于 2 倍指针大小
+  size = size == 0 ? 2 * sizeof(size_t) : PADDING(size); // 保证最小分配 2 个字长且对齐到 2 倍字长
+
+  // 优先从空闲链表中分配
+  void *ptr = freelists_aligned_match(pool->freed, size, align)
+                  ?: freelist_aligned_match(&pool->large_blk, size, align);
+
+  if (ptr == null) { // 不足就分配
+    if (!mpool_reqmem(pool, size + align)) return null;
+    ptr = freelist_aligned_match(&pool->large_blk, size, align);
+  }
+
+  size_t offset = PADDING_UP(ptr, align) - (size_t)ptr;
+  if (offset > 0) {
+    void *new_ptr = blk_split(ptr, offset - 2 * sizeof(size_t));
+    do_free(pool, ptr);
+    ptr = new_ptr;
   }
 
   try_split_and_free(pool, ptr, size);
@@ -128,8 +155,7 @@ dlexport size_t mpool_msize(mpool_t pool, void *ptr) {
 
 dlexport void *mpool_realloc(mpool_t pool, void *ptr, size_t newsize) {
   if (ptr == null) return mpool_alloc(pool, newsize);
-  if (newsize == 0) newsize = 2 * sizeof(size_t);
-  newsize = PADDING(newsize);
+  newsize = newsize == 0 ? 2 * sizeof(size_t) : PADDING(newsize);
 
   size_t size = blk_size(ptr);
   if (size >= newsize) {
@@ -148,6 +174,35 @@ dlexport void *mpool_realloc(mpool_t pool, void *ptr, size_t newsize) {
   }
 
   void *new_ptr = mpool_alloc(pool, newsize);
+  memcpy(new_ptr, ptr, size);
+  mpool_free(pool, ptr);
+  return new_ptr;
+}
+
+//! 注意 align 和第一次分配时的 align 必须相同
+dlexport void *mpool_aligned_realloc(mpool_t pool, void *ptr, size_t newsize, size_t align) {
+  if (ptr == null) return mpool_aligned_alloc(pool, newsize, align);
+  if (align & (align - 1)) return null;                                     // 不是 2 的幂次方
+  if (align < 2 * sizeof(size_t)) return mpool_realloc(pool, ptr, newsize); // 对齐小于 2 倍指针大小
+  newsize = newsize == 0 ? 2 * sizeof(size_t) : PADDING(newsize);
+
+  size_t size = blk_size(ptr);
+  if (size >= newsize) {
+    try_split_and_free(pool, ptr, newsize);
+    return ptr;
+  }
+
+  void *next = blk_next(ptr);
+  if (next != null && blk_freed(next)) {
+    size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
+    if (total_size >= newsize) {
+      ptr = blk_mergenext(ptr, (blk_detach_t)_detach, pool);
+      try_split_and_free(pool, ptr, newsize);
+      return ptr;
+    }
+  }
+
+  void *new_ptr = mpool_aligned_alloc(pool, newsize, align);
   memcpy(new_ptr, ptr, size);
   mpool_free(pool, ptr);
   return new_ptr;

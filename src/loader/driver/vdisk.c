@@ -1,6 +1,6 @@
 #include <loader.h>
 
-int getReadyDisk(); // init.c
+
 
 vdisk vdisk_ctl[10];
 
@@ -11,7 +11,7 @@ int vdisk_init() {
   return 0;
 }
 
-int register_vdisk(vdisk vd) {
+int regist_vdisk(vdisk vd) {
   for (int i = 0; i < 10; i++) {
     if (!vdisk_ctl[i].flag) {
       vdisk_ctl[i] = vd; // 找到了！
@@ -40,10 +40,10 @@ int rw_vdisk(int drive, u32 lba, u8 *buffer, u32 number, int read) {
   }
   if (vdisk_ctl[indx].flag) {
     if (read) {
-      vdisk_ctl[indx].Read(drive, buffer, number, lba);
+      vdisk_ctl[indx].read(drive, buffer, number, lba);
       //for(;;);
     } else {
-      vdisk_ctl[indx].Write(drive, buffer, number, lba);
+      vdisk_ctl[indx].write(drive, buffer, number, lba);
     }
     return 1; // 成功
   } else {
@@ -75,7 +75,7 @@ bool have_vdisk(int drive) {
 }
 // 基于vdisk的通用读写
 #define SECTORS_ONCE 8
-void Disk_Read(u32 lba, u32 number, void *buffer, int drive) {
+void vdisk_read(u32 lba, u32 number, void *buffer, int drive) {
   if (have_vdisk(drive)) {
     for (int i = 0; i < number; i += SECTORS_ONCE) {
       int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
@@ -84,7 +84,7 @@ void Disk_Read(u32 lba, u32 number, void *buffer, int drive) {
     }
   }
 }
-int disk_Size(int drive) {
+int disk_size(int drive) {
   u8 drive1 = drive;
   if (have_vdisk(drive1)) {
     int indx = drive1 - 'A';
@@ -96,13 +96,11 @@ int disk_Size(int drive) {
 
   return 0;
 }
-bool DiskReady(int drive) {
+bool disk_ready(int drive) {
   return have_vdisk(drive);
 }
-int getReadyDisk() {
-  return 0;
-}
-void Disk_Write(u32 lba, u32 number, void *buffer, int drive) {
+
+void vdisk_write(u32 lba, u32 number, void *buffer, int drive) {
   //  printf("%d\n",lba);
   if (have_vdisk(drive)) {
     // printk("*buffer(%d %d) = %02x\n",lba,number,*(u8 *)buffer);

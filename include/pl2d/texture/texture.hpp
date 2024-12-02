@@ -86,13 +86,13 @@ struct BaseTexture {
     return pixels[i];
   }
   auto at(i32 x, i32 y) const -> const T & {
-    cpp::clamp(x, 0, (i32)width - 1);
-    cpp::clamp(y, 0, (i32)height - 1);
+    x = cpp::clamp(x, 0, (i32)width - 1);
+    y = cpp::clamp(y, 0, (i32)height - 1);
     return pixels[y * pitch + x];
   }
   auto at(i32 x, i32 y) -> T & {
-    cpp::clamp(x, 0, (i32)width - 1);
-    cpp::clamp(y, 0, (i32)height - 1);
+    x = cpp::clamp(x, 0, (i32)width - 1);
+    y = cpp::clamp(y, 0, (i32)height - 1);
     return pixels[y * pitch + x];
   }
 

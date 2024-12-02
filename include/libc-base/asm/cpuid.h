@@ -1,8 +1,6 @@
 #pragma once
 #include <define.h>
 
-#pragma GCC system_header
-
 #define cpuid(id, eax, ebx, ecx, edx)                                                              \
   ({ asm volatile("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(id)); })
 
@@ -18,6 +16,20 @@
     size_t eax, ebx, ecx, edx;                                                                     \
     cpuid(1, eax, ebx, ecx, edx);                                                                  \
     (ebx >> 24) & 0xff;                                                                            \
+  })
+
+#define cpuid_has_cflush                                                                           \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    edx & (1 << 19);                                                                               \
+  })
+
+#define cpuid_cflush_size                                                                          \
+  ({                                                                                               \
+    size_t eax, ebx, ecx, edx;                                                                     \
+    cpuid(1, eax, ebx, ecx, edx);                                                                  \
+    ((ebx >> 8) & 0xff) * 8;                                                                       \
   })
 
 // 获取是否支持 SSE

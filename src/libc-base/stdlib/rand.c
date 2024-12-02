@@ -20,6 +20,7 @@ void MT19937_generate(MT19937 *ctx) {
   u32 y        = (ctx->mt[623] & 0x80000000) + (ctx->mt[0] & 0x7fffffff);
   ctx->mt[623] = (y >> 1) ^ ctx->mt[396];
   if (y & 1) ctx->mt[623] ^= 0x9908b0df;
+  ctx->idx = 0;
 }
 
 u32 MT19937_extract(MT19937 *ctx) {
@@ -57,13 +58,13 @@ extern char *setstate(char *__statebuf) __THROW __nonnull((1));
    state, rather than global state variables.  */
 
 struct random_data {
-  int32_t *fptr;      /* Front pointer.  */
-  int32_t *rptr;      /* Rear pointer.  */
-  int32_t *state;     /* Array of state values.  */
-  int      rand_type; /* Type of random number generator.  */
-  int      rand_deg;  /* Degree of random number generator.  */
-  int      rand_sep;  /* Distance between front and rear.  */
-  int32_t *end_ptr;   /* Pointer behind state table.  */
+  i32 *fptr;      /* Front pointer.  */
+  i32 *rptr;      /* Rear pointer.  */
+  i32 *state;     /* Array of state values.  */
+  int  rand_type; /* Type of random number generator.  */
+  int  rand_deg;  /* Degree of random number generator.  */
+  int  rand_sep;  /* Distance between front and rear.  */
+  i32 *end_ptr;   /* Pointer behind state table.  */
 };
 
 extern int random_r(struct random_data *__restrict __buf, int32_t *__restrict __result)

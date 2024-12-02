@@ -4,11 +4,24 @@
 // 内存分配时大小和返回指针的对齐 (按照两倍字长)
 #define MALLOC_PADDING(size) (((size) + 2 * sizeof(size_t) - 1) & ~(2 * sizeof(size_t) - 1))
 
-#define SIZE_4k ((size_t)4096)
-#define SIZE_2M ((size_t)(2 * 1024 * 1024))
+#define SIZE_4k  ((size_t)4096)
+#define SIZE_16k ((size_t)16384)
+#define SIZE_2M  ((size_t)(2 * 1024 * 1024))
+#define SIZE_1G  ((size_t)(1024 * 1024 * 1024))
+
+#ifndef ALLOC_LARGE_BLK_SIZE
+#  define ALLOC_LARGE_BLK_SIZE ((size_t)16384)
+#endif
+
+#ifndef PAGE_SIZE
+#  define PAGE_SIZE ((size_t)4096)
+#endif
 
 //* ----------------------------------------------------------------------------------------------------
 //& 标准库内存分配函数
+
+// 这些函数应该由 libc 本体提供
+// 而在没有 libc 的情况下管理内存请使用下方的自定义内存分配函数
 
 dlimport void  *malloc(size_t size) __THROW __attr_malloc __attr_allocsize(1);
 dlimport void  *xmalloc(size_t size) __THROW __attr_malloc __attr_allocsize(1);
@@ -40,6 +53,7 @@ dlimport void  *valloc(size_t size) __THROW __attr_malloc __attr_allocsize(1);
  *\return 分配的内存地址
  */
 typedef void *(*cb_reqmem_t)(void *ptr, size_t size);
+
 /**
  *\brief 释放内存的回调函数
  *
@@ -92,7 +106,7 @@ dlexport void sized_mpool_init(sized_mpool_t pool, void *ptr, size_t bsize, size
 dlexport void *sized_mpool_alloc(sized_mpool_t pool);
 
 /**
- *\brief 
+ *\brief 释放内存池中的内存
  *
  *\param pool     内存池
  *\param ptr      param
@@ -174,6 +188,16 @@ dlimport void mpool_setcb(mpool_t pool, cb_reqmem_t reqmem, cb_delmem_t delmem);
 dlimport void *mpool_alloc(mpool_t pool, size_t size);
 
 /**
+ *\brief 从内存池中分配对齐的内存
+ *
+ *\param pool     内存池
+ *\param size     请求的内存大小
+ *\param align    对齐大小
+ *\return 分配的内存地址
+ */
+dlexport void *mpool_aligned_alloc(mpool_t pool, size_t size, size_t align);
+
+/**
  *\brief 释放内存池中的内存
  *
  *\param pool     内存池
@@ -190,7 +214,27 @@ dlimport void mpool_free(mpool_t pool, void *ptr);
  */
 dlimport size_t mpool_msize(mpool_t pool, void *ptr);
 
+/**
+ *\brief 从内存池中重新分配内存
+ *
+ *\param pool     内存池
+ *\param ptr      要重新分配的内存地址
+ *\param newsize  新的内存大小
+ *\return 重新分配的内存地址
+ */
 dlimport void *mpool_realloc(mpool_t pool, void *ptr, size_t newsize);
+
+/**
+ *\brief 从内存池中重新分配对齐的内存
+ *!      注意 align 和第一次分配时的 align 必须相同
+ *
+ *\param pool     内存池
+ *\param ptr      要重新分配的内存地址
+ *\param newsize  新的内存大小
+ *\param align    对齐大小
+ *\return 重新分配的内存地址
+ */
+dlexport void *mpool_aligned_realloc(mpool_t pool, void *ptr, size_t newsize, size_t align);
 
 //* ----------------------------------------------------------------------------------------------------
 //& 内存管理器
@@ -221,18 +265,22 @@ typedef struct mman {
   large_blks_t     large;        //
 } *mman_t;
 
-dlimport bool mman_init(mman_t pool, void *ptr, size_t size);
+dlimport bool mman_init(mman_t man, void *ptr, size_t size);
 
-dlimport size_t mman_total_size(mman_t pool);
+dlimport size_t mman_total_size(mman_t man);
 
-dlimport size_t mman_alloced_size(mman_t pool);
+dlimport size_t mman_alloced_size(mman_t man);
 
-dlimport void mman_setcb(mman_t pool, cb_reqmem_t reqmem, cb_delmem_t delmem);
+dlimport void mman_setcb(mman_t man, cb_reqmem_t reqmem, cb_delmem_t delmem);
 
-dlimport void *mman_alloc(mman_t pool, size_t size);
+dlimport void *mman_alloc(mman_t man, size_t size);
 
-dlimport void mman_free(mman_t pool, void *ptr);
+dlexport void *mman_aligned_alloc(mman_t man, size_t size, size_t align);
 
-dlimport size_t mman_msize(mman_t pool, void *ptr);
+dlimport void mman_free(mman_t man, void *ptr);
+
+dlimport size_t mman_msize(mman_t man, void *ptr);
 
 dlimport void *mman_realloc(mman_t man, void *ptr, size_t newsize);
+
+dlexport void *mman_aligned_realloc(mman_t man, void *ptr, size_t newsize, size_t align);

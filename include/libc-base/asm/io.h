@@ -3,57 +3,30 @@
 
 #define asm_in8(port)                                                                              \
   ({                                                                                               \
-    size_t          data;                                                                          \
-    size_t          __arg1         = (size_t)(port);                                               \
-    register size_t _a1 asm("edx") = __arg1;                                                       \
-    asm volatile("inb %%dx, %%al\n\t" : "=a"(data) : "r"(_a1) : "memory");                         \
-    (u8) data;                                                                                     \
+    u8 _data_;                                                                                     \
+    asm volatile("inb %1, %0\n\t" : "=a"(_data_) : "d"((u16)(port)) : "memory");                   \
+    _data_;                                                                                        \
   })
 
 #define asm_in16(port)                                                                             \
   ({                                                                                               \
-    size_t          data;                                                                          \
-    size_t          __arg1         = (size_t)(port);                                               \
-    register size_t _a1 asm("edx") = __arg1;                                                       \
-    asm volatile("inw %%dx, %%ax\n\t" : "=a"(data) : "r"(_a1) : "memory");                         \
-    (u16) data;                                                                                    \
+    u16 _data_;                                                                                    \
+    asm volatile("inw %1, %0\n\t" : "=a"(_data_) : "d"((u16)(port)) : "memory");                   \
+    _data_;                                                                                        \
   })
 
 #define asm_in32(port)                                                                             \
   ({                                                                                               \
-    size_t          data;                                                                          \
-    size_t          __arg1         = (size_t)(port);                                               \
-    register size_t _a1 asm("edx") = __arg1;                                                       \
-    asm volatile("inl %%dx, %%eax\n\t" : "=a"(data) : "r"(_a1) : "memory");                        \
-    (u32) data;                                                                                    \
+    u32 _data_;                                                                                    \
+    asm volatile("inl %1, %0\n\t" : "=a"(_data_) : "d"((u16)(port)) : "memory");                   \
+    _data_;                                                                                        \
   })
 
 #define asm_out8(port, data)                                                                       \
-  ({                                                                                               \
-    size_t          __arg1         = (size_t)(data);                                               \
-    size_t          __arg2         = (size_t)(port);                                               \
-    register size_t _a2 asm("edx") = __arg2;                                                       \
-    register size_t _a1 asm("eax") = __arg1;                                                       \
-    asm volatile("outb %%al, %%dx\n\t" : : "r"(_a1), "r"(_a2) : "memory");                         \
-    (void)0;                                                                                       \
-  })
+  ({ asm volatile("outb %1, %0\n\t" : : "d"((u16)(port)), "a"((u8)(data)) : "memory"); })
 
 #define asm_out16(port, data)                                                                      \
-  ({                                                                                               \
-    size_t          __arg1         = (size_t)(data);                                               \
-    size_t          __arg2         = (size_t)(port);                                               \
-    register size_t _a2 asm("edx") = __arg2;                                                       \
-    register size_t _a1 asm("eax") = __arg1;                                                       \
-    asm volatile("outw %%ax, %%dx\n\t" : : "r"(_a1), "r"(_a2) : "memory");                         \
-    (void)0;                                                                                       \
-  })
+  ({ asm volatile("outw %1, %0\n\t" : : "d"((u16)(port)), "a"((u16)(data)) : "memory"); })
 
 #define asm_out32(port, data)                                                                      \
-  ({                                                                                               \
-    size_t          __arg1         = (size_t)(data);                                               \
-    size_t          __arg2         = (size_t)(port);                                               \
-    register size_t _a2 asm("edx") = __arg2;                                                       \
-    register size_t _a1 asm("eax") = __arg1;                                                       \
-    asm volatile("outl %%eax, %%dx\n\t" : : "r"(_a1), "r"(_a2) : "memory");                        \
-    (void)0;                                                                                       \
-  })
+  ({ asm volatile("outl %1, %0\n\t" : : "d"((u16)(port)), "a"((u32)(data)) : "memory"); })

@@ -70,7 +70,7 @@ void fpu_enable(mtask *task) {
                  "fninit \n" ::
                      : "memory");
     memset(&task->fpu, 0, sizeof(fpu_regs_t));
-    klogd("FPU create state for task 0x%08x\n", task);
+    klogd("FPU create state for task %p\n", task);
   } else {
     asm volatile("frstor (%%eax) \n" ::"a"(&(task->fpu)) : "memory");
   }

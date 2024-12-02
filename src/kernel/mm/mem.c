@@ -36,15 +36,58 @@ void *malloc(size_t size) {
   return ptr;
 }
 
+void *xmalloc(size_t size) {
+  void *ptr = malloc(size);
+  if (ptr == null) abort();
+  return ptr;
+}
+
 void free(void *ptr) {
   // klogd("free  %-10p %d", ptr, mpool_msize(&pool, ptr));
   mpool_free(&pool, ptr);
+}
+
+void *calloc(size_t n, size_t size) {
+  void *ptr = malloc(n * size);
+  if (ptr == null) return null;
+  memset(ptr, 0, n * size);
+  return ptr;
+}
+
+void *realloc(void *ptr, size_t size) {
+  // void *old_ptr = ptr;
+  ptr = mpool_realloc(&pool, ptr, size);
+  // klogd("realloc %-10p %d -> %-10p %d", old_ptr, mpool_msize(&pool, ptr), ptr, size);
+  return ptr;
+}
+
+void *reallocarray(void *ptr, size_t n, size_t size) {
+  return realloc(ptr, n * size);
+}
+
+void *aligned_alloc(size_t align, size_t size) {
+  return mpool_aligned_alloc(&pool, size, align);
 }
 
 size_t malloc_usable_size(void *ptr) {
   return mpool_msize(&pool, ptr);
 }
 
-void *realloc(void *ptr, size_t size) {
-  return mpool_realloc(&pool, ptr, size);
+void *memalign(size_t align, size_t size) {
+  return mpool_aligned_alloc(&pool, size, align);
+}
+
+int posix_memalign(void **memptr, size_t alignment, size_t size) {
+  void *ptr = mpool_aligned_alloc(&pool, size, alignment);
+  if (ptr == null) return 1;
+  *memptr = ptr;
+  return 0;
+}
+
+void *pvalloc(size_t size) {
+  return aligned_alloc(4096, size);
+}
+
+void *valloc(size_t size) {
+  return aligned_alloc(4096, size);
 }

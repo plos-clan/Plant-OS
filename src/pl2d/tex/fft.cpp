@@ -79,7 +79,7 @@ auto BaseTexture<PixelF>::ift_col() -> BaseTexture & {
 template <>
 auto BaseTexture<PixelF>::ift() -> BaseTexture & {
   ift_col();
-  ift_col();
+  ift_row();
   return *this;
 }
 
@@ -133,7 +133,7 @@ auto BaseTexture<PixelD>::ift_col() -> BaseTexture & {
 template <>
 auto BaseTexture<PixelD>::ift() -> BaseTexture & {
   ift_col();
-  ift_col();
+  ift_row();
   return *this;
 }
 

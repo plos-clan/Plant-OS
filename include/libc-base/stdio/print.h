@@ -1,7 +1,8 @@
 #pragma once
 #include <define.h>
 
-dlimport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) __THROWNL;
+dlimport int vsprintf(char *_rest s, cstr _rest fmt, va_list va)
+    __THROWNL __attr(format(printf, 2, 0));
 
 dlimport int sprintf(char *_rest s, cstr _rest fmt, ...) __THROWNL __attr(format(printf, 2, 3));
 

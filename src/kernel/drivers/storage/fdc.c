@@ -105,13 +105,13 @@ void floppy_init() {
 
 #endif
   vdisk vd;
-  strcpy(vd.DriveName, "floppy");
-  vd.Read        = Read;
-  vd.Write       = Write;
+  strcpy(vd.drive_name, "floppy");
+  vd.read        = Read;
+  vd.write       = Write;
   vd.size        = 1474560;
   vd.flag        = 1;
   vd.sector_size = 512;
-  register_vdisk(vd);
+  regist_vdisk(vd);
 }
 
 void flint(int *esp) {
@@ -467,6 +467,6 @@ void bios_fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
   r.dx = N(head, 0);
   r.es = 0x7e0;
   r.bx = 0;
-  asm16_int(0x13, &r);
+  v86_int(0x13, &r);
   if (read) { memcpy(blockbuff, p_tbaddr, 512); }
 }

@@ -70,6 +70,7 @@ dlexport void mman_setcb(mman_t man, cb_reqmem_t reqmem, cb_delmem_t delmem) {
 #define RESERVED_SIZE (PADDING(sizeof(struct mman_pool)) + 6 * sizeof(size_t))
 
 static bool mman_reqmem(mman_t man, size_t size) {
+  size += sizeof(struct mman_pool) + 4 * sizeof(size_t);
   if (man->cb_reqmem == null) return false;
   if (size > SIZE_2M) return false;
 #if !ALLOC_FORCE_2M_PAGE
@@ -132,20 +133,58 @@ finline bool try_split_and_free(mman_t man, void *ptr, size_t size) {
 }
 
 dlexport void *mman_alloc(mman_t man, size_t size) {
-  if (size == 0) size = 2 * sizeof(size_t);
-  size = PADDING(size);
+  size = size == 0 ? 2 * sizeof(size_t) : PADDING(size); // 保证最小分配 2 个字长且对齐到 2 倍字长
 
   if (size >= ALLOC_LARGE_BLK_SIZE) {
     return large_blk_alloc(size, man->large, man->cb_reqmem, man->cb_delmem);
   }
 
-  void *ptr = freelists_match(man->freed, size);
-
-  if (ptr == null) ptr = freelist_match(&man->large_blk, size);
+  // 优先从空闲链表中分配
+  void *ptr = freelists_match(man->freed, size) ?: freelist_match(&man->large_blk, size);
 
   if (ptr == null) { // 不足就分配
     if (!mman_reqmem(man, size)) return null;
     ptr = freelist_match(&man->large_blk, size);
+  }
+
+  try_split_and_free(man, ptr, size);
+
+  size = blk_size(ptr);
+  blk_setalloced(ptr, size);
+  mman_pool_t pool    = blk_poolptr(ptr);
+  pool->alloced_size += size;
+  man->alloced_size  += size;
+  return ptr;
+}
+
+dlexport void *mman_aligned_alloc(mman_t man, size_t size, size_t align) {
+  if (align & (align - 1)) return null;                         // 不是 2 的幂次方
+  if (align < 2 * sizeof(size_t)) return mman_alloc(man, size); // 对齐小于 2 倍指针大小
+  size = size == 0 ? 2 * sizeof(size_t) : PADDING(size); // 保证最小分配 2 个字长且对齐到 2 倍字长
+
+  if (size >= ALLOC_LARGE_BLK_SIZE || align >= ALLOC_LARGE_BLK_SIZE) {
+    void *ptr = large_blk_alloc(size, man->large, man->cb_reqmem, man->cb_delmem);
+    if ((size_t)ptr % align != 0) { // TODO 让这种情况永远不会出现
+      large_blk_free(man->large, ptr, man->cb_delmem);
+      ptr = null;
+    }
+    return ptr;
+  }
+
+  // 优先从空闲链表中分配
+  void *ptr = freelists_aligned_match(man->freed, size, align)
+                  ?: freelist_aligned_match(&man->large_blk, size, align);
+
+  if (ptr == null) { // 不足就分配
+    if (!mman_reqmem(man, size + align)) return null;
+    ptr = freelist_aligned_match(&man->large_blk, size, align);
+  }
+
+  size_t offset = PADDING_UP(ptr, align) - (size_t)ptr;
+  if (offset > 0) {
+    void *new_ptr = blk_split(ptr, offset - 2 * sizeof(size_t));
+    do_free(man, ptr);
+    ptr = new_ptr;
   }
 
   try_split_and_free(man, ptr, size);
@@ -170,8 +209,6 @@ dlexport void mman_free(mman_t man, void *ptr) {
   pool->alloced_size -= size;
   man->alloced_size  -= size;
 
-  size_t areasize = blk_area_is_2M(ptr) ? SIZE_2M : SIZE_4k;
-
   ptr = blk_trymerge(ptr, (blk_detach_t)_detach, man);
   if (pool != &man->main && pool->alloced_size == 0) {
     if (mman_delmem(man, pool)) return;
@@ -191,21 +228,64 @@ dlexport void *mman_realloc(mman_t man, void *ptr, size_t newsize) {
 
   size_t size = blk_size(ptr);
   if (size >= newsize) {
-    try_split_and_free(man, ptr, newsize);
+    if ((size_t)ptr % SIZE_4k == 0) {
+      if (size - newsize >= 2 * SIZE_4k) goto L1;
+    } else {
+      try_split_and_free(man, ptr, newsize);
+    }
     return ptr;
   }
+L1:
 
-  void *next = blk_next(ptr);
-  if (next != null && blk_freed(next)) {
-    size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
-    if (total_size >= newsize) {
-      ptr = blk_mergenext(ptr, (blk_detach_t)_detach, man);
-      try_split_and_free(man, ptr, newsize);
-      return ptr;
+  if ((size_t)ptr % SIZE_4k != 0) {
+    void *next = blk_next(ptr);
+    if (next != null && blk_freed(next)) {
+      size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
+      if (total_size >= newsize) {
+        ptr = blk_mergenext(ptr, (blk_detach_t)_detach, man);
+        try_split_and_free(man, ptr, newsize);
+        return ptr;
+      }
     }
   }
 
   void *new_ptr = mman_alloc(man, newsize);
+  memcpy(new_ptr, ptr, size);
+  mman_free(man, ptr);
+  return new_ptr;
+}
+
+//! 注意 align 和第一次分配时的 align 必须相同
+dlexport void *mman_aligned_realloc(mman_t man, void *ptr, size_t newsize, size_t align) {
+  if (ptr == null) return mman_aligned_alloc(man, newsize, align);
+  if (align & (align - 1)) return null;                                   // 不是 2 的幂次方
+  if (align < 2 * sizeof(size_t)) return mman_realloc(man, ptr, newsize); // 对齐小于 2 倍指针大小
+  newsize = newsize == 0 ? 2 * sizeof(size_t) : PADDING(newsize);
+
+  size_t size = blk_size(ptr);
+  if (size >= newsize) {
+    if ((size_t)ptr % SIZE_4k == 0) {
+      if (size - newsize >= 2 * SIZE_4k) goto L1;
+    } else {
+      try_split_and_free(man, ptr, newsize);
+    }
+    return ptr;
+  }
+L1:
+
+  if ((size_t)ptr % SIZE_4k != 0) {
+    void *next = blk_next(ptr);
+    if (next != null && blk_freed(next)) {
+      size_t total_size = size + 2 * sizeof(size_t) + blk_size(next);
+      if (total_size >= newsize) {
+        ptr = blk_mergenext(ptr, (blk_detach_t)_detach, man);
+        try_split_and_free(man, ptr, newsize);
+        return ptr;
+      }
+    }
+  }
+
+  void *new_ptr = mman_aligned_alloc(man, newsize, align);
   memcpy(new_ptr, ptr, size);
   mman_free(man, ptr);
   return new_ptr;

@@ -15,35 +15,35 @@ struct Position {
   auto operator=(const Position &) -> Position     & = default;
   auto operator=(Position &&) noexcept -> Position & = default;
 
-  auto move(i32 dx, i32 dy) -> Position & {
+  auto move(i32 dx, i32 dy) noexcept -> Position & {
     x += dx, y += dy;
     return *this;
   }
 
-  auto moveto(i32 x, i32 y) -> Position & {
+  auto moveto(i32 x, i32 y) noexcept -> Position & {
     this->x = x, this->y = y;
     return *this;
   }
 
-  auto topleft() const -> pl2d::Point2I {
+  [[nodiscard]] auto topleft() const noexcept -> pl2d::Point2I {
     return {x, y};
   }
-  auto topright() const -> pl2d::Point2I {
+  [[nodiscard]] auto topright() const noexcept -> pl2d::Point2I {
     return {x + w - 1, y};
   }
-  auto bottomleft() const -> pl2d::Point2I {
+  [[nodiscard]] auto bottomleft() const noexcept -> pl2d::Point2I {
     return {x, y + h - 1};
   }
-  auto bottomright() const -> pl2d::Point2I {
+  [[nodiscard]] auto bottomright() const noexcept -> pl2d::Point2I {
     return {x + w - 1, y + h - 1};
   }
 
-  auto contains(i32 _x, i32 _y) const -> bool {
+  [[nodiscard]] auto contains(i32 _x, i32 _y) const noexcept -> bool {
     if (_x < x || _x >= x + w) return false;
     if (_y < y || _y >= y + h) return false;
     return true;
   }
-  auto contains(const pl2d::Point2I &p) const -> bool {
+  [[nodiscard]] auto contains(const pl2d::Point2I &p) const noexcept -> bool {
     return contains(p.x, p.y);
   }
 };

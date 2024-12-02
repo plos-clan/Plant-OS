@@ -47,6 +47,7 @@
 #undef __wur
 #undef __nonnull
 #undef __attr_dealloc
+#undef __attr_access
 #undef __attribute_pure__
 
 #undef INFINITY

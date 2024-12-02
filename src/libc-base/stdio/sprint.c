@@ -250,9 +250,8 @@ static bool sformat_format(fmtarg *arg, cstr *_fmt, va_list *_va) {
 
 static char *vsprintf_align(char *s, fmtarg *arg) {
   if (!arg->text) return s; // 无输出
-  ssize_t arg_len = strlen(arg->text);
-
-  if (arg->print_ptr) arg_len += 2;
+  ssize_t _arg_len = strlen(arg->text);
+  ssize_t arg_len  = arg->print_ptr ? 2 + 2 * sizeof(void *) : _arg_len;
 
   if (arg->maxlen > 0 && arg_len > arg->maxlen) { // 放不下就进行截断 假如 maxlen 为 25
     if (arg->maxlen <= 3) {                       // This is a long long long long line.
@@ -294,6 +293,8 @@ static char *vsprintf_align(char *s, fmtarg *arg) {
   if (arg->print_ptr) {
     *s++ = '0';
     *s++ = 'x';
+    for (size_t i = _arg_len; i < 2 * sizeof(void *); i++)
+      *s++ = '0';
   }
   while (*arg->text != '\0')
     *s++ = *arg->text++;

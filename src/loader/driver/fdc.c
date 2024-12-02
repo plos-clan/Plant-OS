@@ -80,12 +80,12 @@ void floppy_init() {
   klogf("FDC_VER:0x%x\n", getbyte()); //并且输出到屏幕上
 #endif
   vdisk vd;
-  strcpy(vd.DriveName, "floppy");
-  vd.Read  = Read;
-  vd.Write = Write;
+  strcpy(vd.drive_name, "floppy");
+  vd.read  = Read;
+  vd.write = Write;
   vd.size  = 1474560;
   vd.flag  = 1;
-  register_vdisk(vd);
+  regist_vdisk(vd);
 }
 
 void flint(int *esp) {

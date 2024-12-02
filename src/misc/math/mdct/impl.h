@@ -1,5 +1,10 @@
 #include <misc.h>
 
+// 修改型离散余弦变换
+
+// FT: 浮点类型
+// CT: 复数类型
+
 #ifndef MDCT
 #  define FFT(_x_)  fft##_x_
 #  define MDCT(_x_) mdct##_x_

@@ -52,3 +52,7 @@ finline void load_idt(void *addr, size_t len) {
 finline void load_tr(size_t selector) {
   asm volatile("ltr %0\n\t" : : "m"(selector));
 }
+
+#define asm_mfence ({ asm volatile("mfence\n\t" ::: "memory"); })
+
+#define asm_cflush(addr) ({ asm volatile("clflush (%0)\n\t" ::"r"((size_t)(addr))); })

@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-dlimport int printf(const char *_rest fmt, ...);
+dlimport int printf(cstr _rest fmt, ...) __attr(format(printf, 1, 2));
 
 //* ----------------------------------------------------------------------------------------------------
 //& 内存分配

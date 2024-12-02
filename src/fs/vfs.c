@@ -6,7 +6,7 @@ vfs_node_t rootdir = null;
 
 static void empty_func() {}
 
-struct vfs_callback vfs_empty_callback;
+static struct vfs_callback vfs_empty_callback;
 
 static vfs_callback_t fs_callbacks[256] = {
     [0] = &vfs_empty_callback,
@@ -15,8 +15,33 @@ static int fs_nextid = 1;
 
 #define callbackof(node, _name_) (fs_callbacks[(node)->fsid]->_name_)
 
-vfs_node_t vfs_node_alloc(vfs_node_t parent, cstr name);
+static vfs_node_t vfs_node_alloc(vfs_node_t parent, cstr name) {
+  vfs_node_t node = malloc(sizeof(struct vfs_node));
+  if (node == null) return null;
+  memset(node, 0, sizeof(struct vfs_node));
+  node->parent = parent;
+  node->name   = name ? strdup(name) : null;
+  node->type   = file_none;
+  node->fsid   = parent ? parent->fsid : 0;
+  node->root   = parent ? parent->root : node;
+  if (parent) list_prepend(parent->child, node);
+  return node;
+}
 
+static void vfs_free(vfs_node_t vfs) {
+  if (vfs == null) return;
+  list_free_with(vfs->child, (free_t)vfs_free);
+  vfs_close(vfs);
+  free(vfs->name);
+  free(vfs);
+}
+
+static void vfs_free_child(vfs_node_t vfs) {
+  if (vfs == null) return;
+  list_free_with(vfs->child, (free_t)vfs_free);
+}
+
+// 从字符串中提取路径
 finline char *pathtok(char **_rest sp) {
   char *s = *sp, *e = *sp;
   if (*s == '\0') return null;
@@ -26,7 +51,7 @@ finline char *pathtok(char **_rest sp) {
   return s;
 }
 
-finline void do_open(vfs_node_t file) {
+finline __nnull(1) void do_open(vfs_node_t file) {
   if (file->handle != null) {
     callbackof(file, stat)(file->handle, file);
   } else {
@@ -35,8 +60,9 @@ finline void do_open(vfs_node_t file) {
 }
 
 finline void do_update(vfs_node_t file) {
+  assert(file != null);
   assert(file->fsid != 0 || file->type != file_none);
-  if (file->type == file_none) do_open(file);
+  if (file->type == file_none || file->handle == null) do_open(file);
   assert(file->type != file_none);
 }
 
@@ -57,10 +83,9 @@ int vfs_mkdir(cstr name) {
   char      *save_ptr = path;
   vfs_node_t current  = rootdir;
   for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
-    vfs_node_t father = current;
-    if (streq(buf, ".")) {
-      goto upd;
-    } else if (streq(buf, "..")) {
+    const vfs_node_t father = current;
+    if (streq(buf, ".")) continue;
+    if (streq(buf, "..")) {
       if (current->parent && current->type == file_dir) {
         current = current->parent;
         goto upd;
@@ -140,7 +165,7 @@ int vfs_regist(cstr name, vfs_callback_t callback) {
   return id;
 }
 
-vfs_node_t vfs_do_search(vfs_node_t dir, cstr name) {
+static vfs_node_t vfs_do_search(vfs_node_t dir, cstr name) {
   return list_first(dir->child, data, streq(name, ((vfs_node_t)data)->name));
 }
 
@@ -152,21 +177,17 @@ vfs_node_t vfs_open(cstr str) {
 
   char      *save_ptr = path;
   vfs_node_t current  = rootdir;
-  for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
-    vfs_node_t father = current;
-    if (streq(buf, ".")) {
-      goto upd;
-    } else if (streq(buf, "..")) {
-      if (current->parent && current->type == file_dir) {
-        current = current->parent;
-        goto upd;
-      } else {
-        goto err;
-      }
+  for (const char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
+    if (streq(buf, ".")) continue;
+    if (streq(buf, "..")) {
+      if (current->parent == null) goto err;
+      assert(current->parent->type == file_dir, "parent is not dir");
+      current = current->parent;
+      do_update(current);
+      continue;
     }
     current = vfs_child_find(current, buf);
     if (current == null) goto err;
-  upd:
     do_update(current);
   }
 
@@ -177,36 +198,21 @@ err:
   free(path);
   return null;
 }
-void devfs_regist();
+
+void vfs_update(vfs_node_t node) {
+  do_update(node);
+}
+
 bool vfs_init() {
   for (size_t i = 0; i < sizeof(struct vfs_callback) / sizeof(void *); i++) {
-    ((void **)&vfs_empty_callback)[i] = empty_func;
+    ((void **)&vfs_empty_callback)[i] = &empty_func;
   }
 
-  fatfs_regist();
-  tmpfs_regist();
-  devfs_regist();
   rootdir       = vfs_node_alloc(null, null);
   rootdir->type = file_dir;
   return true;
 }
 
-void vfs_deinit() {
-  // 目前并不支持
-}
-
-vfs_node_t vfs_node_alloc(vfs_node_t parent, cstr name) {
-  vfs_node_t node = malloc(sizeof(struct vfs_node));
-  if (node == null) return null;
-  memset(node, 0, sizeof(struct vfs_node));
-  node->parent = parent;
-  node->name   = name ? strdup(name) : null;
-  node->type   = file_none;
-  node->fsid   = parent ? parent->fsid : 0;
-  node->root   = parent ? parent->root : node;
-  if (parent) list_prepend(parent->child, node);
-  return node;
-}
 int vfs_close(vfs_node_t node) {
   if (node == null) return -1;
   if (node->handle == null) return 0;
@@ -214,22 +220,10 @@ int vfs_close(vfs_node_t node) {
   node->handle = null;
   return 0;
 }
-void vfs_free(vfs_node_t vfs) {
-  if (vfs == null) return;
-  list_free_with(vfs->child, (void (*)(void *))vfs_free);
-  vfs_close(vfs);
-  free(vfs->name);
-  free(vfs);
-}
-void vfs_free_child(vfs_node_t vfs) {
-  if (vfs == null) return;
-  list_free_with(vfs->child, (void (*)(void *))vfs_free);
-}
 
 int vfs_mount(cstr src, vfs_node_t node) {
   if (node == null) return -1;
   if (node->type != file_dir) return -1;
-  void *handle = null;
   for (int i = 1; i < fs_nextid; i++) {
     if (fs_callbacks[i]->mount(src, node) == 0) {
       node->fsid = i;
@@ -241,11 +235,16 @@ int vfs_mount(cstr src, vfs_node_t node) {
 }
 
 int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) {
+  assert(file != null);
+  assert(addr != null);
   do_update(file);
   if (file->type != file_block) return -1;
   return callbackof(file, read)(file->handle, addr, offset, size);
 }
-int vfs_write(vfs_node_t file, void *addr, size_t offset, size_t size) {
+
+int vfs_write(vfs_node_t file, const void *addr, size_t offset, size_t size) {
+  assert(file != null);
+  assert(addr != null);
   do_update(file);
   if (file->type != file_block) return -1;
   return callbackof(file, write)(file->handle, addr, offset, size);
@@ -266,8 +265,8 @@ int vfs_unmount(cstr path) {
       cur->root   = node->root;
       cur->handle = null;
       cur->child  = null;
-      cur->type   = file_none;
-      do_update(cur);
+      // cur->type   = file_none;
+      if (cur->fsid) do_update(cur);
       return 0;
     }
   }
