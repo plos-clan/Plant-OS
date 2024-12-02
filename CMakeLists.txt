@@ -29,6 +29,7 @@ include(cmake/mklib)
 include(cmake/util)
 include(cmake/add_binary)
 include(cmake/mkheader)
+include(cmake/ubscan)
 
 add_subdirectory(include)
 

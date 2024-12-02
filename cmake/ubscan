@@ -1,0 +1,6 @@
+macro(ubscan)
+  foreach(type ${ARGN})
+    add_compile_flag("-fsanitize=${type}")
+    add_link_flag("-fno-sanitize=${type}")
+  endforeach()
+endmacro(ubscan)

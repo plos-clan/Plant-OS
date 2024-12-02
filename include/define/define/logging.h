@@ -18,14 +18,40 @@
 #define STR_ERROR "[" COLOR_ERROR "Error" CEND "] "
 #define STR_FATAL "[" COLOR_FATAL "Fatal" CEND "] "
 
+static inline
+    __attribute__((always_inline, nonnull(1, 2), access(read_only, 1, 3), access(read_only, 2, 3)))
+#if !defined(__cplusplus) && __STDC_VERSION__ < 202300L
+    _Bool
+#else
+    bool
+#endif
+    _log_memeq_(const void *a, const void *b, __UINTPTR_TYPE__ size) {
+  const __UINT8_TYPE__ *p = (const __UINT8_TYPE__ *)a;
+  const __UINT8_TYPE__ *q = (const __UINT8_TYPE__ *)b;
+  for (__UINTPTR_TYPE__ i = 0; i < size; i++) {
+    if (p[i] != q[i]) return false;
+  }
+  return true;
+}
+
 static __attribute__((nonnull(1))) const char *_log_basename_(const char *path) {
-  int i = 0;
+  __INTPTR_TYPE__ i = 0;
   while (path[i] != '\0')
     i++;
   for (i--; i >= 0; i--) {
     if (path[i] == '/' || path[i] == '\\') break;
   }
   return path + i + 1;
+}
+
+static __attribute__((nonnull(1))) const char *_log_relative_path_(const char *path) {
+  __INTPTR_TYPE__ i = 0;
+  while (path[i] != '\0')
+    i++;
+  for (__INTPTR_TYPE__ j = i - 10; j >= 0; j--) {
+    if (_log_memeq_(path + j, "/Plant-OS/", 10)) return path + j + 10;
+  }
+  return path;
 }
 
 #define ARG_LOGINFO_FILE _log_basename_(__FILE__)
