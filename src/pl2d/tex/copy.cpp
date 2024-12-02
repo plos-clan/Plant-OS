@@ -5,7 +5,7 @@ namespace pl2d {
 
 template <typename T>
 auto BaseTexture<T>::copy() -> BaseTexture<T> * {
-  auto *d = new BaseTexture<T>(width, height, pitch);
+  auto *d = new BaseTexture(width, height, pitch);
   if (d == null) return null;
   d->copy_from(*this);
   return d;
@@ -25,8 +25,10 @@ auto BaseTexture<T>::copy_from(const BaseTexture<T2> &d) -> bool {
       memcpy(&pixels[i * pitch], &d.pixels[i * d.pitch], width * sizeof(T));
     }
   } else {
-    for (const auto [x, y] : d.size_rect()) {
-      (*this)(x, y) = d(x, y);
+    for (u32 y = 0; y < height; y++) {
+      for (u32 x = 0; x < width; x++) {
+        (*this)(x, y) = d(x, y);
+      }
     }
   }
   return true;

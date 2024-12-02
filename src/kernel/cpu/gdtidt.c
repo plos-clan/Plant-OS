@@ -2,7 +2,7 @@
 
 void ide_irq();
 
-void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
+void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; /* G_bit = 1 */
     limit /= 0x1000;
@@ -15,7 +15,7 @@ void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
   sd->base_high    = (base >> 24) & 0xff;
 }
 
-void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
+void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar) {
   gd->offset_low   = offset & 0xffff;
   gd->selector     = selector;
   gd->dw_count     = (ar >> 8) & 0xff;

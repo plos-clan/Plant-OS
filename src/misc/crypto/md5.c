@@ -40,7 +40,7 @@ static const u32 MD5_ac[4][16] = {
      0xeb86d391}
 };
 
-static void MD5_iterate(MD5_t *_rest m) {
+static void MD5_iterate(MD5_t *_rest m) noexcept {
   u32 temp; // 临时变量
 
   u32 h[4]; // 临时变量
@@ -87,7 +87,7 @@ static void MD5_iterate(MD5_t *_rest m) {
   *(v4u32 *)m->h += *(v4u32 *)h;
 }
 
-void MD5_init(MD5_t *_rest m) {
+void MD5_init(MD5_t *_rest m) noexcept {
   if (!m) return;
   *m = (MD5_t){
       {},
@@ -95,7 +95,7 @@ void MD5_init(MD5_t *_rest m) {
   };
 }
 
-void MD5_input(MD5_t *_rest m, const void *_rest data, size_t len) {
+void MD5_input(MD5_t *_rest m, const void *_rest data, size_t len) noexcept {
   if (!m || !data || !len) return;
   for (size_t i = 0; i < len; i++) {
     m->b[m->p++] = ((const byte *)data)[i];
@@ -107,7 +107,7 @@ void MD5_input(MD5_t *_rest m, const void *_rest data, size_t len) {
   m->s += len;
 }
 
-const void *MD5_end(MD5_t *_rest m) {
+const void *MD5_end(MD5_t *_rest m) noexcept {
   if (!m) return NULL;
   m->b[m->p++] = 0x80;
   for (; m->p != 56; m->p++) {
@@ -122,12 +122,12 @@ const void *MD5_end(MD5_t *_rest m) {
   return m->h;
 }
 
-const void *MD5_val(const MD5_t *_rest m) {
+const void *MD5_val(const MD5_t *_rest m) noexcept {
   if (!m) return NULL;
   return m->h;
 }
 
-void MD5_print(const MD5_t *_rest m) {
+void MD5_print(const MD5_t *_rest m) noexcept {
   if (!m) return;
   for (int i = 0; i < 16; i++) {
     printf("%02x", ((byte *)m->h)[i]);
@@ -135,7 +135,7 @@ void MD5_print(const MD5_t *_rest m) {
   printf("\n");
 }
 
-const void *MD5(MD5_t *_rest m, const void *_rest data, size_t len) {
+const void *MD5(MD5_t *_rest m, const void *_rest data, size_t len) noexcept {
   if (!m) return NULL;
   MD5_init(m);
   MD5_input(m, data, len);

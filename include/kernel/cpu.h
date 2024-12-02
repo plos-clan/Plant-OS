@@ -113,8 +113,8 @@ typedef struct GateDescriptor {
   i16  offset_high;
 } GateDescriptor;
 
-void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar);
-void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar);
+void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar);
+void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar);
 
 void asm_error0();
 void asm_error1();

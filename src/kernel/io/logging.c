@@ -164,6 +164,7 @@ void puts(cstr s) {
 //; 基本日志记录函数
 //* ----------------------------------------------------------------------------------------------------
 
+finline void log_outs(cstr s) __nnull(1);
 finline void log_outs(cstr s) {
   for (size_t i = 0; s[i] != '\0'; i++) {
     waituntil(asm_in8(PORT + 5) & 0x20);

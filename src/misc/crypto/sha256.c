@@ -33,7 +33,7 @@ static const u32 SHA256_K[64] = {
     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2, //
 };
 
-static void SHA256_iterate(SHA256_t *_rest s) {
+static void SHA256_iterate(SHA256_t *_rest s) noexcept {
   u32 temp1, temp2; // 临时变量
   u32 word[64];     // （SHA256）字
 
@@ -64,7 +64,7 @@ static void SHA256_iterate(SHA256_t *_rest s) {
   *(v8u32 *)s->h += *(v8u32 *)h; // 保存迭代结果
 }
 
-void SHA256_init(SHA256_t *_rest s) {
+void SHA256_init(SHA256_t *_rest s) noexcept {
   if (!s) return;
   *s = (SHA256_t){
       {},
@@ -75,7 +75,7 @@ void SHA256_init(SHA256_t *_rest s) {
   };
 }
 
-void SHA256_input(SHA256_t *_rest s, const void *_rest data, size_t len) {
+void SHA256_input(SHA256_t *_rest s, const void *_rest data, size_t len) noexcept {
   if (!s || !data || !len) return;
   for (size_t i = 0; i < len; i++) {
     s->b[s->p++] = ((const byte *)data)[i];
@@ -87,7 +87,7 @@ void SHA256_input(SHA256_t *_rest s, const void *_rest data, size_t len) {
   s->s += len;
 }
 
-const void *SHA256_end(SHA256_t *_rest s) {
+const void *SHA256_end(SHA256_t *_rest s) noexcept {
   if (!s) return NULL;
   s->b[s->p++] = 0x80;
   for (; s->p != 56; s->p++) {
@@ -102,12 +102,12 @@ const void *SHA256_end(SHA256_t *_rest s) {
   return s->h;
 }
 
-const void *SHA256_val(const SHA256_t *_rest s) {
+const void *SHA256_val(const SHA256_t *_rest s) noexcept {
   if (!s) return NULL;
   return s->h;
 }
 
-void SHA256_print(const SHA256_t *_rest s) {
+void SHA256_print(const SHA256_t *_rest s) noexcept {
   if (!s) return;
   for (int i = 0; i < 8; i++) {
     printf("%08x", s->h[i]);
@@ -115,7 +115,7 @@ void SHA256_print(const SHA256_t *_rest s) {
   printf("\n");
 }
 
-const void *SHA256(SHA256_t *_rest s, const void *_rest data, size_t len) {
+const void *SHA256(SHA256_t *_rest s, const void *_rest data, size_t len) noexcept {
   if (!s) return NULL;
   SHA256_init(s);
   SHA256_input(s, data, len);

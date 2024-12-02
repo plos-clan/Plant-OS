@@ -18,9 +18,9 @@
 #define STR_ERROR "[" COLOR_ERROR "Error" CEND "] "
 #define STR_FATAL "[" COLOR_FATAL "Fatal" CEND "] "
 
-static const char *_log_basename_(const char *path) {
+static __attribute__((nonnull(1))) const char *_log_basename_(const char *path) {
   int i = 0;
-  while (path[i])
+  while (path[i] != '\0')
     i++;
   for (i--; i >= 0; i--) {
     if (path[i] == '/' || path[i] == '\\') break;

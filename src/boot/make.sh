@@ -10,7 +10,6 @@ mcopy -i disk.img loader.bin ::
 mcopy -i disk.img kernel.bin ::
 mcopy -i disk.img v86_service.bin ::
 
-
 qemu-img create hd.img 128M
 mformat -t 64 -h 64 -i hd.img
 mcopy -i hd.img testapp.bin ::

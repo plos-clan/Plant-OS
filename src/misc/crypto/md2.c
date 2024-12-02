@@ -35,7 +35,7 @@ static const u8 MD2_S[256] = {
     0xDB, 0x99, 0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14, //
 };
 
-static void MD2_iterate(MD2_t *_rest m) {
+static void MD2_iterate(MD2_t *_rest m) noexcept {
   byte h[48];
 
   byte t;
@@ -65,12 +65,12 @@ static void MD2_iterate(MD2_t *_rest m) {
   *(v8u8 *)(m->h + 8) = *(v8u8 *)(h + 8);
 }
 
-void MD2_init(MD2_t *_rest m) {
+void MD2_init(MD2_t *_rest m) noexcept {
   if (!m) return;
   *m = (MD2_t){};
 }
 
-void MD2_input(MD2_t *_rest m, const void *_rest data, size_t len) {
+void MD2_input(MD2_t *_rest m, const void *_rest data, size_t len) noexcept {
   if (!m) return;
   for (size_t i = 0; i < len; i++) {
     m->b[m->p++] = ((const byte *)data)[i];
@@ -81,7 +81,7 @@ void MD2_input(MD2_t *_rest m, const void *_rest data, size_t len) {
   }
 }
 
-const void *MD2_end(MD2_t *_rest m) {
+const void *MD2_end(MD2_t *_rest m) noexcept {
   if (!m) return NULL;
 
   for (int i = m->p; i < 16; i++) //
@@ -95,12 +95,12 @@ const void *MD2_end(MD2_t *_rest m) {
   return m->h;
 }
 
-const void *MD2_val(const MD2_t *_rest m) {
+const void *MD2_val(const MD2_t *_rest m) noexcept {
   if (!m) return NULL;
   return m->h;
 }
 
-void MD2_print(const MD2_t *_rest m) {
+void MD2_print(const MD2_t *_rest m) noexcept {
   if (!m) return;
   for (int i = 0; i < 16; i++) {
     printf("%02x", m->h[i]);
@@ -108,7 +108,7 @@ void MD2_print(const MD2_t *_rest m) {
   printf("\n");
 }
 
-const void *MD2(MD2_t *_rest m, const void *_rest data, size_t len) {
+const void *MD2(MD2_t *_rest m, const void *_rest data, size_t len) noexcept {
   if (!m) return NULL;
   MD2_init(m);
   MD2_input(m, data, len);
