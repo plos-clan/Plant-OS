@@ -69,7 +69,7 @@ void mpi_lshift2(u32 *a, size_t b, size_t len) {
     a[i] = (a[i - _b] << b) | (a[i - _b - 1] >> (32 - b));
   }
   a[_b] = a[0] << b;
-  for (ssize_t i = _b - 1; i >= 0; i--)
+  for (size_t i = 0; i < _b; i++)
     a[i] = 0;
 }
 // c = a << b

@@ -154,7 +154,7 @@ static ssize_t mibitstream_read_bitsi(mibitstream_t stream, size_t nbits) {
   }
   int sign = mibitstream_read_bit(stream);
   if (sign == -1) return 0;
-  return sign ? ~(((size_t)1 << (nbits - 1)) - 1) | bits : bits;
+  return sign ? (ssize_t) ~(((size_t)1 << (nbits - 1)) - 1) | bits : bits;
 }
 
 static mobitstream_t mobitstream_alloc(size_t capacity) {

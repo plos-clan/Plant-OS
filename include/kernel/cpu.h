@@ -102,15 +102,20 @@ typedef struct __PACKED__ TSS32 {
 #define AR_TSS32     0x0089
 
 typedef struct SegmentDescriptor {
-  i16  limit_low, base_low;
-  char base_mid, access_right;
-  char limit_high, base_high;
+  u16  limit_low;
+  u16  base_low;
+  byte base_mid;
+  byte access_right;
+  byte limit_high;
+  byte base_high;
 } SegmentDescriptor;
 
 typedef struct GateDescriptor {
-  i16  offset_low, selector;
-  char dw_count, access_right;
-  i16  offset_high;
+  u16  offset_low;
+  u16  selector;
+  byte dw_count;
+  byte access_right;
+  u16  offset_high;
 } GateDescriptor;
 
 void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar);

@@ -346,7 +346,7 @@ void hda_init() {
     return;
   }
   write_pci(hda_bus, hda_slot, hda_func, 0x04,
-            ((read_pci(hda_bus, hda_slot, hda_func, 0x04) & ~(1 << 10)) | (1 << 2) |
+            ((read_pci(hda_bus, hda_slot, hda_func, 0x04) & ~((u32)1 << 10)) | (1 << 2) |
              (1 << 1))); // enable interrupts, enable bus mastering, enable MMIO space
   hda_buffer_ptr = page_alloc(4096 * 2);
   info("hda card found at bus %d slot %d func %d", hda_bus, hda_slot, hda_func);
@@ -379,7 +379,7 @@ void hda_init() {
 
   irq_mask_clear(0xb);
   regist_intr_handler(0xb + 0x20, asm_hda_handler);
-  mem_set32(hda_base + 0x20, (1 << 31) | (1 << input_stream_count));
+  mem_set32(hda_base + 0x20, ((u32)1 << 31) | ((u32)1 << input_stream_count));
 
   info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));
   mem_set32(hda_base + 0x70, 0);

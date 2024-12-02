@@ -59,7 +59,7 @@ static void init_task(mtask *t, int id) {
   t->my               = 0;
   t->line             = NULL;
   t->timer            = NULL;
-  t->waittid          = -1;
+  t->waittid          = U32_MAX;
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
   t->alloced          = 0;
@@ -136,7 +136,7 @@ void task_next() {
           p->state = RUNNING;
           goto OK;
         }
-        if (p->waittid == -1) continue;
+        if (p->waittid == U32_MAX) continue;
       }
       // if (p->state == DIED) { p->state = EMPTY; }
       continue;

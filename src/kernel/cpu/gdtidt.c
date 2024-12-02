@@ -4,7 +4,7 @@ void ide_irq();
 
 void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar) {
   if (limit > 0xfffff) {
-    ar    |= 0x8000; /* G_bit = 1 */
+    ar    |= 0x8000; // G_bit = 1
     limit /= 0x1000;
   }
   sd->limit_low    = limit & 0xffff;

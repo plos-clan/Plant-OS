@@ -22,5 +22,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     unreachable #
     unsigned-integer-overflow #
     vla-bound #
+    implicit-integer-arithmetic-value-change #
   )
 endif()

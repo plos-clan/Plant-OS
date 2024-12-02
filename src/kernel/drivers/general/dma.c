@@ -12,16 +12,20 @@ static const byte PAGE_PORT[8]  = {0x87, 0x83, 0x81, 0x82, 0x8F, 0x8B, 0x89, 0x8
 static const byte ADDR_PORT[8]  = {0x00, 0x02, 0x04, 0x06, 0xC0, 0xC4, 0xC8, 0xCC};
 static const byte COUNT_PORT[8] = {0x01, 0x03, 0x05, 0x07, 0xC2, 0xC6, 0xCA, 0xCE};
 
+static const size_t DMA_ADDR_MAX = (size_t)1 << 24;
+
 void dma_start(byte mode, byte channel, void *address, size_t size) {
   mode |= (channel % 4); // What the fuck ???
                          // 这什么奇葩标准
 
   if (channel > 4 && size % 2 != 0) fatal("16 位模式下大小必须为 2 byte 的整数倍");
 
-  size_t addr   = (size_t)address;
-  byte   page   = addr >> 16;
-  u16    offset = (channel > 4 ? addr / 2 : addr);
-  size          = (channel > 4 ? size / 2 : size) - 1;
+  size_t addr = (size_t)address;
+  assert(addr < DMA_ADDR_MAX, "Address out of range");
+  assert(addr + size < DMA_ADDR_MAX, "Address out of range");
+  byte page   = addr >> 16;
+  u16  offset = (channel > 4 ? addr / 2 : addr) & 0xffff;
+  size        = (channel > 4 ? size / 2 : size) - 1;
 
   // 我们不想别的事情来打扰
   var flag = asm_get_flags();
