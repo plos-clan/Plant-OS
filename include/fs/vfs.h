@@ -44,7 +44,7 @@ typedef void (*vfs_resize_t)(void *current, u64 size);
  *\param offset   写入的偏移
  *\param size     写入的大小
  */
-typedef int (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t size) __nnull(2)
+typedef size_t (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t size) __nnull(2)
     __attr_readonly(2, 4);
 
 /**
@@ -55,7 +55,7 @@ typedef int (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t s
  *\param offset   读取的偏移
  *\param size     读取的大小
  */
-typedef int (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size) __nnull(2)
+typedef size_t (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size) __nnull(2)
     __attr_writeonly(2, 4);
 
 /**

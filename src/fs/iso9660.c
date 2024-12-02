@@ -431,13 +431,13 @@ int iso9660_mkfile(void *parent, cstr name, vfs_node_t node) {
   return -1;
 }
 
-int iso9660_readfile(file_t file, void *addr, size_t offset, size_t size) {
+size_t iso9660_readfile(file_t file, void *addr, size_t offset, size_t size) {
   if (file->type == file_dir) return -1;
   l9660_file  *fp = file->handle;
   l9660_status st;
   st = l9660_seek(fp, SEEK_SET, offset);
   if (st != L9660_OK) return -1;
-  size_t read = 0;
+  size_t read       = 0;
   size_t total_read = 0;
   while (total_read < size) {
     st = l9660_read(fp, (char *)addr + total_read, size - total_read, &read);
@@ -446,10 +446,10 @@ int iso9660_readfile(file_t file, void *addr, size_t offset, size_t size) {
     if (read == 0) break;
   }
   if (st != L9660_OK) return -1;
-  return 0;
+  return total_read;
 }
 
-int iso9660_writefile(file_t file, const void *addr, size_t offset, size_t size) {
+size_t iso9660_writefile(file_t file, const void *addr, size_t offset, size_t size) {
   // normally, iso9660 is read-only
   // so we don't need to implement this function
   return -1;

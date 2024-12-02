@@ -1,13 +1,18 @@
 #pragma once
 #include <define.h>
 
+typedef enum {
+  VDISK_BLOCK,
+  VDISK_STREAM,
+} vdisk_flag_t;
 typedef struct {
   void (*read)(int drive, u8 *buffer, u32 number, u32 lba);
   void (*write)(int drive, u8 *buffer, u32 number, u32 lba);
-  int  flag;
-  u32  size;        // 大小
-  u32  sector_size; // 扇区大小
-  char drive_name[50];
+  int          flag;
+  u32          size;        // 大小
+  u32          sector_size; // 扇区大小
+  vdisk_flag_t type;
+  char         drive_name[50];
 } vdisk;
 
 int  vdisk_init();

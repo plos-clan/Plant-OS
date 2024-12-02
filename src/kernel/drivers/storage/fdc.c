@@ -111,6 +111,7 @@ void floppy_init() {
   vd.size        = 1474560;
   vd.flag        = 1;
   vd.sector_size = 512;
+  vd.type = VDISK_BLOCK;
   regist_vdisk(vd);
 }
 
