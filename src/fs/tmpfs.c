@@ -38,7 +38,7 @@ int tmpfs_mkfile(void *parent, cstr name, vfs_node_t node) {
   return 0;
 }
 
-int tmpfs_readfile(file_t file, void *addr, size_t offset, size_t size) {
+size_t tmpfs_readfile(file_t file, void *addr, size_t offset, size_t size) {
   if (file == null || addr == null) return -1;
 
   // size_t start_block = offset / FILE_BLKSIZE;

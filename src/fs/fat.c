@@ -43,7 +43,7 @@ int fatfs_mkfile(void *parent, cstr name, vfs_node_t node) {
   return 0;
 }
 
-int fatfs_readfile(file_t file, void *addr, size_t offset, size_t size) {
+size_t fatfs_readfile(file_t file, void *addr, size_t offset, size_t size) {
   if (file == null || addr == null) return -1;
   FRESULT res;
   res = f_lseek(file->handle, offset);
@@ -51,10 +51,10 @@ int fatfs_readfile(file_t file, void *addr, size_t offset, size_t size) {
   u32 n;
   res = f_read(file->handle, addr, size, &n);
   if (res != FR_OK) return -1;
-  return 0;
+  return n;
 }
 
-int fatfs_writefile(file_t file, const void *addr, size_t offset, size_t size) {
+size_t fatfs_writefile(file_t file, const void *addr, size_t offset, size_t size) {
   if (file == null || addr == null) return -1;
   FRESULT res;
   res = f_lseek(file->handle, offset);
@@ -62,7 +62,7 @@ int fatfs_writefile(file_t file, const void *addr, size_t offset, size_t size) {
   u32 n;
   res = f_write(file->handle, addr, size, &n);
   if (res != FR_OK) return -1;
-  return 0;
+  return n;
 }
 
 void fatfs_open(void *parent, cstr name, vfs_node_t node) {

@@ -216,7 +216,7 @@ int printf(cstr _rest fmt, ...) {
     print_buf[len - 1] = '\0';
     len--;
   }
-  klogi("print: %s", print_buf);
+  // klogi("print: %s", print_buf);
   return rets;
 }
 

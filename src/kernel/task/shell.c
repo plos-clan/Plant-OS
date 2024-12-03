@@ -227,10 +227,17 @@ void shell() {
         continue;
       }
       size_t size = p->size;
-      byte  *buf  = malloc(size + 1);
-      vfs_read(p, buf, 0, size);
-      buf[size] = '\0';
-      printf("%s\n", buf);
+      byte  *buf  = malloc(1024);
+      size_t pos  = 0;
+      while (1) {
+        size_t len = vfs_read(p, buf, pos, 1024);
+        if (len == 0) break;
+        for (int i = 0; i < len; i++) {
+          printf("%02x ", buf[i]);
+          if ((i + 1) % 32 == 0) printf("\n");
+        }
+        pos += len;
+      }
       free(buf);
     } else if (strneq(ch, "readhex ", 8)) {
       char      *s = ch + 8;

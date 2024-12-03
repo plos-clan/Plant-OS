@@ -49,7 +49,12 @@ void stdout_write(int drive, u8 *buffer, u32 number, u32 lba) {
     putchar(buffer[i]);
   }
 }
-
+void random_read(int drive, u8 *buffer, u32 number, u32 lba) {
+  for (int i = 0; i < number; i++) {
+    buffer[i] = rand() % 256;
+  }
+}
+void  random_write(int drive, u8 *buffer, u32 number, u32 lba) {}
 char *GetSVGACharOEMString();
 bool  is_vbox = false;
 
@@ -91,8 +96,18 @@ void init() {
   vd.size        = 1;
   vd.read        = (void *)stdout_read;
   vd.write       = stdout_write;
+  vd.type        = VDISK_STREAM;
   regist_vdisk(vd);
-
+  srand(timerctl.count);
+  vdisk rnd;
+  strcpy(rnd.drive_name, "random");
+  rnd.flag        = 1;
+  rnd.sector_size = 1;
+  rnd.size        = 1;
+  rnd.read        = (void *)random_read;
+  rnd.write       = random_write;
+  rnd.type        = VDISK_STREAM;
+  regist_vdisk(rnd);
   vfs_mkdir("/fatfs1");
   vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 
