@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-#define EFLAGS_AC_BIT 0x00040000
+#define EFLAGS_AC_BIT ((size_t)0x00040000)
 
 size_t memtest_sub(size_t, size_t);
 

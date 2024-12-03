@@ -1,6 +1,8 @@
 #include <libc-base.h>
 
-#ifdef __x86_64__
+#if 0
+
+#  ifdef __x86_64__
 
 void mpi_set0(u64 *a, size_t len) {
   memset(a, 0, len * 8);
@@ -192,5 +194,7 @@ char *mpi_tostr(char *buf, size_t buflen, u64 *_n, size_t len, int b, bool _sign
   if (neg) *--s = '-';
   return s;
 }
+
+#  endif
 
 #endif

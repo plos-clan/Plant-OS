@@ -9,7 +9,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     implicit-unsigned-integer-truncation #
     implicit-integer-sign-change #
     integer-divide-by-zero #
-    implicit-bitfield-conversion #
     nonnull-attribute #
     # null #
     nullability #
@@ -22,5 +21,27 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     unreachable #
     unsigned-integer-overflow #
     vla-bound #
+    implicit-integer-arithmetic-value-change #
   )
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19)
+    ubscan(implicit-bitfield-conversion)
+  endif()
+else()
+  # 喜报！编译错误！
+  # ubscan(
+  #   bool #
+  #   builtin #
+  #   bounds #
+  #   enum #
+  #   float-cast-overflow #
+  #   float-divide-by-zero #
+  #   integer-divide-by-zero #
+  #   nonnull-attribute #
+  #   return #
+  #   returns-nonnull-attribute #
+  #   shift #
+  #   signed-integer-overflow #
+  #   unreachable #
+  #   vla-bound #
+  # )
 endif()

@@ -111,6 +111,7 @@ void floppy_init() {
   vd.size        = 1474560;
   vd.flag        = 1;
   vd.sector_size = 512;
+  vd.type = VDISK_BLOCK;
   regist_vdisk(vd);
 }
 
@@ -234,6 +235,7 @@ static int getbyte() {
     }
     asm_in8(0x80); /* 延时 */
   }
+  kloge("getbyte: timeout");
   return -1; /* 没读取到 */
 }
 
@@ -270,8 +272,8 @@ static int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
   set_waiter(current_task());
   int   head, track, sector, tries, copycount = 0;
   byte *p_tbaddr = (byte *)0x80000; // 512byte
-      // 缓冲区（大家可以放心，我们再page.c已经把这里设置为占用了）
-  byte *p_blockbuff = blockbuff; // r/w的数据缓冲区
+                                    // 缓冲区（大家可以放心，我们再page.c已经把这里设置为占用了）
+  byte *p_blockbuff = blockbuff;    // r/w的数据缓冲区
 
   /* 获取block对应的ths */
   block2hts(block, &track, &head, &sector);

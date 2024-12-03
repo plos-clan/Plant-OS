@@ -13,8 +13,11 @@ typedef struct base_address_register {
 } base_address_register;
 
 u32 read_pci(u8 bus, u8 device, u8 function, u8 registeroffset) {
-  u32 id = 1 << 31 | ((bus & 0xff) << 16) | ((device & 0x1f) << 11) | ((function & 0x07) << 8) |
-           (registeroffset & 0xfc);
+  u32 id = (u32)1 << 31                    //
+           | (((u32)bus & 0xff) << 16)     //
+           | (((u32)device & 0x1f) << 11)  //
+           | (((u32)function & 0x07) << 8) //
+           | ((u32)registeroffset & 0xfc);
   asm_out32(PCI_COMMAND_PORT, id);
   u32 result = asm_in32(PCI_DATA_PORT);
   return result >> (8 * (registeroffset % 4));
@@ -26,8 +29,11 @@ u32 read_bar_n(u8 bus, u8 device, u8 function, u8 bar_n) {
 }
 
 void write_pci(u8 bus, u8 device, u8 function, u8 registeroffset, u32 value) {
-  u32 id = 1 << 31 | ((bus & 0xff) << 16) | ((device & 0x1f) << 11) | ((function & 0x07) << 8) |
-           (registeroffset & 0xfc);
+  u32 id = (u32)1 << 31                    //
+           | (((u32)bus & 0xff) << 16)     //
+           | (((u32)device & 0x1f) << 11)  //
+           | (((u32)function & 0x07) << 8) //
+           | ((u32)registeroffset & 0xfc);
   asm_out32(PCI_COMMAND_PORT, id);
   asm_out32(PCI_DATA_PORT, value);
 }
@@ -58,10 +64,10 @@ static base_address_register get_base_address_register(u8 bus, u8 device, u8 fun
     case 2: // 64
       break;
     }
-    result.address      = (u8 *)(bar_value & ~0x3);
+    result.address      = (u8 *)(bar_value & ~(u32)0x3);
     result.prefetchable = 0;
   } else {
-    result.address      = (u8 *)(bar_value & ~0x3);
+    result.address      = (u8 *)(bar_value & ~(u32)0x3);
     result.prefetchable = 0;
   }
   return result;

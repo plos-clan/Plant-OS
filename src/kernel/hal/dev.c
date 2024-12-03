@@ -27,49 +27,67 @@ static int devfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   node->fsid = 0; // 交给vfs处理
   return 0;
 }
-static void dummy() {}
+static void   dummy() {}
 // offset 必须能被扇区大小整除
-static int  devfs_read(void *file, void *addr, size_t offset, size_t size) {
-  int dev_id = (int)file;
-  int sector_size;
+static size_t devfs_read(void *file, void *addr, size_t offset, size_t size) {
+  int    dev_id = (int)file;
+  size_t sector_size;
+  size_t sectors_to_do;
   if (vdisk_ctl[dev_id].flag == 0) return -1;
-  sector_size                     = vdisk_ctl[dev_id].sector_size;
-  int   padding_up_to_sector_size = PADDING_UP(size, sector_size);
+  sector_size                      = vdisk_ctl[dev_id].sector_size;
+  size_t padding_up_to_sector_size = PADDING_UP(size, sector_size);
+  offset                           = PADDING_UP(offset, sector_size);
   void *buf;
+  if (vdisk_ctl[dev_id].type == VDISK_STREAM) goto read;
+  if (offset > vdisk_ctl[dev_id].size) return 0;
+  if (vdisk_ctl[dev_id].size < offset + padding_up_to_sector_size) {
+    // 计算需要读取的扇区数
+    padding_up_to_sector_size = vdisk_ctl[dev_id].size - offset;
+    if (size > padding_up_to_sector_size) { size = padding_up_to_sector_size; }
+  }
+read:
+  sectors_to_do = padding_up_to_sector_size / sector_size;
   if (padding_up_to_sector_size == size) {
     buf = addr;
   } else {
     buf = page_alloc(padding_up_to_sector_size);
   }
-  int sectors_to_do = size / sector_size;
   vdisk_read(offset / sector_size, sectors_to_do, buf, dev_id);
   if (padding_up_to_sector_size != size) {
     memcpy(addr, buf, size);
     page_free(buf, padding_up_to_sector_size);
   }
-  return 0;
+  return size;
 }
-static int devfs_write(void *file, const void *addr, size_t offset, size_t size) {
-  int dev_id = (int)file;
-  int sector_size;
+static size_t devfs_write(void *file, const void *addr, size_t offset, size_t size) {
+  int    dev_id = (int)file;
+  size_t sector_size;
+  size_t sectors_to_do;
   if (vdisk_ctl[dev_id].flag == 0) return -1;
-  sector_size                     = vdisk_ctl[dev_id].sector_size;
-  int   padding_up_to_sector_size = PADDING_UP(size, sector_size);
+  sector_size                      = vdisk_ctl[dev_id].sector_size;
+  size_t padding_up_to_sector_size = PADDING_UP(size, sector_size);
+  offset                           = PADDING_UP(offset, sector_size);
+
   void *buf;
+  if (vdisk_ctl[dev_id].type == VDISK_STREAM) goto write;
+  if (offset > vdisk_ctl[dev_id].size) return 0;
+  if (vdisk_ctl[dev_id].size < offset + padding_up_to_sector_size) {
+    padding_up_to_sector_size = vdisk_ctl[dev_id].size - offset;
+    if (size > padding_up_to_sector_size) { size = padding_up_to_sector_size; }
+  }
+write:
+  sectors_to_do = padding_up_to_sector_size / sector_size;
+
   if (padding_up_to_sector_size == size) {
     buf = (void *)addr;
   } else {
     buf = page_alloc(padding_up_to_sector_size);
-    memset(buf, 0, padding_up_to_sector_size);
+    vdisk_read(offset / sector_size, sectors_to_do, buf, dev_id);
     memcpy(buf, addr, size);
   }
-  int sectors_to_do = size / sector_size;
   vdisk_write(offset / sector_size, sectors_to_do, buf, dev_id);
-  if (padding_up_to_sector_size != size) {
-    memcpy(buf, addr, size);
-    page_free(buf, padding_up_to_sector_size);
-  }
-  return 0;
+  if (padding_up_to_sector_size != size) { page_free(buf, padding_up_to_sector_size); }
+  return size;
 }
 int devfs_stat(void *handle, vfs_node_t node) {
   if (node->type == file_dir) return 0;

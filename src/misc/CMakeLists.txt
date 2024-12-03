@@ -1,3 +1,4 @@
+include(../../cmake/use-ubscan)
 add_compile_flag("-fvisibility=hidden") # 防止过多的导出条目 (动态链接)
 
 file(GLOB_RECURSE c_files "*.c")

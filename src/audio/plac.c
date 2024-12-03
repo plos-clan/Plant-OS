@@ -163,11 +163,11 @@ void plac_read_data(plac_decompress_t plac, quantized_t q) {
   void *buf = malloc(size);
   mistream_read(plac->stream, buf, size);
   mibitstream_t s = mibitstream_alloc(buf, size);
-  q->min          = mibitstream_read_bits(s, 16);
-  q->mid          = mibitstream_read_bits(s, 16);
+  q->min          = (i16)mibitstream_read_bits(s, 16);
+  q->mid          = (i16)mibitstream_read_bits(s, 16);
   bool *bitmap    = malloc(q->len);
   for (size_t i = 0; i < q->len; i++) {
-    bitmap[i] = mibitstream_read_bit(s);
+    bitmap[i] = mibitstream_read_bit(s) == 1;
   }
   for (size_t i = 0; i < q->len; i++) {
     const i16 data = bitmap[i] ? mibitstream_read_bitsi(s, q->nbit) : 0;

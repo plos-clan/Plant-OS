@@ -29,9 +29,17 @@ static inline
   const __UINT8_TYPE__ *p = (const __UINT8_TYPE__ *)a;
   const __UINT8_TYPE__ *q = (const __UINT8_TYPE__ *)b;
   for (__UINTPTR_TYPE__ i = 0; i < size; i++) {
+#if !defined(__cplusplus) && __STDC_VERSION__ < 202300L
+    if (p[i] != q[i]) return (_Bool)0;
+#else
     if (p[i] != q[i]) return false;
+#endif
   }
+#if !defined(__cplusplus) && __STDC_VERSION__ < 202300L
+  return (_Bool)1;
+#else
   return true;
+#endif
 }
 
 static __attribute__((nonnull(1))) const char *_log_basename_(const char *path) {

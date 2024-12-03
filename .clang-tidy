@@ -11,4 +11,12 @@ Checks: >
   -bugprone-easily-swappable-parameters,
   -readability-isolate-declaration,
   -bugprone-sizeof-expression,
+  -modernize-use-nullptr,
+
+# bugprone-easily-swappable-parameters
+#     我一个函数传递几个连续的同类型参数怎么你了？
+
+# 为啥要关 modernize-use-nullptr？因为他善。
+#     哥们给我 C 代码报 warning 这 clang-tidy 咋写的？
+
 FormatStyle: none

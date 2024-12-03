@@ -239,6 +239,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
       vd.write         = Write;
       vd.size          = ide_devices[i].Size * 512;
       vd.sector_size   = vd.flag == 2 ? 2048 : 512;
+      vd.type          = VDISK_BLOCK;
       int c            = regist_vdisk(vd);
       drive_mapping[c] = i;
       info("disk %d detected", c);

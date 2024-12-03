@@ -233,7 +233,7 @@ void inthandler21(int *esp) {
       // 按下键通常处理
       mtask *task = get_task(i); // 每个进程都处理一遍
       if (task->state != RUNNING || task->fifosleep) {
-        if (task->state == WAITING && task->waittid == -1) { goto THROUGH; }
+        if (task->state == WAITING && task->waittid == U32_MAX) { goto THROUGH; }
         // 如果进程正在休眠或被锁了
         continue;
       }
