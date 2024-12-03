@@ -18,3 +18,5 @@ testlib(
 
 add_subdirectory(algs)
 add_subdirectory(misc)
+
+testexec(plmp plmp.c)
