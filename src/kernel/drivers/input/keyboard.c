@@ -134,7 +134,7 @@ void inthandler21(int *esp) {
   if (data == 0x2a || data == 0x36) { // Shift按下
     shift = 1;
   }
-  if (data == 0x1d) { // Shift按下
+  if (data == 0x1d) { // Ctrl按下
     ctrl = 1;
   }
   if (data == 0x3a) { // Caps Lock按下
@@ -143,7 +143,7 @@ void inthandler21(int *esp) {
   if (data == 0xaa || data == 0xb6) { // Shift松开
     shift = 0;
   }
-  if (data == 0x9d) { // Shift按下
+  if (data == 0x9d) { // Ctrl按下
     ctrl = 0;
   }
   // 快捷键处理
