@@ -7,8 +7,8 @@
 //; 声明
 //* ----------------------------------------------------------------------------------------------------
 
-#define API finline __THROW
-
+#define API     finline
+#define NT      __THROW
 #define RD(...) __attr_readonly(__VA_ARGS__)
 #define WR(...) __attr_writeonly(__VA_ARGS__)
 
@@ -50,53 +50,55 @@
 // --------------------------------------------------
 //; 基本函数
 
-API void mpi_set0(ARGS_1) ATTR_1;       // a = 0
-API void mpi_set1(ARGS_1) ATTR_1;       // a = 1
-API void mpi_set(ARGS_2) ATTR_2;        // a = b
-API void mpi_setu(ARGS_2_MU) ATTR_2_MU; // a = b
-API void mpi_seti(ARGS_2_MI) ATTR_2_MI; // a = b
-API int  mpi_sets(ARGS_SETS) ATTR_SETS; // a = mpi(b)
+API void mpi_set0(ARGS_1) NT ATTR_1;       // a = 0
+API void mpi_set1(ARGS_1) NT ATTR_1;       // a = 1
+API void mpi_set(ARGS_2) NT ATTR_2;        // a = b
+API void mpi_setu(ARGS_2_MU) NT ATTR_2_MU; // a = b
+API void mpi_seti(ARGS_2_MI) NT ATTR_2_MI; // a = b
+API bool mpi_sets(ARGS_SETS) NT ATTR_SETS; // a = mpi(b)
 
-API void mpi_neg(ARGS_1) ATTR_1;  // a = -a
-API void mpi_neg2(ARGS_2) ATTR_2; // a = -b
+API void mpi_neg(ARGS_1) NT ATTR_1;  // a = -a
+API void mpi_neg2(ARGS_2) NT ATTR_2; // a = -b
 
-API isize mpi_fhsb(ARGS_1_C) __attr(pure) ATTR_1_C; // 最高有效位的索引
+API isize       mpi_fhsb(ARGS_1_C)
+NT __attr(pure) ATTR_1_C; // 最高有效位的索引
 
-API int mpi_cmp(ARGS_2_CC) __attr(pure) ATTR_2_CC; // 比较数字
+API int         mpi_cmp(ARGS_2_CC)
+NT __attr(pure) ATTR_2_CC; // 比较数字
 
 // --------------------------------------------------
 //; 加减乘除
 
-API bool mpi_add2(ARGS_2) ATTR_2;          // a += b
-API bool mpi_add2u(ARGS_2_MU) ATTR_2_MU;   // a += b
-API bool mpi_add2i(ARGS_2_MI) ATTR_2_MI;   // a += b
-API bool mpi_add3(ARGS_3) ATTR_3;          // c = a + b
-API bool mpi_add3u(ARGS_3_MCU) ATTR_3_MCU; // c = a + b
-API bool mpi_add3i(ARGS_3_MCI) ATTR_3_MCI; // c = a + b
+API bool mpi_add2(ARGS_2) NT ATTR_2;          // a += b
+API bool mpi_add2u(ARGS_2_MU) NT ATTR_2_MU;   // a += b
+API bool mpi_add2i(ARGS_2_MI) NT ATTR_2_MI;   // a += b
+API bool mpi_add3(ARGS_3) NT ATTR_3;          // c = a + b
+API bool mpi_add3u(ARGS_3_MCU) NT ATTR_3_MCU; // c = a + b
+API bool mpi_add3i(ARGS_3_MCI) NT ATTR_3_MCI; // c = a + b
 
-API bool mpi_sub2(ARGS_2) ATTR_2;          // a -= b
-API bool mpi_sub2u(ARGS_2_MU) ATTR_2_MU;   // a -= b
-API bool mpi_sub2i(ARGS_2_MI) ATTR_2_MI;   // a -= b
-API bool mpi_sub3(ARGS_3) ATTR_3;          // c = a - b
-API bool mpi_sub3u(ARGS_3_MCU) ATTR_3_MCU; // c = a - b
-API bool mpi_sub3i(ARGS_3_MCI) ATTR_3_MCI; // c = a - b
+API bool mpi_sub2(ARGS_2) NT ATTR_2;          // a -= b
+API bool mpi_sub2u(ARGS_2_MU) NT ATTR_2_MU;   // a -= b
+API bool mpi_sub2i(ARGS_2_MI) NT ATTR_2_MI;   // a -= b
+API bool mpi_sub3(ARGS_3) NT ATTR_3;          // c = a - b
+API bool mpi_sub3u(ARGS_3_MCU) NT ATTR_3_MCU; // c = a - b
+API bool mpi_sub3i(ARGS_3_MCI) NT ATTR_3_MCI; // c = a - b
 
-API bool mpi_mul2(ARGS_2) ATTR_2;          // a *= b
-API bool mpi_mul2u(ARGS_2_MU) ATTR_2_MU;   // a *= b
-API bool mpi_mul2i(ARGS_2_MI) ATTR_2_MI;   // a *= b
-API bool mpi_mul3(ARGS_3) ATTR_3;          // c = a * b
-API bool mpi_mul3u(ARGS_3_MCU) ATTR_3_MCU; // c = a * b
-API bool mpi_mul3i(ARGS_3_MCI) ATTR_3_MCI; // c = a * b
+API bool mpi_mul2(ARGS_2) NT ATTR_2;          // a *= b
+API bool mpi_mul2u(ARGS_2_MU) NT ATTR_2_MU;   // a *= b
+API bool mpi_mul2i(ARGS_2_MI) NT ATTR_2_MI;   // a *= b
+API bool mpi_mul3(ARGS_3) NT ATTR_3;          // c = a * b
+API bool mpi_mul3u(ARGS_3_MCU) NT ATTR_3_MCU; // c = a * b
+API bool mpi_mul3i(ARGS_3_MCI) NT ATTR_3_MCI; // c = a * b
 
-API void mpi_div(ARGS_4) ATTR_4;
+API void mpi_div(ARGS_4) NT ATTR_4;
 
 // --------------------------------------------------
 //; 位运算
 
-API void mpi_lshift2(ARGS_2_MU) ATTR_2_MU;   // a <<= b
-API void mpi_lshift3(ARGS_3_MCU) ATTR_3_MCU; // c = a << b
-API void mpi_rshift2(ARGS_2_MU) ATTR_2_MU;   // a >>= b
-API void mpi_rshift3(ARGS_3_MCU) ATTR_3_MCU; // c = a >> b
+API void mpi_lshift2(ARGS_2_MU) NT ATTR_2_MU;   // a <<= b
+API void mpi_lshift3(ARGS_3_MCU) NT ATTR_3_MCU; // c = a << b
+API void mpi_rshift2(ARGS_2_MU) NT ATTR_2_MU;   // a >>= b
+API void mpi_rshift3(ARGS_3_MCU) NT ATTR_3_MCU; // c = a >> b
 
 #undef WR
 #undef RD
@@ -130,7 +132,7 @@ API void mpi_seti(ARGS_2_MI) noexcept { // a = b
   memset(a, b < 0 ? 0xff : 0, len * 4);
   a[0] = b;
 }
-API int mpi_sets(ARGS_SETS) noexcept { // a = mpi(b)
+API bool mpi_sets(ARGS_SETS) noexcept { // a = mpi(b)
   assert(2 <= base && base <= 36);
   memset(a, 0, len * 4);
   for (cstr p = b; *p; p++) {
@@ -142,12 +144,12 @@ API int mpi_sets(ARGS_SETS) noexcept { // a = mpi(b)
     } else if ('A' <= c && c <= 'Z') {
       c -= 'A' - 10;
     } else {
-      return -1;
+      return false;
     }
     mpi_mul2u(a, base, len);
     mpi_add2u(a, c, len);
   }
-  return 0;
+  return true;
 }
 
 API void mpi_neg(ARGS_1) noexcept { // a = -a
@@ -165,16 +167,16 @@ API void mpi_neg2(ARGS_2) noexcept { // a = -b
   }
   bool overflow = true;
   for (size_t i = 0; overflow && i < len; i++) {
-    overflow = __builtin_uadd_overflow(b[i], 1, &b[i]);
+    overflow = __builtin_uadd_overflow(a[i], 1, &a[i]);
   }
 }
 
 API isize mpi_fhsb(ARGS_1_C) noexcept { // 最高有效位的索引
   for (isize i = len - 1; i > 0; i--) {
-    isize n = fhsb32(a[i]);
+    isize n = fhsb(a[i]);
     if (n >= 0) return n + i * 32;
   }
-  return fhsb32(a[0]);
+  return fhsb(a[0]);
 }
 
 API int mpi_cmp(ARGS_2_CC) noexcept { // 比较数字
@@ -275,7 +277,8 @@ API bool mpi_sub3i(ARGS_3_MCI) noexcept { // c = a - b
 }
 
 API bool mpi_mul2(ARGS_2) noexcept { // a *= b
-  u32 c[len + 1] = {};
+  u32 c[len + 1];
+  memset(c, 0, (len + 1) * 4);
   for (size_t i = 0; i < len; i++) {
     for (size_t j = 0; j < len - i; j++) {
       u64 t         = (u64)a[i] * b[j] + c[i + j];
@@ -392,19 +395,21 @@ API void mpi_rshift3(ARGS_3_MCU) noexcept { // c = a >> b
 API void mpi_div(ARGS_4) noexcept {
   memcpy(d, a, len * 4);
   memset(c, 0, len * 4);
-  ssize_t hba = mpi_fhsb(a, len);
-  ssize_t hbb = mpi_fhsb(b, len);
+  isize hba = mpi_fhsb(a, len);
+  isize hbb = mpi_fhsb(b, len);
   if (hba < hbb) return;
+  u32 _b[len];
+  mpi_set(_b, b, len);
   int h = hba - hbb;
-  if (h) mpi_lshift2(b, h, len);
+  if (h) mpi_lshift2(_b, h, len);
   for (;; h--) {
-    if (mpi_sub2(d, b, len)) {
-      mpi_add2(d, b, len);
+    if (mpi_sub2(d, _b, len)) {
+      mpi_add2(d, _b, len);
     } else {
       c[h / 32] |= (u32)1 << (h & 31);
     }
     if (h == 0) break;
-    mpi_rshift2(b, 1, len);
+    mpi_rshift2(_b, 1, len);
   }
 }
 
@@ -427,8 +432,7 @@ API char *mpi_tostr(char *buf, size_t buflen, const u32 *_n, size_t len, int b,
   else
     mpi_set(n, _n, len);
   u32 _b[len];
-  mpi_set0(_b, len);
-  _b[0] = b;
+  mpi_setu(_b, b, len);
   u32 d[len];
   while (mpi_fhsb(n, len) >= 0) {
     mpi_div(n == n1 ? n2 : n1, d, n, _b, len);

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define NO_STD 0
-#include <plmp.h>
+#include <plmp/mpi32.h>
 
 const char _plos_lut_alnum_lower[62] =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";

@@ -51,6 +51,26 @@ __(u64, clzll)
 #endif
 
 // --------------------------------------------------
+//; fhsb 返回 64 位无符号整数中最高有效位的索引，如果没有找到 1 位则返回 -1
+
+inline_const auto fhsb(u8 x) -> ssize_t {
+  if (x == 0) return -1;
+  return 7 - clz(x);
+}
+inline_const auto fhsb(u16 x) -> ssize_t {
+  if (x == 0) return -1;
+  return 15 - clz(x);
+}
+inline_const auto fhsb(u32 x) -> ssize_t {
+  if (x == 0) return -1;
+  return 31 - clz(x);
+}
+inline_const auto fhsb(u64 x) -> ssize_t {
+  if (x == 0) return -1;
+  return 63 - clz(x);
+}
+
+// --------------------------------------------------
 //; 位逆序
 
 inline_const auto bit_reverse(u8 x) {

@@ -9,3 +9,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#ifdef __cplusplus
+#include "plmp/mpi32.hpp"
+#endif

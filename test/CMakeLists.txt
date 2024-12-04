@@ -20,3 +20,5 @@ add_subdirectory(algs)
 add_subdirectory(misc)
 
 testexec(plmp plmp.c)
+testexec(plmp-cpp plmp.cpp)
+testlib(plmp-cpp util-libc-base)
