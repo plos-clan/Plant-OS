@@ -1,4 +1,7 @@
-include(../cmake/use-ubscan)
+if(USE_UBSCAN)
+  include(../cmake/use-ubscan)
+endif()
+
 add_exe_link_flag("-static -Wl,-Ttext -Wl,0x70000000 -e __libc_start_main")
 
 file(

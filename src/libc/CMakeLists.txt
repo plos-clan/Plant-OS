@@ -1,4 +1,6 @@
-include(../../cmake/use-ubscan)
+if(USE_UBSCAN)
+  include(../../cmake/use-ubscan)
+endif()
 mklib(c)
 tgtlib(c c-base sys)
 libdef(c RING3=1 LIBC=1)

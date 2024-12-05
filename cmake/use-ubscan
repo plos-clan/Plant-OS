@@ -6,6 +6,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     enum #
     float-cast-overflow #
     float-divide-by-zero #
+    # function #
     implicit-unsigned-integer-truncation #
     implicit-integer-sign-change #
     integer-divide-by-zero #

@@ -1,4 +1,6 @@
-include(../../cmake/use-ubscan)
+if(USE_UBSCAN)
+  include(../../cmake/use-ubscan)
+endif()
 mklib(pl2d)
 tgtlib(pl2d misc)
 libdef(pl2d RING3=1)

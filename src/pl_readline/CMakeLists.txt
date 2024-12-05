@@ -1,4 +1,6 @@
-include(../../cmake/use-ubscan)
+if(USE_UBSCAN)
+  include(../../cmake/use-ubscan)
+endif()
 mklib(plreadln)
 tgtlib(plreadln misc)
 libdef(plreadln RING3=1)

@@ -110,6 +110,8 @@ add_compile_flag("-fno-pic -fno-pie") # 不使用 pic 和 pie
 add_compile_flag("-fno-asynchronous-unwind-tables")
 add_compile_flag("-fno-exceptions")
 
+set(USE_UBSCAN ON)
+
 include(cmake/disable-warning)
 
 message("PLOS 环境")
