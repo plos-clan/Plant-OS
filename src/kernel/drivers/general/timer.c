@@ -15,66 +15,7 @@ void init_pit() {
   asm_out8(0x43, 0x34);
   asm_out8(0x40, 0x9c);
   asm_out8(0x40, 0x2e);
-  struct TIMER *t;
   timerctl.count = 0;
-  for (int i = 0; i < MAX_TIMER; i++) {
-    timerctl.timers0[i].flags = 0; /* 没有使用 */
-  }
-  t           = timer_alloc(); /* 取得一个 */
-  t->timeout  = 0xffffffff;
-  t->flags    = TIMER_FLAGS_USING;
-  t->next     = 0;            /* 末尾 */
-  timerctl.t0 = t;            /* 因为现在只有哨兵，所以他就在最前面*/
-  timerctl.next = 0xffffffff; /* 因为只有哨兵，所以下一个超时时刻就是哨兵的时刻 */
-}
-
-struct TIMER *timer_alloc() {
-  for (int i = 0; i < MAX_TIMER; i++) {
-    if (timerctl.timers0[i].flags == 0) {
-      timerctl.timers0[i].flags  = TIMER_FLAGS_ALLOC;
-      timerctl.timers0[i].waiter = NULL;
-      return &timerctl.timers0[i];
-    }
-  }
-  return null; /* 没找到 */
-}
-
-void timer_free(struct TIMER *timer) {
-  timer->flags  = 0; /* 未使用 */
-  timer->waiter = NULL;
-}
-
-void timer_init(struct TIMER *timer, cir_queue8_t queue, u8 data) {
-  timer->queue = queue;
-  timer->data  = data;
-}
-
-void timer_settime(struct TIMER *timer, u32 timeout) {
-  int           e;
-  struct TIMER *t, *s;
-  timer->timeout = timeout + timerctl.count;
-  timer->flags   = TIMER_FLAGS_USING;
-  e              = asm_get_flags();
-  t              = timerctl.t0;
-  if (timer->timeout <= t->timeout) {
-    /* 插入最前面的情况 */
-    timerctl.t0   = timer;
-    timer->next   = t; /* 下面是设定t */
-    timerctl.next = timer->timeout;
-    asm_set_flags(e);
-    return;
-  }
-  while (true) {
-    s = t;
-    t = t->next;
-    if (timer->timeout <= t->timeout) {
-      /* 插入s和t之间的情况 */
-      s->next     = timer; /* s下一个是timer */
-      timer->next = t;     /* timer的下一个是t */
-      asm_set_flags(e);
-      return;
-    }
-  }
 }
 
 #define NANOSEC_IN_SEC 1000000000
@@ -100,9 +41,8 @@ static u32 count       = 0;
 uint64_t   global_time = 0;
 
 void inthandler20(int cs, int *esp) {
-  // klogd("*");
-  // printk("CS:EIP=%04x:%08x\n",current_task()->tss.cs,esp[-10]);
-  asm_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
+  send_eoi(0);
+  klog_raw(".");
   extern mtask *mtask_current;
   if (global_time + 1 == 0) {
     klogd("reset\n");
@@ -118,20 +58,6 @@ void inthandler20(int cs, int *esp) {
   // gettime_ns(NULL); // 更新时间
 
   timerctl.count++;
-
-  timer   = timerctl.t0; /* 首先把最前面的地址赋给timer */
-  char ts = 0;
-  while (true) {
-    /* 因为timers的定时器都处于运行状态，所以不确认flags */
-    if (timer->timeout > timerctl.count) { break; }
-    /* 超时 */
-    timer->flags = TIMER_FLAGS_ALLOC;
-    task_run(timer->waiter);
-    cir_queue8_put(timer->queue, timer->data);
-    timer = timer->next; /* 将下一个定时器的地址赋给timer*/
-  }
-  timerctl.t0   = timer;
-  timerctl.next = timer->timeout;
 
   asm_sti;
   if (mtask_current) task_next();
