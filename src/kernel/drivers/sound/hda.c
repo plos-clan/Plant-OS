@@ -55,8 +55,8 @@ static u32   hda_codec_number = 0;
 static void *hda_buffer_ptr   = null;
 
 static void wait(int ticks) {
-  int tick = timerctl.count;
-  waituntil(timerctl.count - tick < ticks);
+  int tick = system_tick;
+  waituntil(system_tick - tick < ticks);
 }
 
 u32 hda_verb(u32 codec, u32 node, u32 verb, u32 command) {
@@ -65,8 +65,8 @@ u32 hda_verb(u32 codec, u32 node, u32 verb, u32 command) {
   if (send_verb_method == SEND_VERB_METHOD_DMA) {
     corb[corb_write_pointer] = value;
     mem_set16(hda_base + 0x48, corb_write_pointer);
-    u32 ticks = timerctl.count;
-    while (timerctl.count - ticks < 1) {
+    u32 ticks = system_tick;
+    while (system_tick - ticks < 1) {
       if ((mem_get16(hda_base + 0x58)) == corb_write_pointer) { break; }
     }
     if ((mem_get16(hda_base + 0x58) & 0xff) != corb_write_pointer) {
@@ -81,8 +81,8 @@ u32 hda_verb(u32 codec, u32 node, u32 verb, u32 command) {
     mem_set16(hda_base + 0x68, 0b10);
     mem_set32(hda_base + 0x60, value);
     mem_set16(hda_base + 0x68, 1);
-    u32 ticks = timerctl.count;
-    while (timerctl.count - ticks < 1) {
+    u32 ticks = system_tick;
+    while (system_tick - ticks < 1) {
       if ((mem_get16(hda_base + 0x68) & 0x3) == 0b10) { break; }
     }
     if ((mem_get16(hda_base + 0x68) & 0x3) != 0b10) {
@@ -353,8 +353,8 @@ void hda_init() {
   hda_base = read_bar_n(hda_bus, hda_slot, hda_func, 0);
   info("hda base address: 0x%x", hda_base);
   mem_set32(hda_base + 0x08, 0);
-  int ticks = timerctl.count;
-  while (timerctl.count - ticks < 1) {
+  int ticks = system_tick;
+  while (system_tick - ticks < 1) {
     if ((mem_get32(hda_base + 0x08) & 0x01) == 0) { break; }
   }
   if ((mem_get32(hda_base + 0x08) & 0x01) != 0) {
@@ -362,8 +362,8 @@ void hda_init() {
     return;
   }
   mem_set32(hda_base + 0x08, 1);
-  ticks = timerctl.count;
-  while (timerctl.count - ticks < 1) {
+  ticks = system_tick;
+  while (system_tick - ticks < 1) {
     if ((mem_get32(hda_base + 0x08) & 0x01) == 1) { break; }
   }
   if ((mem_get32(hda_base + 0x08) & 0x01) != 1) {
@@ -412,8 +412,8 @@ void hda_init() {
   info("corb size: %d entries", corb_entry_count);
 
   mem_set16(hda_base + 0x4A, 0x8000);
-  ticks = timerctl.count;
-  while (timerctl.count - ticks < 1) {
+  ticks = system_tick;
+  while (system_tick - ticks < 1) {
 
     if ((mem_get16(hda_base + 0x4A) & 0x8000)) { break; }
   }
@@ -422,8 +422,8 @@ void hda_init() {
     goto mmio;
   }
   mem_set16(hda_base + 0x4A, 0x0000);
-  ticks = timerctl.count;
-  while (timerctl.count - ticks < 1) {
+  ticks = system_tick;
+  while (system_tick - ticks < 1) {
     if ((mem_get16(hda_base + 0x4A) & 0x8000) == 0) { break; }
   }
   if ((mem_get16(hda_base + 0x4A) & 0x8000) != 0) {
@@ -530,9 +530,9 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
     error("pcm format not supported");
     return;
   }
-  int ticks = timerctl.count;
+  int ticks = system_tick;
   mem_set8(output_base + 0x0, 0);
-  while (timerctl.count - ticks < 1) {
+  while (system_tick - ticks < 1) {
     if ((mem_get8(output_base + 0x0) & 0b11) == 0x0) { break; }
   }
   if ((mem_get8(output_base + 0x0) & 0b11) != 0x0) {
@@ -540,8 +540,8 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
     return;
   }
   mem_set8(output_base + 0x0, 1);
-  ticks = timerctl.count;
-  while (timerctl.count - ticks < 1) {
+  ticks = system_tick;
+  while (system_tick - ticks < 1) {
     if ((mem_get8(output_base + 0x0) & 0b01) == 0x1) { break; }
   }
   if ((mem_get8(output_base + 0x0) & 0b01) != 0x1) {
@@ -550,9 +550,9 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
   }
   wait(1);
 
-  ticks = timerctl.count;
+  ticks = system_tick;
   mem_set8(output_base + 0x0, 0);
-  while (timerctl.count - ticks < 1) {
+  while (system_tick - ticks < 1) {
     if ((mem_get8(output_base + 0x0) & 0b11) == 0x0) { break; }
   }
   if ((mem_get8(output_base + 0x0) & 0b11) != 0x0) {

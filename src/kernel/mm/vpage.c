@@ -27,7 +27,6 @@ void init_pdepte(size_t pde_addr, size_t pte_addr, size_t page_end) {
       addr[i] = (i * PAGE_SIZE) | PAGE_P | PAGE_WRABLE;
     }
   }
-  return;
 }
 
 // TODO 重构啊
@@ -670,24 +669,14 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
   void *line_address = (void *)asm_get_cr2();
   if (!(page_get_attr((u32)line_address) & PAGE_P) ||      // 不存在
       (!(page_get_attr((u32)line_address) & PAGE_USER))) { // 用户不可写
-
-    // printk("Fatal error: Attempt to read/write a non-existent/kernel memory "
-    //        "%08x at "
-    //        "%08x. System "
-    //        "halt \n   --- at PF()",
-    //        line_address, eip);
-    error("Attempt to read/write a non-existent/kernel memory "
-          "%08x at "
-          "%08x. System "
-          "halt \n   --- at PF()",
-          line_address, eip);
+    error("Attempt to read/write a non-existent/kernel memory %p at %p. System halt.", line_address,
+          eip);
     if (current_task()->user_mode) { // 用户级FAULT
       task_exit(-1);                 // 强制退出
       infinite_loop;
     }
     asm_cli;
-    // 系统级FAULT
-    abort();
+    abort(); // 系统级FAULT
   }
   copy_on_write((u32)line_address);
   asm_set_cr3(pde);

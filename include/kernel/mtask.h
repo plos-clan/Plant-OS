@@ -82,7 +82,6 @@ mtask *get_task(u32 tid);
 #define offsetof(s, m) (size_t)&(((s *)0)->m)
 
 void task_fall_blocked(enum STATE state);
-void idle_loop();
 void init();
 
 cir_queue8_t task_get_key_queue(mtask *task);

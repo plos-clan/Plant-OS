@@ -4,7 +4,7 @@
 
 #pragma clang optimize off
 
-#define STACK_SIZE 1024 * 1024
+#define STACK_SIZE (1024 * 1024)
 
 void free_pde(u32 addr);
 
@@ -95,7 +95,7 @@ fpu_regs_t public_fpu;
 
 bool task_check_train(mtask *task) {
   if (!task) return false;
-  if (task->train == 1 && timerctl.count - task->jiffies >= 5) return true;
+  if (task->train == 1 && system_tick - task->jiffies >= 5) return true;
   return false;
 }
 
@@ -164,7 +164,7 @@ H:
   asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
   if (current_fpu && current_fpu_flag)
     asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
-  next->jiffies = global_time;
+  next->jiffies = system_tick;
   fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
   asm_sti;
   task_switch(next); // 调度
@@ -300,6 +300,10 @@ mtask *current_task() {
   if (mtask_current != NULL) return mtask_current;
   empty_task.tid = NULL_TID;
   return &empty_task;
+}
+
+static void idle_loop() {
+  infinite_loop task_next();
 }
 
 void into_mtask() {

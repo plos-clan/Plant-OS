@@ -168,8 +168,8 @@ void sb16_init() {
 
 static void sb_reset() {
   asm_out8(SB_RESET, 1);
-  auto oldcnt = timerctl.count;
-  waitif(timerctl.count <= oldcnt + 10);
+  auto oldcnt = system_tick;
+  waitif(system_tick <= oldcnt + 10);
   asm_out8(SB_RESET, 0);
   u8 state = asm_in8(SB_READ);
   klogd("sb16 reset state 0x%x", state);

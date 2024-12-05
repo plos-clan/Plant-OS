@@ -12,10 +12,6 @@ int  os_execute(char *filename, char *line);
 void v86_task();
 void shell();
 
-void idle_loop() {
-  infinite_loop task_next();
-}
-
 static void scan_files(char *path) {
   vfs_node_t p = vfs_open(path);
   assert(p, "open %s failed", path);
@@ -98,7 +94,7 @@ void init() {
   vd.write       = stdout_write;
   vd.type        = VDISK_STREAM;
   regist_vdisk(vd);
-  srand(timerctl.count);
+  srand(system_tick);
   vdisk rnd;
   strcpy(rnd.drive_name, "random");
   rnd.flag        = 1;
@@ -170,10 +166,10 @@ void init() {
   }
 #endif
 
-  auto font1 = load_font("/fatfs1/font1.plff");
-  // auto font2 = load_font("/fatfs1/font2.plff");
+  var font1 = load_font("/fatfs1/font1.plff");
+  // var font2 = load_font("/fatfs1/font2.plff");
 
-  auto tty = plty_alloc(vram, screen_w, screen_h, font1);
+  var tty = plty_alloc(vram, screen_w, screen_h, font1);
   // plty_addfont(tty, font2);
 
 #if 0

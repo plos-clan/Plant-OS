@@ -5,7 +5,7 @@
 #  define klogd(...) ((void)0)
 
 void malloc_test() {
-  size_t old_count = timerctl.count;
+  size_t old_count = system_tick;
   klogw("%d", old_count);
 
 #  define M 2048
@@ -54,7 +54,7 @@ void malloc_test() {
     klogd("step 3: %d freed: %p", i, ptr_list[i]);
   }
 
-  size_t new_count = timerctl.count;
+  size_t new_count = system_tick;
   klogw("%d", new_count);
   klogw("%d", new_count - old_count);
 
