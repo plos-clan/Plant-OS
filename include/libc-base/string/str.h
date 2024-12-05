@@ -17,7 +17,7 @@
 
 /**
  *\brief 复制字符串
- * 
+ *
  *\param d 目标字符串
  *\param s 源字符串
  *\return 目标字符串

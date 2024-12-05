@@ -22,7 +22,7 @@ static int samplerate_id(int rate) {
   case 352800: return 14;
   case 384000: return 15;
   case 768000: return 16;
-  default: return -1;
+  default: klogw("不支持的采样率 %d", rate); return -1;
   }
 }
 
@@ -41,9 +41,26 @@ static void *getbuffer(vsound_t snd) {
 }
 
 bool vsound_regist(vsound_t device) {
-  if (device == null) return false;
-  if (device->is_registed || device->is_using) return false;
-  if (rbtree_sp_get(vsound_list, device->name)) return false;
+  if (device == null) {
+    klogw("传入参数为空，跳过注册");
+    return false;
+  }
+  if (device->name == null || device->name[0] == '\0') {
+    klogw("音频设备名称为空，跳过注册");
+    return false;
+  }
+  if (device->is_registed || device->is_using) {
+    if (rbtree_sp_get(vsound_list, device->name)) {
+      kloge("音频设备 %s 被标记为已注册或正在使用，但未在设备列表中找到，请检查代码", device->name);
+    } else {
+      klogi("音频设备 %s 已被注册，请检查代码并删除重复的注册", device->name);
+    }
+    return false;
+  }
+  if (rbtree_sp_get(vsound_list, device->name)) {
+    klogi("音频设备 %s 已被注册，请检查代码并删除重复的注册", device->name);
+    return false;
+  }
   rbtree_sp_insert(vsound_list, device->name, device);
   device->is_registed = true;
   return true;
@@ -51,8 +68,8 @@ bool vsound_regist(vsound_t device) {
 
 bool vsound_set_supported_fmt(vsound_t device, i16 fmt) {
   if (device == null) return false;
-  if (fmt >= SOUND_FMT_CNT) {
-    klogw("不支持的采样格式 %d", fmt);
+  if (fmt < 0 || fmt >= SOUND_FMT_CNT) {
+    klogw("设备 %s 报告其支持采样格式 %d，但 vsound 不支持此采样格式", device->name, fmt);
     return false;
   }
   device->supported_fmts |= MASK32(fmt);
@@ -63,7 +80,7 @@ bool vsound_set_supported_rate(vsound_t device, i32 rate) {
   if (device == null) return false;
   int id = samplerate_id(rate);
   if (id < 0) {
-    klogw("不支持的采样率 %d", rate);
+    klogw("设备 %s 报告其支持采样率 %d，但 vsound 不支持此采样率", device->name, rate);
     return false;
   }
   device->supported_rates |= MASK32(id);
@@ -73,7 +90,7 @@ bool vsound_set_supported_rate(vsound_t device, i32 rate) {
 bool vsound_set_supported_ch(vsound_t device, i16 ch) {
   if (device == null) return false;
   if (ch < 1 || ch > 16) {
-    klogw("不支持的声道数 %d", ch);
+    klogw("设备 %s 报告其支持声道数 %d，但 vsound 不支持此声道数", device->name, ch);
     return false;
   }
   device->supported_chs |= MASK32(ch - 1);
@@ -159,12 +176,20 @@ bool vsound_set_supported_chs(vsound_t device, const i16 *chs, ssize_t len) {
 
 void vsound_addbuf(vsound_t device, void *buf) {
   if (device == null) return;
+  if (buf == null) {
+    klogw("为设备 %s 添加缓冲区时传入了空指针", device->name);
+    return;
+  }
   memset(buf, 0, device->bufsize);
   queue_enqueue(&device->bufs0, buf);
 }
 
 void vsound_addbufs(vsound_t device, void *const *bufs, ssize_t len) {
   if (device == null) return;
+  if (bufs == null) {
+    klogw("为设备 %s 添加缓冲区时传入了空指针", device->name);
+    return;
+  }
   if (len < 0) {
     for (size_t i = 0; bufs[i] != null; i++) {
       memset(bufs[i], 0, device->bufsize);
@@ -172,6 +197,10 @@ void vsound_addbufs(vsound_t device, void *const *bufs, ssize_t len) {
     }
   } else {
     for (size_t i = 0; i < len; i++) {
+      if (bufs[i] == null) {
+        klogw("为设备 %s 添加缓冲区时传入了空指针，在 bufs[%u]", device->name, i);
+        continue;
+      }
       memset(bufs[i], 0, device->bufsize);
       queue_enqueue(&device->bufs0, bufs[i]);
     }
@@ -206,6 +235,7 @@ int vsound_clearbuffer(vsound_t snd) {
 }
 
 int vsound_open(vsound_t snd) { // 打开设备
+  if (snd == null) return -1;
   if (snd->is_using || snd->is_dma_ready || snd->is_running) return -1;
   if ((snd->supported_fmts & MASK32(snd->fmt)) == 0) return -1;
   int id = samplerate_id(snd->rate);

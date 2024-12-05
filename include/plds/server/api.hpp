@@ -12,6 +12,46 @@ auto init(void *buffer, u32 width, u32 height, pl2d::PixFmt fmt = pl2d::texture_
 void flush();
 void deinit();
 
+namespace event {
+
+enum {
+  pointer_type_unknown = 0, // 未知设备
+  pointer_type_mouse   = 1, // 鼠标
+  pointer_type_pen     = 2, // 笔
+  pointer_type_touch   = 3, // 触摸
+};
+
+// 可参考：https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent
+struct Pointer {
+  i32          deviceid; // 设备 ID
+  u32          type;     // 指针设备类型
+  i32          x, y;     // 鼠标坐标
+  u32          button;   // 0 到 31 位分别代表按钮 1 到 32
+  i32          nbuttons; // 鼠标拥有的按键数量
+  f32          pressure; // 压力，若设备不支持则按下为 0.5，松开为 0
+  pl2d::Point2 tilt;     // https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/tiltX
+  f32          twist;    // https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/twist
+};
+
+struct Key {
+  u32 id; // 键盘按键 ID
+};
+
+} // namespace event
+
+struct Event {
+  u32            type;    // 事件类型
+  event::Key     key;     // 键盘按键
+  event::Pointer pointer; // 鼠标事件
+  bool           left;    // 是否按下鼠标左键
+  bool           middle;  // 是否按下鼠标中键
+  bool           right;   // 是否按下鼠标右键
+  bool           shift;   // 是否按下 Shift 键
+  bool           ctrl;    // 是否按下 Ctrl 键
+  bool           alt;     // 是否按下 Alt 键
+  bool           super;   // 是否按下 Super 键
+};
+
 } // namespace plds
 
 namespace plds::event {

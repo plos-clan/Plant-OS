@@ -313,7 +313,7 @@
     }
 
     namespace tr2 { }
-    
+
     namespace decimal { }
 
     namespace chrono { }				// C++11
@@ -339,8 +339,8 @@
   http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/namespaces.html
 */
 namespace std {
-typedef __SIZE_TYPE__     size_t;
-typedef __PTRDIFF_TYPE__  ptrdiff_t;
+typedef __SIZE_TYPE__    size_t;
+typedef __PTRDIFF_TYPE__ ptrdiff_t;
 
 #      if __cplusplus >= 201103L
 typedef decltype(nullptr) nullptr_t;
@@ -963,7 +963,7 @@ __glibcxx_assert_fail(const char *__file, int __line, const char *__function,
 #        if (defined _DEFAULT_SOURCE ||                                                            \
              (!defined __STRICT_ANSI__ && !defined _ISOC99_SOURCE && !defined _ISOC11_SOURCE &&    \
               !defined _ISOC2X_SOURCE && !defined _POSIX_SOURCE && !defined _POSIX_C_SOURCE &&     \
-              !defined                                                      _XOPEN_SOURCE))
+              !defined _XOPEN_SOURCE))
 #          undef _DEFAULT_SOURCE
 #          define _DEFAULT_SOURCE 1
 #        endif
@@ -3028,7 +3028,7 @@ struct integral_constant {
   static constexpr _Tp                value = __v;
   typedef _Tp                         value_type;
   typedef integral_constant<_Tp, __v> type;
-  constexpr operator value_type() const noexcept {
+  constexpr                           operator value_type() const noexcept {
     return value;
   }
 #  if __cplusplus > 201103L
@@ -5555,7 +5555,7 @@ private:
 
   // This overload is viable if INVOKE(f, args...) can convert to _Tp.
   template <typename _Tp, bool _Nothrow = noexcept(_S_conv<_Tp>(_S_get())),
-            typename     = decltype(_S_conv<_Tp>(_S_get())),
+            typename = decltype(_S_conv<_Tp>(_S_get())),
 #  if __has_builtin(__reference_converts_from_temporary)
             bool _Dangle = __reference_converts_from_temporary(_Tp, _Res_t)
 #  else
@@ -6123,11 +6123,11 @@ template <typename _Tp>
 struct is_scoped_enum : false_type {};
 
 template <typename _Tp>
-requires __is_enum(_Tp) &&
-         requires(remove_cv_t<_Tp> __t) { __t = __t; } // fails if incomplete
-         struct is_scoped_enum<_Tp> : bool_constant < !requires(_Tp __t, void (*__f)(int)) {
+requires __is_enum
+(_Tp) && requires(remove_cv_t<_Tp> __t) { __t = __t; } // fails if incomplete
+             struct is_scoped_enum<_Tp> : bool_constant < !requires(_Tp __t, void (*__f)(int)) {
   __f(__t);
-} > {};
+}>{};
 
 /// @ingroup variable_templates
 /// @since C++23

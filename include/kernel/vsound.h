@@ -123,7 +123,7 @@ int vsound_clearbuffer(vsound_t snd); // 清空所有缓冲区
 
 /**
  *\brief 查找声音对象
- * 
+ *
  *\param name 声音对象的名称
  *\return vsound_t 返回找到的声音对象
  */
@@ -131,7 +131,7 @@ vsound_t vsound_find(cstr name);
 
 /**
  *\brief 打开声音对象
- * 
+ *
  *\param name 声音对象
  *\return int 成功返回0，失败返回错误码
  */
@@ -139,7 +139,7 @@ int vsound_open(vsound_t name);
 
 /**
  *\brief 关闭声音对象
- * 
+ *
  *\param snd 声音对象
  *\return int 成功返回0，失败返回错误码
  */
@@ -147,7 +147,7 @@ int vsound_close(vsound_t snd);
 
 /**
  *\brief 播放声音对象
- * 
+ *
  *\param snd 声音对象
  *\return int 成功返回0，失败返回错误码
  */
@@ -155,7 +155,7 @@ int vsound_play(vsound_t snd);
 
 /**
  *\brief 暂停声音对象
- * 
+ *
  *\param snd 声音对象
  *\return int 成功返回0，失败返回错误码
  */
@@ -163,7 +163,7 @@ int vsound_pause(vsound_t snd);
 
 /**
  *\brief 丢弃声音对象
- * 
+ *
  *\param snd 声音对象
  *\return int 成功返回0，失败返回错误码
  */
@@ -171,7 +171,7 @@ int vsound_drop(vsound_t snd);
 
 /**
  *\brief 排空声音对象
- * 
+ *
  *\param snd 声音对象
  *\return int 成功返回0，失败返回错误码
  */
@@ -179,7 +179,7 @@ int vsound_drain(vsound_t snd);
 
 /**
  *\brief 读取声音数据
- * 
+ *
  *\param snd 声音对象
  *\param data 数据缓冲区
  *\param len 要读取的数据长度
@@ -189,7 +189,7 @@ ssize_t vsound_read(vsound_t snd, void *data, size_t len);
 
 /**
  *\brief 写入声音数据
- * 
+ *
  *\param snd 声音对象
  *\param data 数据缓冲区
  *\param len 要写入的数据长度
@@ -199,7 +199,7 @@ ssize_t vsound_write(vsound_t snd, const void *data, size_t len);
 
 /**
  *\brief 获取声音对象的音量
- * 
+ *
  *\param snd 声音对象
  *\return f32 返回音量值
  */
@@ -207,7 +207,7 @@ f32 vsound_getvol(vsound_t snd);
 
 /**
  *\brief 设置声音对象的音量
- * 
+ *
  *\param snd 声音对象
  *\param vol 音量值
  *\return int 成功返回0，失败返回错误码

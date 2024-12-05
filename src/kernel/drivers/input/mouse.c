@@ -5,7 +5,7 @@
 
 mtask *mouse_use_task = NULL;
 
-void mouse_wait(byte a_type) {
+static void mouse_wait(byte a_type) {
   u32 _time_out = 100000;
   if (a_type == 0) {
     while (_time_out--) { // Data
@@ -20,29 +20,25 @@ void mouse_wait(byte a_type) {
   }
 }
 
-void mouse_write(byte a_write) {
-  // Wait to be able to send a command
-  mouse_wait(1);
-  // Tell the mouse we are sending a command
-  asm_out8(0x64, 0xD4);
-  // Wait for the final part
-  mouse_wait(1);
-  // Finally write
-  asm_out8(0x60, a_write);
+static void mouse_write(byte a_write) {
+  mouse_wait(1);           // Wait to be able to send a command
+  asm_out8(0x64, 0xD4);    // Tell the mouse we are sending a command
+  mouse_wait(1);           // Wait for the final part
+  asm_out8(0x60, a_write); // Finally write
 }
 
-byte mouse_read() {
+static byte mouse_read() {
   // Get's response from mouse
   mouse_wait(0);
   return asm_in8(0x60);
 }
 
-lock_t mouse_l;
-void   mouse_reset() {
+static lock_t mouse_l;
+static void   mouse_reset() {
   mouse_write(0xff);
 }
 
-void enable_mouse(struct MOUSE_DEC *mdec) {
+static void enable_mouse(struct MOUSE_DEC *mdec) {
   lock_init(&mouse_l);
   /* 激活鼠标 */
   wait_KBC_sendready();
@@ -109,17 +105,17 @@ int mouse_decode(struct MOUSE_DEC *mdec, u8 dat) {
   return -1;
 }
 
-// int a = 1;
 u32 m_cr3 = 0;
 u32 m_eip = 0;
 u32 times = 0;
 
 void inthandler2c(int *esp) {
-  // klogd("2c\n");
-  u8 data;
   asm_out8(PIC1_OCW2, 0x64);
   asm_out8(PIC0_OCW2, 0x62);
-  data = asm_in8(PORT_KEYDAT);
+  byte data = asm_in8(PORT_KEYDAT);
+
+  klogd("mouse data=%02x\n", data);
+
   times++;
   if (times == 4) {
     times = 0;

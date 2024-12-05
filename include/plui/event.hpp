@@ -15,7 +15,7 @@ namespace plui::cb {
 
 /**
  *\brief 元素大小改变时的回调函数
- * 
+ *
  *\param[in] element 元素的唯一标识符
  *\param[in] width 改变后的宽度
  *\param[in] height 改变后的高度
@@ -25,7 +25,7 @@ using resize_t = bool (*)(Element &element, u32 width, u32 height);
 
 /**
  *\brief 任何东西移动时的回调函数
- * 
+ *
  *\param[in] element 元素的唯一标识符
  *\param[in] x 改变后的 x 坐标
  *\param[in] y 改变后的 y 坐标

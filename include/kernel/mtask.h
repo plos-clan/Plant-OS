@@ -70,16 +70,16 @@ struct __PACKED__ mtask {
 };
 
 mtask *current_task();
-void   task_switch(mtask *next);
-void   task_start(mtask *next);
-void   mtask_run_now(mtask *obj);
+void   task_switch(mtask *next);  // 切换任务
+void   task_start(mtask *next);   // 开始任务
+void   mtask_run_now(mtask *obj); // 立即执行任务
 void   task_run(mtask *task);
 void   task_next();
 void   task_exit(u32 status);
 mtask *get_task(u32 tid);
 
 #define get_tid(n)     ((n)->tid)
-#define offsetof(s, m) (size_t) & (((s *)0)->m)
+#define offsetof(s, m) (size_t)&(((s *)0)->m)
 
 void task_fall_blocked(enum STATE state);
 void idle_loop();

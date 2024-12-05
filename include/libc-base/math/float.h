@@ -6,9 +6,7 @@
 #define INF      (__builtin_inff())
 
 #if NO_STD
-finline double isfinite(double v) {
-  return __builtin_isfinite(v);
-}
+#  define isfinite(v) __builtin_isfinite(v)
 #else
 #  ifndef isfinite
 dlimport double isfinite(double v);

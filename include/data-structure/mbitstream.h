@@ -57,7 +57,7 @@ extern void mibitstream_free(mibitstream_t stream);
 extern int mibitstream_read_bit(mibitstream_t stream);
 
 /**
- *\brief 
+ *\brief 从内存位读取流中读取指定位数的位
  *\param[in] stream 内存位读取流指针
  *\param[in] nbits 要读取的位数
  *\return 读取的位数，如果读取失败返回 0
@@ -94,7 +94,7 @@ extern void mobitstream_free(mobitstream_t stream);
 extern size_t mobitstream_write_bit(mobitstream_t stream, bool bit);
 
 /**
- *\brief 
+ *\brief 向内存位写入流中写入指定位数的位
  *
  *\param[in] bits 要写入的数据 (从低位开始)
  *\param[in] nbits 要写入的位数
