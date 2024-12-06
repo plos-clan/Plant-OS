@@ -13,7 +13,6 @@ void set_segmdesc(SegmentDescriptor *sd, u32 limit, int base, int ar) {
   sd->access_right = ar & 0xff;
   sd->limit_high   = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
   sd->base_high    = (base >> 24) & 0xff;
-  return;
 }
 
 void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
@@ -22,14 +21,11 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, int selector, int ar) {
   gd->dw_count     = (ar >> 8) & 0xff;
   gd->access_right = ar & 0xff;
   gd->offset_high  = (offset >> 16) & 0xffff;
-  return;
 }
 
-void default_inthandler() __attr(naked);
+extern void asm_default_inthandler();
 
-void default_inthandler() {
-  asm volatile("iret\n\t");
-}
+void default_inthandler() {}
 
 void init_gdtidt() {
   var gdt = (SegmentDescriptor *)GDT_ADDR;
@@ -46,7 +42,7 @@ void init_gdtidt() {
 
   // 初始化 IDT
   for (size_t i = 0; i < IDT_LEN; i++) {
-    set_gatedesc(idt + i, (size_t)default_inthandler, 2 * 8, AR_INTGATE32);
+    set_gatedesc(idt + i, (size_t)&asm_default_inthandler, 2 * 8, AR_INTGATE32);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 }

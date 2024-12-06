@@ -1,9 +1,25 @@
 	[BITS 32]
 	section .data
-	GLOBAL asm_inthandler21, asm_inthandler20
-	EXTERN inthandler21, inthandler20, syscall, inthandler2c, signal_deal
-	GLOBAL asm_inthandler36, asm_inthandler2c, floppy_int, interrput_exit
+	global asm_default_inthandler
+	extern default_inthandler
+	global asm_inthandler21, asm_inthandler20
+	extern inthandler21, inthandler20, syscall, inthandler2c, signal_deal
+	global asm_inthandler36, asm_inthandler2c, floppy_int, interrput_exit
 	section .text
+	
+asm_default_inthandler:
+	push ds
+	push es
+	push fs
+	push gs
+	pusha
+	call default_inthandler
+	popa
+	pop gs
+	pop fs
+	pop es
+	pop ds
+	iret
 	
 asm_inthandler36:
 	push ds
@@ -27,20 +43,7 @@ floppy_int:
 	push fs
 	push gs
 	pusha
-	PUSH ES
-	PUSH DS
-	PUSHAD
-	MOV EAX, ESP
-	PUSH EAX
-	MOV AX, SS
-	MOV DS, AX
-	MOV ES, AX
-	CALL flint
-	POP EAX
-	;call signal_deal
-	POPAD
-	POP DS
-	POP ES
+	call flint
 	popa
 	pop gs
 	pop fs
@@ -56,20 +59,7 @@ PCNET_ASM_INTHANDLER:
 	push fs
 	push gs
 	pusha
-	PUSH ES
-	PUSH DS
-	PUSHAD
-	MOV EAX, ESP
-	PUSH EAX
-	MOV AX, SS
-	MOV DS, AX
-	MOV ES, AX
-	;CALL PCNET_IRQ
-	POP EAX
-	;call signal_deal
-	POPAD
-	POP DS
-	POP ES
+	;call PCNET_IRQ
 	popa
 	pop gs
 	pop fs
@@ -85,20 +75,7 @@ RTL8139_ASM_INTHANDLER:
 	push fs
 	push gs
 	pusha
-	PUSH ES
-	PUSH DS
-	PUSHAD
-	MOV EAX, ESP
-	PUSH EAX
-	MOV AX, SS
-	MOV DS, AX
-	MOV ES, AX
-	;CALL RTL8139_IRQ
-	POP EAX
-	;call signal_deal
-	POPAD
-	POP DS
-	POP ES
+	;call RTL8139_IRQ
 	popa
 	pop gs
 	pop fs
@@ -206,31 +183,12 @@ asm_net_api:
 	pop ds
 	iret
 asm_inthandler20:
-	
 	push ds
 	push es
 	push fs
 	push gs
 	pusha
-	PUSH ES
-	PUSH DS
-	PUSHAD
-	MOV EAX, ESP
-	add EAX, 32
-	PUSH EAX
-	MOV AX, SS
-	MOV DS, AX
-	MOV ES, AX
-	MOV EAX, 0
-	MOV AX, CS
-	PUSH EAX
-	CALL inthandler20
-	pop eax
-	POP EAX
-	call signal_deal
-	POPAD
-	POP DS
-	POP ES
+	call inthandler20
 	popa
 	pop gs
 	pop fs
@@ -243,20 +201,7 @@ asm_inthandler21:
 	push fs
 	push gs
 	pusha
-	PUSH ES
-	PUSH DS
-	PUSHAD
-	MOV EAX, ESP
-	PUSH EAX
-	MOV AX, SS
-	MOV DS, AX
-	MOV ES, AX
-	CALL inthandler21
-	POP EAX
-	call signal_deal
-	POPAD
-	POP DS
-	POP ES
+	call inthandler21
 	popa
 	pop gs
 	pop fs
@@ -269,7 +214,7 @@ asm_inthandler2c:
 	push fs
 	push gs
 	pusha
-	CALL inthandler2c
+	call inthandler2c
 	popa
 	pop gs
 	pop fs

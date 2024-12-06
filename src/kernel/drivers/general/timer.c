@@ -34,12 +34,11 @@ void sleep(uint64_t time_s) {
 
 void inthandler20(int cs, int *esp) {
   send_eoi(0);
-  extern mtask *mtask_current;
 
   // gettime_ns(NULL); // 更新时间
 
   system_tick++;
 
-  asm_sti;
+  extern mtask *mtask_current;
   if (mtask_current) task_next();
 }
