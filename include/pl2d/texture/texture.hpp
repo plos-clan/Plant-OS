@@ -23,21 +23,22 @@ struct BaseTexture {
   T   *pixels          = null;  // 可以是内部通过 malloc 分配，也可以是外部数据
   bool own_pixels      = false; // pixels 是否为该结构体所有
   bool refcnted_pixels = false; // pixels 是否使用引用计数
-  bool copy_on_write   = false; // 是否在写时拷贝对象（预留，当前无效）
+  bool copy_on_write   = false; // TODO 是否在写时拷贝对象
+  bool use_alpha       = true;  // TODO 是否使用 alpha 通道
   u32  width           = 0;     // 宽度
   u32  height          = 0;     // 高度
-  u32  pitch           = 0;     // 每行实际的像素数
+  u32  pitch           = 0;     // 每行实际的像素数，超过宽度的部分忽略
   u32  size            = 0;     // 储存 height * pitch 而不是占用的字节数
   u32  alloced_size    = 0;     // 储存实际分配的大小 像素数而不是字节数
 
   BaseTexture() = default;
-  BaseTexture(u32 width, u32 height);
-  BaseTexture(u32 width, u32 height, u32 pitch);
-  BaseTexture(T *pixels, u32 width, u32 height);
-  BaseTexture(T *pixels, u32 width, u32 height, u32 pitch);
-  BaseTexture(const BaseTexture &) = delete; // 隐式地复制是不允许的
-  BaseTexture(BaseTexture &&) noexcept;      // 移动是可以的
-  ~BaseTexture();
+  BaseTexture(u32 width, u32 height);                       // 创建一个空的纹理
+  BaseTexture(u32 width, u32 height, u32 pitch);            // 创建一个空的纹理
+  BaseTexture(T *pixels, u32 width, u32 height);            // 使用外部数据创建纹理
+  BaseTexture(T *pixels, u32 width, u32 height, u32 pitch); // 使用外部数据创建纹理
+  BaseTexture(const BaseTexture &) = delete;                // 隐式地复制是不允许的
+  BaseTexture(BaseTexture &&) noexcept;                     // 移动是可以的
+  ~BaseTexture() noexcept;
   auto operator=(const BaseTexture &) -> BaseTexture & = delete; // 隐式地复制是不允许的
   auto operator=(BaseTexture &&) noexcept -> BaseTexture &;      // 移动是可以的
 
@@ -46,6 +47,7 @@ struct BaseTexture {
   // 与另一个纹理交换数据
   auto exch(BaseTexture &tex) -> BaseTexture &;
 
+  // 是否已经初始化
   auto ready() const -> bool {
     return pixels != null;
   }
@@ -110,7 +112,7 @@ struct BaseTexture {
   template <typename T2>
   auto copy_from(const BaseTexture<T2> &d) -> bool;
 
-  auto clear() -> BaseTexture &;
+  auto clear() -> BaseTexture &; // 重置为透明，禁用透明则为黑色
 
   // 获取、设置值
   auto get(i32 x, i32 y) -> T &;
@@ -150,12 +152,15 @@ struct BaseTexture {
   //% 纹理内置的简单绘图函数
 
   // 绘制线条
+  auto line(const Point2I &p1, const Point2I &p2, const T &color) -> BaseTexture &;
+  auto line_mix(const Point2I &p1, const Point2I &p2, const T &color) -> BaseTexture &;
   auto line(i32 x1, i32 y1, i32 x2, i32 y2, const T &color) -> BaseTexture &;
   auto line_mix(i32 x1, i32 y1, i32 x2, i32 y2, const T &color) -> BaseTexture &;
   // 填充区域
   auto fill(const T &color) -> BaseTexture &;
   auto fill(RectI rect, const T &color) -> BaseTexture &;
   auto fill_mix(RectI rect, const T &color) -> BaseTexture &;
+  auto fill(const T &(*cb)(i32 x, i32 y)) -> BaseTexture &;
   // 绘制图片
   template <typename T2>
   auto paste_from(const BaseTexture<T2> &tex, i32 x, i32 y) -> BaseTexture &;
@@ -176,12 +181,12 @@ struct BaseTexture {
   template <typename T2>
   auto paste_to_opaque(BaseTexture<T2> &tex, i32 x, i32 y) const -> const BaseTexture &;
   // 转换颜色
-  auto replace(const T &src, const T dst) -> BaseTexture &;
+  auto replace(const T &src, const T &dst) -> BaseTexture &;
   auto transform(void (*cb)(T &pix)) -> BaseTexture &;
   auto transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture &;
   auto transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture &;
   auto transform(void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y)) -> BaseTexture &;
-  // 未实现
+  // TODO
   void trangle();
   void polygon();
 };

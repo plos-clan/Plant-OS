@@ -3,6 +3,8 @@
 #pragma once
 #include "00-include.h"
 
+// 与 include/libc-base/rc.hpp 行为相同
+
 #define __ref(obj)                                                                                 \
   ({                                                                                               \
     typeof(obj) __obj = (obj);                                                                     \

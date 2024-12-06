@@ -6,7 +6,7 @@ namespace pl2d {
 #if USE_ITERATOR
 
 template <typename T>
-auto BaseTexture<T>::replace(const T &src, const T dst) -> BaseTexture & {
+auto BaseTexture<T>::replace(const T &src, const T &dst) -> BaseTexture & {
   for (const auto [x, y] : size_rect()) {
     if ((*this)(x, y) == src) (*this)(x, y) = dst;
   }
@@ -48,7 +48,7 @@ auto BaseTexture<T>::transform(void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y))
 #else
 
 template <typename T>
-auto BaseTexture<T>::replace(const T &src, const T dst) -> BaseTexture & {
+auto BaseTexture<T>::replace(const T &src, const T &dst) -> BaseTexture & {
   for (i32 y = 0; y < height; y++) {
     for (i32 x = 0; x < width; x++) {
       if ((*this)(x, y) == src) (*this)(x, y) = dst;

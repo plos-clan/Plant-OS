@@ -12,3 +12,4 @@
 #include "libc-base/math/sin.hpp"
 #include "libc-base/math/sqrt.hpp"
 #include "libc-base/math/sum.hpp"
+#include "libc-base/rc.hpp"

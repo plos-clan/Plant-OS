@@ -9,6 +9,7 @@ BaseTexture<T>::BaseTexture(u32 width, u32 height)
   own_pixels   = true;
   alloced_size = size;
   pixels       = (T *)malloc(size * sizeof(T));
+  assert(pixels != null);
 }
 
 template <typename T>
@@ -17,25 +18,28 @@ BaseTexture<T>::BaseTexture(u32 width, u32 height, u32 pitch)
   own_pixels   = true;
   alloced_size = size;
   pixels       = (T *)malloc(size * sizeof(T));
+  assert(pixels != null);
 }
 
 template <typename T>
 BaseTexture<T>::BaseTexture(T *pixels, u32 width, u32 height)
     : width(width), height(height), pitch(width), size(width * height) {
+  assert(pixels != null);
   this->pixels = pixels;
 }
 
 template <typename T>
 BaseTexture<T>::BaseTexture(T *pixels, u32 width, u32 height, u32 pitch)
     : width(width), height(height), pitch(pitch), size(pitch * height) {
+  assert(pixels != null);
   this->pixels = pixels;
 }
 
 template <typename T>
-BaseTexture<T>::~BaseTexture() {
+BaseTexture<T>::~BaseTexture() noexcept {
   if (own_pixels) {
     if (refcnted_pixels) {
-      _rc_unref(pixels);
+      cpp::rc::unref(pixels);
     } else {
       free(pixels);
     }
@@ -101,8 +105,7 @@ auto BaseTexture<T>::exch(BaseTexture &tex) -> BaseTexture & {
 }
 
 template <typename T>
-auto BaseTexture<T>::clear() -> BaseTexture<T> & {
-  // 重置为透明
+auto BaseTexture<T>::clear() -> BaseTexture & {
   memset(pixels, 0, size * sizeof(T));
   return *this;
 }
