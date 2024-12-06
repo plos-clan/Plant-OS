@@ -11,9 +11,9 @@ typedef struct SourceLocation {
 } SourceLocation;
 
 #define _format_(type)                                                                             \
-  STR_ERROR CRGB(253, 133, 172) "at" CEND " [" CRGB(192, 128, 255) "%24s" CEND "] [" CRGB(         \
-      0, 255, 255) "%4u" CEND ":" CRGB(255, 128, 192) "%-3u" CEND "] " COLOR_ERROR                 \
-                                                      "UB! " type CEND "\n"
+  STR_ERROR CRGB(253, 133, 172) "at" CEND " [" CRGB(192, 128, 255) "%-24s" CEND "] [" CRGB(        \
+      0, 255, 255) "%-4u" CEND ":" CRGB(255, 128, 192) "%3u" CEND "] " COLOR_ERROR                 \
+                                                       "UB! " type CEND "\n"
 
 #define ublog(type, file, line, col)                                                               \
   ({                                                                                               \

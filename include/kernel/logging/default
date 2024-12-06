@@ -12,8 +12,8 @@ dlimport void kprintf(cstr _rest fmt1, cstr _rest fmt2, ...) __THROWNL __nnull(1
 
 #undef STR_LOGINFO_FILE
 #undef STR_LOGINFO_FUNC
-#define STR_LOGINFO_FILE "[" CRGB(192, 128, 255) "%12s" CEND "] "
-#define STR_LOGINFO_FUNC "[" CRGB(0, 255, 255) "%20s" CEND ":" CRGB(255, 128, 192) "%-4d" CEND "] "
+#define STR_LOGINFO_FILE "[" CRGB(192, 128, 255) "%-12s" CEND "] "
+#define STR_LOGINFO_FUNC "[" CRGB(0, 255, 255) "%-20s" CEND ":" CRGB(255, 128, 192) "%4d" CEND "] "
 
 #define __LOG(type, fmt, ...)                                                                      \
   klog(CONCAT(STR, type) STR_LOGINFO CONCAT(COLOR, type) fmt CEND "\n", ARG_LOGINFO, ##__VA_ARGS__)
@@ -36,8 +36,8 @@ dlimport void kprintf(cstr _rest fmt1, cstr _rest fmt2, ...) __THROWNL __nnull(1
 #define _STR_ERROR "[" _COLOR_ERROR "Error" CEND "] "
 #define _STR_FATAL "[" _COLOR_FATAL "Fatal" CEND "] "
 
-#define _STR_LOGINFO_FILE "[\033[1;35m%12s" CEND "] "
-#define _STR_LOGINFO_FUNC "[\033[1;36m%20s" CEND ":\033[1;35m%-4d" CEND "] "
+#define _STR_LOGINFO_FILE "[\033[1;35m%-12s" CEND "] "
+#define _STR_LOGINFO_FUNC "[\033[1;36m%-20s" CEND ":\033[1;35m%4d" CEND "] "
 #define _STR_LOGINFO      _STR_LOGINFO_FILE _STR_LOGINFO_FUNC
 
 #undef _LOG

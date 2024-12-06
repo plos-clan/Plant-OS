@@ -45,7 +45,7 @@ typedef struct fmtarg {
 } fmtarg;
 
 finline void fmtarg_clear(fmtarg *arg) {
-  arg->align     = align_left;
+  arg->align     = align_right;
   arg->fill_zero = false;
   arg->print_ptr = false;
   arg->setfg     = false;
@@ -88,7 +88,7 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
     }
     if (arg->padding < 0) {
       arg->padding = -arg->padding;
-      arg->align   = align_right;
+      arg->align   = align_left;
     }
     fmt = f;
   } else { // 解析标准的写法
@@ -100,13 +100,12 @@ static bool sprint_foramt(fmtarg *arg, cstr _rest *_fmt, va_list *_va) {
     }
     if (arg->minlen < 0) { // 小于 0 的靠右对齐
       arg->minlen = -arg->minlen;
-      arg->align  = align_right;
+      arg->align  = align_left;
     }
     fmt = f;
   }
 
-  if (arg->fill_zero && arg->align != align_left) goto err;
-  if (arg->fill_zero) arg->align = align_right;
+  if (arg->fill_zero && arg->align != align_right) goto err;
 
   if (*fmt == '.') { // 解析小数
     fmt++;
