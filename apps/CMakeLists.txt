@@ -1,6 +1,11 @@
+add_subdirectory(include)
+
 if(USE_UBSCAN)
   include(../cmake/use-ubscan)
 endif()
+
+include_directories("${CMAKE_SOURCE_DIR}/apps/include")
+link_directories("${CMAKE_SOURCE_DIR}/apps/lib")
 
 add_exe_link_flag("-static -Wl,-Ttext -Wl,0x70000000 -e __libc_start_main")
 
@@ -8,6 +13,7 @@ file(
   GLOB SUBDIRS
   RELATIVE "${CMAKE_SOURCE_DIR}/apps"
   "${CMAKE_SOURCE_DIR}/apps/*")
+list(REMOVE_ITEM SUBDIRS "include" "lib")
 foreach(SUBDIR ${SUBDIRS})
   if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/apps/${SUBDIR}")
     if(EXISTS "${CMAKE_SOURCE_DIR}/apps/${SUBDIR}/CMakeLists.txt")

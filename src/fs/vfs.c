@@ -234,7 +234,7 @@ int vfs_mount(cstr src, vfs_node_t node) {
   return -1;
 }
 
-int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) {
+ssize_t vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) {
   assert(file != null);
   assert(addr != null);
   do_update(file);
@@ -242,7 +242,7 @@ int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) {
   return callbackof(file, read)(file->handle, addr, offset, size);
 }
 
-int vfs_write(vfs_node_t file, const void *addr, size_t offset, size_t size) {
+ssize_t vfs_write(vfs_node_t file, const void *addr, size_t offset, size_t size) {
   assert(file != null);
   assert(addr != null);
   do_update(file);

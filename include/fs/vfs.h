@@ -44,7 +44,7 @@ typedef void (*vfs_resize_t)(void *current, u64 size);
  *\param offset   写入的偏移
  *\param size     写入的大小
  */
-typedef size_t (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t size) __nnull(2)
+typedef ssize_t (*vfs_write_t)(void *file, const void *addr, size_t offset, size_t size) __nnull(2)
     __attr_readonly(2, 4);
 
 /**
@@ -55,7 +55,7 @@ typedef size_t (*vfs_write_t)(void *file, const void *addr, size_t offset, size_
  *\param offset   读取的偏移
  *\param size     读取的大小
  */
-typedef size_t (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size) __nnull(2)
+typedef ssize_t (*vfs_read_t)(void *file, void *addr, size_t offset, size_t size) __nnull(2)
     __attr_writeonly(2, 4);
 
 /**
@@ -160,7 +160,7 @@ int vfs_mkfile(cstr name);
  *\param size     读取的大小
  *\return 0 成功，-1 失败
  */
-int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) __nnull(1, 2)
+ssize_t vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) __nnull(1, 2)
     __attr_writeonly(2, 4);
 /**
  *\brief 写入文件
@@ -171,7 +171,7 @@ int vfs_read(vfs_node_t file, void *addr, size_t offset, size_t size) __nnull(1,
  *\param size     写入的大小
  *\return 0 成功，-1 失败
  */
-int vfs_write(vfs_node_t file, const void *addr, size_t offset, size_t size) __nnull(1, 2)
+ssize_t vfs_write(vfs_node_t file, const void *addr, size_t offset, size_t size) __nnull(1, 2)
     __attr_readonly(2, 4);
 
 /**

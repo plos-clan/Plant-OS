@@ -27,9 +27,9 @@ static int devfs_mkdir(void *parent, cstr name, vfs_node_t node) {
   node->fsid = 0; // 交给vfs处理
   return 0;
 }
-static void   dummy() {}
+static void    dummy() {}
 // offset 必须能被扇区大小整除
-static size_t devfs_read(void *file, void *addr, size_t offset, size_t size) {
+static ssize_t devfs_read(void *file, void *addr, size_t offset, size_t size) {
   int    dev_id = (int)file;
   size_t sector_size;
   size_t sectors_to_do;
@@ -59,7 +59,7 @@ read:
   }
   return size;
 }
-static size_t devfs_write(void *file, const void *addr, size_t offset, size_t size) {
+static ssize_t devfs_write(void *file, const void *addr, size_t offset, size_t size) {
   int    dev_id = (int)file;
   size_t sector_size;
   size_t sectors_to_do;

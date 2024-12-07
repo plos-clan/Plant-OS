@@ -12,7 +12,16 @@ enum {
   SYSCALL_MUNMAP  = 7,
   SYSCALL_READ    = 8,
   SYSCALL_WRITE   = 9,
-  MAX_SYSCALLS    = 256,
+  //% 以下是临时 syscall，编号从 128 开始，可能随时删除
+  SYSCALL_VBE_SETMODE = 128,
+  SYSCALL_VBE_FLIP    = 129,
+  SYSCALL_VBE_FLUSH   = 130,
+  SYSCALL_VBE_CLEAR   = 131,
+  SYSCALL_FILE_SIZE   = 192,
+  SYSCALL_LOAD_FILE   = 193,
+  SYSCALL_SAVE_FILE   = 194,
+  //%
+  MAX_SYSCALLS = 256,
 };
 
 #if !RING0 && NO_STD

@@ -8,12 +8,58 @@ u32 syscall_heapsize() {
   return *(current_task()->alloc_size);
 }
 
+static void *syscall_vbe_setmode(int width, int height, int bpp) {
+  if (width <= 0 || height <= 0 || bpp <= 0) return null;
+  return vbe_match_and_set_mode(width, height, bpp);
+}
+
+static int syscall_vbe_flip() {
+  return vbe_flip();
+}
+
+static int syscall_vbe_flush(const void *buf) {
+  return vbe_flush(buf);
+}
+
+static int syscall_vbe_clear(byte r, byte g, byte b) {
+  return vbe_clear(r, g, b);
+}
+
+static ssize_t syscall_file_size(cstr path) {
+  vfs_node_t file = vfs_open(path);
+  if (file == null) return -1;
+  size_t size = file->size;
+  vfs_close(file);
+  return size;
+}
+
+static ssize_t syscall_load_file(cstr path, void *buf, size_t size) {
+  vfs_node_t file = vfs_open(path);
+  if (file == null) return -1;
+  size_t ret = vfs_read(file, buf, 0, size);
+  vfs_close(file);
+  return ret;
+}
+
+static ssize_t syscall_save_file(cstr path, const void *buf, size_t size) {
+  vfs_node_t file = vfs_open(path);
+  if (file == null) return -1;
+  size_t ret = vfs_write(file, buf, 0, size);
+  vfs_close(file);
+  return ret;
+}
+
 void *sycall_handlers[MAX_SYSCALLS] = {
-    [SYSCALL_EXIT] = syscall_exit,       [SYSCALL_PUTC] = putchar,
-    [SYSCALL_FORK] = task_fork,          [SYSCALL_PRINT] = print,
-    [SYSCALL_GETHEAP] = syscall_getheap, [SYSCALL_HEAPSZ] = syscall_heapsize,
-    [SYSCALL_MMAP] = syscall_mmap,       [SYSCALL_MUNMAP] = syscall_munmap,
-    [SYSCALL_READ] = syscall_read,       [SYSCALL_WRITE] = syscall_write,
+    [SYSCALL_EXIT]    = &syscall_exit,
+    [SYSCALL_PUTC]    = &putchar,
+    [SYSCALL_FORK]    = &task_fork,
+    [SYSCALL_PRINT]   = &print,
+    [SYSCALL_GETHEAP] = &syscall_getheap,
+    [SYSCALL_HEAPSZ]  = &syscall_heapsize,
+    [SYSCALL_MMAP]    = &syscall_mmap,
+    [SYSCALL_MUNMAP]  = &syscall_munmap,
+    [SYSCALL_READ]    = &syscall_read,
+    [SYSCALL_WRITE]   = &syscall_write,
     // [SYSCALL_OPEN] = syscall_open,
     // [SYSCALL_CLOSE] = syscall_close,
     // [SYSCALL_WAITPID] = syscall_waitpid,
@@ -53,6 +99,13 @@ void *sycall_handlers[MAX_SYSCALLS] = {
     // [SYSCALL_GETPEERNAME] = syscall_getpeername,
     // [SYSCALL_SETSOCKOPT] = syscall_setsockopt,
     // [SYSCALL_GETSOCKOPT] = syscall_getsockopt,
+    [SYSCALL_VBE_SETMODE] = &syscall_vbe_setmode,
+    [SYSCALL_VBE_FLIP]    = &syscall_vbe_flip,
+    [SYSCALL_VBE_FLUSH]   = &syscall_vbe_flush,
+    [SYSCALL_VBE_CLEAR]   = &syscall_vbe_clear,
+    [SYSCALL_FILE_SIZE]   = &syscall_file_size,
+    [SYSCALL_LOAD_FILE]   = &syscall_load_file,
+    [SYSCALL_SAVE_FILE]   = &syscall_save_file,
 };
 
 typedef ssize_t (*syscall_t)(ssize_t, ssize_t, ssize_t, ssize_t, ssize_t);
@@ -74,30 +127,3 @@ ssize_t syscall() {
   klogi("ret: %d", eax);
   return eax;
 }
-
-// void asm_inthandler36() {
-//   asm volatile("push %ds\n\t");
-//   asm volatile("push %es\n\t");
-//   asm volatile("push %fs\n\t");
-//   asm volatile("push %gs\n\t");
-//   asm volatile("push %ebx\n\t");
-//   asm volatile("push %ecx\n\t");
-//   asm volatile("push %edx\n\t");
-//   asm volatile("push %esi\n\t");
-//   asm volatile("push %edi\n\t");
-//   asm volatile("push %ebp\n\t");
-//   asm volatile("push %esp\n\t");
-//   asm volatile("call syscall\n\t");
-//   asm volatile("pop %esp\n\t");
-//   asm volatile("pop %ebp\n\t");
-//   asm volatile("pop %edi\n\t");
-//   asm volatile("pop %esi\n\t");
-//   asm volatile("pop %edx\n\t");
-//   asm volatile("pop %ecx\n\t");
-//   asm volatile("pop %ebx\n\t");
-//   asm volatile("pop %gs\n\t");
-//   asm volatile("pop %fs\n\t");
-//   asm volatile("pop %es\n\t");
-//   asm volatile("pop %ds\n\t");
-//   asm volatile("iret\n\t");
-// }

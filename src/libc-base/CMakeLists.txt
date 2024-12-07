@@ -1,5 +1,5 @@
-if(USE_UBSCAN)
-  include(../../cmake/use-ubscan)
-endif()
+# if(USE_UBSCAN)
+#   include(../../cmake/use-ubscan)
+# endif()
 mklib(c-base)
 libdef(c-base LIBC_BASE=1)
