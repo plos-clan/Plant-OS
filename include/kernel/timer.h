@@ -4,6 +4,6 @@
 #include <kernel/mtask.h>
 #define MAX_TIMER 500
 
-extern u64 system_tick;
+extern volatile u64 system_tick;
 
 void init_pit();

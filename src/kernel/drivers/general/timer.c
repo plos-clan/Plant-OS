@@ -3,7 +3,7 @@
 #define PIT_CTRL 0x0043
 #define PIT_CNT0 0x0040
 
-u64 system_tick = 0;
+volatile u64 system_tick = 0;
 
 static void pit_set(u16 value) {
   asm_out8(0x40, value & 0xff);
