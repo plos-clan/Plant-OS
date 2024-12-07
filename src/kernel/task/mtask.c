@@ -265,7 +265,7 @@ void task_kill(u32 tid) {
     if (!t) continue;
     if (t->state == EMPTY || t->state == DIED) continue;
     if (t->tid == tid) continue;
-    if (t->ptid == tid) { task_kill(t->tid); }
+    if (t->ptid >= 0 && t->ptid == tid) { task_kill(t->tid); }
   }
   asm_cli;
   if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }

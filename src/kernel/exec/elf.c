@@ -17,6 +17,7 @@ u32 elf32_get_max_vaddr(Elf32_Ehdr *hdr) {
 }
 
 void load_segment(Elf32_Phdr *phdr, void *elf) {
+  if (phdr->p_filesz == 0) return;
   size_t hi = PADDING_UP(phdr->p_paddr + phdr->p_memsz, PAGE_SIZE);
   size_t lo = PADDING_DOWN(phdr->p_paddr, PAGE_SIZE);
   for (size_t i = lo; i < hi; i += PAGE_SIZE) {

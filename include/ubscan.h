@@ -22,9 +22,7 @@ typedef struct SourceLocation {
   })
 
 #define HANDLE(_type_)                                                                             \
-  __nif void __ubsan_handle_##_type_(const SourceLocation *pos) {                                  \
-    ublog(#_type_, pos->file, pos->line, pos->col);                                                \
-  }                                                                                                \
+  __nif void                  __ubsan_handle_##_type_(const SourceLocation *pos) {}                \
   __nif __attr(noreturn) void __ubsan_handle_##_type_##abort(const SourceLocation *pos) {          \
     __ubsan_handle_##_type_(pos);                                                                  \
     abort();                                                                                       \
@@ -32,7 +30,6 @@ typedef struct SourceLocation {
 
 #define HANDLE_X(_type_)                                                                           \
   __nif __attr(noreturn) void __ubsan_handle_##_type_(const SourceLocation *pos) {                 \
-    ublog(#_type_, pos->file, pos->line, pos->col);                                                \
     abort();                                                                                       \
   }                                                                                                \
   __nif __attr(noreturn) void __ubsan_handle_##_type_##abort(const SourceLocation *pos) {          \
@@ -66,14 +63,8 @@ HANDLE(sub_overflow);
 HANDLE(type_mismatch_v1);
 HANDLE(vla_bound_not_positive);
 
-__nif void __ubsan_default_options() {
-  ublog("unknown", null, 0, 0);
-}
+__nif void __ubsan_default_options() {}
 
-__nif void __ubsan_on_report() {
-  ublog("unknown", null, 0, 0);
-}
+__nif void __ubsan_on_report() {}
 
-__nif void __ubsan_get_current_report_data() {
-  ublog("unknown", null, 0, 0);
-}
+__nif void __ubsan_get_current_report_data() {}

@@ -164,8 +164,7 @@ void puts(cstr s) {
 //; 基本日志记录函数
 //* ----------------------------------------------------------------------------------------------------
 
-finline void log_outs(cstr s) __nnull(1);
-finline void log_outs(cstr s) {
+finline __nnull(1) void log_outs(cstr s) {
   for (size_t i = 0; s[i] != '\0'; i++) {
     waituntil(asm_in8(PORT + 5) & 0x20);
     asm_out8(PORT, s[i]);
@@ -216,7 +215,7 @@ int printf(cstr _rest fmt, ...) {
     print_buf[len - 1] = '\0';
     len--;
   }
-  // klogi("print: %s", print_buf);
+  klogi("print: %s", print_buf);
   return rets;
 }
 
