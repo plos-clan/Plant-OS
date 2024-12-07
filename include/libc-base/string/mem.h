@@ -448,32 +448,36 @@ finline void *lgmemcpy(void *_rest dst, const void *_rest src, size_t n) noexcep
   return (void *)lgmemcpy8((u8 *)dst, (const u8 *)src, n);
 }
 finline u8 *lgmemcpy8(u8 *_rest dst, const u8 *_rest src, size_t n) noexcept {
-  register size_t _dst asm(RDI) = (size_t)dst;
-  register size_t _src asm(RSI) = (size_t)src;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep movsb\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep movsb"
+               : "=D"(_1), "=S"(_2)
+               : "D"((size_t)dst), "S"((size_t)src), "c"(n)
+               : "memory");
   return dst;
 }
 finline u16 *lgmemcpy16(u16 *_rest dst, const u16 *_rest src, size_t n) noexcept {
-  register size_t _dst asm(RDI) = (size_t)dst;
-  register size_t _src asm(RSI) = (size_t)src;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep movsw\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep movsw"
+               : "=D"(_1), "=S"(_2)
+               : "D"((size_t)dst), "S"((size_t)src), "c"(n)
+               : "memory");
   return dst;
 }
 finline u32 *lgmemcpy32(u32 *_rest dst, const u32 *_rest src, size_t n) noexcept {
-  register size_t _dst asm(RDI) = (size_t)dst;
-  register size_t _src asm(RSI) = (size_t)src;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep movsl\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep movsl"
+               : "=D"(_1), "=S"(_2)
+               : "D"((size_t)dst), "S"((size_t)src), "c"(n)
+               : "memory");
   return dst;
 }
 finline u64 *lgmemcpy64(u64 *_rest dst, const u64 *_rest src, size_t n) noexcept {
 #if __x86_64__
-  register size_t _dst asm(RDI) = (size_t)dst;
-  register size_t _src asm(RSI) = (size_t)src;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep movsq\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep movsq"
+               : "=D"(_1), "=S"(_2)
+               : "D"((size_t)dst), "S"((size_t)src), "c"(n)
+               : "memory");
   return dst;
 #else
   return (u64 *)lgmemcpy32((u32 *)dst, (u32 *)src, n * 2);
@@ -513,32 +517,24 @@ finline void *lgmemset(void *_s, byte _c, size_t _n) noexcept {
   return (void *)lgmemset8((u8 *)_s, _c, _n);
 }
 finline u8 *lgmemset8(u8 *s, u8 c, size_t n) noexcept {
-  register size_t _dst asm(RDI) = (size_t)s;
-  register u8     _src asm(RAX) = c;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep stosb\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep stosb" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
   return s;
 }
 finline u16 *lgmemset16(u16 *s, u16 c, size_t n) noexcept {
-  register size_t _dst asm(RDI) = (size_t)s;
-  register u16    _src asm(RAX) = c;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep stosw\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep stosw" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
   return s;
 }
 finline u32 *lgmemset32(u32 *s, u32 c, size_t n) noexcept {
-  register size_t _dst asm(RDI) = (size_t)s;
-  register u32    _src asm(RAX) = c;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep stosl\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep stosl" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
   return s;
 }
 finline u64 *lgmemset64(u64 *s, u64 c, size_t n) noexcept {
 #if __x86_64__
-  register size_t _dst asm(RDI) = (size_t)s;
-  register u32    _src asm(RAX) = c;
-  register size_t _n asm(RCX)   = n;
-  asm volatile("rep stosq\n\t" ::"r"(_dst), "r"(_src), "r"(_n) : "memory");
+  size_t _1, _2;
+  asm volatile("rep stosq" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
 #else
   for (size_t i = 0; i < n; i++) {
     s[i] = c;
