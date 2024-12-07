@@ -188,7 +188,11 @@ asm_inthandler20:
 	push fs
 	push gs
 	pusha
-	call inthandler20
+	; 这里必须要有 因为从v86到这里，必须要切换段寄存器
+	mov ax,ss
+	mov ds,ax
+	mov es,ax
+	CALL inthandler20
 	popa
 	pop gs
 	pop fs
