@@ -15,10 +15,10 @@ dlimport auto reverse_gamma(f64 x) -> f64; // 反向 gamma 矫正
 
 template <BasePixelTemplate>
 struct BasePixel {
-  using TYPE  = T; // 储存颜色值的类型（无符号整数或浮点，有符号当作无符号
-  using TYPE2 = T2;                    // 直接运算时的类型（至少大一倍防止溢出）
-  using FLT_TYPE                 = FT; // 转换成浮点数运算时的类型
-  static constexpr auto TYPE_MAX = T_MAX; // 最大值（浮点设置为 1）
+  using TYPE                       = T;     // 储存颜色值的类型（无符号整数或浮点，有符号当作无符号
+  using TYPE2                      = T2;    // 直接运算时的类型（至少大一倍防止溢出）
+  using FLT_TYPE                   = FT;    // 转换成浮点数运算时的类型
+  static constexpr auto TYPE_MAX   = T_MAX; // 最大值（浮点设置为 1）
   static constexpr auto TYPE_MAX_2 = T_MAX_2; // 对应有符号类型的最大值（浮点设置为 1）
 
 #if COLOR_USE_BGR
@@ -33,7 +33,7 @@ struct BasePixel {
   BasePixel(T r, T g, T b, T a) : r(r), g(g), b(b), a(a) {}
   BasePixel(const BasePixel &)                         = default;
   BasePixel(BasePixel &&) noexcept                     = default;
-  auto operator=(const BasePixel &) -> BasePixel     & = default;
+  auto operator=(const BasePixel &) -> BasePixel &     = default;
   auto operator=(BasePixel &&) noexcept -> BasePixel & = default;
 
   template <_BasePixelTemplate>
@@ -54,14 +54,12 @@ struct BasePixel {
   auto operator*(U s) const -> BasePixel
   requires(cpp::is_float<U>);
   template <typename U>
-  auto operator*=(U s) -> BasePixel &
-  requires(cpp::is_float<U>);
+  auto operator*=(U s) -> BasePixel &requires(cpp::is_float<U>);
   template <typename U>
   auto operator/(U s) const -> BasePixel
   requires(cpp::is_float<U>);
   template <typename U>
-  auto operator/=(U s) -> BasePixel &
-  requires(cpp::is_float<U>);
+  auto operator/=(U s) -> BasePixel &requires(cpp::is_float<U>);
 
   // 计算颜色的差值
   auto diff(const BasePixel &p) -> T;
@@ -103,20 +101,20 @@ struct BasePixel {
   }
 
   void RGB2Grayscale();
-  void RGB2HSV();
-  void HSV2RGB();
-  void RGB2HSL();
-  void HSL2RGB();
-  void RGB2XYZ();
-  void XYZ2RGB();
-  void XYZ2LAB();
-  void LAB2XYZ();
-  void RGB2LAB();
-  void LAB2RGB();
-  void XYZ2LUV();
-  void LUV2XYZ();
-  void RGB2LUV();
-  void LUV2RGB();
+  auto RGB2HSV() -> BasePixel &;
+  auto HSV2RGB() -> BasePixel &;
+  auto RGB2HSL() -> BasePixel &;
+  auto HSL2RGB() -> BasePixel &;
+  auto RGB2XYZ() -> BasePixel &;
+  auto XYZ2RGB() -> BasePixel &;
+  auto XYZ2LAB() -> BasePixel &;
+  auto LAB2XYZ() -> BasePixel &;
+  auto RGB2LAB() -> BasePixel &;
+  auto LAB2RGB() -> BasePixel &;
+  auto XYZ2LUV() -> BasePixel &;
+  auto LUV2XYZ() -> BasePixel &;
+  auto RGB2LUV() -> BasePixel &;
+  auto LUV2RGB() -> BasePixel &;
 };
 
 template <BasePixelTemplate>

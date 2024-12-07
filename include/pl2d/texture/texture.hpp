@@ -53,53 +53,68 @@ struct BaseTexture {
   }
 
   // 使用运算符访问不进行安全检查
-  auto operator[](i32 y) const -> const T * {
+  INLINE auto operator[](i32 y) const -> const T * {
     return &pixels[y * pitch];
   }
-  auto operator[](i32 y) -> T * {
+  INLINE auto operator[](i32 y) -> T * {
     return &pixels[y * pitch];
   }
-  auto operator()(i32 x, i32 y) const -> const T & {
+  INLINE auto operator()(i32 x, i32 y) const -> const T & {
     return pixels[y * pitch + x];
   }
-  auto operator()(i32 x, i32 y) -> T & {
+  INLINE auto operator()(i32 x, i32 y) -> T & {
     return pixels[y * pitch + x];
   }
   // 不进行安全检查
-  auto pix(ssize_t i) const -> const T & {
+  INLINE auto pix(ssize_t i) const -> const T & {
     return pixels[i];
   }
-  auto pix(ssize_t i) -> T & {
+  INLINE auto pix(ssize_t i) -> T & {
     return pixels[i];
   }
-  auto pix(i32 x, i32 y) const -> const T & {
+  INLINE auto pix(i32 x, i32 y) const -> const T & {
     return pixels[y * pitch + x];
   }
-  auto pix(i32 x, i32 y) -> T & {
+  INLINE auto pix(i32 x, i32 y) -> T & {
     return pixels[y * pitch + x];
   }
   // 进行安全检查
-  auto at(ssize_t i) const -> const T & {
+  INLINE auto at(ssize_t i) const -> const T & {
     i = cpp::clamp(i, (ssize_t)0, (ssize_t)size - 1);
     return pixels[i];
   }
-  auto at(ssize_t i) -> T & {
+  INLINE auto at(ssize_t i) -> T & {
     i = cpp::clamp(i, (ssize_t)0, (ssize_t)size - 1);
     return pixels[i];
   }
-  auto at(i32 x, i32 y) const -> const T & {
+  INLINE auto at(i32 x, i32 y) const -> const T & {
     x = cpp::clamp(x, 0, (i32)width - 1);
     y = cpp::clamp(y, 0, (i32)height - 1);
     return pixels[y * pitch + x];
   }
-  auto at(i32 x, i32 y) -> T & {
+  INLINE auto at(i32 x, i32 y) -> T & {
     x = cpp::clamp(x, 0, (i32)width - 1);
     y = cpp::clamp(y, 0, (i32)height - 1);
     return pixels[y * pitch + x];
+  }
+  INLINE auto lerpat(f32 x, f32 y) const -> T {
+    x            = cpp::clamp(x, 0.f, (f32)width - 1);
+    y            = cpp::clamp(y, 0.f, (f32)height - 1);
+    const i32 x1 = (i32)x;
+    const i32 y1 = (i32)y;
+    const i32 x2 = cpp::min(x1 + 1, (i32)width - 1);
+    const i32 y2 = cpp::min(y1 + 1, (i32)height - 1);
+    const f32 dx = x - x1;
+    const f32 dy = y - y1;
+    const T  &p1 = (*this)(x1, y1);
+    const T  &p2 = (*this)(x2, y1);
+    const T  &p3 = (*this)(x1, y2);
+    const T  &p4 = (*this)(x2, y2);
+    return p1 * (1 - dx) * (1 - dy) + p2 * dx * (1 - dy) + p3 * (1 - dx) * dy + p4 * dx * dy;
   }
 
   // 获取与 texture 一样大的 rect
-  auto size_rect() const -> Rect {
+  INLINE auto size_rect() const -> Rect {
     return {0, 0, (i32)width - 1, (i32)height - 1};
   }
 
@@ -115,16 +130,16 @@ struct BaseTexture {
   auto clear() -> BaseTexture &; // 重置为透明，禁用透明则为黑色
 
   // 获取、设置值
-  auto get(i32 x, i32 y) -> T &;
-  auto get(i32 x, i32 y) const -> const T &;
-  auto get(i32 x, i32 y, T &p) -> BaseTexture &;
-  auto get(i32 x, i32 y, T &p) const -> const BaseTexture &;
-  auto set(i32 x, i32 y, const T &p) -> BaseTexture &;
-  auto set(i32 x, i32 y, u32 c) -> BaseTexture &;
-  auto set(i32 x, i32 y, byte r, byte g, byte b) -> BaseTexture &;
-  auto set(i32 x, i32 y, byte r, byte g, byte b, byte a) -> BaseTexture &;
-  auto set(i32 x, i32 y, f32 r, f32 g, f32 b) -> BaseTexture &;
-  auto set(i32 x, i32 y, f32 r, f32 g, f32 b, f32 a) -> BaseTexture &;
+  INLINE auto get(i32 x, i32 y) -> T &;
+  INLINE auto get(i32 x, i32 y) const -> const T &;
+  INLINE auto get(i32 x, i32 y, T &p) -> BaseTexture &;
+  INLINE auto get(i32 x, i32 y, T &p) const -> const BaseTexture &;
+  INLINE auto set(i32 x, i32 y, const T &p) -> BaseTexture &;
+  INLINE auto set(i32 x, i32 y, u32 c) -> BaseTexture &;
+  INLINE auto set(i32 x, i32 y, byte r, byte g, byte b) -> BaseTexture &;
+  INLINE auto set(i32 x, i32 y, byte r, byte g, byte b, byte a) -> BaseTexture &;
+  INLINE auto set(i32 x, i32 y, f32 r, f32 g, f32 b) -> BaseTexture &;
+  INLINE auto set(i32 x, i32 y, f32 r, f32 g, f32 b, f32 a) -> BaseTexture &;
 
   auto gaussian_blur(i32 size = 7, f32 sigma = 1) -> BaseTexture &; // 高斯模糊
   auto blur() -> BaseTexture & {
@@ -143,6 +158,11 @@ struct BaseTexture {
   auto fft_resize_copy(f32 s) -> BaseTexture *;
   auto fft_resize_copy(u32 w, u32 h) -> BaseTexture *;
 
+  auto lerp_resize(f32 s) -> BaseTexture &;
+  auto lerp_resize(u32 w, u32 h) -> BaseTexture &;
+  auto lerp_resize_copy(f32 s) -> BaseTexture *;
+  auto lerp_resize_copy(u32 w, u32 h) -> BaseTexture *;
+
   //% 缩放 resize_copy会创建新对象 resize不会创建新对象
   auto resize(float s) -> BaseTexture &;           // 缩放到 s 倍
   auto resize(u32 w, u32 h) -> BaseTexture &;      // 缩放到指定大小
@@ -156,11 +176,18 @@ struct BaseTexture {
   auto line_mix(const Point2I &p1, const Point2I &p2, const T &color) -> BaseTexture &;
   auto line(i32 x1, i32 y1, i32 x2, i32 y2, const T &color) -> BaseTexture &;
   auto line_mix(i32 x1, i32 y1, i32 x2, i32 y2, const T &color) -> BaseTexture &;
+  auto trangle(const Point2I &p1, const Point2I &p2, const Point2I &p3, const T &color)
+      -> BaseTexture &;
+  auto polygon() -> BaseTexture &;
+
   // 填充区域
   auto fill(const T &color) -> BaseTexture &;
   auto fill(RectI rect, const T &color) -> BaseTexture &;
   auto fill_mix(RectI rect, const T &color) -> BaseTexture &;
   auto fill(const T &(*cb)(i32 x, i32 y)) -> BaseTexture &;
+  auto fill_trangle(const Point2I &p1, const Point2I &p2, const Point2I &p3, const T &color)
+      -> BaseTexture &;
+
   // 绘制图片
   template <typename T2>
   auto paste_from(const BaseTexture<T2> &tex, i32 x, i32 y) -> BaseTexture &;
@@ -180,15 +207,13 @@ struct BaseTexture {
   auto paste_to_opaque(BaseTexture<T2> &tex, i32 x, i32 y) -> BaseTexture &;
   template <typename T2>
   auto paste_to_opaque(BaseTexture<T2> &tex, i32 x, i32 y) const -> const BaseTexture &;
+
   // 转换颜色
-  auto replace(const T &src, const T &dst) -> BaseTexture &;
-  auto transform(void (*cb)(T &pix)) -> BaseTexture &;
-  auto transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture &;
-  auto transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture &;
-  auto transform(void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y)) -> BaseTexture &;
-  // TODO
-  void trangle();
-  void polygon();
+  INLINE auto replace(const T &src, const T &dst) -> BaseTexture &;
+  INLINE auto transform(void (*cb)(T &pix)) -> BaseTexture &;
+  INLINE auto transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture &;
+  INLINE auto transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture &;
+  INLINE auto transform(void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y)) -> BaseTexture &;
 };
 
 using TextureB = BaseTexture<PixelB>;

@@ -2,7 +2,49 @@
 
 #if NO_STD
 
+// TODO 使用正式系统调用替换这里的临时实现
+dlexport void *read_from_file(const char *filename, size_t *size) {
+  if (filename == NULL) return NULL;
+
+  ssize_t file_size = __syscall(SYSCALL_FILE_SIZE, filename);
+  if (file_size < 0) return NULL;
+
+  if (size) *size = file_size;
+
+  void *data = malloc(file_size + 1);
+  if (data == NULL) return NULL;
+
+  ((uint8_t *)data)[file_size] = 0;
+
+  ssize_t read_size = __syscall(SYSCALL_LOAD_FILE, filename, data, file_size);
+  if (read_size != file_size) {
+    free(data);
+    return NULL;
+  }
+
+  return data;
+}
+
+// TODO 使用正式系统调用替换这里的临时实现
+dlexport int write_to_file(const char *filename, const void *data, size_t size) {
+  if (filename == NULL || data == NULL) return -1;
+
+  ssize_t nwrite = __syscall(SYSCALL_SAVE_FILE, filename, data, size);
+  if (nwrite != size) return -1;
+
+  return 0;
+}
+
+dlexport void *map_file(const char *filename, size_t *size, int flags) {
+  TODO("实现");
+}
+
+dlexport void unmap_file(void *ptr, size_t size) {
+  TODO("实现");
+}
+
 #else
+
 #  include <fcntl.h>
 #  include <stdio.h>
 #  include <sys/mman.h>
@@ -85,4 +127,5 @@ dlexport void *map_file(const char *filename, size_t *size, int flags) {
 dlexport void unmap_file(void *ptr, size_t size) {
   munmap(ptr, size + 1);
 }
+
 #endif

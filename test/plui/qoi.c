@@ -1,10 +1,14 @@
 
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #define NO_STD 0
 #include <define.h>
 #include <libc-base.h>
-
-#define FILE_IMPLEMENTATION
-#include "file.h"
+#include <misc.h>
 
 #define PADDING 1
 #define MODDING 0

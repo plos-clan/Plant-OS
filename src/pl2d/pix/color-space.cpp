@@ -51,7 +51,7 @@ void PixelB::LAB2RGB() {
 #endif
 
 template <BasePixelTemplate>
-void BasePixelT::RGB2HSV() {
+auto BasePixelT::RGB2HSV() -> BasePixel & {
   FT r = this->r / (FT)T_MAX;
   FT g = this->g / (FT)T_MAX;
   FT b = this->b / (FT)T_MAX;
@@ -70,10 +70,11 @@ void BasePixelT::RGB2HSV() {
   this->r = h * (FT)T_MAX;
   this->g = s * (FT)T_MAX;
   this->b = v * (FT)T_MAX;
+  return *this;
 }
 
 template <BasePixelTemplate>
-void BasePixelT::HSV2RGB() {
+auto BasePixelT::HSV2RGB() -> BasePixel & {
   FT h = this->r / (FT)T_MAX * (FT)6;
   FT s = this->g / (FT)T_MAX;
   FT v = this->b / (FT)T_MAX;
@@ -100,10 +101,11 @@ void BasePixelT::HSV2RGB() {
   this->r = (r + m) * (FT)T_MAX;
   this->g = (g + m) * (FT)T_MAX;
   this->b = (b + m) * (FT)T_MAX;
+  return *this;
 }
 
 template <BasePixelTemplate>
-void BasePixelT::RGB2HSL() {
+auto BasePixelT::RGB2HSL() -> BasePixel & {
   FT r = this->r / (FT)T_MAX;
   FT g = this->g / (FT)T_MAX;
   FT b = this->b / (FT)T_MAX;
@@ -123,10 +125,11 @@ void BasePixelT::RGB2HSL() {
   this->r = h * (FT)T_MAX;
   this->g = s * (FT)T_MAX;
   this->b = l * (FT)T_MAX;
+  return *this;
 }
 
 template <BasePixelTemplate>
-void BasePixelT::HSL2RGB() {
+auto BasePixelT::HSL2RGB() -> BasePixel & {
   FT h = this->r * 6;
   FT s = this->g;
   FT l = this->b;
@@ -153,12 +156,13 @@ void BasePixelT::HSL2RGB() {
   this->r = (r + m) * (FT)T_MAX;
   this->g = (g + m) * (FT)T_MAX;
   this->b = (b + m) * (FT)T_MAX;
+  return *this;
 }
 
 // 参照 https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ
 
 template <BasePixelTemplate>
-void BasePixelT::RGB2XYZ() {
+auto BasePixelT::RGB2XYZ() -> BasePixel & {
 #if COLOR_RGB_LINEAR
   FT r = (FT)this->r / (FT)T_MAX;
   FT g = (FT)this->g / (FT)T_MAX;
@@ -179,7 +183,7 @@ void BasePixelT::RGB2XYZ() {
 }
 
 template <BasePixelTemplate>
-void BasePixelT::XYZ2RGB() {
+auto BasePixelT::XYZ2RGB() -> BasePixel & {
   FT x = (FT)this->r / (FT)T_MAX * (FT)0.950456;
   FT y = (FT)this->g / (FT)T_MAX * (FT)1.000000;
   FT z = (FT)this->b / (FT)T_MAX * (FT)1.088754;
@@ -197,11 +201,12 @@ void BasePixelT::XYZ2RGB() {
   this->g = G::xyz2rgb(g) * (FT)T_MAX;
   this->b = G::xyz2rgb(b) * (FT)T_MAX;
 #endif
+  return *this;
 }
 
 // 将 RGB2XYZ XYZ2LAB 合并到一起
 template <BasePixelTemplate>
-void BasePixelT::RGB2LAB() {
+auto BasePixelT::RGB2LAB() -> BasePixel & {
 #if COLOR_RGB_LINEAR
   FT r = (FT)this->r / (FT)T_MAX;
   FT g = (FT)this->g / (FT)T_MAX;
@@ -238,11 +243,12 @@ void BasePixelT::RGB2LAB() {
   // this->r = y * (FT)T_MAX;                                                // l
   // this->g = (x - y) * (FT)T_MAX_2 + (T_MAX != T_MAX_2 ? T_MAX_2 + 1 : 0); // a
   // this->b = (y - z) * (FT)T_MAX_2 + (T_MAX != T_MAX_2 ? T_MAX_2 + 1 : 0); // b
+  return *this;
 }
 
 // 将 LAB2XYZ XYZ2RGB 合并到一起
 template <BasePixelTemplate>
-void BasePixelT::LAB2RGB() {
+auto BasePixelT::LAB2RGB() -> BasePixel & {
   FT x, y, z;
   if constexpr (T_MAX != T_MAX_2) {                    // 整数
     y = (FT)this->r / (FT)T_MAX;                       // l
@@ -280,11 +286,12 @@ void BasePixelT::LAB2RGB() {
   this->g = G::xyz2rgb(g) * (FT)T_MAX;
   this->b = G::xyz2rgb(b) * (FT)T_MAX;
 #endif
+  return *this;
 }
 
 //;  未实现
 template <BasePixelTemplate>
-void BasePixelT::XYZ2LUV() {
+auto BasePixelT::XYZ2LUV() -> BasePixel & {
   float x = this->r;
   float y = this->g;
   float z = this->b;
@@ -297,12 +304,19 @@ void BasePixelT::XYZ2LUV() {
   this->r = L;       // L component
   this->g = u_prime; // u' component
   this->b = v_prime; // v' component
+  return *this;
 }
 
 template <BasePixelTemplate>
-void BasePixelT::RGB2LUV() {}
+auto BasePixelT::RGB2LUV() -> BasePixel & {
+  TODO();
+  return *this;
+}
 template <BasePixelTemplate>
-void BasePixelT::LUV2RGB() {}
+auto BasePixelT::LUV2RGB() -> BasePixel & {
+  TODO();
+  return *this;
+}
 
 BasePixelInstantiation
 

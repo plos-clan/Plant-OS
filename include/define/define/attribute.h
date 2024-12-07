@@ -107,3 +107,5 @@
 #  define constfn             __attr(const)
 #  define purefn              __attr(pure)
 #endif
+
+#define INLINE __attr(always_inline) __nif

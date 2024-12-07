@@ -20,6 +20,9 @@ mcopy -i hd.img audio.plac ::
 mcopy -i hd.img world_execute_me.qoa ::
 mcopy -i hd.img do_you_hear_the_people_sing.qoa ::
 mcopy -i hd.img disk.img ::
+
 if [ -f zstd-test.bin ]; then
   mcopy -i hd.img zstd-test.bin ::
 fi
+
+mcopy -i hd.img test.qoi ::

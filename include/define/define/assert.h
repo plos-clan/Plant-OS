@@ -39,6 +39,8 @@
       _va1_;                                                                                       \
     })
 
+#  define TODO(...) ({ fatal("TODO: " __VA_ARGS__); })
+
 #else
 
 #  define logged_assert(expr, ...)                                                                 \
@@ -74,5 +76,7 @@
       if (!(_val1_ != _val2_)) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);      \
       _va1_;                                                                                       \
     })
+
+#  define TODO(...) ({ fatal("TODO: " __VA_ARGS__); })
 
 #endif
