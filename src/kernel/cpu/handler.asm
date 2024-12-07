@@ -192,7 +192,7 @@ asm_inthandler20:
 	mov ax,ss
 	mov ds,ax
 	mov es,ax
-	CALL inthandler20
+	call inthandler20
 	popa
 	pop gs
 	pop fs
