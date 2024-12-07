@@ -134,12 +134,13 @@ void ERROR7(u32 eip) {
 #define EFLAG_IF               (1 << 9)
 extern byte *IVT;
 void         ERROR13(u32 eip) {
-  if (current_task()->v86_mode == 0) {
-    error("fault, gp");
+  volatile v86_frame_t *frame = (v86_frame_t *)((volatile u32)(&eip));
+  if (current_task()->v86_mode != 1) {
+    error("fault, gp at 0x%x\n", frame->eip);
     syscall_exit(1);
     infinite_loop;
   }
-  volatile v86_frame_t *frame = (v86_frame_t *)((volatile u32)(&eip));
+
   asm volatile("" : : "g"(frame));
   // 打印frame所有成员
   uint8_t      *ip;

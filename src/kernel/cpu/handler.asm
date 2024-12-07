@@ -13,6 +13,10 @@ asm_default_inthandler:
 	push fs
 	push gs
 	pusha
+	; 这里必须要有 因为从v86到这里，必须要切换段寄存器
+	mov ax,ss
+	mov ds,ax
+	mov es,ax
 	call default_inthandler
 	popa
 	pop gs
@@ -43,6 +47,10 @@ floppy_int:
 	push fs
 	push gs
 	pusha
+	; 这里必须要有 因为从v86到这里，必须要切换段寄存器
+	mov ax,ss
+	mov ds,ax
+	mov es,ax
 	call flint
 	popa
 	pop gs
@@ -91,6 +99,10 @@ asm_sb16_handler:
 	push fs
 	push gs
 	pusha
+	; 这里必须要有 因为从v86到这里，必须要切换段寄存器
+	mov ax,ss
+	mov ds,ax
+	mov es,ax
 	call sb16_handler
 	popa
 	pop gs
@@ -105,6 +117,10 @@ asm_hda_handler:
 	push fs
 	push gs
 	pusha
+	; 这里必须要有 因为从v86到这里，必须要切换段寄存器
+	mov ax,ss
+	mov ds,ax
+	mov es,ax
 	CALL hda_interrupt_handler
 	popa
 	pop gs
@@ -205,6 +221,10 @@ asm_inthandler21:
 	push fs
 	push gs
 	pusha
+	; 这里必须要有 因为从v86到这里，必须要切换段寄存器
+	mov ax,ss
+	mov ds,ax
+	mov es,ax
 	call inthandler21
 	popa
 	pop gs

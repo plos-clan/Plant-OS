@@ -5,22 +5,21 @@
 #include <zstd.h>
 
 static void compress_orDie(const char *fname, const char *oname) {
-  size_t const fSize     = __syscall(SYSCALL_FILE_SIZE, fname);
+  size_t const fSize = __syscall(SYSCALL_FILE_SIZE, fname);
+  printf("file size: %lu\n", fSize);
   void *const  fBuff     = xmalloc(fSize);
   size_t const fReadSize = __syscall(SYSCALL_LOAD_FILE, fname, fBuff, fSize);
+  printf("read size: %lu\n", fReadSize);
   size_t const cBuffSize = ZSTD_compressBound(fSize);
   void *const  cBuff     = xmalloc(cBuffSize);
   assert(fReadSize == fSize, "read file error");
-
+  printf("read ok\n");
   size_t const cSize = ZSTD_compress(cBuff, cBuffSize, fBuff, fSize, 1);
   assert(!ZSTD_isError(cSize), "ZSTD_compress error");
 
   // saveFile_orDie(oname, cBuff, cSize);
 
   printf("%25s : %6u -> %7u - %s \n", fname, (unsigned)fSize, (unsigned)cSize, oname);
-
-  free(fBuff);
-  free(cBuff);
 }
 
 static char *createOutFilename_orDie(const char *filename) {
@@ -44,9 +43,8 @@ int main(int argc, const char **argv) {
   }
 
   const char *const inFilename = argv[1];
-
+  printf("hello world\n");
   char *const outFilename = createOutFilename_orDie(inFilename);
   compress_orDie(inFilename, outFilename);
-  free(outFilename);
   return 0;
 }

@@ -255,24 +255,27 @@ void task_to_user_mode_elf(char *filename) {
     infinite_loop;
   }
   u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + PAGE_SIZE;
-  u32 pg         = PADDING_UP(*(current_task()->alloc_size), PAGE_SIZE) / PAGE_SIZE;
-  for (int i = 0; i < pg + 128 * 4; i++) {
+  klogd("alloc_addr = %08x", alloc_addr);
+
+  u32 pg = PADDING_UP(*(current_task()->alloc_size), PAGE_SIZE) / PAGE_SIZE;
+#define STACK_SIZE 256
+  for (int i = 0; i < pg + STACK_SIZE * 4; i++) {
     page_link(alloc_addr + i * PAGE_SIZE);
   }
-  u32 alloced_esp  = alloc_addr + 128 * PAGE_SIZE * 4;
-  alloc_addr      += 128 * PAGE_SIZE * 4;
+  u32 alloced_esp  = alloc_addr + STACK_SIZE * PAGE_SIZE * 4;
+  alloc_addr      += STACK_SIZE * PAGE_SIZE * 4;
   iframe->esp      = alloced_esp;
   if (current_task()->ptid != -1) { *(u8 *)(0xf0000000) = 0; }
   //  strcpy((char *)0xf0000001, current_task()->line);
   // *(u32 *)(0xb5000000) = 2;
   // klog("value = %08x\n",*(u32 *)(0xb5000000));
   current_task()->alloc_addr = alloc_addr;
+  current_task()->v86_mode   = 0;
   iframe->eip                = load_elf((Elf32_Ehdr *)p);
   klogd("eip = %08x", &(iframe->eip));
   current_task()->user_mode = 1;
   tss.esp0                  = current_task()->top;
   change_page_task_id(current_task()->tid, p, sz);
-  change_page_task_id(current_task()->tid, (void *)(iframe->esp - 512 * 1024), 512 * 1024);
   //klog("%d\n", get_interrupt_state());
   asm volatile("movl %0, %%esp\n"
                "popa\n"

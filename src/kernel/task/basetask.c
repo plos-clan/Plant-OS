@@ -135,7 +135,7 @@ void init() {
   // }
 
   screen_clear();
-  create_task(v86_task, 1, 1);
+  mtask *t = create_task(v86_task, 1, 1);
   check_device();
   u32 *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
@@ -183,8 +183,9 @@ void init() {
     plty_flush(tty);
   }
 #endif
-
+  void task_kill(u32 tid);
   plty_set_default(tty);
+  task_kill(t->tid);
   create_task(shell, 1, 1);
 
   infinite_loop task_next();

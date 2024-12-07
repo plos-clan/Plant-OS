@@ -4,6 +4,9 @@
 
 #if NO_STD
 
+#  define STB_SPRINTF_IMPLEMENTATION
+#  include "stb_sprintf.h"
+
 #  define vsprintf_bufsize 1024
 static char vsprintf_buf[vsprintf_bufsize];
 
@@ -311,22 +314,25 @@ static bool vsprintf_tryfmt(char *_rest *_s, char *sb, cstr _rest *fmt, fmtarg *
   return true;
 }
 
-dlexport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) {
-  if (s == null || fmt == null) return 0;
-  char *s_begin = s;
+// dlexport int vsprintf(char *_rest s, cstr _rest fmt, va_list va) {
+//   if (s == null || fmt == null) return 0;
+//   char *s_begin = s;
 
-  static fmtarg arg = {.buf = vsprintf_buf, .bufsize = vsprintf_bufsize};
+//   static fmtarg arg = {.buf = vsprintf_buf, .bufsize = vsprintf_bufsize};
 
-  while (*fmt != '\0') {
-    // Warning in x64 ??? WTF
-    if (vsprintf_tryfmt(&s, s_begin, &fmt, &arg, &va)) continue;
-    *s++ = *fmt++;
-  }
+//   while (*fmt != '\0') {
+//     // Warning in x64 ??? WTF
+//     if (vsprintf_tryfmt(&s, s_begin, &fmt, &arg, &va)) continue;
+//     *s++ = *fmt++;
+//   }
 
-  *s = '\0';
-  return s - s_begin;
+//   *s = '\0';
+//   return s - s_begin;
+// }
+
+int vsprintf(char *buf, const char *fmt, va_list args) {
+  return stbsp_vsprintf(buf, fmt, args);
 }
-
 dlexport int sprintf(char *_rest s, cstr _rest fmt, ...) {
   if (fmt == null) return 0;
   va_list va;
@@ -349,8 +355,8 @@ dlexport ssize_t sformat(char *_rest s, cstr _rest fmt, ...) {
   return rets;
 }
 
-int vsnprintf(char *_rest s, size_t maxlen, const char *_rest fmt, va_list va) {
-  return 0;
-}
+// int vsnprintf(char *_rest s, size_t maxlen, const char *_rest fmt, va_list va) {
+//   return 0;
+// }
 
 #endif
