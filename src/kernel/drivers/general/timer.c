@@ -35,10 +35,14 @@ void sleep(uint64_t time_s) {
   //   } while (now_time.sec < end_time.sec || now_time.nsec < end_time.nsec);
 }
 
+void debugger();
+
 void inthandler20(i32 id, regs32 *regs) {
   // gettime_ns(NULL); // 更新时间
 
   system_tick++;
+
+  debugger();
 
   extern mtask *mtask_current;
   if (mtask_current) task_next();

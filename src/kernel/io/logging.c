@@ -164,11 +164,46 @@ void puts(cstr s) {
 //; 基本日志记录函数
 //* ----------------------------------------------------------------------------------------------------
 
-finline __nnull(1) void log_outs(cstr s) {
+bool lastline_ended = true;
+
+static char buf[1024];
+static int  bufp = 0;
+
+finline void _putb(int c) {
+  waituntil(asm_in8(PORT + 5) & 0x20);
+  asm_out8(PORT, c);
+}
+
+finline void _puts(cstr s) {
   for (size_t i = 0; s[i] != '\0'; i++) {
-    waituntil(asm_in8(PORT + 5) & 0x20);
-    asm_out8(PORT, s[i]);
+    _putb(s[i]);
   }
+}
+
+finline int _getb() {
+  if ((asm_in8(PORT + 5) & 1) == 0) return -1;
+  return asm_in8(PORT);
+}
+
+finline int _getb_block() {
+  while ((asm_in8(PORT + 5) & 1) == 0) {}
+  return asm_in8(PORT);
+}
+
+finline __nnull(1) void log_outs(cstr s) {
+  if (lastline_ended) {
+    _puts("\033[2K\033[999D");
+  } else {
+    _puts("\033[A\033[999C");
+  }
+  for (size_t i = 0; s[i] != '\0'; i++) {
+    lastline_ended = s[i] == '\n';
+    _putb(s[i]);
+  }
+  if (!lastline_ended) _putb('\n');
+  _puts("> ");
+  buf[bufp] = '\0';
+  _puts(buf);
 }
 
 void klog_raw(cstr s) {
@@ -223,6 +258,91 @@ void puts(cstr s) {
   print(s);
   print("\n");
   klogi("print: %s", s);
+}
+
+finline int getnb(int *cp) {
+  int num = 0;
+  int c;
+  while ((c = _getb()) >= 0) {
+    if (c >= '0' && c <= '9') {
+      num = num * 10 + (c - '0');
+    } else {
+      break;
+    }
+  }
+  *cp = c;
+  return num;
+}
+
+static int get_terminal_size(i32 *rows, i32 *cols) {
+  _puts("\033[18t");
+  if (_getb_block() != '\033') return -1;
+  if (_getb_block() != '[') return -1;
+  if (_getb_block() != '8') return -1;
+  if (_getb_block() != ';') return -1;
+  int c;
+  *rows = getnb(&c);
+  if (c != ';') return -1;
+  *cols = getnb(&c);
+  if (c != 't') return -1;
+  return 0;
+}
+
+static int get_cursor_pos(i32 *row, i32 *col) {
+  _puts("\033[6n");
+  if (_getb_block() != '\033') return -1;
+  if (_getb_block() != '[') return -1;
+  int c;
+  *row = getnb(&c);
+  if (c != ';') return -1;
+  *col = getnb(&c);
+  if (c != 'R') return -1;
+  return 0;
+}
+
+bool debug_enabled = false;
+
+void debugger() {
+  if (!debug_enabled) return;
+  int c = 0;
+  while (true) {
+    while ((c = _getb()) >= 0) {
+      if (c == '\n' || c == '\r') break;
+      if (c == 127) {
+        if (bufp > 0) {
+          _puts("\b \b");
+          bufp--;
+          buf[bufp] = '\0';
+        }
+      } else {
+        if (c == '\e') {
+          if (_getb_block() == '[') {
+            switch (_getb_block()) {
+            case 'A': break;
+            case 'B': break;
+            case 'C': break;
+            case 'D': break;
+            }
+          }
+        } else {
+          _putb(c);
+          buf[bufp] = c;
+          bufp++;
+          // i32 row, col;
+          // get_cursor_pos(&row, &col);
+          // if (col == 2) {
+          //   _puts("\033[2K\033[999D| ");
+          //   _putb(c);
+          // }
+        }
+      }
+    }
+    if (c < 0) break;
+    buf[bufp] = 0;
+    klogd("echo: %s", buf);
+    bufp = 0;
+    _puts("\033[2K\033[999D> ");
+  }
 }
 
 #endif

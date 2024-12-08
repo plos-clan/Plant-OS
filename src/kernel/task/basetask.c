@@ -188,5 +188,8 @@ void init() {
   task_kill(t->tid);
   create_task(shell, 1, 1);
 
+  extern bool debug_enabled;
+  debug_enabled = true;
+
   infinite_loop task_next();
 }

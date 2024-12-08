@@ -13,6 +13,8 @@ void abort() {
 
 void *pci_addr_base;
 
+void init_serial();
+
 #pragma clang optimize off
 
 void sysinit() {
@@ -24,6 +26,8 @@ void sysinit() {
   memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
   // init_gdtidt();
   init_pic();
+  init_serial();
+  init_pit();
 
   asm_sti;
   irq_mask_clear(0);
@@ -34,7 +38,6 @@ void sysinit() {
 
   vbe_init();
 
-  init_pit();
   init_tty();
   screen_clear();
 
