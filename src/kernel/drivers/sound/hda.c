@@ -378,8 +378,9 @@ void hda_init() {
   info("output base address: 0x%x", output_base);
   output_buffer = page_malloc_one_no_mark();
 
-  irq_mask_clear(0xb);
-  inthandler_set(0x20 + 0xb, hda_interrupt_handler);
+  int irq = pci_get_drive_irq(hda_bus, hda_slot, hda_func);
+  irq_mask_clear(irq);
+  inthandler_set(0x20 + irq, hda_interrupt_handler);
   mem_set32(hda_base + 0x20, ((u32)1 << 31) | ((u32)1 << input_stream_count));
 
   info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));
