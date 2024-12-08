@@ -44,7 +44,7 @@ static inthandler_t handlers[IDT_LEN] = {
 
 size_t syscall(size_t eax, size_t ebx, size_t ecx, size_t edx, size_t esi, size_t edi);
 
-void inthandler(i32 id, regs32 *regs) {
+__attr(fastcall) void inthandler(i32 id, regs32 *regs) {
   if (id >= 0x20 && id < 0x30) send_eoi(id - 0x20);
   if (handlers[id] == 0x36) {
     regs->eax = syscall(regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi);

@@ -25,4 +25,6 @@ if [ -f zstd-test.bin ]; then
   mcopy -i hd.img zstd-test.bin ::
 fi
 
-mcopy -i hd.img test.qoi ::
+if [ -f test.qoi ]; then
+  mcopy -i hd.img test.qoi ::
+fi
