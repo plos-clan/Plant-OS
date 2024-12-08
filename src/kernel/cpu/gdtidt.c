@@ -1,7 +1,5 @@
 #include <kernel.h>
 
-void ide_irq();
-
 void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; // G_bit = 1
@@ -23,25 +21,49 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar) {
   gd->offset_high  = (offset >> 16) & 0xffff;
 }
 
-extern void asm_default_inthandler();
+extern void asm_inthandler() __attr(naked);
+extern void asm_into_inthandler() __attr(naked);
+extern void inthandler(i32 id, regs32 *regs) __attr(fastcall);
 
-void default_inthandler() {
-  klogd("default_inthandler");
+static void (*const asm_handlers[IDT_LEN])() = {
+    [0x00] = asm_error0,  [0x01] = asm_error1,  [0x03] = asm_error3,  [0x04] = asm_error4,
+    [0x05] = asm_error5,  [0x06] = asm_error6,  [0x07] = asm_error7,  [0x08] = asm_error8,
+    [0x09] = asm_error9,  [0x0a] = asm_error10, [0x0b] = asm_error11, [0x0c] = asm_error12,
+    [0x0d] = asm_error13, [0x0e] = asm_error14, [0x10] = asm_error16, [0x11] = asm_error17,
+    [0x12] = asm_error18,
+};
+
+void inthandler2c(i32 id, regs32 *regs);
+void ide_irq(i32 id, regs32 *regs);
+
+static inthandler_t handlers[IDT_LEN] = {
+    [0x2c]      = inthandler2c, // 鼠标中断
+    [0x20 + 14] = ide_irq,      // IDE中断
+    [0x20 + 15] = ide_irq,      // IDE中断
+};
+
+size_t syscall(size_t eax, size_t ebx, size_t ecx, size_t edx, size_t esi, size_t edi);
+
+void inthandler(i32 id, regs32 *regs) {
+  if (id >= 0x20 && id < 0x30) send_eoi(id - 0x20);
+  if (handlers[id] == 0x36) {
+    regs->eax = syscall(regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi);
+  } else if (handlers[id]) {
+    handlers[id](id, regs);
+  } else {
+    klogd("Unknown interrupt %02x (%d)", id, id);
+  }
 }
 
-static void (*const handlers[IDT_LEN])() = {
-    [0x00] = asm_error0,       [0x01] = asm_error1,  [0x03] = asm_error3,  [0x04] = asm_error4,
-    [0x05] = asm_error5,       [0x06] = asm_error6,  [0x07] = asm_error7,  [0x08] = asm_error8,
-    [0x09] = asm_error9,       [0x0a] = asm_error10, [0x0b] = asm_error11, [0x0c] = asm_error12,
-    [0x0d] = asm_error13,      [0x0e] = asm_error14, [0x10] = asm_error16, [0x11] = asm_error17,
-    [0x12]      = asm_error18,
-    [0x20]      = asm_inthandler20, // 计时器中断
-    [0x21]      = asm_inthandler21, // 键盘中断
-    [0x36]      = asm_inthandler36, // 系统API
-    [0x2c]      = asm_inthandler2c, // 鼠标中断
-    [0x20 + 14] = asm_ide_irq,      // IDE中断
-    [0x20 + 15] = asm_ide_irq,      // IDE中断
-};
+inthandler_t inthandler_get(i32 id) {
+  return handlers[id];
+}
+
+inthandler_t inthandler_set(i32 id, inthandler_t handler) {
+  var old      = handlers[id];
+  handlers[id] = handler;
+  return old;
+}
 
 void init_gdtidt() {
   // 初始化 GDT
@@ -62,8 +84,9 @@ void init_gdtidt() {
   // 初始化 IDT
   var idt = (GateDescriptor *)IDT_ADDR;
   for (size_t i = 0; i < IDT_LEN; i++) {
-    int ar = (i >= 0x30 && handlers[i]) ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
-    set_gatedesc(idt + i, (size_t)(handlers[i] ?: &asm_default_inthandler), 2 * 8, ar);
+    int    ar      = i >= 0x30 ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
+    size_t handler = (size_t)&asm_into_inthandler + 2 + i * 7;
+    set_gatedesc(idt + i, (size_t)asm_handlers[i] ?: handler, 2 * 8, ar);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 }

@@ -12,7 +12,7 @@ auto BasePixelT::grayscale() const -> BasePixelT {
   return {gray, gray, gray, a};
 }
 template <BasePixelTemplate>
-void BasePixelT::RGB2Grayscale() {
+auto BasePixelT::RGB2Grayscale() -> BasePixel & {
   T gray = r * (FT).299 + g * (FT).587 + b * (FT).114;
   r = g = b = gray;
 }
@@ -28,7 +28,7 @@ auto BasePixelBT::grayscale() const -> BasePixelBT {
   return BasePixelBT{gray, gray, gray, a};
 }
 template <>
-void BasePixelBT::RGB2Grayscale() {
+auto BasePixelBT::RGB2Grayscale() -> BasePixel & {
   byte gray = (r * 19595 + g * 38470 + b * 7471) / 65536;
   r = g = b = gray;
 }
@@ -43,7 +43,7 @@ auto BasePixelST::grayscale() const -> BasePixelST {
   return PixelS{gray, gray, gray, a};
 }
 template <>
-void BasePixelST::RGB2Grayscale() {
+auto BasePixelST::RGB2Grayscale() -> BasePixel & {
   u16 gray = (r * 19595U + g * 38470U + b * 7471U) / 65536U;
   r = g = b = gray;
 }
@@ -58,7 +58,7 @@ auto BasePixelIT::grayscale() const -> BasePixelIT {
   return PixelI{gray, gray, gray, a};
 }
 template <>
-void BasePixelIT::RGB2Grayscale() {
+auto BasePixelIT::RGB2Grayscale() -> BasePixel & {
   u32 gray = (r * 19595ULL + g * 38470ULL + b * 7471ULL) / 65536ULL;
   r = g = b = gray;
 }

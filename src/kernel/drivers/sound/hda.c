@@ -54,6 +54,8 @@ static u32  *output_buffer    = null;
 static u32   hda_codec_number = 0;
 static void *hda_buffer_ptr   = null;
 
+void hda_interrupt_handler(i32 id, regs32 *regs);
+
 static void wait(int ticks) {
   int tick = system_tick;
   waituntil(system_tick - tick < ticks);
@@ -327,7 +329,6 @@ void hda_init_codec(u32 codec) {
   }
 }
 
-void asm_hda_handler();
 void pci_set_drive_irq(u8 bus, u8 slot, u8 func, u8 irq);
 void hda_init() {
   klogd("hda_init");
@@ -378,7 +379,7 @@ void hda_init() {
   output_buffer = page_malloc_one_no_mark();
 
   irq_mask_clear(0xb);
-  regist_intr_handler(0xb + 0x20, asm_hda_handler);
+  inthandler_set(0x20 + 0xb, hda_interrupt_handler);
   mem_set32(hda_base + 0x20, ((u32)1 << 31) | ((u32)1 << input_stream_count));
 
   info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));
@@ -628,7 +629,7 @@ static int hda_open(vsound_t vsound) {
   return 0;
 }
 
-void hda_interrupt_handler() {
+void hda_interrupt_handler(i32 id, regs32 *regs) {
   // printf("hda interrupt has been called");
   if (hda_stopping) {
     hda_stop();
@@ -638,7 +639,6 @@ void hda_interrupt_handler() {
   asm("wbinvd");
   mem_set8(output_base + 0x3, 1 << 2);
   task_run(use_task);
-  send_eoi(0x0b);
 }
 
 static void hda_close(vsound_t snd) {

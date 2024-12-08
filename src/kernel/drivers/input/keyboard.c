@@ -29,8 +29,11 @@ void wait_KBC_sendready() {
   }
 }
 
+void inthandler21(i32 id, regs32 *regs);
+
 // 初始化键盘控制电路
 void init_keyboard() {
+  inthandler_set(0x21, inthandler21);
   wait_KBC_sendready();
   asm_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
   wait_KBC_sendready();
@@ -119,7 +122,7 @@ static int sc2a(int sc) {
 int    disable_flag      = 0;
 mtask *keyboard_use_task = NULL;
 
-void inthandler21(int *esp) {
+void inthandler21(i32 id, regs32 *regs) {
   // 键盘中断处理函数
   u8 data, s[4];
   asm_out8(PIC0_OCW2, 0x61);

@@ -85,6 +85,13 @@ static void Write(int drive, byte *buffer, uint number, uint lba) {
   floppy_use = NULL;
 }
 
+static void flint(i32 id, regs32 *regs) {
+  floppy_int_count = 1; // 设置中断计数器为1，代表中断已经发生（或者是系统已经收到了中断）
+  asm_out8(0x20, 0x20); // 发送EOI信号，告诉PIC，我们已经处理完了这个中断
+  // task_run(waiter);
+  //  task_next();
+}
+
 void floppy_init() {
 #ifndef __NO_FLOPPY__
   sendbyte(CMD_VERSION); // 发送命令（获取软盘版本），如果收到回应，说明软盘正在工作
@@ -94,8 +101,7 @@ void floppy_init() {
     return;
   }
   // 设置软盘驱动器的中断服务程序
-  GateDescriptor *idt = (GateDescriptor *)IDT_ADDR;
-  set_gatedesc(idt + 0x26, (size_t)floppy_int, 2 * 8, AR_INTGATE32);
+  inthandler_set(0x26, flint);
   irq_mask_clear(0x6); // 清除IRQ6的中断
   printi("FLOPPY DISK:RESETING");
   reset(); // 重置软盘驱动器
@@ -111,15 +117,8 @@ void floppy_init() {
   vd.size        = 1474560;
   vd.flag        = 1;
   vd.sector_size = 512;
-  vd.type = VDISK_BLOCK;
+  vd.type        = VDISK_BLOCK;
   regist_vdisk(vd);
-}
-
-void flint(int *esp) {
-  floppy_int_count = 1; // 设置中断计数器为1，代表中断已经发生（或者是系统已经收到了中断）
-  asm_out8(0x20, 0x20); // 发送EOI信号，告诉PIC，我们已经处理完了这个中断
-  // task_run(waiter);
-  //  task_next();
 }
 
 void set_waiter(mtask *t) {

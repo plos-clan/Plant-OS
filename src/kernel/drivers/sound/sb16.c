@@ -3,8 +3,6 @@
 
 #define VSOUND_RWAPI 0
 
-void asm_sb16_handler(int *esp);
-
 #define SB_MIXER      0x224 // DSP 混合器端口
 #define SB_MIXER_DATA 0x225 // DSP 混合器数据端口
 #define SB_RESET      0x226 // DSP 重置
@@ -138,9 +136,7 @@ static void sb16_do_close() {
 
 static vsound_t snd;
 
-void sb16_handler() {
-  send_eoi(SB16_IRQ);
-
+void sb16_handler(i32 id, regs32 *regs) {
   asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);
 
 #if VSOUND_RWAPI
@@ -163,7 +159,7 @@ void sb16_init() {
   sb.use_task = null;
   sb.status   = STAT_OFF;
   irq_mask_clear(SB16_IRQ);
-  regist_intr_handler(SB16_IRQ + 0x20, asm_sb16_handler);
+  inthandler_set(0x20 + SB16_IRQ, sb16_handler);
 }
 
 static void sb_reset() {

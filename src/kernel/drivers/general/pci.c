@@ -235,6 +235,7 @@ void init_pci(void *addr_base) {
 
 void pci_classcode_print(struct pci_config_space_public *pci_config_space_puclic) {
   u8 *pci_drive = (u8 *)pci_config_space_puclic - 12;
+  klogd("%x %x", pci_config_space_puclic->VendorID, pci_config_space_puclic->DeviceID);
   printf("BUS:%02x ", pci_drive[1]);
   printf("EQU:%02x ", pci_drive[2]);
   printf("F:%02x ", pci_drive[3]);

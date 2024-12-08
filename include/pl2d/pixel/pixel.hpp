@@ -100,7 +100,7 @@ struct BasePixel {
     return *this;
   }
 
-  void RGB2Grayscale();
+  auto RGB2Grayscale() -> BasePixel &;
   auto RGB2HSV() -> BasePixel &;
   auto HSV2RGB() -> BasePixel &;
   auto RGB2HSL() -> BasePixel &;

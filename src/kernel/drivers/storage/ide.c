@@ -533,11 +533,9 @@ void ide_wait_irq() {
     ;
   ide_irq_invoked = 0;
 }
-void ide_irq() {
+void ide_irq(i32 id, regs32 *regs) {
   klog("ide irq.");
   ide_irq_invoked = 1;
-  send_eoi(0xf);
-  send_eoi(0xe);
 }
 u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
   klog("cdrom read.");

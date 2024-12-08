@@ -4,4 +4,5 @@
 bin
 build
 lib
-tools/__pycache__
+__pycache__
+init.log

@@ -109,7 +109,7 @@ u32 m_cr3 = 0;
 u32 m_eip = 0;
 u32 times = 0;
 
-void inthandler2c(int *esp) {
+void inthandler2c(i32 id, regs32 *regs) {
   asm_out8(PIC1_OCW2, 0x64);
   asm_out8(PIC0_OCW2, 0x62);
   byte data = asm_in8(PORT_KEYDAT);

@@ -110,14 +110,7 @@ void *sycall_handlers[MAX_SYSCALLS] = {
 
 typedef ssize_t (*syscall_t)(ssize_t, ssize_t, ssize_t, ssize_t, ssize_t);
 
-ssize_t syscall() {
-  volatile ssize_t eax, ebx, ecx, edx, esi, edi;
-  asm("mov %%eax, %0\n\t" : "=r"(eax));
-  asm("mov %%ebx, %0\n\t" : "=r"(ebx));
-  asm("mov %%ecx, %0\n\t" : "=r"(ecx));
-  asm("mov %%edx, %0\n\t" : "=r"(edx));
-  asm("mov %%esi, %0\n\t" : "=r"(esi));
-  asm("mov %%edi, %0\n\t" : "=r"(edi));
+ssize_t syscall(ssize_t eax, ssize_t ebx, ssize_t ecx, ssize_t edx, ssize_t esi, ssize_t edi) {
   klogi("eax: %d, ebx: %d, ecx: %d, edx: %d, esi: %d, edi: %d", eax, ebx, ecx, edx, esi, edi);
   if (0 <= eax && eax < MAX_SYSCALLS && sycall_handlers[eax] != null) {
     eax = ((syscall_t)sycall_handlers[eax])(ebx, ecx, edx, esi, edi);

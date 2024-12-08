@@ -2,16 +2,18 @@
 
 info() {
   echo -e "\033[32m[Info]\033[0m $1"
+  echo -e "\033[32m[Info]\033[0m $1" >>init.log
 }
 
 fail() {
   echo -e "\033[31m[Fail]\033[0m $1"
+  echo -e "\033[31m[Fail]\033[0m $1" >>init.log
 }
 
 check_command() {
   if ! command -v "$1" &>/dev/null; then
-    echo "找不到 $1 命令"
-    echo "$2"
+    fail "找不到 $1 命令"
+    fail "$2"
     exit 1
   fi
 }
@@ -20,7 +22,8 @@ check() {
   if [ "$GITHUB_ACTIONS" = "true" ]; then
     $*
   else
-    $* &>/dev/null
+    $* &>>init.log
+    echo "$ $*" >>init.log
   fi
   retcode=$?
   if [ $retcode -ne 0 ]; then
@@ -71,21 +74,27 @@ if [ -d './bin' ] || [ -d './build' ] || [ -d './lib' ]; then
   rm -r ./bin
   rm -r ./build
   rm -r ./lib
+  rm -r ./apps/lib
 fi
+
+rm ./init.log &>/dev/null
 
 info '开始配置 Plant-OS 项目'
 
+touch init.log
+
 info 创建目录
-mkdir -p bin
-mkdir -p build
-mkdir -p lib
+mkdir -p ./bin
+mkdir -p ./build
+mkdir -p ./lib
+mkdir -p ./apps/lib
 
 cd bin
 info 创建符号链接
-ln -s ../src/boot/run.sh run.sh &>/dev/null
-ln -s ../src/boot/run-efi.sh run-efi.sh &>/dev/null
-ln -s ../src/boot/netlog.py netlog.py &>/dev/null
-ln -s ../src/boot/templates templates &>/dev/null
+ln -s ../src/boot/run.sh run.sh &>>init.log
+ln -s ../src/boot/run-efi.sh run-efi.sh &>>init.log
+ln -s ../src/boot/netlog.py netlog.py &>>init.log
+ln -s ../src/boot/templates templates &>>init.log
 cd ..
 
 # 由于挂载资源的网站在某些地区无法正常访问，因此我们提供了一些等效的资源网站
@@ -93,7 +102,7 @@ cd ..
 # 目前支持的镜像资源站有：
 # plos-rsc.github.io
 
-cd bin
+cd ./bin
 info 下载资源文件
 check_command curl '需要使用 curl 来下载资源文件'
 check_command unzip '需要使用 unzip 来解压资源文件'
@@ -112,6 +121,12 @@ else
   check curl -O 'https://plos-resources.pages.dev/SourceHanSans-Light.ttc'
 fi
 cd ..
+cd ./apps/lib
+info 下载并解压应用程序资源文件...
+check curl -O 'https://plos-resources.pages.dev/lib.zip'
+check unzip lib.zip
+check rm lib.zip
+cd ../..
 
 info '成功配置 Plant-OS 项目'
 

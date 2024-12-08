@@ -131,10 +131,8 @@ void pci_list() {
   u8          *pci_drive = (u8 *)pci_addr_base;
   //输出PCI表的内容
   for (int line = 0;; pci_drive += 0x110 + 4, line++) {
-    if (pci_drive[0] == 0xff)
-      pci_classcode_print((struct pci_config_space_public *)(pci_drive + 12));
-    else
-      break;
+    if (pci_drive[0] != 0xff) break;
+    pci_classcode_print((struct pci_config_space_public *)(pci_drive + 12));
   }
 }
 
