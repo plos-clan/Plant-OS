@@ -155,19 +155,20 @@ extern void plac_player(cstr path);
 extern void qoa_player(cstr path);
 extern void mp3_player(cstr path);
 
-void shell_exec(char *path, cstr comand) {
-  if (!strlen(comand)) return;
+int shell_exec(char *path, cstr comand) {
+  if (!strlen(comand)) return 0;
+  int retcode = 0;
   if (strneq(comand, "cd ", 3)) {
     char *s = comand + 3;
     if (s[strlen(s) - 1] == '/' && strlen(s) > 1) { s[strlen(s) - 1] = '\0'; }
-    if (streq(s, ".")) return;
+    if (streq(s, ".")) return 0;
     if (streq(s, "..")) {
-      if (streq(s, "/")) return;
+      if (streq(s, "/")) return 1;
       char *n = path + strlen(path);
       while (*--n != '/' && n != path) {}
       *n = '\0';
       if (strlen(path) == 0) strcpy(path, "/");
-      return;
+      return 0;
     }
     char *old = strdup(path);
     if (s[0] == '/') {
@@ -182,7 +183,7 @@ void shell_exec(char *path, cstr comand) {
       printf("cd: %s: No such directory\n", s);
       sprintf(path, "%s", old);
       free(old);
-      return;
+      return 1;
     }
   } else if (streq(comand, "ls")) {
     list_files(path);
@@ -208,11 +209,11 @@ void shell_exec(char *path, cstr comand) {
     vfs_node_t p = vfs_open(s);
     if (!p) {
       printf("open %s failed\n", s);
-      return;
+      return 1;
     }
     if (p->type == file_dir) {
       printf("not a file\n");
-      return;
+      return 1;
     }
     size_t size = p->size;
     byte  *buf  = malloc(1024);
@@ -232,11 +233,11 @@ void shell_exec(char *path, cstr comand) {
     vfs_node_t p = vfs_open(s);
     if (!p) {
       printf("open %s failed\n", s);
-      return;
+      return 1;
     }
     if (p->type == file_dir) {
       printf("not a file\n");
-      return;
+      return 1;
     }
     size_t size = p->size;
     byte  *buf  = malloc(size);
@@ -272,9 +273,11 @@ void shell_exec(char *path, cstr comand) {
       mp3_player(path);
     } else {
       printf("bad command\n");
+      retcode = 1;
     }
     free(path);
   }
+  return retcode;
 }
 
 void shell() {
@@ -303,6 +306,13 @@ extern void log_update();
 
 extern char debug_shell_message[256];
 
+static const struct {
+  cstr alias, command;
+} debug_commands[] = {
+    {"test", "/fatfs1/testapp.bin" },
+    {"plui", "/fatfs1/plui-app.bin"},
+};
+
 void debug_shell() {
   sprintf(debug_shell_path, "/");
   log_update();
@@ -315,8 +325,19 @@ void debug_shell() {
     if (line[0] == '\0') {
       strcpy(debug_shell_message, "Empty command");
     } else {
-      debug_shell_message[0] = '\0';
-      shell_exec(debug_shell_path, line);
+      strcpy(debug_shell_message, "Executing command");
+      log_update();
+      int  retcode;
+      bool is_alias = false;
+      for (int i = 0; i < lengthof(debug_commands); i++) {
+        if (streq(line, debug_commands[i].alias)) {
+          retcode  = shell_exec(debug_shell_path, debug_commands[i].command);
+          is_alias = true;
+          break;
+        }
+      }
+      if (!is_alias) retcode = shell_exec(debug_shell_path, line);
+      sprintf(debug_shell_message, "Command exited with code %d", retcode);
     }
     log_update();
     free(line);

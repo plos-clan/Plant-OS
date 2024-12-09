@@ -25,6 +25,10 @@ if [ -f zstd-test.bin ]; then
   mcopy -i hd.img zstd-test.bin ::
 fi
 
+if [ -f plui-app.bin ]; then
+  mcopy -i hd.img plui-app.bin ::
+fi
+
 if [ -f test.qoi ]; then
   mcopy -i hd.img test.qoi ::
 fi

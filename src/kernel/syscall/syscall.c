@@ -8,6 +8,13 @@ u32 syscall_heapsize() {
   return *(current_task()->alloc_size);
 }
 
+static int syscall_vbe_getmode(void **vram, int *width, int *height) {
+  *vram   = vbe_frontbuffer;
+  *width  = screen_w;
+  *height = screen_h;
+  return 0;
+}
+
 static void *syscall_vbe_setmode(int width, int height, int bpp) {
   if (width <= 0 || height <= 0 || bpp <= 0) return null;
   return vbe_match_and_set_mode(width, height, bpp);
@@ -103,6 +110,7 @@ void *sycall_handlers[MAX_SYSCALLS] = {
     [SYSCALL_VBE_FLIP]    = &syscall_vbe_flip,
     [SYSCALL_VBE_FLUSH]   = &syscall_vbe_flush,
     [SYSCALL_VBE_CLEAR]   = &syscall_vbe_clear,
+    [SYSCALL_VBE_GETMODE] = &syscall_vbe_getmode,
     [SYSCALL_FILE_SIZE]   = &syscall_file_size,
     [SYSCALL_LOAD_FILE]   = &syscall_load_file,
     [SYSCALL_SAVE_FILE]   = &syscall_save_file,
