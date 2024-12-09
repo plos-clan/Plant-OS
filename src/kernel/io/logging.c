@@ -180,14 +180,102 @@ finline void _puts(cstr s) {
   }
 }
 
-finline int _getb() {
+#  define _peek_cirbuf_len 64
+static int  _peek_cache = -1;
+static char _peek_cirbuf[_peek_cirbuf_len];
+static int  _peek_cirbuf_h = 0;
+static int  _peek_cirbuf_t = 0;
+
+finline int _peekb_raw() {
+  if (_peek_cache >= 0) return _peek_cache;
+  if ((asm_in8(PORT + 5) & 1) == 0) return -1;
+  _peek_cache = asm_in8(PORT);
+  return _peek_cache;
+}
+
+finline int _getb_raw() {
+  if (_peek_cache >= 0) {
+    int c       = _peek_cache;
+    _peek_cache = -1;
+    return c;
+  }
   if ((asm_in8(PORT + 5) & 1) == 0) return -1;
   return asm_in8(PORT);
 }
 
-finline int _getb_block() {
+finline int _peekb_block_raw() {
+  if (_peek_cache >= 0) return _peek_cache;
+  while ((asm_in8(PORT + 5) & 1) == 0) {}
+  _peek_cache = asm_in8(PORT);
+  return _peek_cache;
+}
+
+finline int _getb_block_raw() {
+  if (_peek_cache >= 0) {
+    int c       = _peek_cache;
+    _peek_cache = -1;
+    return c;
+  }
   while ((asm_in8(PORT + 5) & 1) == 0) {}
   return asm_in8(PORT);
+}
+
+finline int _peekb() {
+  if (_peek_cirbuf_h != _peek_cirbuf_t) return _peek_cirbuf[_peek_cirbuf_h];
+  if (_peek_cache >= 0) return _peek_cache;
+  if ((asm_in8(PORT + 5) & 1) == 0) return -1;
+  _peek_cache = asm_in8(PORT);
+  return _peek_cache;
+}
+
+finline int _getb() {
+  if (_peek_cirbuf_h != _peek_cirbuf_t) {
+    int c          = _peek_cirbuf[_peek_cirbuf_h];
+    _peek_cirbuf_h = (_peek_cirbuf_h + 1) % _peek_cirbuf_len;
+    return c;
+  }
+  if (_peek_cache >= 0) {
+    int c       = _peek_cache;
+    _peek_cache = -1;
+    return c;
+  }
+  if ((asm_in8(PORT + 5) & 1) == 0) return -1;
+  return asm_in8(PORT);
+}
+
+finline int _peekb_block() {
+  if (_peek_cirbuf_h != _peek_cirbuf_t) return _peek_cirbuf[_peek_cirbuf_h];
+  if (_peek_cache >= 0) return _peek_cache;
+  while ((asm_in8(PORT + 5) & 1) == 0) {}
+  _peek_cache = asm_in8(PORT);
+  return _peek_cache;
+}
+
+finline int _getb_block() {
+  if (_peek_cirbuf_h != _peek_cirbuf_t) {
+    int c          = _peek_cirbuf[_peek_cirbuf_h];
+    _peek_cirbuf_h = (_peek_cirbuf_h + 1) % _peek_cirbuf_len;
+    return c;
+  }
+  if (_peek_cache >= 0) {
+    int c       = _peek_cache;
+    _peek_cache = -1;
+    return c;
+  }
+  while ((asm_in8(PORT + 5) & 1) == 0) {}
+  return asm_in8(PORT);
+}
+
+finline void _peek_skip() {
+  assert(_peek_cache >= 0);
+  _peek_cirbuf[_peek_cirbuf_t] = _peek_cache;
+  _peek_cache                  = -1;
+}
+
+finline void _peek_skip_until(int c) {
+  while (_peekb_block_raw() != c) {
+    _peek_skip();
+  }
 }
 
 finline int getnb(int *cp) {
@@ -204,16 +292,45 @@ finline int getnb(int *cp) {
   return num;
 }
 
+finline int getnb_block(int *cp) {
+  int num = 0;
+  int c;
+  while ((c = _getb_block()) >= 0) {
+    if (c >= '0' && c <= '9') {
+      num = num * 10 + (c - '0');
+    } else {
+      break;
+    }
+  }
+  *cp = c;
+  return num;
+}
+
+finline int getnb_block_raw(int *cp) {
+  int num = 0;
+  int c;
+  while ((c = _getb_block_raw()) >= 0) {
+    if (c >= '0' && c <= '9') {
+      num = num * 10 + (c - '0');
+    } else {
+      break;
+    }
+  }
+  *cp = c;
+  return num;
+}
+
 static int get_terminal_size(i32 *rows, i32 *cols) {
   _puts("\033[18t");
-  if (_getb_block() != '\033') return -1;
-  if (_getb_block() != '[') return -1;
-  if (_getb_block() != '8') return -1;
-  if (_getb_block() != ';') return -1;
+  _peek_skip_until('\033');
+  if (_getb_block_raw() != '\033') return -1;
+  if (_getb_block_raw() != '[') return -1;
+  if (_getb_block_raw() != '8') return -1;
+  if (_getb_block_raw() != ';') return -1;
   int c;
-  *rows = getnb(&c);
+  *rows = getnb_block_raw(&c);
   if (c != ';') return -1;
-  *cols = getnb(&c);
+  *cols = getnb_block_raw(&c);
   if (c != 't') return -1;
   return 0;
 }
@@ -232,12 +349,13 @@ static int termy() {
 
 static int get_cursor_pos(i32 *row, i32 *col) {
   _puts("\033[6n");
-  if (_getb_block() != '\033') return -1;
-  if (_getb_block() != '[') return -1;
+  _peek_skip_until('\033');
+  if (_getb_block_raw() != '\033') return -1;
+  if (_getb_block_raw() != '[') return -1;
   int c;
-  *row = getnb(&c);
+  *row = getnb_block_raw(&c);
   if (c != ';') return -1;
-  *col = getnb(&c);
+  *col = getnb_block_raw(&c);
   if (c != 'R') return -1;
   return 0;
 }
@@ -379,7 +497,10 @@ void debugger() {
           _puts("\b \b");
           bufp--;
           buf[bufp] = '\0';
-          if (curx() == 2) _puts("\033[T\033[999C ");
+          if (curx() == 2) {
+            input_nlines--;
+            _puts("\033[T\033[999C ");
+          }
         }
       } else {
         if (c == '\e') {
@@ -396,6 +517,7 @@ void debugger() {
           buf[bufp] = c;
           bufp++;
           if (curx() == 2) {
+            input_nlines++;
             _puts("\033[2K\033[999D" CRGB(183, 183, 255) "|" CEND " " CRGB(255, 224, 183));
             _putb(c);
           }
