@@ -301,6 +301,8 @@ char         debug_shell_path[1024];
 
 extern void log_update();
 
+extern char debug_shell_message[256];
+
 void debug_shell() {
   sprintf(debug_shell_path, "/");
   log_update();
@@ -310,7 +312,12 @@ void debug_shell() {
       task_next();
       continue;
     }
-    shell_exec(debug_shell_path, line);
+    if (line[0] == '\0') {
+      strcpy(debug_shell_message, "Empty command");
+    } else {
+      debug_shell_message[0] = '\0';
+      shell_exec(debug_shell_path, line);
+    }
     log_update();
     free(line);
   }

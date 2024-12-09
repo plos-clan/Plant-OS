@@ -218,6 +218,12 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
         ide_devices[count].Model[k + 1] = ide_buf[ATA_IDENT_MODEL + k];
       }
       ide_devices[count].Model[40] = 0; // Terminate String.
+      for (k = 0; k < 40; k++) {
+        if (ide_devices[count].Model[k] == ' ') {
+          ide_devices[count].Model[k] = 0;
+          break;
+        }
+      }
 
       count++;
     }

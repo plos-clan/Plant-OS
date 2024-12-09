@@ -259,9 +259,12 @@ bool debug_enabled = false;
 extern struct event debug_shell_event;
 extern char         debug_shell_path[1024];
 
+char debug_shell_message[256];
+
 static int input_nlines = 1;
 
 static void clear_input_view() {
+  _puts(CEND);
   for (int i = 0; i < input_nlines; i++) {
     _puts("\033[2K\033[A");
   }
@@ -271,8 +274,24 @@ static void clear_input_view() {
 static void print_input_buffer() {
   _puts(CRGB(153, 255, 231) CBRGB(95, 95, 240) "\033[2K at " CRGB(255, 192, 224));
   _puts(debug_shell_path);
-  _puts(CRGB(153, 255, 231) " " CEND "\n");
-  _puts(CRGB(183, 183, 255) ">" CEND " " CRGB(255, 224, 183));
+  _puts(CRGB(153, 255, 231) "\033[999C");
+  if (debug_shell_message[0] == '\0') strcpy(debug_shell_message, "Hello debug shell!");
+  int n = strlen(debug_shell_message);
+  for (int i = 0; i < n; i++) {
+    _puts("\033[D");
+  }
+  for (int i = 0; i < n; i++) {
+    const int   k = i * 256 / (n - 1);
+    static char buffer[32];
+    sprintf(buffer, "\033[38;2;%d;%d;%dm",      //
+            (253 * k + 246 * (256 - k)) / 256,  //
+            (133 * k + 211 * (256 - k)) / 256,  //
+            (172 * k + 101 * (256 - k)) / 256); //
+    _puts(buffer);
+    _putb(debug_shell_message[i]);
+  }
+  _puts(CEND "\n");
+  _puts(CRGB(255, 224, 183) "\033[2K" CRGB(183, 183, 255) ">" CEND " " CRGB(255, 224, 183));
   buf[bufp] = '\0';
   _puts(buf);
 }
@@ -281,7 +300,7 @@ static void print_input_buffer() {
 finline void log_outs(cstr s) {
   if (s == null) return;
   clear_input_view();
-  if (!lastline_ended) _puts("\033[A\033[999C" CEND);
+  if (!lastline_ended) _puts("\033[A\033[999C");
   for (size_t i = 0; s[i] != '\0'; i++) {
     lastline_ended = s[i] == '\n';
     _putb(s[i]);
@@ -384,12 +403,10 @@ void debugger() {
       }
     }
     if (c < 0) break;
-    if (bufp > 0) {
-      buf[bufp] = '\0';
-      event_push(&debug_shell_event, strdup(buf));
-      bufp = 0;
-      _puts("\033[2K\033[999D" CRGB(183, 183, 255) ">" CEND " " CRGB(255, 224, 183));
-    }
+    buf[bufp] = '\0';
+    event_push(&debug_shell_event, strdup(buf));
+    bufp = 0;
+    _puts("\033[2K\033[999D" CRGB(183, 183, 255) ">" CEND " " CRGB(255, 224, 183));
   }
 }
 
