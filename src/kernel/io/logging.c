@@ -190,20 +190,109 @@ finline int _getb_block() {
   return asm_in8(PORT);
 }
 
-finline __nnull(1) void log_outs(cstr s) {
-  if (lastline_ended) {
-    _puts("\033[2K\033[999D");
-  } else {
-    _puts("\033[A\033[999C");
+finline int getnb(int *cp) {
+  int num = 0;
+  int c;
+  while ((c = _getb()) >= 0) {
+    if (c >= '0' && c <= '9') {
+      num = num * 10 + (c - '0');
+    } else {
+      break;
+    }
   }
+  *cp = c;
+  return num;
+}
+
+static int get_terminal_size(i32 *rows, i32 *cols) {
+  _puts("\033[18t");
+  if (_getb_block() != '\033') return -1;
+  if (_getb_block() != '[') return -1;
+  if (_getb_block() != '8') return -1;
+  if (_getb_block() != ';') return -1;
+  int c;
+  *rows = getnb(&c);
+  if (c != ';') return -1;
+  *cols = getnb(&c);
+  if (c != 't') return -1;
+  return 0;
+}
+
+static int termx() {
+  i32 rows = 0, cols = 0;
+  get_terminal_size(&rows, &cols);
+  return cols;
+}
+
+static int termy() {
+  i32 rows = 0, cols = 0;
+  get_terminal_size(&rows, &cols);
+  return rows;
+}
+
+static int get_cursor_pos(i32 *row, i32 *col) {
+  _puts("\033[6n");
+  if (_getb_block() != '\033') return -1;
+  if (_getb_block() != '[') return -1;
+  int c;
+  *row = getnb(&c);
+  if (c != ';') return -1;
+  *col = getnb(&c);
+  if (c != 'R') return -1;
+  return 0;
+}
+
+static int curx() {
+  i32 row = 0, col = 0;
+  get_cursor_pos(&row, &col);
+  return col;
+}
+
+static int cury() {
+  i32 row = 0, col = 0;
+  get_cursor_pos(&row, &col);
+  return row;
+}
+
+bool debug_enabled = false;
+
+extern struct event debug_shell_event;
+extern char         debug_shell_path[1024];
+
+static int input_nlines = 1;
+
+static void clear_input_view() {
+  for (int i = 0; i < input_nlines; i++) {
+    _puts("\033[2K\033[A");
+  }
+  _puts("\033[2K\033[999D");
+}
+
+static void print_input_buffer() {
+  _puts(CRGB(153, 255, 231) CBRGB(95, 95, 240) "\033[2K at " CRGB(255, 192, 224));
+  _puts(debug_shell_path);
+  _puts(CRGB(153, 255, 231) " " CEND "\n");
+  _puts(CRGB(183, 183, 255) ">" CEND " " CRGB(255, 224, 183));
+  buf[bufp] = '\0';
+  _puts(buf);
+}
+
+// 输出函数
+finline void log_outs(cstr s) {
+  if (s == null) return;
+  clear_input_view();
+  if (!lastline_ended) _puts("\033[A\033[999C" CEND);
   for (size_t i = 0; s[i] != '\0'; i++) {
     lastline_ended = s[i] == '\n';
     _putb(s[i]);
   }
   if (!lastline_ended) _putb('\n');
-  _puts("> ");
-  buf[bufp] = '\0';
-  _puts(buf);
+  print_input_buffer();
+}
+
+void log_update() {
+  clear_input_view();
+  print_input_buffer();
 }
 
 void klog_raw(cstr s) {
@@ -260,48 +349,6 @@ void puts(cstr s) {
   klogi("print: %s", s);
 }
 
-finline int getnb(int *cp) {
-  int num = 0;
-  int c;
-  while ((c = _getb()) >= 0) {
-    if (c >= '0' && c <= '9') {
-      num = num * 10 + (c - '0');
-    } else {
-      break;
-    }
-  }
-  *cp = c;
-  return num;
-}
-
-static int get_terminal_size(i32 *rows, i32 *cols) {
-  _puts("\033[18t");
-  if (_getb_block() != '\033') return -1;
-  if (_getb_block() != '[') return -1;
-  if (_getb_block() != '8') return -1;
-  if (_getb_block() != ';') return -1;
-  int c;
-  *rows = getnb(&c);
-  if (c != ';') return -1;
-  *cols = getnb(&c);
-  if (c != 't') return -1;
-  return 0;
-}
-
-static int get_cursor_pos(i32 *row, i32 *col) {
-  _puts("\033[6n");
-  if (_getb_block() != '\033') return -1;
-  if (_getb_block() != '[') return -1;
-  int c;
-  *row = getnb(&c);
-  if (c != ';') return -1;
-  *col = getnb(&c);
-  if (c != 'R') return -1;
-  return 0;
-}
-
-bool debug_enabled = false;
-
 void debugger() {
   if (!debug_enabled) return;
   int c = 0;
@@ -313,6 +360,7 @@ void debugger() {
           _puts("\b \b");
           bufp--;
           buf[bufp] = '\0';
+          if (curx() == 2) _puts("\033[T\033[999C ");
         }
       } else {
         if (c == '\e') {
@@ -328,20 +376,20 @@ void debugger() {
           _putb(c);
           buf[bufp] = c;
           bufp++;
-          // i32 row, col;
-          // get_cursor_pos(&row, &col);
-          // if (col == 2) {
-          //   _puts("\033[2K\033[999D| ");
-          //   _putb(c);
-          // }
+          if (curx() == 2) {
+            _puts("\033[2K\033[999D" CRGB(183, 183, 255) "|" CEND " " CRGB(255, 224, 183));
+            _putb(c);
+          }
         }
       }
     }
     if (c < 0) break;
-    buf[bufp] = 0;
-    klogd("echo: %s", buf);
-    bufp = 0;
-    _puts("\033[2K\033[999D> ");
+    if (bufp > 0) {
+      buf[bufp] = '\0';
+      event_push(&debug_shell_event, strdup(buf));
+      bufp = 0;
+      _puts("\033[2K\033[999D" CRGB(183, 183, 255) ">" CEND " " CRGB(255, 224, 183));
+    }
   }
 }
 

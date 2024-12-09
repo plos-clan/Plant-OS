@@ -132,6 +132,10 @@ static void *event_pop(event_t event) {
   if (event == null) return null;
   if (event->head == null) return null;
   spin_lock(event->spin);
+  if (event->head == null) {
+    spin_unlock(event->spin);
+    return null;
+  }
 
   event_node_t temp = event->head;
   void        *data = temp->data;

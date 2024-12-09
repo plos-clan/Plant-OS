@@ -151,6 +151,132 @@ static char *exec_name_from_cmdline(cstr line) {
   return parse_arg(null, &line);
 }
 
+extern void plac_player(cstr path);
+extern void qoa_player(cstr path);
+extern void mp3_player(cstr path);
+
+void shell_exec(char *path, cstr comand) {
+  if (!strlen(comand)) return;
+  if (strneq(comand, "cd ", 3)) {
+    char *s = comand + 3;
+    if (s[strlen(s) - 1] == '/' && strlen(s) > 1) { s[strlen(s) - 1] = '\0'; }
+    if (streq(s, ".")) return;
+    if (streq(s, "..")) {
+      if (streq(s, "/")) return;
+      char *n = path + strlen(path);
+      while (*--n != '/' && n != path) {}
+      *n = '\0';
+      if (strlen(path) == 0) strcpy(path, "/");
+      return;
+    }
+    char *old = strdup(path);
+    if (s[0] == '/') {
+      strcpy(path, s);
+    } else {
+      if (streq(path, "/"))
+        sprintf(path, "%s%s", path, s);
+      else
+        sprintf(path, "%s/%s", path, s);
+    }
+    if (vfs_open(path) == null) {
+      printf("cd: %s: No such directory\n", s);
+      sprintf(path, "%s", old);
+      free(old);
+      return;
+    }
+  } else if (streq(comand, "ls")) {
+    list_files(path);
+  } else if (streq(comand, "pcils")) {
+    pci_list();
+  } else if (streq(comand, "exit")) {
+    syscall_exit(0);
+  } else if (streq(comand, "clear")) {
+    screen_clear();
+  } else if (streq(comand, "stdout_test")) {
+    vfs_node_t stdout = vfs_open("/dev/stdout");
+    vfs_write(stdout, "Hello, world!\n", 0, 14);
+  } else if (strneq(comand, "file ", 5)) {
+    cstr path = comand + 5;
+    cstr type = filetype_from_name(path);
+    if (type) {
+      printf("%s\n", type);
+    } else {
+      printf("unknown file\n");
+    }
+  } else if (strneq(comand, "read ", 5)) {
+    char      *s = comand + 5;
+    vfs_node_t p = vfs_open(s);
+    if (!p) {
+      printf("open %s failed\n", s);
+      return;
+    }
+    if (p->type == file_dir) {
+      printf("not a file\n");
+      return;
+    }
+    size_t size = p->size;
+    byte  *buf  = malloc(1024);
+    size_t pos  = 0;
+    while (1) {
+      size_t len = vfs_read(p, buf, pos, 1024);
+      if (len == 0) break;
+      for (int i = 0; i < len; i++) {
+        printf("%02x ", buf[i]);
+        if ((i + 1) % 32 == 0) printf("\n");
+      }
+      pos += len;
+    }
+    free(buf);
+  } else if (strneq(comand, "readhex ", 8)) {
+    char      *s = comand + 8;
+    vfs_node_t p = vfs_open(s);
+    if (!p) {
+      printf("open %s failed\n", s);
+      return;
+    }
+    if (p->type == file_dir) {
+      printf("not a file\n");
+      return;
+    }
+    size_t size = p->size;
+    byte  *buf  = malloc(size);
+    memset(buf, 0, size);
+    vfs_read(p, buf, 0, size);
+    for (size_t i = 0; i < size; i++) {
+      printf("%02x ", buf[i]);
+    }
+    printf("\n");
+    free(buf);
+  } else if (strneq(comand, "mkdir ", 6)) {
+    vfs_mkdir(comand + 6);
+  } else if (strneq(comand, "mount ", 6)) {
+    // 用strtok分割参数
+    char *dev_name = strtok(comand + 6, " ");
+    char *dir_name = strtok(null, " ");
+    vfs_mount(dev_name, vfs_open(dir_name));
+  } else if (strneq(comand, "umount ", 7)) {
+    char *dir_name = comand + 7;
+    int   ret      = vfs_unmount(dir_name);
+    if (ret == -1) { printf("umount %s failed\n", dir_name); }
+  } else {
+    char *path = exec_name_from_cmdline(comand);
+    cstr  type = filetype_from_name(path);
+    if (streq(type, "application/x-executable")) {
+      int status = os_execute(path, comand);
+      printf("%s exited with code %d\n", path, status);
+    } else if (streq(type, "audio/x-qoa")) {
+      qoa_player(path);
+    } else if (streq(type, "audio/x-plac")) {
+      plac_player(path);
+    } else if (streq(type, "audio/mpeg")) {
+      mp3_player(path);
+    } else {
+      printf("bad command\n");
+    }
+    free(path);
+  }
+}
+
 void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
@@ -158,135 +284,34 @@ void shell() {
   cir_queue8_init(kfifo, PAGE_SIZE, kbuf);
   current_task()->keyfifo = (cir_queue8_t)kfifo;
   char         *path      = malloc(1024);
-  char         *ch        = malloc(255);
+  char         *line      = malloc(256);
   pl_readline_t n;
   n = pl_readline_init(readline_getch, putchar, screen_flush, handle_tab);
   sprintf(path, "/");
+  char prompt[256];
   while (true) {
-    char buf[255];
-    sprintf(buf, "%s# ", path);
-    pl_readline(n, buf, ch, 255);
-    if (!strlen(ch)) continue;
-    if (strneq(ch, "cd ", 3)) {
-      char *s = ch + 3;
-      if (s[strlen(s) - 1] == '/' && strlen(s) > 1) { s[strlen(s) - 1] = '\0'; }
-      if (streq(s, ".")) continue;
-      if (streq(s, "..")) {
-        if (streq(s, "/")) continue;
-        char *n = path + strlen(path);
-        while (*--n != '/' && n != path) {}
-        *n = '\0';
-        if (strlen(path) == 0) strcpy(path, "/");
-        continue;
-      }
-      char *old = strdup(path);
-      if (s[0] == '/') {
-        strcpy(path, s);
-      } else {
-        if (streq(path, "/"))
-          sprintf(path, "%s%s", path, s);
-        else
-          sprintf(path, "%s/%s", path, s);
-      }
-      if (vfs_open(path) == null) {
-        printf("cd: %s: No such directory\n", s);
-        sprintf(path, "%s", old);
-        free(old);
-        continue;
-      }
-    } else if (streq(ch, "ls")) {
-      list_files(path);
-    } else if (streq(ch, "pcils")) {
-      pci_list();
-    } else if (streq(ch, "exit")) {
-      syscall_exit(0);
-    } else if (streq(ch, "clear")) {
-      screen_clear();
-    } else if (streq(ch, "stdout_test")) {
-      vfs_node_t stdout = vfs_open("/dev/stdout");
-      vfs_write(stdout, "Hello, world!\n", 0, 14);
-    } else if (strneq(ch, "file ", 5)) {
-      cstr path = ch + 5;
-      cstr type = filetype_from_name(path);
-      if (type) {
-        printf("%s\n", type);
-      } else {
-        printf("unknown file\n");
-      }
-    } else if (strneq(ch, "read ", 5)) {
-      char      *s = ch + 5;
-      vfs_node_t p = vfs_open(s);
-      if (!p) {
-        printf("open %s failed\n", s);
-        continue;
-      }
-      if (p->type == file_dir) {
-        printf("not a file\n");
-        continue;
-      }
-      size_t size = p->size;
-      byte  *buf  = malloc(1024);
-      size_t pos  = 0;
-      while (1) {
-        size_t len = vfs_read(p, buf, pos, 1024);
-        if (len == 0) break;
-        for (int i = 0; i < len; i++) {
-          printf("%02x ", buf[i]);
-          if ((i + 1) % 32 == 0) printf("\n");
-        }
-        pos += len;
-      }
-      free(buf);
-    } else if (strneq(ch, "readhex ", 8)) {
-      char      *s = ch + 8;
-      vfs_node_t p = vfs_open(s);
-      if (!p) {
-        printf("open %s failed\n", s);
-        continue;
-      }
-      if (p->type == file_dir) {
-        printf("not a file\n");
-        continue;
-      }
-      size_t size = p->size;
-      byte  *buf  = malloc(size);
-      memset(buf, 0, size);
-      vfs_read(p, buf, 0, size);
-      for (size_t i = 0; i < size; i++) {
-        printf("%02x ", buf[i]);
-      }
-      printf("\n");
-      free(buf);
-    } else if (strneq(ch, "mkdir ", 6)) {
-      vfs_mkdir(ch + 6);
-    } else if (strneq(ch, "mount ", 6)) {
-      // 用strtok分割参数
-      char *dev_name = strtok(ch + 6, " ");
-      char *dir_name = strtok(null, " ");
-      vfs_mount(dev_name, vfs_open(dir_name));
-    } else if (strneq(ch, "umount ", 7)) {
-      char *dir_name = ch + 7;
-      int   ret      = vfs_unmount(dir_name);
-      if (ret == -1) { printf("umount %s failed\n", dir_name); }
-    } else {
-      char       *path = exec_name_from_cmdline(ch);
-      cstr        type = filetype_from_name(path);
-      extern void plac_player(cstr path);
-      extern void qoa_player(cstr path);
-      void        mp3_player(cstr path);
-      if (streq(type, "application/x-executable")) {
-        int status = os_execute(path, ch);
-        printf("%s exited with code %d\n", path, status);
-      } else if (streq(type, "audio/x-qoa")) {
-        qoa_player(path);
-      } else if (streq(type, "audio/x-plac")) {
-        plac_player(path);
-      } else if (streq(type, "audio/mpeg")) {
-        mp3_player(path);
-      } else {
-        printf("bad command\n");
-      }
-      free(path);
+    sprintf(prompt, "%s# ", path);
+    pl_readline(n, prompt, line, 255);
+    shell_exec(path, line);
+  }
+}
+
+struct event debug_shell_event;
+char         debug_shell_path[1024];
+
+extern void log_update();
+
+void debug_shell() {
+  sprintf(debug_shell_path, "/");
+  log_update();
+  while (true) {
+    char *line = event_pop(&debug_shell_event);
+    if (line == null) {
+      task_next();
+      continue;
     }
+    shell_exec(debug_shell_path, line);
+    log_update();
+    free(line);
   }
 }

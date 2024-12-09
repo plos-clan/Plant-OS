@@ -11,6 +11,7 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 int  os_execute(char *filename, char *line);
 void v86_task();
 void shell();
+void debug_shell();
 
 static void scan_files(char *path) {
   vfs_node_t p = vfs_open(path);
@@ -186,7 +187,9 @@ void init() {
   void task_kill(u32 tid);
   plty_set_default(tty);
   task_kill(t->tid);
+
   create_task(shell, 1, 1);
+  create_task(debug_shell, 1, 1);
 
   extern bool debug_enabled;
   debug_enabled = true;

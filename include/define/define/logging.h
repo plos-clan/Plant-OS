@@ -3,8 +3,9 @@
 #pragma once
 #include "00-include.h"
 
-#define CRGB(r, g, b) "\033[38;2;" #r ";" #g ";" #b "m"
-#define CEND          "\033[0m"
+#define CRGB(r, g, b)  "\033[38;2;" #r ";" #g ";" #b "m"
+#define CBRGB(r, g, b) "\033[48;2;" #r ";" #g ";" #b "m"
+#define CEND           "\033[0m"
 
 #define COLOR_DEBUG CRGB(128, 192, 255)
 #define COLOR_INFO  CRGB(64, 192, 128)
