@@ -15,7 +15,7 @@ asm_inthandler:
 	mov es, ax
 	mov ecx, dword [esp + 12 * 4]
 	mov edx, esp
-	call inthandler              ; void inthandler(i32 id, u32 * regs);
+	call inthandler              ; void inthandler(i32 id, u32 * regs) __attribute__((fastcall));
 	popa
 	pop gs
 	pop fs

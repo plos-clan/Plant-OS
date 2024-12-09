@@ -12,3 +12,5 @@ qemu-system-i386 \
   -device ide-hd,drive=hda,bus=ide.0 -drive id=hda,if=none,format=raw,file=hd.img \
   -boot a \
   $*
+
+echo -n -e "\033[T\033[2K\033[999D"
