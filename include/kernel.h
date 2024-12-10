@@ -12,7 +12,6 @@ extern "C" {
 #include "kernel/fat.h"
 #include "kernel/fdc.h"
 #include "kernel/ipc.h"
-#include "kernel/lock.h"
 #include "kernel/logging.h"
 #include "kernel/mem.h"
 #include "kernel/mtask.h"

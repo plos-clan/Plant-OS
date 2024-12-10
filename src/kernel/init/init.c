@@ -30,8 +30,8 @@ void sysinit() {
   init_pit();
 
   asm_sti;
-  irq_mask_clear(0);
-  irq_mask_clear(1);
+  irq_enable(0);
+  irq_enable(1);
   asm_set_em, asm_set_ts, asm_set_ne;
 
   memory_init(page_alloc(128 * 1024 * 1024), 128 * 1024 * 1024);

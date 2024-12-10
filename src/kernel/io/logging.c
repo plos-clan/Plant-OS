@@ -486,7 +486,7 @@ void puts(cstr s) {
   klogi("print: %s", s);
 }
 
-void debugger() {
+void kenel_debugger_tick() {
   if (!debug_enabled) return;
   int c = 0;
   while (true) {

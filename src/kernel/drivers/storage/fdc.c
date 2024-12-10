@@ -6,12 +6,12 @@ static int  fdc_rw(int block, byte *blockbuff, int read, u64 nosectors);
 
 volatile int floppy_int_count = 0;
 
-mtask *waiter;
+task_t waiter;
 
 void floppy_int();
 void wait_floppy_interrupt();
 
-mtask *floppy_use;
+task_t floppy_use;
 
 typedef struct DrvGeom {
   byte heads;
@@ -102,7 +102,7 @@ void floppy_init() {
   }
   // 设置软盘驱动器的中断服务程序
   inthandler_set(0x26, flint);
-  irq_mask_clear(0x6); // 清除IRQ6的中断
+  irq_enable(0x6); // 清除IRQ6的中断
   printi("FLOPPY DISK:RESETING");
   reset(); // 重置软盘驱动器
   printi("FLOPPY DISK:reset over!");
@@ -121,7 +121,7 @@ void floppy_init() {
   regist_vdisk(vd);
 }
 
-void set_waiter(mtask *t) {
+void set_waiter(task_t t) {
   waitif(waiter); // wait
   waiter = t;
 }

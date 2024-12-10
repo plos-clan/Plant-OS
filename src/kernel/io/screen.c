@@ -3,7 +3,7 @@
 extern struct tty *tty_default;
 
 void screen_clear() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->clear(tty_default);
   } else {
@@ -14,7 +14,7 @@ void screen_clear() {
 
 void printchar(char ch) {
   char   ch1[2] = {ch, '\0'};
-  mtask *task   = current_task();
+  task_t task   = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->print(tty_default, ch1);
   } else {
@@ -362,7 +362,7 @@ void t_putchar(struct tty *res, char ch) {
 }
 
 void putchar(int ch) {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     t_putchar(tty_default, ch);
   } else {
@@ -371,7 +371,7 @@ void putchar(int ch) {
 }
 
 void screen_flush() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->flush(tty_default);
   } else {
@@ -380,7 +380,7 @@ void screen_flush() {
 }
 
 void screen_ne() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->screen_ne(tty_default);
   } else {
@@ -389,7 +389,7 @@ void screen_ne() {
 }
 
 int get_x() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->x;
   } else {
@@ -398,7 +398,7 @@ int get_x() {
 }
 
 int get_y() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->y;
   } else {
@@ -407,7 +407,7 @@ int get_y() {
 }
 
 int get_raw_y() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->Raw_y;
   } else {
@@ -416,7 +416,7 @@ int get_raw_y() {
 }
 
 int get_xsize() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->xsize;
   } else {
@@ -425,7 +425,7 @@ int get_xsize() {
 }
 
 int get_ysize() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->ysize;
   } else {
@@ -434,7 +434,7 @@ int get_ysize() {
 }
 
 void print(cstr str) {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->print(tty_default, str);
   } else {
@@ -443,7 +443,7 @@ void print(cstr str) {
 }
 
 void gotoxy(int x1, int y1) {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     tty_default->gotoxy(tty_default, x1, y1);
   } else {

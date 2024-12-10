@@ -71,7 +71,7 @@ int getch() {
 extern struct tty *tty_default;
 
 int tty_fifo_status() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->fifo_status(tty_default);
   } else {
@@ -80,7 +80,7 @@ int tty_fifo_status() {
 }
 
 int tty_fifo_get() {
-  mtask *task = current_task();
+  task_t task = current_task();
   if (task->TTY->is_using != 1) {
     return tty_default->fifo_get(tty_default);
   } else {
@@ -90,7 +90,7 @@ int tty_fifo_get() {
 
 static int input_char_inSM() {
   int    i;
-  mtask *task = current_task();
+  task_t task = current_task();
   while (1) {
     if ((tty_fifo_status() != 0)) {
       // 返回扫描码
@@ -120,7 +120,7 @@ static int sc2a(int sc) {
 }
 
 int    disable_flag      = 0;
-mtask *keyboard_use_task = NULL;
+task_t keyboard_use_task = NULL;
 
 void inthandler21(i32 id, regs32 *regs) {
   // 键盘中断处理函数
@@ -234,7 +234,7 @@ void inthandler21(i32 id, regs32 *regs) {
     for (int i = 0; i < 255; i++) {
       if (!get_task(i)) { continue; }
       // 按下键通常处理
-      mtask *task = get_task(i); // 每个进程都处理一遍
+      task_t task = get_task(i); // 每个进程都处理一遍
       if (task->state != RUNNING || task->fifosleep) {
         if (task->state == WAITING && task->waittid == U32_MAX) { goto THROUGH; }
         // 如果进程正在休眠或被锁了

@@ -2,68 +2,11 @@
 
 // TODO 重构
 
-int  DisableExpFlag = 0;
-u32  CatchEIP       = 0;
-char flagOfexp      = 0;
-char public_catch   = 0;
-int  st_task        = 0;
-
-void SwitchPublic() {
-  public_catch = 1;
-}
-
-void SwitchPrivate() {
-  public_catch = 0;
-}
-
-void disableExp() {
-  if (public_catch) {
-    DisableExpFlag = 1;
-  } else {
-    current_task()->DisableExpFlag = 1;
-  }
-}
-
-void EnableExp() {
-  if (public_catch) {
-    DisableExpFlag = 0;
-  } else {
-    current_task()->DisableExpFlag = 0;
-  }
-}
-
-char GetExpFlag() {
-  // printk("Get.\n");
-  if (public_catch) {
-    return flagOfexp;
-  } else {
-    return current_task()->flagOfexp;
-  }
-}
-
-void ClearExpFlag() {
-  if (public_catch) {
-    flagOfexp = 0;
-  } else {
-    current_task()->flagOfexp = 0;
-  }
-}
-
-void SetCatchEip(u32 eip) {
-  // printk("eip = %08x\n",eip);
-  if (public_catch) {
-    CatchEIP = eip;
-  } else {
-    current_task()->CatchEIP = eip;
-  }
-}
-
-mtask *last_fpu_task = NULL;
-void   fpu_disable() {
+void fpu_disable() {
   asm_set_ts, asm_set_em;
 }
 
-void fpu_enable(mtask *task) {
+void fpu_enable(task_t task) {
   asm_clr_ts, asm_clr_em;
   if (!task->fpu_flag) {
     asm volatile("fnclex \n"
@@ -86,11 +29,7 @@ finline void _ERROR_(int CODE, char *TIPS) {
   void ERROR##_code_(u32 eip) {                                                                    \
     u32 *esp = &eip;                                                                               \
     _ERROR_(_code_, _tips_);                                                                       \
-    if (public_catch) {                                                                            \
-      *esp = CatchEIP;                                                                             \
-    } else {                                                                                       \
-      *esp = current_task()->CatchEIP;                                                             \
-    }                                                                                              \
+    *esp = current_task()->CatchEIP;                                                               \
   }
 
 _ERROR(0, "#DE");
@@ -110,16 +49,6 @@ _ERROR(18, "#MC");
 _ERROR(19, "#XF");
 
 #undef _ERROR
-
-int dflag = 0;
-
-bool has_fpu_error() {
-  dflag = 0;
-  u16 status_word;
-  asm("fnstsw %0" : "=m"(status_word));
-  dflag = 1;
-  return (status_word & 0x1F) != 0;
-}
 
 void ERROR7(u32 eip) {
   if (current_task()->fpu_flag > 1 || current_task()->fpu_flag < 0) {
@@ -146,8 +75,8 @@ void         ERROR13(u32 eip) {
   uint8_t      *ip;
   uint16_t     *stack, *ivt;
   uint32_t     *stack32;
-  mtask        *current = current_task();
-  extern mtask *v86_using_task;
+  task_t        current = current_task();
+  extern task_t v86_using_task;
   bool          is_operand32, is_address32;
   ip           = (uint8_t *)(FP_TO_LINEAR(frame->cs, frame->eip));
   stack        = (uint16_t *)(FP_TO_LINEAR(frame->ss, frame->esp));

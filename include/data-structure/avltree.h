@@ -99,6 +99,16 @@ extern avltree_t avltree_insert(avltree_t root, int32_t key, void *value) __THRO
 extern avltree_t avltree_delete(avltree_t root, int32_t key) __THROW __wur;
 
 /**
+ *\brief 在AVL树中删除指定键值的节点，并调用回调函数处理节点值
+ *\param[in,out] root 树的根节点
+ *\param[in] key 节点键值
+ *\param[in] callback 回调函数指针，用于处理节点值
+ *\return 更新后的树的根节点指针
+ */
+extern avltree_t avltree_delete_with(avltree_t root, int32_t key, void (*callback)(void *)) __THROW
+__wur;
+
+/**
  *\brief 按照中序遍历顺序打印AVL树节点
  *\param[in] root 树的根节点
  *\param[in] depth 递归深度（用于缩进打印）
@@ -305,6 +315,36 @@ static avltree_t avltree_delete(avltree_t root, int32_t key) noexcept {
   return avltree_balance(root);
 }
 
+static avltree_t avltree_delete_with(avltree_t root, int32_t key,
+                                     void (*callback)(void *)) noexcept {
+  if (root == null) { return null; }
+
+  if (key < root->key) {
+    root->left = avltree_delete(root->left, key);
+  } else if (key > root->key) {
+    root->right = avltree_delete(root->right, key);
+  } else {
+    if (root->left == null) {
+      if (callback) callback(root->value);
+      avltree_t temp = root->right;
+      free(root);
+      return temp;
+    } else if (root->right == null) {
+      if (callback) callback(root->value);
+      avltree_t temp = root->left;
+      free(root);
+      return temp;
+    } else {
+      avltree_t temp = avltree_min(root->right);
+      root->key      = temp->key;
+      root->value    = temp->value;
+      root->right    = avltree_delete(root->right, temp->key);
+    }
+  }
+
+  return avltree_balance(root);
+}
+
 #  ifdef __libplos__
 static void avltree_print_inorder(avltree_t root, int depth) {
   if (depth == 0) printf("In-order traversal of the AVL Tree: \n");
@@ -354,3 +394,11 @@ static void avltree_print_postorder(avltree_t root, int depth) {
  *\param[in] key 节点键值
  */
 #define avltree_delete(root, key) ((root) = avltree_delete(root, key))
+
+/**
+ *\brief 在AVL树中删除指定键值的节点，并调用回调函数处理节点值
+ *\param[in,out] root 树的根节点
+ *\param[in] key 节点键值
+ *\param[in] callback 回调函数指针，用于处理节点值
+ */
+#define avltree_delete_with(root, key, callback) ((root) = avltree_delete_with(root, key, callback))

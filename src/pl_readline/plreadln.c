@@ -81,16 +81,17 @@ static void pl_readline_to_the_end(_SELF, int n) {
 
 // 处理向上向下键
 static void pl_readline_handle_key_down_up(_SELF, pl_readline_runtime *rt, int n) {
+  if (rt->history_idx < 0) return;
   list_t node = list_nth(self->history, rt->history_idx); // 获取历史记录
   if (!node) {
     rt->history_idx += n; // 超出历史记录的范围，回退到上一个记录
     return;
   }
   pl_readline_reset(self, rt->p, rt->length); // 重置光标和输入的字符
-  self->pl_readline_hal_flush(); // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示
-  rt->p      = 0;                // 光标移动到最左边
-  rt->length = 0;                // 清空缓冲区长度
-  memset(rt->buffer, 0, rt->maxlen); // 清空缓冲区
+  self->pl_readline_hal_flush();              // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示
+  rt->p      = 0;                             // 光标移动到最左边
+  rt->length = 0;                             // 清空缓冲区长度
+  memset(rt->buffer, 0, rt->maxlen);          // 清空缓冲区
   strcpy(rt->buffer, node->data);
   pl_readline_print(self, rt->buffer); // 打印历史记录
   rt->length = strlen(rt->buffer);     // 更新缓冲区长度

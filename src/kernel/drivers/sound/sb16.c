@@ -49,7 +49,7 @@ static void *const DMA_BUF_ADDR2 = (void *)0x90000 + DMA_BUF_SIZE; // 不能跨�
 #define SB16_IRQ 5
 
 static struct {
-  mtask *use_task;  //
+  task_t use_task;  //
   int    status;    //
   bool   auto_mode; //
 #if VSOUND_RWAPI
@@ -158,7 +158,7 @@ void sb16_handler(i32 id, regs32 *regs) {
 void sb16_init() {
   sb.use_task = null;
   sb.status   = STAT_OFF;
-  irq_mask_clear(SB16_IRQ);
+  irq_enable(SB16_IRQ);
   inthandler_set(0x20 + SB16_IRQ, sb16_handler);
 }
 

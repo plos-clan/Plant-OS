@@ -124,8 +124,8 @@ static void Write(int drive, u8 *buffer, u32 number, u32 lba) {
 }
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
 
-  irq_mask_clear(15);
-  irq_mask_clear(14);
+  irq_enable(15);
+  irq_enable(14);
   int j, k, count = 0;
   for (int i = 0; i < 4; i++) {
     ide_devices[i].Reserved = 0;

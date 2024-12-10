@@ -1,6 +1,6 @@
 #pragma once
+#include "00-include.h"
 #include <define.h>
-#include <kernel/lock.h>
 
 #define MAX_IPC_MESSAGE 5 // 一次最多存放5个IPC_MESSAGE
 #define synchronous     1

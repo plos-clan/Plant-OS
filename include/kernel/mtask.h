@@ -1,9 +1,8 @@
 #pragma once
+#include "cpu.h"
+#include "ipc.h"
 #include <data-structure.h>
 #include <define.h>
-#include <kernel/cpu.h>
-#include <kernel/ipc.h>
-#include <kernel/mem.h>
 #include <libc-base.h>
 
 #define SIGINT 0
@@ -21,7 +20,7 @@ enum STATE {
 
 typedef void (*cb_keyboard_t)(u8 data, u32 task);
 
-struct __PACKED__ mtask {
+typedef struct __PACKED__ task {
   stack_frame  *esp;
   u32           pde;
   u32           user_mode;
@@ -67,16 +66,16 @@ struct __PACKED__ mtask {
   u64           cpu_time; // CPU 时间
   u32           v86_mode; // 8086模式
   u32           v86_if;   // 8086中断
-};
+} *task_t;
 
-mtask *current_task();
-void   task_switch(mtask *next);  // 切换任务
-void   task_start(mtask *next);   // 开始任务
-void   mtask_run_now(mtask *obj); // 立即执行任务
-void   task_run(mtask *task);
+task_t current_task();
+void   task_switch(task_t next);  // 切换任务
+void   task_start(task_t next);   // 开始任务
+void   mtask_run_now(task_t obj); // 立即执行任务
+void   task_run(task_t task);
 void   task_next();
 void   task_exit(u32 status);
-mtask *get_task(u32 tid);
+task_t get_task(u32 tid);
 
 #define get_tid(n)     ((n)->tid)
 #define offsetof(s, m) (size_t)&(((s *)0)->m)
@@ -84,11 +83,16 @@ mtask *get_task(u32 tid);
 void task_fall_blocked(enum STATE state);
 void init();
 
-cir_queue8_t task_get_key_queue(mtask *task);
-cir_queue8_t task_get_mouse_fifo(mtask *task);
+cir_queue8_t task_get_key_queue(task_t task);
+cir_queue8_t task_get_mouse_fifo(task_t task);
 void         into_mtask();
-mtask       *create_task(void *func, u32 ticks, u32 floor);
+task_t       create_task(void *func, u32 ticks, u32 floor);
 void         task_exit(u32 status);
 int          waittid(u32 tid);
-void         task_set_fifo(mtask *task, cir_queue8_t kfifo, cir_queue8_t mfifo);
+void         task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo);
 int          task_fork();
+
+#define LOCK_UNLOCKED 0
+#define LOCK_LOCKED   1
+
+void lock_init(lock_t *l);

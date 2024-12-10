@@ -158,7 +158,7 @@ static void task_to_user_mode_shell() {
   iframe->esp    = NULL; // 设置用户态堆栈
   char *p        = shell_data;
   if (!elf32_is_validate((Elf32_Ehdr *)p)) {
-    extern mtask *mouse_use_task;
+    extern task_t mouse_use_task;
     if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
     // list_free_with(vfs_now->path, free);
     // free(vfs_now->cache);
@@ -241,7 +241,7 @@ void task_to_user_mode_elf(char *filename) {
   klogd();
   if (!elf32_is_validate((Elf32_Ehdr *)p)) {
     klogd();
-    extern mtask *mouse_use_task;
+    extern task_t mouse_use_task;
     page_free(p, sz);
   err:
 
@@ -288,14 +288,14 @@ void task_to_user_mode_elf(char *filename) {
 }
 
 int os_execute(char *filename, char *line) {
-  extern mtask *mouse_use_task;
-  mtask        *backup = mouse_use_task;
+  extern task_t mouse_use_task;
+  task_t        backup = mouse_use_task;
   char         *fm     = (char *)malloc(strlen(filename) + 1);
   strcpy(fm, filename);
 
   klogd("execute: %s %s", filename, line);
 
-  mtask *t = create_task(task_app, 1, 1);
+  task_t t = create_task(task_app, 1, 1);
   // 轮询
   t->train = 0;
 
@@ -348,7 +348,7 @@ int os_execute(char *filename, char *line) {
 }
 
 int os_execute_shell(char *line) {
-  mtask *t                  = create_task(task_shell, 1, 1);
+  task_t t                  = create_task(task_shell, 1, 1);
   t->train                  = 1;
   int old                   = current_task()->sigint_up;
   current_task()->sigint_up = 0;
@@ -371,7 +371,7 @@ int os_execute_shell(char *line) {
 }
 
 void os_execute_no_ret(char *filename, char *line) {
-  mtask      *t          = create_task(task_app, 1, 1);
+  task_t      t          = create_task(task_app, 1, 1);
   struct tty *tty_backup = current_task()->TTY;
   t->TTY                 = current_task()->TTY;
   current_task()->TTY    = NULL;

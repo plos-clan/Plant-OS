@@ -3,7 +3,7 @@
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE     0xf4
 
-mtask *mouse_use_task = NULL;
+task_t mouse_use_task = NULL;
 
 static void mouse_wait(byte a_type) {
   u32 _time_out = 100000;

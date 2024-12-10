@@ -8,32 +8,31 @@
 
 void free_pde(u32 addr);
 
-TSS32  tss;
-mtask *idle_task;
-mtask *mtask_current = NULL;
-// rbtree_t     tasks;
-mtask *tasks[256] = {NULL};
+TSS32            tss;
+task_t           idle_task;
+task_t           mtask_current = null;
+static avltree_t tasks;
 
-mtask *next_set = NULL;
-mtask  empty_task;
+task_t      next_set = null;
+struct task empty_task;
 
-mtask *task_by_id(i32 tid) {
+task_t task_by_id(i32 tid) {
   if (tid < 0) return null;
-  return tasks[tid];
+  return avltree_get(tasks, tid);
 }
 
-queue_t running_tasks;
-spin_t  running_tasks_lock;
+static queue_t running_tasks;
+static spin_t  running_tasks_lock;
 
-finline void running_tasks_push(mtask *task) {
+finline void running_tasks_push(task_t task) {
   spin_lock(running_tasks_lock);
   if (running_tasks == null) running_tasks = queue_alloc();
   queue_enqueue(running_tasks, task);
   spin_unlock(running_tasks_lock);
 }
 
-finline mtask *running_tasks_pop() {
-  mtask *task = null;
+finline task_t running_tasks_pop() {
+  task_t task = null;
   spin_lock(running_tasks_lock);
   while (task == null) {
     task = queue_dequeue(running_tasks);
@@ -42,7 +41,7 @@ finline mtask *running_tasks_pop() {
   return task;
 }
 
-static void init_task(mtask *t, int id) {
+static void init_task(task_t t, int id) {
   t->jiffies          = 0;
   t->user_mode        = 0; // 此项暂时废除
   t->running          = 0;
@@ -93,13 +92,13 @@ static void init_tasks() {}
 
 fpu_regs_t public_fpu;
 
-bool task_check_train(mtask *task) {
+bool task_check_train(task_t task) {
   if (!task) return false;
   if (task->train == 1 && system_tick - task->jiffies >= 5) return true;
   return false;
 }
 
-extern mtask *mouse_use_task;
+extern task_t mouse_use_task;
 
 void task_next() {
   if (!mtask_current) fatal("current is null");
@@ -113,9 +112,9 @@ void task_next() {
 
   if (!next_set) mtask_current->running = 0;
 
-  mtask *next = NULL;
+  task_t next = NULL;
   int    i;
-  mtask *j = NULL;
+  task_t j = NULL;
 
   if (next_set) {
     i        = next_set->tid;
@@ -125,7 +124,7 @@ void task_next() {
     i = 0;
   }
   for (; i < 255; i++) {
-    mtask *p = task_by_id(i);
+    task_t p = task_by_id(i);
     // assert(p != NULL);
     if (p == NULL) { continue; }
     if (p == mtask_current) continue;
@@ -173,14 +172,14 @@ H:
 finline int alloc_tid() {
   static i32 next_tid = 0;        // 下一个线程号
   if (next_tid < 0) next_tid = 1; // 0 号是主进程
-  while (tasks[next_tid] != null) {
+  while (task_by_id(next_tid) != null) {
     next_tid++;
   }
   return next_tid++;
 }
 
-mtask *create_task(void *func, u32 ticks, u32 floor) {
-  mtask *t = malloc(sizeof(*t));
+task_t create_task(void *func, u32 ticks, u32 floor) {
+  task_t t = malloc(sizeof(*t));
   init_task(t, alloc_tid());
 
   if (t == null) return null;
@@ -206,13 +205,12 @@ mtask *create_task(void *func, u32 ticks, u32 floor) {
   t->TTY     = NULL;
   t->jiffies = 0;
 
-  tasks[t->tid] = t;
-  // rbtree_insert(tasks, t->tid, t);
+  avltree_insert(tasks, t->tid, t);
   return t;
 }
 
-mtask *get_task(u32 tid) {
-  mtask *task = task_by_id(tid);
+task_t get_task(u32 tid) {
+  task_t task = task_by_id(tid);
   if (!task) return NULL;
   if (task->state == READY) return NULL;
   return task;
@@ -258,10 +256,10 @@ void task_to_user_mode(u32 eip, u32 esp) {
 }
 
 void task_kill(u32 tid) {
-  mtask *task = task_by_id(tid);
+  task_t task = task_by_id(tid);
   if (mouse_use_task == current_task()) mouse_sleep(&mdec);
   for (int i = 0; i < 255; i++) {
-    mtask *t = task_by_id(i);
+    task_t t = task_by_id(i);
     if (!t) continue;
     if (t->state == EMPTY || t->state == DIED) continue;
     if (t->tid == tid) continue;
@@ -284,9 +282,7 @@ void task_kill(u32 tid) {
     task_by_id(task->ptid)->state = RUNNING;
   }
   asm_cli;
-  // rbtree_delete_with(tasks, tid, free);
-  free(task);
-  tasks[tid] = NULL;
+  avltree_delete_with(tasks, tid, free);
   asm_sti;
   if (get_task(tid) == current_task()) {
     while (1) {
@@ -296,7 +292,7 @@ void task_kill(u32 tid) {
   }
 }
 
-mtask *current_task() {
+task_t current_task() {
   if (mtask_current != NULL) return mtask_current;
   empty_task.tid = NULL_TID;
   return &empty_task;
@@ -324,37 +320,37 @@ void into_mtask() {
   task_start(task_by_id(0));
 }
 
-void task_set_fifo(mtask *task, cir_queue8_t kfifo, cir_queue8_t mfifo) {
+void task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo) {
   task->keyfifo   = kfifo;
   task->mousefifo = mfifo;
 }
 
-cir_queue8_t task_get_key_queue(mtask *task) {
+cir_queue8_t task_get_key_queue(task_t task) {
   return task->keyfifo;
 }
 
-void task_sleep(mtask *task) {
+void task_sleep(task_t task) {
   task->state     = SLEEPING;
   task->fifosleep = 1;
 }
 
-void task_wake_up(mtask *task) {
+void task_wake_up(task_t task) {
   task->state     = RUNNING;
   task->fifosleep = 0;
 }
 
-void task_run(mtask *task) {
+void task_run(task_t task) {
   // 加急一下
   task->urgent  = 1;
   task->ready   = 1;
   task->running = 0;
 }
 
-void task_fifo_sleep(mtask *task) {
+void task_fifo_sleep(task_t task) {
   task->fifosleep = 1;
 }
 
-cir_queue8_t task_get_mouse_fifo(mtask *task) {
+cir_queue8_t task_get_mouse_fifo(task_t task) {
   return task->mousefifo;
 }
 
@@ -388,7 +384,7 @@ void task_unlock() {
   }
 }
 
-u32 get_father_tid(mtask *t) {
+u32 get_father_tid(task_t t) {
   if (t->ptid == -1) { return get_tid(t); }
   return get_father_tid(get_task(t->ptid));
 }
@@ -408,9 +404,9 @@ extern PageInfo *pages;
 void task_exit(u32 status) {
   if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
   u32    tid  = current_task()->tid;
-  mtask *task = current_task();
+  task_t task = current_task();
   for (int i = 0; i < 255; i++) {
-    mtask *t = task_by_id(i);
+    task_t t = task_by_id(i);
     if (!t) continue;
     if (t->state == EMPTY || t->state == DIED) continue;
     if (t->tid == tid) continue;
@@ -438,9 +434,8 @@ void task_exit(u32 status) {
   }
   if (task->ptid == -1) {
     klogd("set empty");
-    free(task);
-    tasks[tid] = NULL;
-    task_start(tasks[0]);
+    avltree_delete_with(tasks, tid, free);
+    task_start(get_task(0));
     while (1) {
       asm_sti;
       task_next();
@@ -457,7 +452,7 @@ void task_exit(u32 status) {
 }
 
 int waittid(u32 tid) {
-  mtask *t = get_task(tid);
+  task_t t = get_task(tid);
   if (!t) return -1;
   if (t->ptid != current_task()->tid) return -1;
   current_task()->waittid = tid;
@@ -467,39 +462,24 @@ int waittid(u32 tid) {
   klogd("here %d %d %d", t->ptid, current_task()->tid, t->tid);
   u32 status = t->status;
   klogd("task exit with code %d\n", status);
-  // rbtree_delete_with(tasks, tid, free);
-  free(tasks[tid]);
-  tasks[tid] = NULL;
+  avltree_delete_with(tasks, tid, free);
   return status;
 }
 
-void mtask_run_now(mtask *obj) {
+void mtask_run_now(task_t obj) {
   next_set = obj;
 }
 
-// void copy_vfs(mtask *src, mtask *dest) {
-//   // vfs_change_disk_for_task(src->nfs->drive, dest);
-//   // char *path;
-//   // list_foreach(src->nfs->path, l) {
-//   //   path = (char *)l->data;
-//   //   dest->nfs->cd(dest->nfs, path);
-//   // }
-// }
-
-mtask *mtask_get_free() {
-  mtask *t = page_malloc_one_no_mark();
+task_t mtask_get_free() {
+  task_t t = page_malloc_one_no_mark();
   init_task(t, alloc_tid());
   return t;
 }
 
 // THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!
 void interrput_exit();
-void roc() {
-  klogd("ROCT\n");
-  infinite_loop;
-}
 
-static void build_fork_stack(mtask *task) {
+static void build_fork_stack(task_t task) {
   u32 addr              = task->top;
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)addr;
@@ -507,24 +487,24 @@ static void build_fork_stack(mtask *task) {
   klogd("iframe = %08x\n", iframe->eip);
   addr                -= sizeof(stack_frame);
   stack_frame *sframe  = (stack_frame *)addr;
-  sframe->ebp          = 0x114514;
-  sframe->ebx          = 0x114514;
-  sframe->ecx          = 0x114514;
-  sframe->edx          = 0x114514;
+  sframe->ebp          = 0;
+  sframe->ebx          = 0;
+  sframe->ecx          = 0;
+  sframe->edx          = 0;
   sframe->eip          = (size_t)interrput_exit;
 
   task->esp = sframe;
 }
 
 int task_fork() {
-  mtask *m = mtask_get_free();
+  task_t m = mtask_get_free();
   if (!m) { return -1; }
   klogd("get free %08x\n", m);
   klogd("current = %08x\n", get_tid(current_task()));
   bool state = interrupt_disable();
   int  tid   = 0;
   tid        = m->tid;
-  memcpy(m, current_task(), sizeof(mtask));
+  memcpy(m, current_task(), sizeof(struct task));
   u32 stack = (u32)page_alloc(STACK_SIZE);
   change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;

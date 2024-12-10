@@ -101,7 +101,7 @@ void tty_free(struct tty *res) {
   page_free((void *)res, sizeof(struct tty));
 }
 
-struct tty *tty_set(mtask *task, struct tty *res) {
+struct tty *tty_set(task_t task, struct tty *res) {
   if (res->is_using == 1) {
     struct tty *old = task->TTY;
     task->TTY       = res;

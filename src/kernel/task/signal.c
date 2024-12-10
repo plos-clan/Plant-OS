@@ -27,7 +27,7 @@ typedef struct signal_frame {
 void signal_deal() {
   if (!current_task()) return;
   if (current_task()->signal_disable) { return; }
-  mtask *task;
+  task_t task;
   task = current_task();
   //klogd("B %d\n",task->signal);
   int sig = -1;

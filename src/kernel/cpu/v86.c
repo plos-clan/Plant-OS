@@ -15,7 +15,7 @@ void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 
 extern TSS32 tss;
 static u32   v86_service_tid = 0;
-mtask       *v86_using_task  = null;
+task_t       v86_using_task  = null;
 
 void v86_task() {
   klogd("v86_task is starting.");

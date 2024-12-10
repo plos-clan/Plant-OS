@@ -14,7 +14,7 @@
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
 
-void irq_mask_clear(u8 irq); // 启用中断
-void irq_mask_set(u8 irq);   // 禁用中断
-void init_pic();             // 初始化 PIC
-void send_eoi(int irq);      // 发送 EOI
+void irq_enable(int irq);  // 启用中断
+void irq_disable(int irq); // 禁用中断
+void init_pic();           // 初始化 PIC
+void send_eoi(int irq);    // 发送 EOI

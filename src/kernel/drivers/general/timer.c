@@ -1,21 +1,23 @@
 #include <kernel.h>
 
-#define PIT_CTRL 0x0043
-#define PIT_CNT0 0x0040
+#define PIT_CTRL 0x43
+#define PIT_CNT0 0x40
 
 volatile u64 system_tick = 0;
 
 static void pit_set(u16 value) {
-  asm_out8(0x40, value & 0xff);
-  asm_out8(0x40, value >> 8);
+  asm_out8(PIT_CNT0, value & 0xff);
+  asm_out8(PIT_CNT0, value >> 8);
 }
 
 void inthandler20(i32 id, regs32 *regs);
 
+#define PIT_FREQ 100
+
 void init_pit() {
   inthandler_set(0x20, inthandler20);
-  asm_out8(0x43, 0x34);
-  pit_set(1193182 / 100);
+  asm_out8(PIT_CTRL, 0x34);
+  pit_set(1193182 / PIT_FREQ);
 }
 
 #define NANOSEC_IN_SEC 1000000000
@@ -35,15 +37,13 @@ void sleep(uint64_t time_s) {
   //   } while (now_time.sec < end_time.sec || now_time.nsec < end_time.nsec);
 }
 
-void debugger();
-
 void inthandler20(i32 id, regs32 *regs) {
   // gettime_ns(NULL); // 更新时间
 
   system_tick++;
 
-  debugger();
+  kenel_debugger_tick();
 
-  extern mtask *mtask_current;
+  extern task_t mtask_current;
   if (mtask_current) task_next();
 }

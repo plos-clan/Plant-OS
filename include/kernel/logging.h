@@ -10,3 +10,5 @@
 #else
 #  include "logging/default"
 #endif
+
+void kenel_debugger_tick();

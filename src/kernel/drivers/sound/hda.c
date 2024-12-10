@@ -379,7 +379,7 @@ void hda_init() {
   output_buffer = page_malloc_one_no_mark();
 
   int irq = pci_get_drive_irq(hda_bus, hda_slot, hda_func);
-  irq_mask_clear(irq);
+  irq_enable(irq);
   inthandler_set(0x20 + irq, hda_interrupt_handler);
   mem_set32(hda_base + 0x20, ((u32)1 << 31) | ((u32)1 << input_stream_count));
 
@@ -573,7 +573,7 @@ void hda_play_pcm(void *buffer, u32 size, u32 sample_rate, u32 channels, u32 bit
   output_buffer[6] = size;
   output_buffer[7] = 1;
 
-  asm volatile("wbinvd");
+  asm_wbinvd;
 
   mem_set32(output_base + 0x18, (u32)output_buffer);
   mem_set32(output_base + 0x1c, 0);
@@ -622,7 +622,7 @@ u8 hda_is_supported_sample_rate(u32 sample_rate) {
 
 static bool     hda_stopping = false;
 static vsound_t snd;
-static mtask   *use_task;
+static task_t   use_task;
 
 static int hda_open(vsound_t vsound) {
   klogd("hda open has been called");
@@ -637,7 +637,7 @@ void hda_interrupt_handler(i32 id, regs32 *regs) {
   } else {
     vsound_played(snd);
   }
-  asm("wbinvd");
+  asm_wbinvd;
   mem_set8(output_base + 0x3, 1 << 2);
   task_run(use_task);
 }
