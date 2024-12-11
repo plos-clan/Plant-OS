@@ -79,12 +79,12 @@ typedef struct __PACKED__ fpu_regs {
 #define GET_SEL(cs, rpl) ((cs & SA_RPL_MASK & SA_TI_MASK) | (rpl))
 
 typedef struct __PACKED__ TSS32 {
-  i32     backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
-  i32     eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
-  i32     es, cs, ss, ds, fs, gs;
-  i32     ldtr;
-  u16     trap, iomap;
-  uint8_t io_map[8192];
+  i32  backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
+  i32  eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+  i32  es, cs, ss, ds, fs, gs;
+  i32  ldtr;
+  u16  trap, iomap;
+  byte io_map[8192];
 } TSS32;
 
 #define IDT_ADDR 0x0026f800 // IDT 地址

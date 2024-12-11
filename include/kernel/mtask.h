@@ -31,14 +31,13 @@ typedef struct __PACKED__ task {
   enum STATE    state;   // 此项为1（RUNNING） 即正常调度，为 2（WAITING） 3
                          // （SLEEPING）的时候不执行 ，0 EMPTY 空闲格子
   uint64_t      jiffies; // 最后一次执行的全局时间片
-  // struct vfs_t *nfs;
-  i32           tid, ptid;
+  i32           tid;
+  i32           ptid;
   u32           alloc_addr;
   u32          *alloc_size;
   u32           alloced;
   struct tty   *TTY;
   int           DisableExpFlag;
-  u32           CatchEIP;
   char          flagOfexp;
   fpu_regs_t    fpu;
   int           fpu_flag;
@@ -48,11 +47,10 @@ typedef struct __PACKED__ task {
   cb_keyboard_t keyboard_press;
   cb_keyboard_t keyboard_release;
   char          fifosleep;
-  int           mx, my;
   char         *line;
   struct TIMER *timer;
   IPC_Header    ipc_header;
-  u32           waittid;
+  i32           waittid;
   int           ready; // 如果为waiting 则无视wating
   int           sigint_up;
   u8            train; // 轮询

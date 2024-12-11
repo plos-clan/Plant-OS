@@ -8,48 +8,6 @@
 
 int os_execute(char *filename, char *line);
 
-#if 0
-ssize_t input(char *ptr, size_t len) {
-  size_t p = 0;
-  ptr[p]   = '\0';
-
-  int c;
-  while (p < len - 1 && (c = getch()) != '\n') {
-    if (c == '\b') {
-      if (p == 0) continue;
-      p--;
-      ptr[p] = '\0';
-      int x = get_x() - 1, y = get_y();
-      gotoxy(x, y);
-      putchar(' ');
-      gotoxy(x, y);
-      continue;
-    }
-
-    if (c > 0) {
-      ptr[p++] = c;
-      ptr[p]   = '\0';
-      putchar(c);
-      continue;
-    }
-
-    if (c == -1) {
-      // up
-    } else if (c == -2) {
-      // down
-    } else if (c == -3) {
-      // left
-    } else if (c == -4) {
-      // right
-    }
-  }
-
-  putchar('\n');
-
-  return p;
-}
-#endif
-
 void list_files(char *path) {
   klogd("%s", path);
   vfs_node_t p = vfs_open(path);

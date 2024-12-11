@@ -43,7 +43,7 @@ typedef struct SourceLocation {
 
 HANDLE(add_overflow, );
 HANDLE(alignment_assumption, );
-HANDLE(builtin_unreachable, );
+HANDLE_X(builtin_unreachable, );
 HANDLE(cfi_bad_type, );
 HANDLE(cfi_check_fail, );
 HANDLE(divrem_overflow, );

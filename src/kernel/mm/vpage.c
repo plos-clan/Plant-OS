@@ -6,7 +6,7 @@
 #define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
 // 刷新虚拟地址 vaddr 的 块表 TLB
-static void flush_tlb(size_t vaddr) {
+finline void flush_tlb(size_t vaddr) {
   asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
 }
 
@@ -78,7 +78,7 @@ u32 pde_clone(u32 addr) {
   return result;
 }
 
-void pde_reset(u32 addr) {
+static void pde_reset(u32 addr) {
   for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry  = (u32 *)(addr + i);
     *pde_entry     |= PAGE_WRABLE;
@@ -102,7 +102,7 @@ void free_pde(u32 addr) {
   page_free((void *)addr, PAGE_SIZE);
 }
 
-void page_link_pde(u32 addr, u32 pde) {
+static void page_link_pde(u32 addr, u32 pde) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
   asm_set_cr3(PDE_ADDRESS);
@@ -132,6 +132,7 @@ void page_link_pde(u32 addr, u32 pde) {
   current_task()->pde = pde_backup;
   asm_set_cr3(pde_backup);
 }
+
 void page_link_addr_pde(u32 addr, u32 pde, u32 map_addr) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
@@ -163,7 +164,7 @@ void page_link_addr_pde(u32 addr, u32 pde, u32 map_addr) {
   asm_set_cr3(pde_backup);
 }
 
-void page_link_pde_share(u32 addr, u32 pde) {
+static void page_link_pde_share(u32 addr, u32 pde) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
   asm_set_cr3(PDE_ADDRESS);
@@ -200,7 +201,7 @@ void page_link_pde_share(u32 addr, u32 pde) {
   asm_set_cr3(pde_backup);
 }
 
-void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
+static void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   u32 pde_backup      = current_task()->pde;
   current_task()->pde = PDE_ADDRESS;
   asm_set_cr3(PDE_ADDRESS);

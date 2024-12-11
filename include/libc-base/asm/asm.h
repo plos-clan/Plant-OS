@@ -49,6 +49,19 @@ finline void load_idt(void *addr, size_t len) {
   asm volatile("lidt %0\n\t" ::"m"(idt_r));
 }
 
+/**
+ *\brief 加载 TSS
+ *
+ *\param selector 选择子
+ */
 finline void load_tr(size_t selector) {
   asm volatile("ltr %0\n\t" : : "m"(selector));
 }
+
+#define with_no_interrupts(code)                                                                   \
+  ({                                                                                               \
+    var _flag_ = asm_get_flags();                                                                  \
+    asm_cli;                                                                                       \
+    (code);                                                                                        \
+    asm_set_flags(_flag_);                                                                         \
+  })

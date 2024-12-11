@@ -187,22 +187,25 @@ API int mpi_cmp(ARGS_2_CC) noexcept { // 比较数字
   return 0;
 }
 
+#define _add2(a, b)    __builtin_uadd_overflow(a, b, &(a))
+#define _add3(c, a, b) __builtin_uadd_overflow(a, b, &(c))
+
 // --------------------------------------------------
 //; 加减
 
 API bool mpi_add2(ARGS_2) noexcept { // a += b
   bool overflow = false;
   for (size_t i = 0; i < len; i++) {
-    overflow  = __builtin_uadd_overflow(a[i], overflow, &a[i]);
-    overflow |= __builtin_uadd_overflow(a[i], b[i], &a[i]);
+    overflow  = _add2(a[i], overflow);
+    overflow |= _add2(a[i], b[i]);
   }
   return overflow;
 }
 API bool mpi_add2u(ARGS_2_MU) noexcept { // a += b
   if (len == 0) return b != 0;
-  bool overflow = __builtin_uadd_overflow(a[0], b, &a[0]);
+  bool overflow = _add2(a[0], b);
   for (size_t i = 1; overflow && i < len; i++) {
-    overflow = __builtin_uadd_overflow(a[i], overflow, &a[i]);
+    overflow = _add2(a[i], overflow);
   }
   return overflow;
 }

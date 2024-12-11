@@ -112,7 +112,6 @@ void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func) {
 void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
   u32 cmd = 0;
   cmd     = 0x80000000 + (u32)adder + ((u32)f << 8) + ((u32)equipment << 11) + ((u32)bus << 16);
-  // cmd = cmd | 0x01;
   asm_out32(PCI_COMMAND_PORT, cmd);
 }
 

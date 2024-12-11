@@ -7,11 +7,27 @@ Checks: >
   modernize-*,
   -readability-braces-around-statements,
   -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-implicit-bool-conversion,
   -bugprone-reserved-identifier,
   -bugprone-easily-swappable-parameters,
   -readability-isolate-declaration,
   -bugprone-sizeof-expression,
   -modernize-use-nullptr,
+
+# readability-braces-around-statements
+#     我就是宏孩儿。
+
+# readability-magic-numbers
+#     典型的一刀切，反正 5 以上就是 namgic number 要写成常量。
+
+# readability-implicit-bool-conversion
+#     哥们别老是误报啊。
+#     if (a == 1 && b == 2) // a, b 为 int
+#     这有啥错？
+
+# bugprone-reserved-identifier
+#     属于是逮着前缀下划线就报了。
 
 # bugprone-easily-swappable-parameters
 #     我一个函数传递几个连续的同类型参数怎么你了？

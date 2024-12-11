@@ -29,7 +29,6 @@ finline void _ERROR_(int CODE, char *TIPS) {
   void ERROR##_code_(u32 eip) {                                                                    \
     u32 *esp = &eip;                                                                               \
     _ERROR_(_code_, _tips_);                                                                       \
-    *esp = current_task()->CatchEIP;                                                               \
   }
 
 _ERROR(0, "#DE");

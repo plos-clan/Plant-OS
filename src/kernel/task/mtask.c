@@ -21,23 +21,16 @@ task_t task_by_id(i32 tid) {
   return avltree_get(tasks, tid);
 }
 
-static queue_t running_tasks;
-static spin_t  running_tasks_lock;
+static struct queue running_tasks;
 
 finline void running_tasks_push(task_t task) {
-  spin_lock(running_tasks_lock);
-  if (running_tasks == null) running_tasks = queue_alloc();
-  queue_enqueue(running_tasks, task);
-  spin_unlock(running_tasks_lock);
+  if (task == null) return;
+  with_no_interrupts(queue_enqueue(&running_tasks, task));
 }
 
 finline task_t running_tasks_pop() {
   task_t task = null;
-  spin_lock(running_tasks_lock);
-  while (task == null) {
-    task = queue_dequeue(running_tasks);
-  }
-  spin_unlock(running_tasks_lock);
+  with_no_interrupts(task = queue_dequeue(&running_tasks));
   return task;
 }
 
@@ -54,11 +47,9 @@ static void init_task(task_t t, int id) {
   t->urgent           = 0;
   t->fpu_flag         = 0;
   t->fifosleep        = 0;
-  t->mx               = 0;
-  t->my               = 0;
   t->line             = NULL;
   t->timer            = NULL;
-  t->waittid          = U32_MAX;
+  t->waittid          = -1;
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
   t->alloced          = 0;
@@ -88,8 +79,6 @@ static void init_task(task_t t, int id) {
   }
 }
 
-static void init_tasks() {}
-
 fpu_regs_t public_fpu;
 
 bool task_check_train(task_t task) {
@@ -103,8 +92,9 @@ extern task_t mouse_use_task;
 void task_next() {
   if (!mtask_current) fatal("current is null");
 
-  if (mtask_current->running < mtask_current->timeout - 1 && mtask_current->state == RUNNING &&
-      next_set == NULL) {
+  if (mtask_current->running < mtask_current->timeout - 1 && //
+      mtask_current->state == RUNNING &&                     //
+      next_set == null) {
     mtask_current->running++;
     return; // 不需要调度，当前时间片仍然属于你
   }
@@ -135,9 +125,8 @@ void task_next() {
           p->state = RUNNING;
           goto OK;
         }
-        if (p->waittid == U32_MAX) continue;
+        if (p->waittid < 0) continue;
       }
-      // if (p->state == DIED) { p->state = EMPTY; }
       continue;
     }
   OK:
@@ -303,16 +292,14 @@ static void idle_loop() {
 }
 
 void into_mtask() {
-  init_tasks();
   asm_clr_em, asm_clr_ts;
   asm volatile("fninit");
   asm volatile("fnsave (%%eax) \n" ::"a"(&public_fpu));
   fpu_disable();
   SegmentDescriptor *gdt = (SegmentDescriptor *)GDT_ADDR;
   memset(&tss, 0, sizeof(tss));
-  memset(tss.io_map, 0, sizeof(tss.io_map));
   tss.ss0 = 1 * 8;
-  set_segmdesc(gdt + 103, sizeof(TSS32), (int)&tss, AR_TSS32);
+  set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
   idle_task = create_task(idle_loop, 1, 3);
   create_task(init, 5, 1);
@@ -440,7 +427,7 @@ void task_exit(u32 status) {
       asm_sti;
       task_next();
     }
-    infinite_loop;
+    __builtin_unreachable();
   }
   task->ptid = -1;
   asm_sti;
@@ -448,7 +435,7 @@ void task_exit(u32 status) {
     asm_sti;
     task_next();
   }
-  infinite_loop;
+  __builtin_unreachable();
 }
 
 int waittid(u32 tid) {

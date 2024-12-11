@@ -24,7 +24,6 @@ void sysinit() {
   IVT = page_alloc(0x500);
   klogi("蹲一个 UB, 马上要把 0 地址的 IVT 备份了啊");
   memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
-  // init_gdtidt();
   init_pic();
   init_serial();
   init_pit();
