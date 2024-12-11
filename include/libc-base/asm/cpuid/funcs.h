@@ -1,0 +1,14 @@
+#pragma once
+#include "ids.h"
+#include "macros.h"
+#include <define.h>
+
+finline void cpuid_do_cache() {
+  if (cpuids_cached) return;
+  cpuid(0, cpuids.ID0.eax, cpuids.ID0.ebx, cpuids.ID0.ecx, cpuids.ID0.edx);
+  cpuid(1, cpuids.ID1.eax, cpuids.ID1.ebx, cpuids.ID1.ecx, cpuids.ID1.edx);
+  cpuid(2, cpuids.ID2.eax, cpuids.ID2.ebx, cpuids.ID2.ecx, cpuids.ID2.edx);
+  cpuid(3, cpuids.ID3.eax, cpuids.ID3.ebx, cpuids.ID3.ecx, cpuids.ID3.edx);
+  cpuid(4, cpuids.ID4.eax, cpuids.ID4.ebx, cpuids.ID4.ecx, cpuids.ID4.edx);
+  cpuids_cached = true;
+}

@@ -21,6 +21,8 @@ void sysinit() {
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_page();
 
+  cpuid_do_cache();
+
   IVT = page_alloc(0x500);
   klogi("蹲一个 UB, 马上要把 0 地址的 IVT 备份了啊");
   memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
