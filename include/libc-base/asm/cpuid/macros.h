@@ -41,6 +41,12 @@
     (eax & 0xffff) * 1000000;                                                                      \
   })
 
+#define cpuid_x2apic                                                                               \
+  ({                                                                                               \
+    cpuid_get(0x1);                                                                                \
+    ecx & (1 << 21);                                                                               \
+  })
+
 // --------------------------------------------------
 
 #define cpuid_support_64bit                                                                        \

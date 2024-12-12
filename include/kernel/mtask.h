@@ -13,7 +13,6 @@ enum STATE {
   RUNNING,
   WAITING,
   SLEEPING,
-  WILL_EMPTY,
   READY,
   DIED
 };
@@ -49,7 +48,6 @@ typedef struct __PACKED__ task {
   char          fifosleep;
   char         *line;
   struct TIMER *timer;
-  IPC_Header    ipc_header;
   i32           waittid;
   int           ready; // 如果为waiting 则无视wating
   int           sigint_up;

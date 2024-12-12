@@ -11,7 +11,7 @@ void free_pde(u32 addr);
 TSS32            tss;
 task_t           idle_task;
 task_t           mtask_current = null;
-static avltree_t tasks;
+static avltree_t tasks         = null;
 
 task_t      next_set = null;
 struct task empty_task;
@@ -21,16 +21,16 @@ task_t task_by_id(i32 tid) {
   return avltree_get(tasks, tid);
 }
 
-static struct queue running_tasks;
+static struct queue running_tasks[8];
 
 finline void running_tasks_push(task_t task) {
   if (task == null) return;
-  with_no_interrupts(queue_enqueue(&running_tasks, task));
+  with_no_interrupts(queue_enqueue(&running_tasks[cpuid_coreid], task));
 }
 
 finline task_t running_tasks_pop() {
   task_t task = null;
-  with_no_interrupts(task = queue_dequeue(&running_tasks));
+  with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
   return task;
 }
 
@@ -67,13 +67,6 @@ static void init_task(task_t t, int id) {
   t->mousefifo        = NULL;
   t->signal           = 0;
   t->v86_mode         = 0;
-  lock_init(&t->ipc_header.l);
-  t->ipc_header.now = 0;
-  for (int k = 0; k < MAX_IPC_MESSAGE; k++) {
-    t->ipc_header.messages[k].from_tid = -1;
-    t->ipc_header.messages[k].flag1    = 0;
-    t->ipc_header.messages[k].flag2    = 0;
-  }
   for (int k = 0; k < 30; k++) {
     t->handler[k] = 0;
   }
@@ -115,8 +108,7 @@ void task_next() {
   }
   for (; i < 255; i++) {
     task_t p = task_by_id(i);
-    // assert(p != NULL);
-    if (p == NULL) { continue; }
+    if (p == NULL) continue;
     if (p == mtask_current) continue;
     if (p->state != RUNNING) { // RUNNING
       if (p->state == WAITING) {

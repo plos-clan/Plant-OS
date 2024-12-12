@@ -12,6 +12,8 @@ union CPUIDS {
     struct CPUIDS_IDN ID2;
     struct CPUIDS_IDN ID3;
     struct CPUIDS_IDN ID4;
+    struct CPUIDS_IDN ID15;
+    struct CPUIDS_IDN ID16;
   };
   struct {
     u32 ID0_EAX, ID0_EBX, ID0_ECX, ID0_EDX;
@@ -19,6 +21,8 @@ union CPUIDS {
     u32 ID2_EAX, ID2_EBX, ID2_ECX, ID2_EDX;
     u32 ID3_EAX, ID3_EBX, ID3_ECX, ID3_EDX;
     u32 ID4_EAX, ID4_EBX, ID4_ECX, ID4_EDX;
+    u32 ID15_EAX, ID15_EBX, ID15_ECX, ID15_EDX;
+    u32 ID16_EAX, ID16_EBX, ID16_ECX, ID16_EDX;
   };
   struct {
     struct { // CPUID_ID0_EAX
@@ -127,6 +131,32 @@ union CPUIDS {
       u32 reserved1         : 4;
       u32 wtf               : 12; // TODO: WTF?
       u32 reserved2         : 6;
+    };
+    struct { // CPUID_ID4_EBX
+      u32 line_size     : 12;
+      u32 partitioning  : 10;
+      u32 associativity : 10;
+    };
+    struct { // CPUID_ID4_ECX
+      u32 ID4_ECX_ : 32;
+    };
+    struct { // CPUID_ID4_EDX
+      u32 ID4_EDX_ : 32;
+    };
+    struct { // CPUID_ID15_EAX EBX ECX EDX
+      u32 TSC_freq_by_CCC_freq_denominator;
+      u32 TSC_freq_by_CCC_freq_numerator;
+      u32 CCC_freq;
+      u32 ID15_EDX_RESERVED;
+    };
+    struct { // CPUID_ID16_EAX EBX ECX EDX
+      u32 processor_base_freq : 16;
+      u32 ID16_EAX_RESERVED1  : 16;
+      u32 processor_max_freq  : 16;
+      u32 ID16_EBX_RESERVED1  : 16;
+      u32 processor_bus_freq  : 16;
+      u32 ID16_ECX_RESERVED1  : 16;
+      u32 ID16_EDX_RESERVED;
     };
   };
 };

@@ -10,5 +10,7 @@ finline void cpuid_do_cache() {
   cpuid(2, cpuids.ID2.eax, cpuids.ID2.ebx, cpuids.ID2.ecx, cpuids.ID2.edx);
   cpuid(3, cpuids.ID3.eax, cpuids.ID3.ebx, cpuids.ID3.ecx, cpuids.ID3.edx);
   cpuid(4, cpuids.ID4.eax, cpuids.ID4.ebx, cpuids.ID4.ecx, cpuids.ID4.edx);
+  cpuid(15, cpuids.ID15.eax, cpuids.ID15.ebx, cpuids.ID15.ecx, cpuids.ID15.edx);
+  cpuid(16, cpuids.ID16.eax, cpuids.ID16.ebx, cpuids.ID16.ecx, cpuids.ID16.edx);
   cpuids_cached = true;
 }

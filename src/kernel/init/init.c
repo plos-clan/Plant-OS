@@ -23,6 +23,8 @@ void sysinit() {
 
   cpuid_do_cache();
 
+  klogd("%s", cpuids.x2apic ? "x2apic" : "apic");
+
   IVT = page_alloc(0x500);
   klogi("蹲一个 UB, 马上要把 0 地址的 IVT 备份了啊");
   memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
