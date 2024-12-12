@@ -25,46 +25,36 @@ typedef struct signal_frame {
 
 // TODO: 给GUI接管
 void signal_deal() {
-  if (!current_task()) return;
-  if (current_task()->signal_disable) { return; }
-  task_t task;
-  task = current_task();
-  //klogd("B %d\n",task->signal);
-  int sig = -1;
+  var task = current_task();
+  if (task == null || task->signal_disable) return;
   if (task->signal & MASK32(SIGINT)) {
-    sig           = 0;
-    task->signal &= ~MASK32(SIGINT);
-    if (task->handler[SIGINT]) {
-      intr_frame_t   *i     = (intr_frame_t *)(task->top - sizeof(intr_frame_t));
-      signal_frame_t *frame = (signal_frame_t *)(i->esp - sizeof(signal_frame_t));
-      frame->edi            = i->edi;
-      frame->esi            = i->esi;
-      frame->ebp            = i->ebp;
-      frame->esp_dummy      = i->esp_dummy;
-      frame->ebx            = i->ebx;
-      frame->ecx            = i->ecx;
-      frame->edx            = i->edx;
-      frame->eax            = i->eax;
-      frame->gs             = i->gs;
-      frame->fs             = i->fs;
-      frame->es             = i->es;
-      frame->ds             = i->ds;
-      frame->eip            = i->eip;
-      frame->eip1           = task->ret_to_app;
-      i->eip                = task->handler[SIGINT];
-      i->esp                = (u32)frame;
-      return;
-    } else {
-
-      // task_exit(0);
-    }
+    // task->signal &= ~MASK32(SIGINT);
+    // if (task->handler[SIGINT]) {
+    //   intr_frame_t   *i     = (intr_frame_t *)(task->top - sizeof(intr_frame_t));
+    //   signal_frame_t *frame = (signal_frame_t *)(i->esp - sizeof(signal_frame_t));
+    //   frame->edi            = i->edi;
+    //   frame->esi            = i->esi;
+    //   frame->ebp            = i->ebp;
+    //   frame->esp_dummy      = i->esp_dummy;
+    //   frame->ebx            = i->ebx;
+    //   frame->ecx            = i->ecx;
+    //   frame->edx            = i->edx;
+    //   frame->eax            = i->eax;
+    //   frame->gs             = i->gs;
+    //   frame->fs             = i->fs;
+    //   frame->es             = i->es;
+    //   frame->ds             = i->ds;
+    //   frame->eip            = i->eip;
+    //   frame->eip1           = task->ret_to_app;
+    //   i->eip                = task->handler[SIGINT];
+    //   i->esp                = (u32)frame;
+    //   return;
+    // } else {
+    //   task_exit(0);
+    // }
   } else if (task->signal & MASK32(SIGKIL)) {
     task_exit(0);
   } else {
     return;
   }
-}
-
-void set_signal_handler(u32 sig, u32 handler) {
-  current_task()->handler[sig] = handler;
 }

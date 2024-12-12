@@ -15,13 +15,11 @@ void *pci_addr_base;
 
 void init_serial();
 
-#pragma clang optimize off
-
 void sysinit() {
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_page();
 
-  cpuid_do_cache();
+  cpuid_do_cache(); // 缓存 CPUID 信息
 
   klogd("%s", cpuids.x2apic ? "x2apic" : "apic");
 

@@ -1,6 +1,4 @@
 
-#pragma GCC optimize("O3")
-
 #include "fmtconv-leaf.h"
 
 #include <sound.h>

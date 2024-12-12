@@ -77,8 +77,6 @@ static void draw(int n) {
   }
 }
 
-#pragma clang optimize off
-
 void init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");

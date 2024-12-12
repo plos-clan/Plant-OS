@@ -1,6 +1,4 @@
 
-#pragma GCC optimize("O3")
-
 #include <libc-base.h>
 #include <sound.h>
 

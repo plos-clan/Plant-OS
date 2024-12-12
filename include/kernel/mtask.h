@@ -54,7 +54,6 @@ typedef struct __PACKED__ task {
   u8            train; // 轮询
   u32           status;
   u32           signal;
-  u32           handler[30];
   u32           ret_to_app;
   u32           times;
   u32           signal_disable;

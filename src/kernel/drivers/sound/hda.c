@@ -1,5 +1,5 @@
 // 此驱动可能注释不全，请参考https://server.plos-clan.org/hda-programming-document.html
-#pragma clang optimize off
+
 #include <kernel.h>
 
 #define SEND_VERB_METHOD_DMA      1

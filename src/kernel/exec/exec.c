@@ -2,8 +2,6 @@
 
 #pragma GCC optimize("O0")
 
-#pragma clang optimize off
-
 void task_to_user_mode_elf(char *filename);
 
 extern char     *shell_data;
@@ -170,7 +168,6 @@ static void task_to_user_mode_shell() {
   u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + PAGE_SIZE;
   u32 pg         = PADDING_UP(*(current_task()->alloc_size), PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < pg + 128; i++) {
-    // klog("%d\n",i);
     page_link(alloc_addr + i * PAGE_SIZE);
   }
   u32 alloced_esp  = alloc_addr + 128 * PAGE_SIZE;

@@ -2,8 +2,6 @@
 
 #include <kernel.h>
 
-#pragma clang optimize off
-
 #define STACK_SIZE (1024 * 1024)
 
 void free_pde(u32 addr);
@@ -59,7 +57,7 @@ static void init_task(task_t t, int id) {
   t->release_keyfifo  = NULL;
   t->sigint_up        = 0;
   t->train            = 0;
-  t->signal_disable   = 0;
+  t->signal_disable   = 1; // 目前暂时关闭信号
   t->times            = 0;
   t->keyboard_press   = NULL;
   t->keyboard_release = NULL;
@@ -67,9 +65,6 @@ static void init_task(task_t t, int id) {
   t->mousefifo        = NULL;
   t->signal           = 0;
   t->v86_mode         = 0;
-  for (int k = 0; k < 30; k++) {
-    t->handler[k] = 0;
-  }
 }
 
 fpu_regs_t public_fpu;
@@ -404,9 +399,6 @@ void task_exit(u32 status) {
   if (task->release_keyfifo) {
     page_free(task->release_keyfifo->buf, 4096);
     free(task->release_keyfifo);
-  }
-  for (int k = 0; k < 30; k++) {
-    task->handler[k] = 0;
   }
   if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
     task_run(task_by_id(task->ptid));
