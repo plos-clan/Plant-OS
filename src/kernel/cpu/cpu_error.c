@@ -50,11 +50,11 @@ _ERROR(19, "#XF");
 #undef _ERROR
 
 void ERROR7(u32 eip) {
-  if (current_task()->fpu_flag > 1 || current_task()->fpu_flag < 0) {
+  if (current_task->fpu_flag > 1 || current_task->fpu_flag < 0) {
     asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
     return;
   }
-  fpu_enable(current_task());
+  fpu_enable(current_task);
 }
 #define FP_TO_LINEAR(seg, off) ((u32)(seg << 4) + (u32)off)
 #define VALID_FLAGS            0xDFF
@@ -63,7 +63,7 @@ void ERROR7(u32 eip) {
 extern byte *IVT;
 void         ERROR13(u32 eip) {
   volatile v86_frame_t *frame = (v86_frame_t *)((volatile u32)(&eip));
-  if (current_task()->v86_mode != 1) {
+  if (current_task->v86_mode != 1) {
     error("fault, gp at 0x%x\n", frame->eip);
     syscall_exit(1);
     infinite_loop;
@@ -74,7 +74,7 @@ void         ERROR13(u32 eip) {
   uint8_t      *ip;
   uint16_t     *stack, *ivt;
   uint32_t     *stack32;
-  task_t        current = current_task();
+  task_t        current = current_task;
   extern task_t v86_using_task;
   bool          is_operand32, is_address32;
   ip           = (uint8_t *)(FP_TO_LINEAR(frame->cs, frame->eip));

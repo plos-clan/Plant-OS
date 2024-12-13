@@ -39,11 +39,11 @@ void plty_tty_clear(struct tty *tty) {
 }
 
 static int default_tty_fifo_status(struct tty *res) {
-  return cir_queue8_len(task_get_key_queue(current_task()));
+  return cir_queue8_len(task_get_key_queue(current_task));
 }
 
 static int default_tty_fifo_get(struct tty *res) {
-  return cir_queue8_get(task_get_key_queue(current_task()));
+  return cir_queue8_get(task_get_key_queue(current_task));
 }
 void plty_tty_flush(struct tty *tty) {
   plty_t plty = (plty_t)tty->vram;
@@ -61,6 +61,6 @@ struct tty *plty_set_tty(plty_t plty) {
 extern struct tty *tty_default;
 
 void plty_set_default(plty_t plty) {
-  tty_default         = plty_set_tty(plty);
-  current_task()->TTY = tty_default;
+  tty_default       = plty_set_tty(plty);
+  current_task->TTY = tty_default;
 }

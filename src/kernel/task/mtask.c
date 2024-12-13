@@ -34,7 +34,7 @@ finline task_t running_tasks_pop() {
 
 static void init_task(task_t t, int id) {
   t->jiffies          = 0;
-  t->user_mode        = 0; // 此项暂时废除
+  t->user_mode        = 0;
   t->running          = 0;
   t->timeout          = 0;
   t->state            = EMPTY; // EMPTY
@@ -78,7 +78,7 @@ bool task_check_train(task_t task) {
 extern task_t mouse_use_task;
 
 void task_next() {
-  if (!mtask_current) fatal("current is null");
+  assert(mtask_current != null);
 
   if (mtask_current->running < mtask_current->timeout - 1 && //
       mtask_current->state == RUNNING &&                     //
@@ -86,6 +86,7 @@ void task_next() {
     mtask_current->running++;
     return; // 不需要调度，当前时间片仍然属于你
   }
+
   asm_cli;
 
   if (!next_set) mtask_current->running = 0;
@@ -170,7 +171,7 @@ task_t create_task(void *func, u32 ticks, u32 floor) {
     t->pde   = PDE_ADDRESS; // 所以先用预设好的页表
     t->times = PDE_ADDRESS;
   } else {
-    t->pde   = pde_clone(current_task()->pde); // 启用了就复制一个
+    t->pde   = pde_clone(current_task->pde); // 启用了就复制一个
     t->times = t->pde;
   }
   t->top     = esp_alloced; // r0的esp
@@ -218,7 +219,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->esp              = esp; // 设置用户态堆栈
   mtask_current->user_mode = 1;
   tss.esp0                 = mtask_current->top;
-  klogd("tid: %d\n", current_task()->tid);
+  klogd("tid: %d\n", current_task->tid);
   asm_cli;
   asm volatile("movl %0, %%esp\n\t"
                "popa\n\t"
@@ -233,7 +234,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
 
 void task_kill(u32 tid) {
   task_t task = task_by_id(tid);
-  if (mouse_use_task == current_task()) mouse_sleep(&mdec);
+  if (mouse_use_task == current_task) mouse_sleep(&mdec);
   for (int i = 0; i < 255; i++) {
     task_t t = task_by_id(i);
     if (!t) continue;
@@ -242,7 +243,7 @@ void task_kill(u32 tid) {
     if (t->ptid >= 0 && t->ptid == tid) { task_kill(t->tid); }
   }
   asm_cli;
-  if (get_task(tid) == current_task()) { asm_set_cr3(PDE_ADDRESS); }
+  if (get_task(tid) == current_task) asm_set_cr3(PDE_ADDRESS);
   free_pde(task->pde);
   task_free_all_pages(tid); // 释放内存
   if (task->press_key_fifo) {
@@ -257,10 +258,9 @@ void task_kill(u32 tid) {
   if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
     task_by_id(task->ptid)->state = RUNNING;
   }
-  asm_cli;
   avltree_delete_with(tasks, tid, free);
   asm_sti;
-  if (get_task(tid) == current_task()) {
+  if (tid == current_task->tid) {
     while (1) {
       asm_sti;
       task_next();
@@ -268,7 +268,7 @@ void task_kill(u32 tid) {
   }
 }
 
-task_t current_task() {
+task_t get_current_task() {
   if (mtask_current != NULL) return mtask_current;
   empty_task.tid = NULL_TID;
   return &empty_task;
@@ -314,71 +314,37 @@ void task_wake_up(task_t task) {
 }
 
 void task_run(task_t task) {
-  // 加急一下
-  task->urgent  = 1;
+  task->urgent  = 1; // 加急一下
   task->ready   = 1;
   task->running = 0;
-}
-
-void task_fifo_sleep(task_t task) {
-  task->fifosleep = 1;
 }
 
 cir_queue8_t task_get_mouse_fifo(task_t task) {
   return task->mousefifo;
 }
 
-void task_lock() {
-  if (current_task()->ptid == -1) {
-    return;
-  } else {
-    // for (int i = 0; i < 255; i++) {
-    //   if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-    //   if (m[i].tid == get_tid(current_task())) continue;
-    //   if ((m[i].tid == current_task()->ptid || m[i].ptid == current_task()->ptid) &&
-    //       m[i].state == RUNNING) {
-    //     m[i].state = WAITING; // WAITING
-    //   }
-    // }
-  }
-}
-
-void task_unlock() {
-  if (current_task()->ptid == -1) {
-    return;
-  } else {
-    // for (int i = 0; i < 255; i++) {
-    //   if (m[i].state == EMPTY || m[i].state == WILL_EMPTY || m[i].state == READY) continue;
-    //   if (m[i].tid == get_tid(current_task())) continue;
-    //   if ((m[i].tid == current_task()->ptid || m[i].ptid == current_task()->ptid) &&
-    //       m[i].state == WAITING) {
-    //     m[i].state = RUNNING; // RUNNING
-    //   }
-    // }
-  }
-}
-
 u32 get_father_tid(task_t t) {
-  if (t->ptid == -1) { return get_tid(t); }
+  if (t->ptid == -1) { return t->tid; }
   return get_father_tid(get_task(t->ptid));
 }
 
 void task_fall_blocked(enum STATE state) {
-  if (current_task()->ready == 1) {
-    current_task()->ready = 0;
+  klogd("fall blocked %d\n", state);
+  if (current_task->ready == 1) {
+    current_task->ready = 0;
     return;
   }
-  current_task()->state = state;
-  current_task()->ready = 0;
+  current_task->state = state;
+  current_task->ready = 0;
   task_next();
 }
 
 extern PageInfo *pages;
 
 void task_exit(u32 status) {
-  if (mouse_use_task == current_task()) { mouse_sleep(&mdec); }
-  u32    tid  = current_task()->tid;
-  task_t task = current_task();
+  if (mouse_use_task == current_task) { mouse_sleep(&mdec); }
+  u32    tid  = current_task->tid;
+  task_t task = current_task;
   for (int i = 0; i < 255; i++) {
     task_t t = task_by_id(i);
     if (!t) continue;
@@ -425,12 +391,12 @@ void task_exit(u32 status) {
 int waittid(u32 tid) {
   task_t t = get_task(tid);
   if (!t) return -1;
-  if (t->ptid != current_task()->tid) return -1;
-  current_task()->waittid = tid;
-  while (t->state != DIED && t->ptid == current_task()->tid) {
+  if (t->ptid != current_task->tid) return -1;
+  current_task->waittid = tid;
+  while (t->state != DIED && t->ptid == current_task->tid) {
     task_fall_blocked(WAITING);
   }
-  klogd("here %d %d %d", t->ptid, current_task()->tid, t->tid);
+  klogd("here %d %d %d", t->ptid, current_task->tid, t->tid);
   u32 status = t->status;
   klogd("task exit with code %d\n", status);
   avltree_delete_with(tasks, tid, free);
@@ -471,11 +437,11 @@ int task_fork() {
   task_t m = mtask_get_free();
   if (!m) { return -1; }
   klogd("get free %08x\n", m);
-  klogd("current = %08x\n", get_tid(current_task()));
+  klogd("current = %08x\n", current_task->tid);
   bool state = interrupt_disable();
   int  tid   = 0;
   tid        = m->tid;
-  memcpy(m, current_task(), sizeof(struct task));
+  memcpy(m, current_task, sizeof(struct task));
   u32 stack = (u32)page_alloc(STACK_SIZE);
   change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;
@@ -484,36 +450,36 @@ int task_fork() {
   m->top = stack += STACK_SIZE;
   stack          += STACK_SIZE;
   m->esp          = (stack_frame *)stack;
-  if (current_task()->press_key_fifo) {
+  if (current_task->press_key_fifo) {
     m->press_key_fifo = malloc(sizeof(struct event));
-    memcpy(m->press_key_fifo, current_task()->press_key_fifo, sizeof(struct event));
+    memcpy(m->press_key_fifo, current_task->press_key_fifo, sizeof(struct event));
     m->press_key_fifo->buf = page_alloc(4096);
-    memcpy(m->press_key_fifo->buf, current_task()->press_key_fifo->buf, 4096);
+    memcpy(m->press_key_fifo->buf, current_task->press_key_fifo->buf, 4096);
   }
-  if (current_task()->release_keyfifo) {
+  if (current_task->release_keyfifo) {
     m->release_keyfifo = malloc(sizeof(struct event));
-    memcpy(m->release_keyfifo, current_task()->release_keyfifo, sizeof(struct event));
+    memcpy(m->release_keyfifo, current_task->release_keyfifo, sizeof(struct event));
     m->release_keyfifo->buf = page_alloc(4096);
-    memcpy(m->release_keyfifo->buf, current_task()->release_keyfifo->buf, 4096);
+    memcpy(m->release_keyfifo->buf, current_task->release_keyfifo->buf, 4096);
   }
-  if (current_task()->keyfifo) {
+  if (current_task->keyfifo) {
     m->keyfifo = page_malloc_one();
-    memcpy(m->keyfifo, current_task()->keyfifo, sizeof(struct event));
+    memcpy(m->keyfifo, current_task->keyfifo, sizeof(struct event));
     m->keyfifo->buf = page_malloc_one();
-    memcpy(m->keyfifo->buf, current_task()->keyfifo->buf, 4096);
+    memcpy(m->keyfifo->buf, current_task->keyfifo->buf, 4096);
   }
-  if (current_task()->mousefifo) {
+  if (current_task->mousefifo) {
     m->mousefifo = page_malloc_one();
-    memcpy(m->mousefifo, current_task()->mousefifo, sizeof(struct event));
+    memcpy(m->mousefifo, current_task->mousefifo, sizeof(struct event));
     m->mousefifo->buf = page_malloc_one();
-    memcpy(m->mousefifo->buf, current_task()->mousefifo->buf, 4096);
+    memcpy(m->mousefifo->buf, current_task->mousefifo->buf, 4096);
   }
-  m->pde     = pde_clone(current_task()->pde);
+  m->pde     = pde_clone(current_task->pde);
   m->running = 0;
   m->jiffies = 0;
   m->timeout = 1;
   m->state   = RUNNING;
-  m->ptid    = get_tid(current_task());
+  m->ptid    = current_task->tid;
   m->tid     = tid;
   klogd("m->tid = %d\n", m->tid);
   tid = m->tid;

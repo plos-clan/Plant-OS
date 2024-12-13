@@ -36,21 +36,21 @@ typedef struct __PACKED__ task {
   u32          *alloc_size;
   u32           alloced;
   struct tty   *TTY;
-  int           DisableExpFlag;
-  char          flagOfexp;
   fpu_regs_t    fpu;
-  int           fpu_flag;
-  cir_queue8_t  press_key_fifo, release_keyfifo;
-  cir_queue8_t  keyfifo, mousefifo; // 基本输入设备的缓冲区
-  char          urgent;
+  bool          fpu_flag;
+  cir_queue8_t  press_key_fifo;  // 基本输入设备的缓冲区
+  cir_queue8_t  release_keyfifo; // 基本输入设备的缓冲区
+  cir_queue8_t  keyfifo;         // 基本输入设备的缓冲区
+  cir_queue8_t  mousefifo;       // 基本输入设备的缓冲区
+  bool          urgent;
   cb_keyboard_t keyboard_press;
   cb_keyboard_t keyboard_release;
-  char          fifosleep;
+  bool          fifosleep;
   char         *line;
   struct TIMER *timer;
   i32           waittid;
-  int           ready; // 如果为waiting 则无视wating
-  int           sigint_up;
+  bool          ready; // 如果为waiting 则无视wating
+  bool          sigint_up;
   u8            train; // 轮询
   u32           status;
   u32           signal;
@@ -63,7 +63,9 @@ typedef struct __PACKED__ task {
   u32           v86_if;   // 8086中断
 } *task_t;
 
-task_t current_task();
+#define current_task (get_current_task())
+
+task_t get_current_task();
 void   task_switch(task_t next);  // 切换任务
 void   task_start(task_t next);   // 开始任务
 void   mtask_run_now(task_t obj); // 立即执行任务
@@ -72,7 +74,6 @@ void   task_next();
 void   task_exit(u32 status);
 task_t get_task(u32 tid);
 
-#define get_tid(n)     ((n)->tid)
 #define offsetof(s, m) (size_t)&(((s *)0)->m)
 
 void task_fall_blocked(enum STATE state);
@@ -82,7 +83,6 @@ cir_queue8_t task_get_key_queue(task_t task);
 cir_queue8_t task_get_mouse_fifo(task_t task);
 void         into_mtask();
 task_t       create_task(void *func, u32 ticks, u32 floor);
-void         task_exit(u32 status);
 int          waittid(u32 tid);
 void         task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo);
 int          task_fork();

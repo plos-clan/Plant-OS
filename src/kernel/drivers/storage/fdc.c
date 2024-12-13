@@ -68,7 +68,7 @@ static int  getbyte();
 
 #define SECTORS_ONCE 4
 static void Read(int drive, byte *buffer, uint number, uint lba) {
-  floppy_use = current_task();
+  floppy_use = current_task;
   for (int i = 0; i < number; i += SECTORS_ONCE) {
     int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
     fdc_rw(lba + i, buffer + i * 512, 1, sectors);
@@ -77,7 +77,7 @@ static void Read(int drive, byte *buffer, uint number, uint lba) {
 }
 
 static void Write(int drive, byte *buffer, uint number, uint lba) {
-  floppy_use = current_task();
+  floppy_use = current_task;
   for (int i = 0; i < number; i += SECTORS_ONCE) {
     int sectors = ((number - i) >= SECTORS_ONCE) ? SECTORS_ONCE : (number - i);
     fdc_rw(lba + i, buffer + i * 512, 0, sectors);
@@ -127,7 +127,7 @@ void set_waiter(task_t t) {
 }
 
 static void reset() {
-  set_waiter(current_task());
+  set_waiter(current_task);
   /* 停止软盘电机并禁用IRQ和DMA传输 */
   asm_out8(FDC_DOR, 0);
 
@@ -171,7 +171,7 @@ static void motoroff() {
 
 /* 重新校准驱动器 */
 static void recalibrate() {
-  set_waiter(current_task());
+  set_waiter(current_task);
   /* 先启用电机 */
   motoron();
 
@@ -191,7 +191,7 @@ static int fdc_seek(int track) {
     // 一样的话就不用seek了
     return 1;
   }
-  set_waiter(current_task());
+  set_waiter(current_task);
   /* 向软盘控制器发送SEEK命令 */
   sendbyte(CMD_SEEK);
   sendbyte(0);
@@ -268,7 +268,7 @@ static void hts2block(int track, int head, int sector, int *block) {
 }
 
 static int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
-  set_waiter(current_task());
+  set_waiter(current_task);
   int   head, track, sector, tries, copycount = 0;
   byte *p_tbaddr = (byte *)0x80000; // 512byte
                                     // 缓冲区（大家可以放心，我们再page.c已经把这里设置为占用了）
@@ -305,7 +305,7 @@ static int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
       waiter = NULL;
       return 0;
     }
-    set_waiter(current_task());
+    set_waiter(current_task);
     /* 传输速度（500K/s） */
     asm_out8(FDC_CCR, 0);
 

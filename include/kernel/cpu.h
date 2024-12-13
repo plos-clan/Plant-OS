@@ -141,12 +141,14 @@ void asm_error18();
 
 typedef struct regs16 {
   u16 di, si, bp, sp, bx, dx, cx, ax;
-  u16 gs, fs, es, ds, eflags;
+  u16 gs, fs, es, ds, flags;
 } regs16;
 
 typedef struct regs32 {
   u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
   u32 gs, fs, es, ds;
+  u32 err, id;
+  u32 eip, cs, flags;
 } regs32;
 
 void v86_int(byte intnum, regs16 *regs);

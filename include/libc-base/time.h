@@ -3,6 +3,16 @@
 
 #if NO_STD
 
+struct timeval {
+  time_t tv_sec;  // 秒
+  time_t tv_usec; // 微秒
+};
+
+struct timespec {
+  time_t tv_sec;  // 秒
+  time_t tv_nsec; // 纳秒
+};
+
 struct tm {
   int tm_sec;   // 秒 [0-60] (60 是闰秒)
   int tm_min;   // 分 [0-59]

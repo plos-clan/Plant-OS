@@ -22,7 +22,6 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar) {
 }
 
 extern void asm_inthandler() __attr(naked);
-extern void asm_into_inthandler() __attr(naked);
 extern void inthandler(i32 id, regs32 *regs) __attr(fastcall);
 
 static void (*const asm_handlers[IDT_LEN])() = {
@@ -85,7 +84,7 @@ void init_gdtidt() {
   var idt = (GateDescriptor *)IDT_ADDR;
   for (size_t i = 0; i < IDT_LEN; i++) {
     int    ar      = i >= 0x30 ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
-    size_t handler = (size_t)&asm_into_inthandler + 2 + i * 7;
+    size_t handler = (size_t)&asm_inthandler + i * 7;
     set_gatedesc(idt + i, (size_t)asm_handlers[i] ?: handler, 2 * 8, ar);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表

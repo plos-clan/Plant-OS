@@ -32,17 +32,17 @@ void set_interrupt_state(bool state) {
 void lock(lock_t *key) {
   int state = interrupt_disable();
   if (key->value != LOCK_UNLOCKED) {
-    key->waiter = current_task();
+    key->waiter = current_task;
     if (key->value != LOCK_UNLOCKED && key->waiter) {
       mtask_run_now(key->owner);
-      if (current_task()->ready == 1) { current_task()->ready = 0; }
+      if (current_task->ready == 1) { current_task->ready = 0; }
       task_fall_blocked(WAITING);
     }
   }
   interrupt_disable();
   key->waiter = NULL;
   key->value  = LOCK_LOCKED;
-  key->owner  = current_task();
+  key->owner  = current_task;
   set_interrupt_state(state);
 }
 

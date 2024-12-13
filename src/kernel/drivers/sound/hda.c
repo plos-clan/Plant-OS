@@ -626,7 +626,7 @@ static task_t   use_task;
 
 static int hda_open(vsound_t vsound) {
   klogd("hda open has been called");
-  use_task = current_task();
+  use_task = current_task;
   return 0;
 }
 

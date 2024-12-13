@@ -491,10 +491,10 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
   // DMA Write.
   else if (direction == 0) {
     // PIO Read.
-    int bmp_ticks           = current_task()->timeout;
-    current_task()->timeout = 50;
-    current_task()->running = 0;
-    u16 *word_              = (u16 *)edi;
+    int bmp_ticks         = current_task->timeout;
+    current_task->timeout = 50;
+    current_task->running = 0;
+    u16 *word_            = (u16 *)edi;
     for (i = 0; i < numsects; i++) {
       klog("read %d", i);
       if ((err = ide_polling(channel, 1)) != NULL)
@@ -507,13 +507,13 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
       // }
       insl(bus, (u32 *)(word_ + i * words), words / 2);
     }
-    current_task()->timeout = bmp_ticks;
+    current_task->timeout = bmp_ticks;
   } else {
     // PIO Write.
-    int bmp_ticks           = current_task()->timeout;
-    current_task()->timeout = 50;
-    current_task()->running = 0;
-    u16 *word_              = (u16 *)edi;
+    int bmp_ticks         = current_task->timeout;
+    current_task->timeout = 50;
+    current_task->running = 0;
+    u16 *word_            = (u16 *)edi;
     for (i = 0; i < numsects; i++) {
       klog("write %d", i);
       ide_polling(channel, 0); // Polling.
@@ -529,7 +529,7 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
         channel, ATA_REG_COMMAND,
         (char[]){ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT}[lba_mode]);
     ide_polling(channel, 0); // Polling.
-    current_task()->timeout = bmp_ticks;
+    current_task->timeout = bmp_ticks;
   }
 
   return 0; // Easy, isn't it?

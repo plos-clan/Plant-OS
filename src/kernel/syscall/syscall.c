@@ -1,11 +1,11 @@
 #include <kernel.h>
 
 void *syscall_getheap() {
-  return (void *)current_task()->alloc_addr;
+  return (void *)current_task->alloc_addr;
 }
 
 u32 syscall_heapsize() {
-  return *(current_task()->alloc_size);
+  return *(current_task->alloc_size);
 }
 
 static int syscall_vbe_getmode(void **vram, int *width, int *height) {

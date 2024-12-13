@@ -2,7 +2,6 @@
 
 #include <kernel.h>
 
-
 vdisk vdisk_ctl[26];
 
 int vdisk_init() {
@@ -96,10 +95,10 @@ u32 get_drive_code(u8 *name) {
 
 bool drive_semaphore_take(u32 drive_code) {
   if (drive_code >= 16) { return true; }
-  cir_queue8_put(&drive_fifo[drive_code], get_tid(current_task()));
-  // printk("FIFO: %d PUT: %d STATUS: %d\n", drive_code, Get_Tid(current_task()),
+  cir_queue8_put(&drive_fifo[drive_code], current_task->tid);
+  // printk("FIFO: %d PUT: %d STATUS: %d\n", drive_code, Get_Tid(current_task),
   //        fifo8_status(&drive_fifo[drive_code]));
-  while (drive_buf[drive_code][drive_fifo[drive_code].head] != get_tid(current_task())) {
+  while (drive_buf[drive_code][drive_fifo[drive_code].head] != current_task->tid) {
     // printk("Waiting....\n");
   }
   return true;
@@ -107,7 +106,7 @@ bool drive_semaphore_take(u32 drive_code) {
 
 void drive_semaphore_give(u32 drive_code) {
   if (drive_code >= 16) { return; }
-  if (drive_buf[drive_code][drive_fifo[drive_code].head] != get_tid(current_task())) {
+  if (drive_buf[drive_code][drive_fifo[drive_code].head] != current_task->tid) {
     // 暂时先不做处理 一般不会出现这种情况
     return;
   }
@@ -145,7 +144,6 @@ u32 disk_size(int drive) {
 bool disk_ready(int drive) {
   return have_vdisk(drive);
 }
-
 
 void vdisk_write(u32 lba, u32 number, const void *buffer, int drive) {
   //  printk("%d\n",lba);

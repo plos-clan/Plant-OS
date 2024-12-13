@@ -243,9 +243,9 @@ void shell() {
   void *kfifo = page_malloc_one();
   void *kbuf  = page_malloc_one();
   cir_queue8_init(kfifo, PAGE_SIZE, kbuf);
-  current_task()->keyfifo = (cir_queue8_t)kfifo;
-  char         *path      = malloc(1024);
-  char         *line      = malloc(256);
+  current_task->keyfifo = (cir_queue8_t)kfifo;
+  char         *path    = malloc(1024);
+  char         *line    = malloc(256);
   pl_readline_t n;
   n = pl_readline_init(readline_getch, putchar, screen_flush, handle_tab);
   sprintf(path, "/");

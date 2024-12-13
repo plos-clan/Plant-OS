@@ -25,7 +25,7 @@ typedef struct signal_frame {
 
 // TODO: 给GUI接管
 void signal_deal() {
-  var task = current_task();
+  var task = current_task;
   if (task == null || task->signal_disable) return;
   if (task->signal & MASK32(SIGINT)) {
     // task->signal &= ~MASK32(SIGINT);

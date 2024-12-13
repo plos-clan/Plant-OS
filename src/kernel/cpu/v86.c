@@ -24,7 +24,7 @@ void v86_task() {
   assert(ptr != null, "page_malloc_one failed");
   atom_store(&ptr->status, 0); // 保证 0 一定被写入后执行
   v86_requests    = ptr;
-  v86_service_tid = current_task()->tid;
+  v86_service_tid = current_task->tid;
   // 读出代码
   void *code = page_malloc_one();
   assert(code != null, "page_malloc_one failed");
@@ -32,7 +32,7 @@ void v86_task() {
   assert(p, "open /fatfs2/v86_service.bin failed");
   vfs_read(p, code, 0, p->size);
   // 映射页面
-  u32 pde = current_task()->pde;
+  u32 pde = current_task->pde;
   page_link_addr_pde(0x2000, pde, (u32)code);
   page_link_addr_pde(0x3000, pde, (u32)ptr);
   page_link_addr_pde(0x0, pde, 0x0);
@@ -40,12 +40,12 @@ void v86_task() {
     page_link_addr_pde(i, pde, i);
   }
   // 设置状态
-  tss.esp0                  = current_task()->top;
-  tss.eflags                = 0x202 | (1 << 17);
-  tss.iomap                 = ((u32)offsetof(TSS32, io_map));
-  current_task()->v86_mode  = 1;
-  current_task()->user_mode = 1;
-  current_task()->v86_if    = 1;
+  tss.esp0                = current_task->top;
+  tss.eflags              = 0x202 | (1 << 17);
+  tss.iomap               = ((u32)offsetof(TSS32, io_map));
+  current_task->v86_mode  = 1;
+  current_task->user_mode = 1;
+  current_task->v86_if    = 1;
   // 进入 V86
   entering_v86(0x300, 0x1000, 0x200, 0);
   infinite_loop;
@@ -60,7 +60,7 @@ void v86_int(byte intnum, regs16 *regs) {
     task_next();
   }
 
-  v86_using_task     = current_task();
+  v86_using_task     = current_task;
   v86_requests->regs = *regs; // 写入数据
   v86_requests->func = intnum;
 

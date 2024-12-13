@@ -63,7 +63,7 @@ void mouse_sleep(struct MOUSE_DEC *mdec) {
 }
 
 void mouse_ready(struct MOUSE_DEC *mdec) {
-  mouse_use_task = current_task();
+  mouse_use_task = current_task;
   mdec->sleep    = 0;
 }
 
@@ -123,7 +123,7 @@ void inthandler2c(i32 id, regs32 *regs) {
       //   klogd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
       cir_queue8_put(task_get_mouse_fifo(mouse_use_task), data);
 
-      if (current_task() != mouse_use_task) {
+      if (current_task != mouse_use_task) {
         //   klogd("SET 1\n");
         mouse_use_task->timeout = 5;
         mouse_use_task->ready   = 1;

@@ -6,7 +6,6 @@
 #include <pl_readline.h>
 #include <plty.h>
 
-u8  *shell_data;
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 int  os_execute(char *filename, char *line);
 void v86_task();

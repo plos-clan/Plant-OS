@@ -202,7 +202,7 @@ static int sb16_open(vsound_t vsound) {
   u32 rate     = vsound->rate;
   f32 volume   = vsound->volume;
 
-  sb.use_task = current_task();
+  sb.use_task = current_task;
 
   sb_reset();      // 重置 DSP
   sb_intr_irq();   // 设置中断

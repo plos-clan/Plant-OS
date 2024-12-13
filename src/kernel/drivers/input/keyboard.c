@@ -71,7 +71,7 @@ int getch() {
 extern struct tty *tty_default;
 
 int tty_fifo_status() {
-  task_t task = current_task();
+  task_t task = current_task;
   if (task->TTY->is_using != 1) {
     return tty_default->fifo_status(tty_default);
   } else {
@@ -80,7 +80,7 @@ int tty_fifo_status() {
 }
 
 int tty_fifo_get() {
-  task_t task = current_task();
+  task_t task = current_task;
   if (task->TTY->is_using != 1) {
     return tty_default->fifo_get(tty_default);
   } else {
@@ -90,7 +90,7 @@ int tty_fifo_get() {
 
 static int input_char_inSM() {
   int    i;
-  task_t task = current_task();
+  task_t task = current_task;
   while (1) {
     if ((tty_fifo_status() != 0)) {
       // 返回扫描码
@@ -178,7 +178,7 @@ void inthandler21(i32 id, regs32 *regs) {
         if (e0_flag) { keyboard_use_task->keyboard_release(0xe0, keyboard_use_task->tid); }
         keyboard_use_task->keyboard_release(data, keyboard_use_task->tid); // 处理按下键
       }
-      if (current_task() != keyboard_use_task) {
+      if (current_task != keyboard_use_task) {
         keyboard_use_task->timeout = 5;
         keyboard_use_task->ready   = 1;
         keyboard_use_task->urgent  = 1;
@@ -209,7 +209,7 @@ void inthandler21(i32 id, regs32 *regs) {
       keyboard_use_task->keyboard_press(data,
                                         keyboard_use_task->tid); // 处理按下键
     }
-    if (current_task() != keyboard_use_task) {
+    if (current_task != keyboard_use_task) {
       //   klogd("SET 1\n");
       keyboard_use_task->timeout = 5;
       keyboard_use_task->ready   = 1;
