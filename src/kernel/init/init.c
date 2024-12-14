@@ -22,7 +22,7 @@ void sysinit() {
   cpuid_do_cache(); // 缓存 CPUID 信息
 
   klogd("%s", cpuids.x2apic ? "x2apic" : "apic");
-  assert(!cpuids.x2apic, "x2apic is not supported");
+  // assert(!cpuids.x2apic, "x2apic is not supported");
 
   IVT = page_alloc(0x500);
   klogi("蹲一个 UB, 马上要把 0 地址的 IVT 备份了啊");
