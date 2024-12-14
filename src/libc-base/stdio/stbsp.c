@@ -1,8 +1,10 @@
 // This code is released under the MIT License
 
+#pragma GCC optimize("O0")
+
 #include <libc-base.h>
 
-#if NO_STD
+#if NO_STD && !USE_SPRINTF
 
 #  define STB_SPRINTF_IMPLEMENTATION
 #  include "stb_sprintf.h"
