@@ -315,6 +315,7 @@ API bool mpi_mul2i(ARGS_2_MI) noexcept { // a *= b
   }
 }
 API bool mpi_mul3(ARGS_3) noexcept { // c = a * b
+  mpi_set0(c, len);
   u32 overflow = 0;
   for (size_t i = 0; i < len; i++) {
     for (size_t j = 0; j < len - i; j++) {

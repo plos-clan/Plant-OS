@@ -22,3 +22,5 @@ add_subdirectory(misc)
 testexec(plmp plmp.c)
 testexec(plmp-cpp plmp.cpp)
 testlib(plmp-cpp util-libc-base)
+
+testexec(fib fib.c)
