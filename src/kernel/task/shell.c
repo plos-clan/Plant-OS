@@ -252,7 +252,7 @@ void shell() {
   char prompt[256];
   while (true) {
     sprintf(prompt, "%s# ", path);
-    pl_readline(n, prompt, line, 255);
+    cstr line = pl_readline(n, prompt);
     shell_exec(path, line);
   }
 }
