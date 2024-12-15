@@ -13,7 +13,7 @@ void lock(lock_t *key) {
     if (key->value != LOCK_UNLOCKED) {
       key->waiter = current_task;
       if (key->value != LOCK_UNLOCKED && key->waiter) {
-        mtask_run_now(key->owner);
+        task_run(key->owner);
         task_fall_blocked(WAITING);
       }
     }
@@ -27,7 +27,7 @@ void unlock(lock_t *key) {
   with_no_interrupts({
     key->value = LOCK_UNLOCKED;
     if (key->waiter) {
-      mtask_run_now(key->waiter);
+      task_run(key->waiter);
       task_run(key->waiter);
       key->waiter = NULL;
       task_next();

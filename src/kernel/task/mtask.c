@@ -48,8 +48,7 @@ static task_t task_alloc() {
   t->ptid             = -1;    // parent task id
   t->keyboard_press   = null;  // keyboard hook
   t->keyboard_release = null;
-  t->urgent           = 0;
-  t->fpu_enabled      = 0;
+  t->fpu_enabled      = false;
   t->fifosleep        = 0;
   t->command_line     = null;
   t->waittid          = -1;
@@ -71,6 +70,7 @@ static task_t task_alloc() {
   t->rc           = 1;
   t->waiting_list = null;
   t->children     = null;
+  t->is_switched  = false;
   return t;
 }
 
@@ -127,7 +127,12 @@ void running_tasks_push(task_t task) {
     kloge("running_tasks_push null");
     return;
   }
+  if (task->state == DIED) {
+    kloge("running_tasks_push task %d DIED", task->tid);
+    return;
+  }
   task_ref(task);
+  task->state = RUNNING;
   with_no_interrupts(queue_enqueue(&running_tasks[cpuid_coreid], task));
 }
 
@@ -136,7 +141,9 @@ task_t running_tasks_pop() {
   with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
   while (task == null || task->state != RUNNING) {
     if (task == null) {
-      asm_hlt;
+      kloge("running_tasks_pop null");
+      abort(); // 目前不应该这样
+      asm_sti, asm_hlt;
     } else {
       task_unref(task);
     }
@@ -153,9 +160,10 @@ static fpu_regs_t public_fpu;
 extern task_t mouse_use_task;
 
 void task_tick() {
-  // const var task = mtask_current;
-  // assert(task != null);
-  // task->running++;
+  const var task = mtask_current;
+  assert(task != null);
+  task->running++;
+  if (task->running < task->timeout && task->state == RUNNING && next_set == null) return;
   task_next();
 }
 
@@ -163,36 +171,35 @@ void task_next() {
   const var task = mtask_current;
   assert(task != null);
 
-  if (task->running < task->timeout && task->state == RUNNING && next_set == null) {
-    task->running++; // why?
-    return;
-  }
-
   asm_cli;
 
   task->running = 0;
 
-  running_tasks_push(task);
-  task_t next = next_set && next_set->state == RUNNING ? next_set : running_tasks_pop();
+  if (!task->is_switched && task->state == RUNNING) running_tasks_push(task);
+  task->is_switched = false;
 
-  if (next->user_mode == 1 || next->v86_mode == 1) {
-    tss.esp0 = next->stack_bottom;
-    if (next->v86_mode == 1)
-      tss.iomap = offsetof(TSS32, io_map);
-    else
-      tss.iomap = 0;
+  const var next = next_set && next_set->state == RUNNING ? next_set : running_tasks_pop();
+  if (next == next_set) {
+    next->is_switched = true;
+    next_set          = null;
   }
 
-  next->urgent = 0;
+  if (next->user_mode || next->v86_mode) {
+    tss.esp0  = next->stack_bottom;
+    tss.iomap = next->v86_mode ? offsetof(TSS32, io_map) : 0;
+  }
 
-  asm_clr_em, asm_clr_ts;
-  if (task->fpu_enabled) asm volatile("fnsave (%0)\n\t" ::"r"(&task->fpu) : "memory");
   next->jiffies = system_tick;
-  fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
+
+  if (next != task) {
+    asm_clr_em, asm_clr_ts;
+    if (task->fpu_enabled) asm volatile("fnsave (%0)\n\t" ::"r"(&task->fpu) : "memory");
+    fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
+  }
 
   asm_sti;
 
-  task_switch(next); // 调度
+  if (next != task) task_switch(next); // 调度
 }
 
 task_t create_task(void *entry, u32 ticks, u32 floor) {
@@ -210,7 +217,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
-  t->state        = RUNNING; // running
+  t->state        = RUNNING;
   t->jiffies      = 0;
 
   avltree_insert(tasks, t->tid, t);
@@ -308,10 +315,8 @@ void task_wake_up(task_t task) {
 
 void task_run(task_t task) {
   if (task == null || task->status == DIED) return;
-  task->state   = RUNNING;
-  task->urgent  = 1; // 加急一下
-  task->running = 0;
-  running_tasks_push(task);
+  if (task->state == WAITING) running_tasks_push(task);
+  next_set = task;
 }
 
 cir_queue8_t task_get_mouse_fifo(task_t task) {
@@ -324,7 +329,7 @@ u32 get_father_tid(task_t t) {
 }
 
 void task_fall_blocked(enum STATE state) {
-  klogd("fall blocked %d\n", state);
+  klogd("task %d fall blocked %d", current_task->tid, state);
   current_task->state = state;
   task_next();
 }
@@ -353,6 +358,7 @@ void task_kill(task_t task) {
   infinite_loop {
     asm_sti;
     task_next();
+    klogf("task_kill error");
   }
 }
 
@@ -381,10 +387,6 @@ i32 waittid(i32 tid) {
   klogd("task %d exit with code %d\n", tid, status);
   task_unref(target);
   return status;
-}
-
-void mtask_run_now(task_t obj) {
-  next_set = obj;
 }
 
 // THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!

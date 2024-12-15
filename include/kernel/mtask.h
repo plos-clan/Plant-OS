@@ -41,7 +41,6 @@ typedef struct __PACKED__ task {
   cir_queue8_t  release_keyfifo; // 基本输入设备的缓冲区
   cir_queue8_t  keyfifo;         // 基本输入设备的缓冲区
   cir_queue8_t  mousefifo;       // 基本输入设备的缓冲区
-  bool          urgent;
   cb_keyboard_t keyboard_press;
   cb_keyboard_t keyboard_release;
   bool          fifosleep;
@@ -58,6 +57,7 @@ typedef struct __PACKED__ task {
   u32       rc;           // 引用计数
   list_t    waiting_list; // 正在等待该线程的线程列表
   avltree_t children;     // 子线程
+  bool      is_switched;  // 是否是从其它进程切换过来的
 } *task_t;
 
 #define current_task (get_current_task())
@@ -66,9 +66,8 @@ void task_tick();
 void task_next();
 
 task_t get_current_task();
-void   task_switch(task_t next);  // 切换任务
-void   task_start(task_t next);   // 开始任务
-void   mtask_run_now(task_t obj); // 立即执行任务
+void   task_switch(task_t next); // 切换任务
+void   task_start(task_t next);  // 开始任务
 void   task_run(task_t task);
 void   task_exit(i32 status);
 task_t get_task(u32 tid);

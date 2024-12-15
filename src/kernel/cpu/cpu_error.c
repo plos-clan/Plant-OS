@@ -50,10 +50,6 @@ _ERROR(19, "#XF");
 #undef _ERROR
 
 void ERROR7(u32 eip) {
-  if (current_task->fpu_enabled > 1 || current_task->fpu_enabled < 0) {
-    asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
-    return;
-  }
   fpu_enable(current_task);
 }
 
