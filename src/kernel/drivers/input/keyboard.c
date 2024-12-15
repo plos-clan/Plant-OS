@@ -180,9 +180,11 @@ void inthandler21(i32 id, regs32 *regs) {
       }
       if (current_task != keyboard_use_task) {
         keyboard_use_task->timeout = 5;
-        keyboard_use_task->ready   = 1;
         keyboard_use_task->urgent  = 1;
         keyboard_use_task->running = 0;
+        if (keyboard_use_task->state == WAITING) { //
+          running_tasks_push(keyboard_use_task);
+        }
         mtask_run_now(keyboard_use_task);
         task_next();
       } else {
@@ -212,9 +214,11 @@ void inthandler21(i32 id, regs32 *regs) {
     if (current_task != keyboard_use_task) {
       //   klogd("SET 1\n");
       keyboard_use_task->timeout = 5;
-      keyboard_use_task->ready   = 1;
       keyboard_use_task->urgent  = 1;
       keyboard_use_task->running = 0;
+      if (keyboard_use_task->state == WAITING) { //
+        running_tasks_push(keyboard_use_task);
+      }
       mtask_run_now(keyboard_use_task);
       task_next();
     } else {

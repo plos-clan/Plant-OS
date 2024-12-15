@@ -11,39 +11,42 @@ task_t           idle_task;
 task_t           mtask_current = null;
 static avltree_t tasks         = null;
 
-task_t      next_set = null;
-struct task empty_task;
+task_t      next_set   = null;
+struct task empty_task = {.tid = -1};
 
 task_t task_by_id(i32 tid) {
   if (tid < 0) return null;
   return avltree_get(tasks, tid);
 }
 
-static struct queue running_tasks[8];
-
-finline void running_tasks_push(task_t task) {
-  if (task == null) return;
-  with_no_interrupts(queue_enqueue(&running_tasks[cpuid_coreid], task));
+finline int alloc_tid() {
+  static i32 next_tid = 0;        // 下一个线程号
+  if (next_tid < 0) next_tid = 1; // 0 号是主进程
+  while (task_by_id(next_tid) != null) {
+    next_tid++;
+  }
+  return next_tid++;
 }
 
-finline task_t running_tasks_pop() {
-  task_t task = null;
-  with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
-  return task;
-}
-
-static void init_task(task_t t, int id) {
+static task_t task_alloc() {
+  task_t t = malloc(sizeof(*t));
+  if (t == null) {
+    kloge("task_alloc failed");
+    return null;
+  }
+  i32 tid = alloc_tid();
+  klogi("task_alloc %d", tid);
   t->jiffies          = 0;
   t->user_mode        = 0;
   t->running          = 0;
   t->timeout          = 0;
   t->state            = EMPTY; // EMPTY
-  t->tid              = id;    // task id
+  t->tid              = tid;   // task id
   t->ptid             = -1;    // parent task id
   t->keyboard_press   = NULL;  // keyboard hook
   t->keyboard_release = NULL;
   t->urgent           = 0;
-  t->fpu_flag         = 0;
+  t->fpu_enabled      = 0;
   t->fifosleep        = 0;
   t->line             = NULL;
   t->timer            = NULL;
@@ -51,12 +54,10 @@ static void init_task(task_t t, int id) {
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
   t->alloced          = 0;
-  t->ready            = 0;
   t->pde              = 0;
   t->press_key_fifo   = NULL;
   t->release_keyfifo  = NULL;
   t->sigint_up        = 0;
-  t->train            = 0;
   t->signal_disable   = 1; // 目前暂时关闭信号
   t->times            = 0;
   t->keyboard_press   = NULL;
@@ -65,15 +66,82 @@ static void init_task(task_t t, int id) {
   t->mousefifo        = NULL;
   t->signal           = 0;
   t->v86_mode         = 0;
+
+  t->rc = 1;
+  return t;
 }
 
-fpu_regs_t public_fpu;
-
-bool task_check_train(task_t task) {
-  if (!task) return false;
-  if (task->train == 1 && system_tick - task->jiffies >= 5) return true;
-  return false;
+static void task_free(task_t t) {
+  if (t == null) {
+    kloge("task_free null");
+    return;
+  }
+  if (t->state != DIED) {
+    kloge("task_free state != DIED");
+    return;
+  }
+  klogi("task_free %d", t->tid);
+  if (t == current_task) asm_set_cr3(PDE_ADDRESS);
+  free_pde(t->pde);
+  task_free_all_pages(t->tid); // 释放内存
+  if (t->press_key_fifo) {
+    page_free(t->press_key_fifo->buf, 4096);
+    free(t->press_key_fifo);
+  }
+  if (t->release_keyfifo) {
+    page_free(t->release_keyfifo->buf, 4096);
+    free(t->release_keyfifo);
+  }
 }
+
+static task_t task_ref(task_t t) {
+  if (t == null) {
+    kloge("task_ref null");
+    return null;
+  }
+  t->rc++;
+  return t;
+}
+
+static void task_unref(task_t t) {
+  if (t == null) {
+    kloge("task_unref null");
+    return;
+  }
+  if (t->rc == 0) {
+    kloge("task_unref rc == 0");
+    return;
+  }
+  if (--t->rc == 0) task_free(t);
+}
+
+// --------------------------------------------------
+
+static struct queue running_tasks[8];
+
+void running_tasks_push(task_t task) {
+  if (task == null) {
+    kloge("running_tasks_push null");
+    return;
+  }
+  task_ref(task);
+  with_no_interrupts(queue_enqueue(&running_tasks[cpuid_coreid], task));
+}
+
+task_t running_tasks_pop() {
+  task_t task = null;
+  with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
+  while (task && task->state != RUNNING) {
+    task_unref(task);
+    with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
+  }
+  if (task) task_unref(task);
+  return task;
+}
+
+// --------------------------------------------------
+
+static fpu_regs_t public_fpu;
 
 extern task_t mouse_use_task;
 
@@ -91,73 +159,39 @@ void task_next() {
 
   if (!next_set) mtask_current->running = 0;
 
-  task_t next = NULL;
-  int    i;
-  task_t j = NULL;
+  // TODO 处理 next_set
 
-  if (next_set) {
-    i        = next_set->tid;
-    j        = next_set;
-    next_set = NULL;
-  } else {
-    i = 0;
-  }
-  for (; i < 255; i++) {
-    task_t p = task_by_id(i);
-    if (p == NULL) continue;
-    if (p == mtask_current) continue;
-    if (p->state != RUNNING) { // RUNNING
-      if (p->state == WAITING) {
-        if (p->ready) {
-          p->ready = 0;
-          p->state = RUNNING;
-          goto OK;
-        }
-        if (p->waittid < 0) continue;
-      }
-      continue;
-    }
-  OK:
-    if (p->urgent) {
-      next = p;
-      break;
-    }
-    if (!next || p->jiffies < next->jiffies || p->running) next = p;
-  }
-H:
-  if (next == NULL) next = idle_task;
+  task_t next = running_tasks_pop();
+  assert(next != null);
+
   if (next->user_mode == 1 || next->v86_mode == 1) {
-    tss.esp0 = next->top;
+    tss.esp0 = next->stack_bottom;
     if (next->v86_mode == 1)
-      tss.iomap = ((u32)offsetof(TSS32, io_map));
+      tss.iomap = offsetof(TSS32, io_map);
     else
       tss.iomap = 0;
   }
-  if (next->urgent) next->urgent = 0;
-  if (next->ready) next->ready = 0;
-  int         current_fpu_flag = mtask_current->fpu_flag;
-  fpu_regs_t *current_fpu      = &(mtask_current->fpu);
-  asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
-  if (current_fpu && current_fpu_flag)
-    asm volatile("fnsave (%%eax) \n" ::"a"(current_fpu) : "memory");
+
+  next->urgent = 0;
+
+  asm_clr_em, asm_clr_ts;
+  if (mtask_current->fpu_enabled) {
+    asm volatile("fnsave (%0)\n\t" ::"r"(&mtask_current->fpu) : "memory");
+  }
   next->jiffies = system_tick;
   fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
+
+  if (next != mtask_current) { //
+    running_tasks_push(mtask_current);
+  }
+
   asm_sti;
+
   task_switch(next); // 调度
 }
 
-finline int alloc_tid() {
-  static i32 next_tid = 0;        // 下一个线程号
-  if (next_tid < 0) next_tid = 1; // 0 号是主进程
-  while (task_by_id(next_tid) != null) {
-    next_tid++;
-  }
-  return next_tid++;
-}
-
 task_t create_task(void *func, u32 ticks, u32 floor) {
-  task_t t = malloc(sizeof(*t));
-  init_task(t, alloc_tid());
+  const var t = task_alloc();
 
   if (t == null) return null;
   u32 esp_alloced = (u32)page_alloc(STACK_SIZE) + STACK_SIZE;
@@ -174,15 +208,16 @@ task_t create_task(void *func, u32 ticks, u32 floor) {
     t->pde   = pde_clone(current_task->pde); // 启用了就复制一个
     t->times = t->pde;
   }
-  t->top     = esp_alloced; // r0的esp
-  t->floor   = floor;
-  t->running = 0;
-  t->timeout = ticks;
-  t->state   = RUNNING; // running
-  t->TTY     = NULL;
-  t->jiffies = 0;
+  t->stack_bottom = esp_alloced; // r0的esp
+  t->floor        = floor;
+  t->running      = 0;
+  t->timeout      = ticks;
+  t->state        = RUNNING; // running
+  t->TTY          = NULL;
+  t->jiffies      = 0;
 
   avltree_insert(tasks, t->tid, t);
+  running_tasks_push(t);
   return t;
 }
 
@@ -194,7 +229,7 @@ task_t get_task(u32 tid) {
 }
 
 void task_to_user_mode(u32 eip, u32 esp) {
-  u32 addr = (u32)mtask_current->top;
+  u32 addr = (u32)mtask_current->stack_bottom;
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
@@ -218,7 +253,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->eflags           = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp              = esp; // 设置用户态堆栈
   mtask_current->user_mode = 1;
-  tss.esp0                 = mtask_current->top;
+  tss.esp0                 = mtask_current->stack_bottom;
   klogd("tid: %d\n", current_task->tid);
   asm_cli;
   asm volatile("movl %0, %%esp\n\t"
@@ -242,36 +277,27 @@ void task_kill(u32 tid) {
     if (t->tid == tid) continue;
     if (t->ptid >= 0 && t->ptid == tid) { task_kill(t->tid); }
   }
+  task->state = DIED;
+
   asm_cli;
-  if (get_task(tid) == current_task) asm_set_cr3(PDE_ADDRESS);
-  free_pde(task->pde);
-  task_free_all_pages(tid); // 释放内存
-  if (task->press_key_fifo) {
-    page_free(task->press_key_fifo->buf, 4096);
-    free(task->press_key_fifo);
-  }
-  if (task->release_keyfifo) {
-    page_free(task->release_keyfifo->buf, 4096);
-    free(task->release_keyfifo);
-  }
 
   if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
-    task_by_id(task->ptid)->state = RUNNING;
+    task_run(task_by_id(task->ptid));
   }
-  avltree_delete_with(tasks, tid, free);
+
+  avltree_delete_with(tasks, tid, (free_t)task_unref);
+
   asm_sti;
-  if (tid == current_task->tid) {
-    while (1) {
-      asm_sti;
-      task_next();
-    }
+  if (task != current_task) return;
+
+  infinite_loop {
+    asm_sti;
+    task_next();
   }
 }
 
 task_t get_current_task() {
-  if (mtask_current != NULL) return mtask_current;
-  empty_task.tid = NULL_TID;
-  return &empty_task;
+  return mtask_current ?: &empty_task;
 }
 
 static void idle_loop() {
@@ -289,7 +315,7 @@ void into_mtask() {
   set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
   idle_task = create_task(idle_loop, 1, 3);
-  create_task(init, 5, 1);
+  create_task(user_init, 5, 1);
   asm_set_em, asm_set_ts, asm_set_ne;
   task_start(task_by_id(0));
 }
@@ -314,9 +340,10 @@ void task_wake_up(task_t task) {
 }
 
 void task_run(task_t task) {
+  task->state   = RUNNING;
   task->urgent  = 1; // 加急一下
-  task->ready   = 1;
   task->running = 0;
+  running_tasks_push(task);
 }
 
 cir_queue8_t task_get_mouse_fifo(task_t task) {
@@ -330,12 +357,7 @@ u32 get_father_tid(task_t t) {
 
 void task_fall_blocked(enum STATE state) {
   klogd("fall blocked %d\n", state);
-  if (current_task->ready == 1) {
-    current_task->ready = 0;
-    return;
-  }
   current_task->state = state;
-  current_task->ready = 0;
   task_next();
 }
 
@@ -352,54 +374,37 @@ void task_exit(u32 status) {
     if (t->tid == tid) continue;
     if (t->ptid == tid) { task_kill(t->tid); }
   }
-  asm_cli;
   task->status = status;
   task->state  = DIED;
-  asm_set_cr3(PDE_ADDRESS);
-  free_pde(task->pde);
-  task_free_all_pages(tid); // 释放内存
-  if (task->press_key_fifo) {
-    page_free(task->press_key_fifo->buf, 4096);
-    free(task->press_key_fifo);
-  }
-  if (task->release_keyfifo) {
-    page_free(task->release_keyfifo->buf, 4096);
-    free(task->release_keyfifo);
-  }
+
+  asm_cli;
+
   if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
     task_run(task_by_id(task->ptid));
   }
-  if (task->ptid == -1) {
-    klogd("set empty");
-    avltree_delete_with(tasks, tid, free);
-    task_start(get_task(0));
-    while (1) {
-      asm_sti;
-      task_next();
-    }
-    __builtin_unreachable();
-  }
-  task->ptid = -1;
-  asm_sti;
-  while (1) {
+
+  avltree_delete_with(tasks, tid, (free_t)task_unref);
+
+  infinite_loop {
     asm_sti;
     task_next();
   }
-  __builtin_unreachable();
 }
 
 int waittid(u32 tid) {
-  task_t t = get_task(tid);
-  if (!t) return -1;
-  if (t->ptid != current_task->tid) return -1;
+  task_t target = get_task(tid);
+  if (!target) return -1;
+  if (target->ptid != current_task->tid) return -1;
+  task_ref(target);
   current_task->waittid = tid;
-  while (t->state != DIED && t->ptid == current_task->tid) {
+  while (target->state != DIED && target->ptid == current_task->tid) {
+    klogd("%d", target->state);
     task_fall_blocked(WAITING);
   }
-  klogd("here %d %d %d", t->ptid, current_task->tid, t->tid);
-  u32 status = t->status;
+  klogd("here %d %d %d", target->ptid, current_task->tid, target->tid);
+  u32 status = target->status;
   klogd("task exit with code %d\n", status);
-  avltree_delete_with(tasks, tid, free);
+  task_unref(target);
   return status;
 }
 
@@ -407,17 +412,11 @@ void mtask_run_now(task_t obj) {
   next_set = obj;
 }
 
-task_t mtask_get_free() {
-  task_t t = page_malloc_one_no_mark();
-  init_task(t, alloc_tid());
-  return t;
-}
-
 // THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!
 void interrput_exit();
 
 static void build_fork_stack(task_t task) {
-  u32 addr              = task->top;
+  u32 addr              = task->stack_bottom;
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)addr;
   iframe->eax           = 0;
@@ -434,7 +433,7 @@ static void build_fork_stack(task_t task) {
 }
 
 int task_fork() {
-  task_t m = mtask_get_free();
+  const var m = task_alloc();
   if (!m) { return -1; }
   klogd("get free %08x\n", m);
   klogd("current = %08x\n", current_task->tid);
@@ -445,11 +444,11 @@ int task_fork() {
   u32 stack = (u32)page_alloc(STACK_SIZE);
   change_page_task_id(tid, (void *)stack, STACK_SIZE);
   // u32 off = m->top - (u32)m->esp;
-  memcpy((void *)stack, (void *)(m->top - STACK_SIZE), STACK_SIZE);
-  klogd("s = %08x \n", m->top - STACK_SIZE);
-  m->top = stack += STACK_SIZE;
-  stack          += STACK_SIZE;
-  m->esp          = (stack_frame *)stack;
+  memcpy((void *)stack, (void *)(m->stack_bottom - STACK_SIZE), STACK_SIZE);
+  klogd("s = %08x \n", m->stack_bottom - STACK_SIZE);
+  m->stack_bottom = stack += STACK_SIZE;
+  stack                   += STACK_SIZE;
+  m->esp                   = (stack_frame *)stack;
   if (current_task->press_key_fifo) {
     m->press_key_fifo = malloc(sizeof(struct event));
     memcpy(m->press_key_fifo, current_task->press_key_fifo, sizeof(struct event));

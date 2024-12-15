@@ -12,7 +12,6 @@
 #define PTE_ADDRESS   (PDE_ADDRESS + 0x1000)
 #define PAGE_END      (PTE_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
-#define NULL_TID      11459810
 
 typedef struct __PACKED__ PageInfo {
   u8 task_id;

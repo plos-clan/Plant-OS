@@ -89,9 +89,3 @@ void init_gdtidt() {
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 }
-
-// 注册中断处理函数
-void regist_intr_handler(int id, void *addr) {
-  var idt = (GateDescriptor *)IDT_ADDR;
-  set_gatedesc(idt + id, (size_t)addr, 2 * 8, AR_INTGATE32);
-}

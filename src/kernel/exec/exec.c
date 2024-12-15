@@ -26,7 +26,7 @@ void task_app() {
   current_task->line = (char *)r[1];
   klogd("我爱你");
   page_free(r, PAGE_SIZE);
-  klogd("%08x", current_task->top);
+  klogd("%08x", current_task->stack_bottom);
   // klogd("%p %d", current_task->nfs, vfs_filesize("testapp.bin"));
   char *kfifo = (char *)page_malloc_one();
   char *mfifo = (char *)page_malloc_one();
@@ -83,7 +83,7 @@ void task_app() {
 
 void task_to_user_mode_elf(char *filename) {
   page_link(0xf0000000); // 配置空间
-  u32 addr = (u32)current_task->top;
+  u32 addr = (u32)current_task->stack_bottom;
   // 配置空间放置在0xf0000000 用于记录一些启动信息
 
   struct args args = {
@@ -160,7 +160,7 @@ void task_to_user_mode_elf(char *filename) {
   iframe->eip              = load_elf((Elf32_Ehdr *)p);
   klogd("eip = %08x", &(iframe->eip));
   current_task->user_mode = 1;
-  tss.esp0                = current_task->top;
+  tss.esp0                = current_task->stack_bottom;
   change_page_task_id(current_task->tid, p, sz);
   //klog("%d\n", get_interrupt_state());
   asm volatile("movl %0, %%esp\n"
@@ -182,8 +182,6 @@ int os_execute(char *filename, char *line) {
   klogd("execute: %s %s", filename, line);
 
   task_t t = create_task(task_app, 1, 1);
-  // 轮询
-  t->train = 0;
 
   // vfs_change_disk_for_task(current_task->nfs->drive, t);
 

@@ -40,9 +40,9 @@ void v86_task() {
     page_link_addr_pde(i, pde, i);
   }
   // 设置状态
-  tss.esp0                = current_task->top;
+  tss.esp0                = current_task->stack_bottom;
   tss.eflags              = 0x202 | (1 << 17);
-  tss.iomap               = ((u32)offsetof(TSS32, io_map));
+  tss.iomap               = offsetof(TSS32, io_map);
   current_task->v86_mode  = 1;
   current_task->user_mode = 1;
   current_task->v86_if    = 1;

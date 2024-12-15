@@ -8,26 +8,26 @@ void fpu_disable() {
 
 void fpu_enable(task_t task) {
   asm_clr_ts, asm_clr_em;
-  if (!task->fpu_flag) {
+  if (!task->fpu_enabled) {
+    task->fpu_enabled = true;
     asm volatile("fnclex \n"
                  "fninit \n" ::
                      : "memory");
     memset(&task->fpu, 0, sizeof(fpu_regs_t));
     klogd("FPU create state for task %p\n", task);
   } else {
-    asm volatile("frstor (%%eax) \n" ::"a"(&(task->fpu)) : "memory");
+    asm volatile("frstor (%0) \n" ::"r"(&(task->fpu)) : "memory");
   }
-  task->fpu_flag = 1;
 }
 
 finline void _ERROR_(int CODE, char *TIPS) {
+  klogf("%d: %s", CODE, TIPS);
   asm_cli;
   infinite_loop;
 }
 
 #define _ERROR(_code_, _tips_)                                                                     \
-  void ERROR##_code_(u32 eip) {                                                                    \
-    u32 *esp = &eip;                                                                               \
+  void ERROR##_code_() {                                                                           \
     _ERROR_(_code_, _tips_);                                                                       \
   }
 
@@ -50,18 +50,21 @@ _ERROR(19, "#XF");
 #undef _ERROR
 
 void ERROR7(u32 eip) {
-  if (current_task->fpu_flag > 1 || current_task->fpu_flag < 0) {
+  if (current_task->fpu_enabled > 1 || current_task->fpu_enabled < 0) {
     asm_set_cr0(asm_get_cr0() & ~(CR0_EM | CR0_TS));
     return;
   }
   fpu_enable(current_task);
 }
+
 #define FP_TO_LINEAR(seg, off) ((u32)(seg << 4) + (u32)off)
 #define VALID_FLAGS            0xDFF
 #define EFLAG_VM               (1 << 17)
 #define EFLAG_IF               (1 << 9)
+
 extern byte *IVT;
-void         ERROR13(u32 eip) {
+
+void ERROR13(u32 eip) {
   volatile v86_frame_t *frame = (v86_frame_t *)((volatile u32)(&eip));
   if (current_task->v86_mode != 1) {
     error("fault, gp at 0x%x\n", frame->eip);

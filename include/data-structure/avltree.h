@@ -320,9 +320,9 @@ static avltree_t avltree_delete_with(avltree_t root, int32_t key,
   if (root == null) { return null; }
 
   if (key < root->key) {
-    root->left = avltree_delete(root->left, key);
+    root->left = avltree_delete_with(root->left, key, callback);
   } else if (key > root->key) {
-    root->right = avltree_delete(root->right, key);
+    root->right = avltree_delete_with(root->right, key, callback);
   } else {
     if (root->left == null) {
       if (callback) callback(root->value);
@@ -335,6 +335,7 @@ static avltree_t avltree_delete_with(avltree_t root, int32_t key,
       free(root);
       return temp;
     } else {
+      if (callback) callback(root->value);
       avltree_t temp = avltree_min(root->right);
       root->key      = temp->key;
       root->value    = temp->value;

@@ -128,19 +128,8 @@ task_start:
 	pop edi
 	pop ebp
 	ret
-	; return_to_app:
-	; mov eax, 0x56
-	; int 0x36
-	; popa
-	; pop gs
-	; pop fs
-	; pop es
-	; pop ds
-	; ret
-	; retuen_to_app_end:
 	
-	; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
-entering_v86:
+entering_v86:                 ; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 	mov ebp, esp                 ; save stack pointer
 	push dword [ebp + 4]         ; ss
 	push dword [ebp + 8]         ; esp

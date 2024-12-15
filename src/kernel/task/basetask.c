@@ -76,7 +76,7 @@ static void draw(int n) {
   }
 }
 
-void init() {
+void user_init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
   vfs_mkdir("/dev");

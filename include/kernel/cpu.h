@@ -157,7 +157,6 @@ void init_gdtidt();
 void fpu_disable();
 bool interrupt_disable();
 void set_interrupt_state(bool state);
-void regist_intr_handler(int id, void *addr);
 
 typedef void (*inthandler_t)(i32 id, regs32 *regs);
 

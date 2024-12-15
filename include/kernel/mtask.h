@@ -23,9 +23,9 @@ typedef struct __PACKED__ task {
   stack_frame  *esp;
   u32           pde;
   u32           user_mode;
-  u32           top;
-  u32           running; // 已经占用了多少时间片
-  u32           timeout; // 需要占用多少时间片
+  u32           stack_bottom; // ring0 栈底
+  u32           running;      // 已经占用了多少时间片
+  u32           timeout;      // 需要占用多少时间片
   int           floor;
   enum STATE    state;   // 此项为1（RUNNING） 即正常调度，为 2（WAITING） 3
                          // （SLEEPING）的时候不执行 ，0 EMPTY 空闲格子
@@ -37,7 +37,7 @@ typedef struct __PACKED__ task {
   u32           alloced;
   struct tty   *TTY;
   fpu_regs_t    fpu;
-  bool          fpu_flag;
+  bool          fpu_enabled;
   cir_queue8_t  press_key_fifo;  // 基本输入设备的缓冲区
   cir_queue8_t  release_keyfifo; // 基本输入设备的缓冲区
   cir_queue8_t  keyfifo;         // 基本输入设备的缓冲区
@@ -46,21 +46,19 @@ typedef struct __PACKED__ task {
   cb_keyboard_t keyboard_press;
   cb_keyboard_t keyboard_release;
   bool          fifosleep;
-  char         *line;
+  const char   *line;
   struct TIMER *timer;
   i32           waittid;
-  bool          ready; // 如果为waiting 则无视wating
   bool          sigint_up;
-  u8            train; // 轮询
   u32           status;
   u32           signal;
-  u32           ret_to_app;
   u32           times;
   u32           signal_disable;
-  list_t        subtasks; // 子任务
   u64           cpu_time; // CPU 时间
   u32           v86_mode; // 8086模式
   u32           v86_if;   // 8086中断
+
+  u32 rc; // 引用计数
 } *task_t;
 
 #define current_task (get_current_task())
@@ -74,10 +72,8 @@ void   task_next();
 void   task_exit(u32 status);
 task_t get_task(u32 tid);
 
-#define offsetof(s, m) (size_t)&(((s *)0)->m)
-
 void task_fall_blocked(enum STATE state);
-void init();
+void user_init();
 
 cir_queue8_t task_get_key_queue(task_t task);
 cir_queue8_t task_get_mouse_fifo(task_t task);
@@ -91,3 +87,6 @@ int          task_fork();
 #define LOCK_LOCKED   1
 
 void lock_init(lock_t *l);
+
+void   running_tasks_push(task_t task);
+task_t running_tasks_pop();

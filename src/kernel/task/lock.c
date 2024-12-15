@@ -35,7 +35,6 @@ void lock(lock_t *key) {
     key->waiter = current_task;
     if (key->value != LOCK_UNLOCKED && key->waiter) {
       mtask_run_now(key->owner);
-      if (current_task->ready == 1) { current_task->ready = 0; }
       task_fall_blocked(WAITING);
     }
   }
