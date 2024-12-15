@@ -237,6 +237,12 @@ static int getbyte() {
   return -1; /* 没读取到 */
 }
 
+static byte getbyte_or_zero() {
+  int data = getbyte();
+  if (data < 0) return 0;
+  return data;
+}
+
 void wait_floppy_interrupt() {
   // task_fall_blocked(WAITING);
   asm_sti;
@@ -244,13 +250,15 @@ void wait_floppy_interrupt() {
   statsz = 0; // 清空状态
   //  状态寄存器的低四位是1（TRUE，所以这里不用写==），说明软盘驱动器没发送完所有的数据，当我们获取完所有的数据（状态变量=7），就可以跳出循环了
   while ((statsz < 7) && (asm_in8(FDC_MSR) & (1 << 4))) {
-    status[statsz++] = getbyte(); // 获取数据
+    int data = getbyte();
+    if (data < 0) kloge("getbyte error");
+    status[statsz++] = data; // 获取数据
   }
 
   /* 获取中断状态 */
   sendbyte(CMD_SENSEI);
-  sr0       = getbyte();
-  fdc_track = getbyte();
+  sr0       = getbyte_or_zero();
+  fdc_track = getbyte_or_zero();
 
   floppy_int_count = 0;
   waiter           = NULL;
