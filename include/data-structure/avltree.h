@@ -35,6 +35,13 @@ extern avltree_t avltree_alloc(int32_t key, void *value) __THROW __attr_malloc;
 extern void avltree_free(avltree_t root) __THROW;
 
 /**
+ *\brief 释放AVL树，并调用回调函数处理节点值
+ *\param[in] root 树的根节点
+ *\param[in] callback 回调函数指针，用于处理节点值
+ */
+extern void avltree_free_with(avltree_t root, void (*callback)(void *)) __THROW;
+
+/**
  *\brief 获取AVL树中指定键值的节点值指针
  *\param[in] root 树的根节点
  *\param[in] key 节点键值
@@ -213,6 +220,14 @@ static void avltree_free(avltree_t root) noexcept {
   if (root == null) return;
   avltree_free(root->left);
   avltree_free(root->right);
+  free(root);
+}
+
+static void avltree_free_with(avltree_t root, void (*callback)(void *)) noexcept {
+  if (root == null) return;
+  avltree_free_with(root->left, callback);
+  avltree_free_with(root->right, callback);
+  if (callback) callback(root->value);
   free(root);
 }
 

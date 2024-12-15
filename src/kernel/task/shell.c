@@ -245,7 +245,6 @@ void shell() {
   cir_queue8_init(kfifo, PAGE_SIZE, kbuf);
   current_task->keyfifo = (cir_queue8_t)kfifo;
   char         *path    = malloc(1024);
-  char         *line    = malloc(256);
   pl_readline_t n;
   n = pl_readline_init(readline_getch, putchar, screen_flush, handle_tab);
   sprintf(path, "/");
@@ -265,10 +264,12 @@ extern void log_update();
 extern char debug_shell_message[256];
 
 static const struct {
-  cstr alias, command;
+  cstr alias;
+  cstr command;
 } debug_commands[] = {
-    {"test", "/fatfs1/testapp.bin" },
-    {"plui", "/fatfs1/plui-app.bin"},
+    {"test", "/fatfs1/testapp.bin"  },
+    {"zstd", "/fatfs1/zstd-test.bin"},
+    {"plui", "/fatfs1/plui-app.bin" },
 };
 
 void debug_shell() {

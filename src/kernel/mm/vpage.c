@@ -522,6 +522,7 @@ u32 page_get_attr_pde(u32 vaddr, u32 pde) {
   pde       += (u32)(DIDX(vaddr) * 4);
   void *pte  = (void *)(*(u32 *)pde & 0xfffff000);
   pte       += (u32)(TIDX(vaddr) * 4);
+  // klogw("%p", pte);
   return (*(u32 *)pte) & 0x00000fff;
 }
 
@@ -674,7 +675,7 @@ void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, 
     error("Attempt to read/write a non-existent/kernel memory %p at %p. System halt.", line_address,
           eip);
     if (current_task->user_mode) { // 用户级FAULT
-      task_exit(-1);               // 强制退出
+      task_exit(I32_MAX);          // 强制退出
       infinite_loop;
     }
     asm_cli;

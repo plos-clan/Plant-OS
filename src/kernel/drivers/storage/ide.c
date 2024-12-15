@@ -107,7 +107,7 @@ void ide_read_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi);
 void ide_write_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi);
 void ide_read_buffer(u8 channel, u8 reg, u32 buffer, u32 quads);
 
-static inline void insl(u32 port, u32 *addr, int cnt) {
+finline void insl(u32 port, u32 *addr, int cnt) {
   asm volatile("cld\n\t"
                "repne\n\t"
                "insl\n\t"
@@ -390,7 +390,7 @@ u8 ide_print_error(u32 drive, u8 err) {
 
   return err;
 }
-// static inline void insl(u32 port, void *addr, int cnt) {
+// finline void insl(u32 port, void *addr, int cnt) {
 //   asm volatile("cld;"
 //                "repne; insl;"
 //                : "=D"(addr), "=c"(cnt)

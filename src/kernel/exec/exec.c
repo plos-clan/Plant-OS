@@ -15,15 +15,15 @@ extern PageInfo *pages;
 void task_app() {
   klogd("task_app");
   char *filename;
-  while (!current_task->line) {
+  while (!current_task->command_line) {
     asm_sti;
     task_next();
-    klogd("%d", current_task->line);
+    klogd("%d", current_task->command_line);
   }
   klogd("1");
-  u32 *r             = (u32 *)current_task->line;
-  filename           = (char *)r[0];
-  current_task->line = (char *)r[1];
+  u32 *r                     = (u32 *)current_task->command_line;
+  filename                   = (char *)r[0];
+  current_task->command_line = (char *)r[1];
   klogd("我爱你");
   page_free(r, PAGE_SIZE);
   klogd("%08x", current_task->stack_bottom);
@@ -88,7 +88,7 @@ void task_to_user_mode_elf(char *filename) {
 
   struct args args = {
       .path    = filename,
-      .cmdline = current_task->line,
+      .cmdline = current_task->command_line,
       .sp      = (void *)0xf0000001,
   };
   parse_args(&args);
@@ -137,19 +137,19 @@ void task_to_user_mode_elf(char *filename) {
     // free(vfs_now->cache);
     // free((void *)vfs_now);
     kloge();
-    task_exit(-1);
+    task_exit(I32_MAX);
     infinite_loop;
   }
   u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + PAGE_SIZE;
   klogd("alloc_addr = %08x", alloc_addr);
 
   u32 pg = PADDING_UP(*(current_task->alloc_size), PAGE_SIZE) / PAGE_SIZE;
-#define STACK_SIZE 256
-  for (int i = 0; i < pg + STACK_SIZE * 4; i++) {
+#define STACK_SIZE 1024 // 4MiB
+  for (int i = 0; i < pg + STACK_SIZE; i++) {
     page_link(alloc_addr + i * PAGE_SIZE);
   }
-  u32 alloced_esp  = alloc_addr + STACK_SIZE * PAGE_SIZE * 4;
-  alloc_addr      += STACK_SIZE * PAGE_SIZE * 4;
+  u32 alloced_esp  = alloc_addr + STACK_SIZE * PAGE_SIZE;
+  alloc_addr      += STACK_SIZE * PAGE_SIZE;
   iframe->esp      = alloced_esp;
   if (current_task->ptid != -1) { *(u8 *)(0xf0000000) = 0; }
   //  strcpy((char *)0xf0000001, current_task->line);
@@ -162,7 +162,6 @@ void task_to_user_mode_elf(char *filename) {
   current_task->user_mode = 1;
   tss.esp0                = current_task->stack_bottom;
   change_page_task_id(current_task->tid, p, sz);
-  //klog("%d\n", get_interrupt_state());
   asm volatile("movl %0, %%esp\n"
                "popa\n"
                "pop %%gs\n"
@@ -179,34 +178,24 @@ int os_execute(char *filename, char *line) {
   char         *fm     = (char *)malloc(strlen(filename) + 1);
   strcpy(fm, filename);
 
-  klogd("execute: %s %s", filename, line);
+  klogd("execute: %s by command %s", filename, line);
 
   task_t t = create_task(task_app, 1, 1);
 
-  // vfs_change_disk_for_task(current_task->nfs->drive, t);
-
-  char *path;
-  //   list_foreach(current_task->nfs->path, l) {
-  //     path = (char *)l->data;
-  //     t->nfs->cd(t->nfs, path);
-  //   }
   t->ptid = current_task->tid;
   klogd("ptid = %d", t->ptid);
   int old                 = current_task->sigint_up;
   current_task->sigint_up = 0;
   t->sigint_up            = 1;
-  struct tty *tty_backup  = current_task->TTY;
-  t->TTY                  = current_task->TTY;
 
-  current_task->TTY = NULL;
-  char *p1          = malloc(strlen(line) + 1);
+  char *p1 = malloc(strlen(line) + 1);
   strcpy(p1, line);
   int o                   = current_task->fifosleep;
   current_task->fifosleep = 1;
   u32 *r                  = page_malloc_one_no_mark();
   r[0]                    = (u32)fm;
   r[1]                    = (u32)p1;
-  t->line                 = (char *)r;
+  t->command_line         = (char *)r;
 
   klogd("t->tid %d %d", t->tid, t->ptid);
 
@@ -217,7 +206,6 @@ int os_execute(char *filename, char *line) {
 
   free(p1);
   free(fm);
-  current_task->TTY = tty_backup;
   if (backup) {
     mouse_ready(&mdec);
     mouse_use_task = backup;

@@ -71,21 +71,11 @@ int getch() {
 extern struct tty *tty_default;
 
 int tty_fifo_status() {
-  task_t task = current_task;
-  if (task->TTY->is_using != 1) {
-    return tty_default->fifo_status(tty_default);
-  } else {
-    return task->TTY->fifo_status(task->TTY);
-  }
+  return tty_default->fifo_status(tty_default);
 }
 
 int tty_fifo_get() {
-  task_t task = current_task;
-  if (task->TTY->is_using != 1) {
-    return tty_default->fifo_get(tty_default);
-  } else {
-    return task->TTY->fifo_get(task->TTY);
-  }
+  return tty_default->fifo_get(tty_default);
 }
 
 static int input_char_inSM() {

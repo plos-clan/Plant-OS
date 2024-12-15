@@ -76,6 +76,8 @@ static void draw(int n) {
   }
 }
 
+extern void task_kill(task_t task);
+
 void user_init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
@@ -133,11 +135,15 @@ void user_init() {
   // }
 
   screen_clear();
+
   task_t t = create_task(v86_task, 1, 1);
+
   check_device();
   u32 *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
   lgmemset32(vram, 0, screen_w * screen_h);
+
+  task_kill(t);
 
 #if 0 // 尝试 os-terminal 库
   void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
@@ -181,15 +187,16 @@ void user_init() {
     plty_flush(tty);
   }
 #endif
-  void task_kill(u32 tid);
   plty_set_default(tty);
-  task_kill(t->tid);
 
-  create_task(shell, 1, 1);
-  create_task(debug_shell, 1, 1);
+  create_task(&shell, 1, 1);
+  create_task(&debug_shell, 1, 1);
 
   extern bool debug_enabled;
   debug_enabled = true;
 
-  infinite_loop task_next();
+  infinite_loop {
+    asm_sti;
+    task_next();
+  }
 }

@@ -35,7 +35,6 @@ typedef struct __PACKED__ task {
   u32           alloc_addr;
   u32          *alloc_size;
   u32           alloced;
-  struct tty   *TTY;
   fpu_regs_t    fpu;
   bool          fpu_enabled;
   cir_queue8_t  press_key_fifo;  // 基本输入设备的缓冲区
@@ -46,30 +45,32 @@ typedef struct __PACKED__ task {
   cb_keyboard_t keyboard_press;
   cb_keyboard_t keyboard_release;
   bool          fifosleep;
-  const char   *line;
-  struct TIMER *timer;
+  cstr          command_line;
   i32           waittid;
   bool          sigint_up;
-  u32           status;
+  i32           status; // 允许 0 到 255 的退出状态，绝对禁止负数
   u32           signal;
-  u32           times;
   u32           signal_disable;
   u64           cpu_time; // CPU 时间
   u32           v86_mode; // 8086模式
   u32           v86_if;   // 8086中断
 
-  u32 rc; // 引用计数
+  u32       rc;           // 引用计数
+  list_t    waiting_list; // 正在等待该线程的线程列表
+  avltree_t children;     // 子线程
 } *task_t;
 
 #define current_task (get_current_task())
+
+void task_tick();
+void task_next();
 
 task_t get_current_task();
 void   task_switch(task_t next);  // 切换任务
 void   task_start(task_t next);   // 开始任务
 void   mtask_run_now(task_t obj); // 立即执行任务
 void   task_run(task_t task);
-void   task_next();
-void   task_exit(u32 status);
+void   task_exit(i32 status);
 task_t get_task(u32 tid);
 
 void task_fall_blocked(enum STATE state);
@@ -79,7 +80,7 @@ cir_queue8_t task_get_key_queue(task_t task);
 cir_queue8_t task_get_mouse_fifo(task_t task);
 void         into_mtask();
 task_t       create_task(void *func, u32 ticks, u32 floor);
-int          waittid(u32 tid);
+i32          waittid(i32 tid);
 void         task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo);
 int          task_fork();
 

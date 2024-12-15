@@ -45,5 +45,5 @@ void inthandler20(i32 id, regs32 *regs) {
   kenel_debugger_tick();
 
   extern task_t mtask_current;
-  if (mtask_current) task_next();
+  if (mtask_current) task_tick();
 }

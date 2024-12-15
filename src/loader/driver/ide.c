@@ -100,7 +100,7 @@ struct ide_device {
   u32 Size;         // Size in Sectors.
   u8  Model[41];    // Model in string.
 } ide_devices[4];
-static inline void insl(u32 port, u32 *addr, int cnt) {
+finline void insl(u32 port, u32 *addr, int cnt) {
   for (int i = 0; i < cnt; i++) {
     addr[i] = asm_in32(port);
   }

@@ -155,8 +155,6 @@ void v86_int(byte intnum, regs16 *regs);
 void init_page();
 void init_gdtidt();
 void fpu_disable();
-bool interrupt_disable();
-void set_interrupt_state(bool state);
 
 typedef void (*inthandler_t)(i32 id, regs32 *regs);
 

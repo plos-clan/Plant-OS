@@ -2,17 +2,20 @@
 
 #include <kernel.h>
 
-#define STACK_SIZE (1024 * 1024)
+// 内核栈不应该超过 64K
+#define STACK_SIZE (64 * 1024)
 
 void free_pde(u32 addr);
 
 TSS32            tss;
-task_t           idle_task;
 task_t           mtask_current = null;
 static avltree_t tasks         = null;
 
 task_t      next_set   = null;
-struct task empty_task = {.tid = -1};
+struct task empty_task = {.tid = -1, .pde = PDE_ADDRESS};
+
+// --------------------------------------------------
+//; 分配任务
 
 task_t task_by_id(i32 tid) {
   if (tid < 0) return null;
@@ -43,31 +46,31 @@ static task_t task_alloc() {
   t->state            = EMPTY; // EMPTY
   t->tid              = tid;   // task id
   t->ptid             = -1;    // parent task id
-  t->keyboard_press   = NULL;  // keyboard hook
-  t->keyboard_release = NULL;
+  t->keyboard_press   = null;  // keyboard hook
+  t->keyboard_release = null;
   t->urgent           = 0;
   t->fpu_enabled      = 0;
   t->fifosleep        = 0;
-  t->line             = NULL;
-  t->timer            = NULL;
+  t->command_line     = null;
   t->waittid          = -1;
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
   t->alloced          = 0;
   t->pde              = 0;
-  t->press_key_fifo   = NULL;
-  t->release_keyfifo  = NULL;
+  t->press_key_fifo   = null;
+  t->release_keyfifo  = null;
   t->sigint_up        = 0;
   t->signal_disable   = 1; // 目前暂时关闭信号
-  t->times            = 0;
-  t->keyboard_press   = NULL;
-  t->keyboard_release = NULL;
-  t->keyfifo          = NULL;
-  t->mousefifo        = NULL;
+  t->keyboard_press   = null;
+  t->keyboard_release = null;
+  t->keyfifo          = null;
+  t->mousefifo        = null;
   t->signal           = 0;
   t->v86_mode         = 0;
 
-  t->rc = 1;
+  t->rc           = 1;
+  t->waiting_list = null;
+  t->children     = null;
   return t;
 }
 
@@ -131,11 +134,15 @@ void running_tasks_push(task_t task) {
 task_t running_tasks_pop() {
   task_t task = null;
   with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
-  while (task && task->state != RUNNING) {
-    task_unref(task);
+  while (task == null || task->state != RUNNING) {
+    if (task == null) {
+      asm_hlt;
+    } else {
+      task_unref(task);
+    }
     with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
   }
-  if (task) task_unref(task);
+  task_unref(task);
   return task;
 }
 
@@ -145,24 +152,28 @@ static fpu_regs_t public_fpu;
 
 extern task_t mouse_use_task;
 
-void task_next() {
-  assert(mtask_current != null);
+void task_tick() {
+  // const var task = mtask_current;
+  // assert(task != null);
+  // task->running++;
+  task_next();
+}
 
-  if (mtask_current->running < mtask_current->timeout - 1 && //
-      mtask_current->state == RUNNING &&                     //
-      next_set == null) {
-    mtask_current->running++;
-    return; // 不需要调度，当前时间片仍然属于你
+void task_next() {
+  const var task = mtask_current;
+  assert(task != null);
+
+  if (task->running < task->timeout && task->state == RUNNING && next_set == null) {
+    task->running++; // why?
+    return;
   }
 
   asm_cli;
 
-  if (!next_set) mtask_current->running = 0;
+  task->running = 0;
 
-  // TODO 处理 next_set
-
-  task_t next = running_tasks_pop();
-  assert(next != null);
+  running_tasks_push(task);
+  task_t next = next_set && next_set->state == RUNNING ? next_set : running_tasks_pop();
 
   if (next->user_mode == 1 || next->v86_mode == 1) {
     tss.esp0 = next->stack_bottom;
@@ -175,45 +186,31 @@ void task_next() {
   next->urgent = 0;
 
   asm_clr_em, asm_clr_ts;
-  if (mtask_current->fpu_enabled) {
-    asm volatile("fnsave (%0)\n\t" ::"r"(&mtask_current->fpu) : "memory");
-  }
+  if (task->fpu_enabled) asm volatile("fnsave (%0)\n\t" ::"r"(&task->fpu) : "memory");
   next->jiffies = system_tick;
   fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
-
-  if (next != mtask_current) { //
-    running_tasks_push(mtask_current);
-  }
 
   asm_sti;
 
   task_switch(next); // 调度
 }
 
-task_t create_task(void *func, u32 ticks, u32 floor) {
+task_t create_task(void *entry, u32 ticks, u32 floor) {
   const var t = task_alloc();
 
   if (t == null) return null;
   u32 esp_alloced = (u32)page_alloc(STACK_SIZE) + STACK_SIZE;
   change_page_task_id(t->tid, (void *)(esp_alloced - STACK_SIZE), STACK_SIZE);
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
-  t->esp->eip  = (size_t)func;                                       // 设置跳转地址
+  t->esp->eip  = (size_t)entry;                                      // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
-  if (mtask_current == NULL) {
-    asm_cli;
-    // 还没启用多任务
-    t->pde   = PDE_ADDRESS; // 所以先用预设好的页表
-    t->times = PDE_ADDRESS;
-  } else {
-    t->pde   = pde_clone(current_task->pde); // 启用了就复制一个
-    t->times = t->pde;
-  }
-  t->stack_bottom = esp_alloced; // r0的esp
+
+  t->pde          = pde_clone(current_task->pde); // 启用了就复制一个
+  t->stack_bottom = esp_alloced;                  // r0的esp
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
   t->state        = RUNNING; // running
-  t->TTY          = NULL;
   t->jiffies      = 0;
 
   avltree_insert(tasks, t->tid, t);
@@ -223,8 +220,8 @@ task_t create_task(void *func, u32 ticks, u32 floor) {
 
 task_t get_task(u32 tid) {
   task_t task = task_by_id(tid);
-  if (!task) return NULL;
-  if (task->state == READY) return NULL;
+  if (!task) return null;
+  if (task->state == READY) return null;
   return task;
 }
 
@@ -267,35 +264,6 @@ void task_to_user_mode(u32 eip, u32 esp) {
   __builtin_unreachable();
 }
 
-void task_kill(u32 tid) {
-  task_t task = task_by_id(tid);
-  if (mouse_use_task == current_task) mouse_sleep(&mdec);
-  for (int i = 0; i < 255; i++) {
-    task_t t = task_by_id(i);
-    if (!t) continue;
-    if (t->state == EMPTY || t->state == DIED) continue;
-    if (t->tid == tid) continue;
-    if (t->ptid >= 0 && t->ptid == tid) { task_kill(t->tid); }
-  }
-  task->state = DIED;
-
-  asm_cli;
-
-  if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
-    task_run(task_by_id(task->ptid));
-  }
-
-  avltree_delete_with(tasks, tid, (free_t)task_unref);
-
-  asm_sti;
-  if (task != current_task) return;
-
-  infinite_loop {
-    asm_sti;
-    task_next();
-  }
-}
-
 task_t get_current_task() {
   return mtask_current ?: &empty_task;
 }
@@ -314,10 +282,9 @@ void into_mtask() {
   tss.ss0 = 1 * 8;
   set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
-  idle_task = create_task(idle_loop, 1, 3);
-  create_task(user_init, 5, 1);
+  const var task = create_task(user_init, 5, 1);
   asm_set_em, asm_set_ts, asm_set_ne;
-  task_start(task_by_id(0));
+  task_start(task);
 }
 
 void task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo) {
@@ -340,6 +307,7 @@ void task_wake_up(task_t task) {
 }
 
 void task_run(task_t task) {
+  if (task == null || task->status == DIED) return;
   task->state   = RUNNING;
   task->urgent  = 1; // 加急一下
   task->running = 0;
@@ -363,27 +331,24 @@ void task_fall_blocked(enum STATE state) {
 
 extern PageInfo *pages;
 
-void task_exit(u32 status) {
-  if (mouse_use_task == current_task) { mouse_sleep(&mdec); }
-  u32    tid  = current_task->tid;
-  task_t task = current_task;
-  for (int i = 0; i < 255; i++) {
-    task_t t = task_by_id(i);
-    if (!t) continue;
-    if (t->state == EMPTY || t->state == DIED) continue;
-    if (t->tid == tid) continue;
-    if (t->ptid == tid) { task_kill(t->tid); }
-  }
-  task->status = status;
-  task->state  = DIED;
+void task_kill(task_t task) {
+  assert(task != null);
+  const var tid = task->tid;
 
-  asm_cli;
+  if (mouse_use_task == task) mouse_sleep(&mdec);
 
-  if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
-    task_run(task_by_id(task->ptid));
-  }
+  task->state = DIED;
 
-  avltree_delete_with(tasks, tid, (free_t)task_unref);
+  avltree_free_with(task->children, (free_t)task_kill);
+
+  with_no_interrupts({
+    if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
+      task_run(task_by_id(task->ptid));
+    }
+    avltree_delete_with(tasks, tid, (free_t)task_unref);
+  });
+
+  if (task != current_task) return;
 
   infinite_loop {
     asm_sti;
@@ -391,19 +356,29 @@ void task_exit(u32 status) {
   }
 }
 
-int waittid(u32 tid) {
+void task_exit(i32 status) {
+  const var task = current_task;
+  assert(task != null);
+
+  task->status = status & I32_MAX;
+
+  task_kill(task);
+
+  klogf("task_exit error");
+  abort();
+}
+
+i32 waittid(i32 tid) {
   task_t target = get_task(tid);
-  if (!target) return -1;
-  if (target->ptid != current_task->tid) return -1;
+  if (target == null || target->ptid != current_task->tid) return -1;
   task_ref(target);
+  // list_prepend(target->waiting_list, current_task);
   current_task->waittid = tid;
   while (target->state != DIED && target->ptid == current_task->tid) {
-    klogd("%d", target->state);
     task_fall_blocked(WAITING);
   }
-  klogd("here %d %d %d", target->ptid, current_task->tid, target->tid);
-  u32 status = target->status;
-  klogd("task exit with code %d\n", status);
+  i32 status = target->status & I32_MAX;
+  klogd("task %d exit with code %d\n", tid, status);
   task_unref(target);
   return status;
 }
@@ -434,56 +409,55 @@ static void build_fork_stack(task_t task) {
 
 int task_fork() {
   const var m = task_alloc();
-  if (!m) { return -1; }
+  if (m == null) return -1;
   klogd("get free %08x\n", m);
   klogd("current = %08x\n", current_task->tid);
-  bool state = interrupt_disable();
-  int  tid   = 0;
-  tid        = m->tid;
-  memcpy(m, current_task, sizeof(struct task));
-  u32 stack = (u32)page_alloc(STACK_SIZE);
-  change_page_task_id(tid, (void *)stack, STACK_SIZE);
-  // u32 off = m->top - (u32)m->esp;
-  memcpy((void *)stack, (void *)(m->stack_bottom - STACK_SIZE), STACK_SIZE);
-  klogd("s = %08x \n", m->stack_bottom - STACK_SIZE);
-  m->stack_bottom = stack += STACK_SIZE;
-  stack                   += STACK_SIZE;
-  m->esp                   = (stack_frame *)stack;
-  if (current_task->press_key_fifo) {
-    m->press_key_fifo = malloc(sizeof(struct event));
-    memcpy(m->press_key_fifo, current_task->press_key_fifo, sizeof(struct event));
-    m->press_key_fifo->buf = page_alloc(4096);
-    memcpy(m->press_key_fifo->buf, current_task->press_key_fifo->buf, 4096);
-  }
-  if (current_task->release_keyfifo) {
-    m->release_keyfifo = malloc(sizeof(struct event));
-    memcpy(m->release_keyfifo, current_task->release_keyfifo, sizeof(struct event));
-    m->release_keyfifo->buf = page_alloc(4096);
-    memcpy(m->release_keyfifo->buf, current_task->release_keyfifo->buf, 4096);
-  }
-  if (current_task->keyfifo) {
-    m->keyfifo = page_malloc_one();
-    memcpy(m->keyfifo, current_task->keyfifo, sizeof(struct event));
-    m->keyfifo->buf = page_malloc_one();
-    memcpy(m->keyfifo->buf, current_task->keyfifo->buf, 4096);
-  }
-  if (current_task->mousefifo) {
-    m->mousefifo = page_malloc_one();
-    memcpy(m->mousefifo, current_task->mousefifo, sizeof(struct event));
-    m->mousefifo->buf = page_malloc_one();
-    memcpy(m->mousefifo->buf, current_task->mousefifo->buf, 4096);
-  }
-  m->pde     = pde_clone(current_task->pde);
-  m->running = 0;
-  m->jiffies = 0;
-  m->timeout = 1;
-  m->state   = RUNNING;
-  m->ptid    = current_task->tid;
-  m->tid     = tid;
-  klogd("m->tid = %d\n", m->tid);
-  tid = m->tid;
-  klogd("BUILD FORK STACK\n");
-  build_fork_stack(m);
-  set_interrupt_state(state);
+  int tid = m->tid;
+  with_no_interrupts({
+    memcpy(m, current_task, sizeof(struct task));
+    u32 stack = (u32)page_alloc(STACK_SIZE);
+    change_page_task_id(tid, (void *)stack, STACK_SIZE);
+    // u32 off = m->top - (u32)m->esp;
+    memcpy((void *)stack, (void *)(m->stack_bottom - STACK_SIZE), STACK_SIZE);
+    klogd("s = %08x \n", m->stack_bottom - STACK_SIZE);
+    m->stack_bottom = stack += STACK_SIZE;
+    stack                   += STACK_SIZE;
+    m->esp                   = (stack_frame *)stack;
+    if (current_task->press_key_fifo) {
+      m->press_key_fifo = malloc(sizeof(struct event));
+      memcpy(m->press_key_fifo, current_task->press_key_fifo, sizeof(struct event));
+      m->press_key_fifo->buf = page_alloc(4096);
+      memcpy(m->press_key_fifo->buf, current_task->press_key_fifo->buf, 4096);
+    }
+    if (current_task->release_keyfifo) {
+      m->release_keyfifo = malloc(sizeof(struct event));
+      memcpy(m->release_keyfifo, current_task->release_keyfifo, sizeof(struct event));
+      m->release_keyfifo->buf = page_alloc(4096);
+      memcpy(m->release_keyfifo->buf, current_task->release_keyfifo->buf, 4096);
+    }
+    if (current_task->keyfifo) {
+      m->keyfifo = page_malloc_one();
+      memcpy(m->keyfifo, current_task->keyfifo, sizeof(struct event));
+      m->keyfifo->buf = page_malloc_one();
+      memcpy(m->keyfifo->buf, current_task->keyfifo->buf, 4096);
+    }
+    if (current_task->mousefifo) {
+      m->mousefifo = page_malloc_one();
+      memcpy(m->mousefifo, current_task->mousefifo, sizeof(struct event));
+      m->mousefifo->buf = page_malloc_one();
+      memcpy(m->mousefifo->buf, current_task->mousefifo->buf, 4096);
+    }
+    m->pde     = pde_clone(current_task->pde);
+    m->running = 0;
+    m->jiffies = 0;
+    m->timeout = 1;
+    m->state   = RUNNING;
+    m->ptid    = current_task->tid;
+    m->tid     = tid;
+    klogd("m->tid = %d\n", m->tid);
+    tid = m->tid;
+    klogd("BUILD FORK STACK\n");
+    build_fork_stack(m);
+  });
   return tid;
 }
