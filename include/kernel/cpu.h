@@ -55,20 +55,6 @@ typedef struct v86_frame_t {
   u32 ss;
 } v86_frame_t;
 
-typedef struct __PACKED__ fpu_regs {
-  u16 control;
-  u16 RESERVED1;
-  u16 status;
-  u16 RESERVED2;
-  u16 tag;
-  u16 RESERVED3;
-  u32 fip0;
-  u32 fop0;
-  u32 fdp0;
-  u32 fdp1;
-  u8  regs[80];
-} fpu_regs_t;
-
 #define SA_RPL_MASK      0xFFFC
 #define SA_TI_MASK       0xFFFB
 #define SA_TIL           4 // 设置此项，将从LDT中寻找

@@ -33,8 +33,6 @@ typedef struct __PACKED__ task {
   u32           alloc_addr;
   u32          *alloc_size;
   u32           alloced;
-  fpu_regs_t    fpu;
-  bool          fpu_enabled;
   cir_queue8_t  press_key_fifo;  // 基本输入设备的缓冲区
   cir_queue8_t  release_keyfifo; // 基本输入设备的缓冲区
   cir_queue8_t  keyfifo;         // 基本输入设备的缓冲区
@@ -56,17 +54,22 @@ typedef struct __PACKED__ task {
   list_t    waiting_list; // 正在等待该线程的线程列表
   avltree_t children;     // 子线程
   bool      is_switched;  // 是否是从其它进程切换过来的
+
+  bool fpu_enabled;     // 是否开启了 fpu/sse/avx
+  byte extra_regs[512]; // FPU 108
+                        // SSE 512
+                        // AVX 4096
 } *task_t;
 
 #define current_task (get_current_task())
 
-void task_tick();
-void task_next();
+void task_tick(); // 时间片调度
+void task_next(); // 请求切换任务
 
 task_t get_current_task();
-void   task_switch(task_t next); // 切换任务
-void   task_start(task_t next);  // 开始任务
+// 将 waiting 状态的任务转换为 running 状态，并将任务设置为下一个调度任务
 void   task_run(task_t task);
+// 退出当前任务
 void   task_exit(i32 status) __attr(noreturn);
 task_t task_by_id(i32 tid);
 

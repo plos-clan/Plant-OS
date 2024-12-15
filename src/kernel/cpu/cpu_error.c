@@ -10,13 +10,19 @@ void fpu_enable(task_t task) {
   asm_clr_ts, asm_clr_em;
   if (!task->fpu_enabled) {
     task->fpu_enabled = true;
-    asm volatile("fnclex \n"
-                 "fninit \n" ::
-                     : "memory");
-    memset(&task->fpu, 0, sizeof(fpu_regs_t));
+    if (cpuids.sse) {
+      asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
+    } else {
+      asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
+    }
+    memset(task->extra_regs, 0, sizeof(task->extra_regs));
     klogd("FPU create state for task %p\n", task);
   } else {
-    asm volatile("frstor (%0) \n" ::"r"(&(task->fpu)) : "memory");
+    if (cpuids.sse) {
+      asm volatile("fxrstor (%0) \n" ::"r"(task->extra_regs) : "memory");
+    } else {
+      asm volatile("frstor (%0) \n" ::"r"(task->extra_regs) : "memory");
+    }
   }
 }
 
@@ -140,7 +146,7 @@ void ERROR13(u32 eip) {
       case 0x30:
         // printf("int 0x30\n");
         frame->eip += 2;
-        if (v86_using_task) { task_run(v86_using_task); }
+        if (v86_using_task) task_run(v86_using_task);
         task_next();
         return;
       default:

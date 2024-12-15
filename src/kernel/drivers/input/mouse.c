@@ -127,9 +127,6 @@ void inthandler2c(i32 id, regs32 *regs) {
         //   klogd("SET 1\n");
         mouse_use_task->timeout = 5;
         mouse_use_task->running = 0;
-        if (mouse_use_task->state == THREAD_WAITING) { //
-          running_tasks_push(mouse_use_task);
-        }
         task_run(mouse_use_task);
         task_next();
       } else {

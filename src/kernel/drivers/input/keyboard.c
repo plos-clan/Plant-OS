@@ -171,9 +171,6 @@ void inthandler21(i32 id, regs32 *regs) {
       if (current_task != keyboard_use_task) {
         keyboard_use_task->timeout = 5;
         keyboard_use_task->running = 0;
-        if (keyboard_use_task->state == THREAD_WAITING) { //
-          running_tasks_push(keyboard_use_task);
-        }
         task_run(keyboard_use_task);
         task_next();
       } else {
@@ -204,9 +201,6 @@ void inthandler21(i32 id, regs32 *regs) {
       //   klogd("SET 1\n");
       keyboard_use_task->timeout = 5;
       keyboard_use_task->running = 0;
-      if (keyboard_use_task->state == THREAD_WAITING) { //
-        running_tasks_push(keyboard_use_task);
-      }
       task_run(keyboard_use_task);
       task_next();
     } else {

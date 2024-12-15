@@ -90,9 +90,9 @@ move_cursor_by_idx:           ;移动光标
 	
 	extern mtask_current
 	global task_switch, task_start
-task_switch:
+task_switch:                  ; void task_switch(task_t next) __attr(fastcall);
+	cli
 	push ebp
-	mov ebp, esp
 	push edi
 	push esi
 	push edx
@@ -101,10 +101,10 @@ task_switch:
 	push eax
 	mov eax, [mtask_current]
 	mov [eax], esp               ; 保存esp
-	mov eax, [ebp + 8]           ; next
-	mov [mtask_current], eax
-	mov esp, [eax]
-	mov eax, [eax + 4]
+task_start:                   ; void task_start(task_t next) __attr(fastcall);
+	mov [mtask_current], ecx
+	mov esp, [ecx]
+	mov eax, [ecx + 4]
 	mov cr3, eax
 	pop eax
 	pop ebx
@@ -113,20 +113,7 @@ task_switch:
 	pop esi
 	pop edi
 	pop ebp
-	ret
-task_start:
-	mov eax, [esp + 4]           ; next
-	mov [mtask_current], eax
-	mov esp, [eax]
-	mov eax, [eax + 4]
-	mov cr3, eax
-	pop eax
-	pop ebx
-	pop ecx
-	pop edx
-	pop esi
-	pop edi
-	pop ebp
+	sti
 	ret
 	
 entering_v86:                 ; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
@@ -139,5 +126,5 @@ entering_v86:                 ; extern void entering_v86(u32 ss, u32 esp, u32 cs
 	push dword [ebp + 16]        ; eip
 	iret
 	
-	[SECTION .data]
+	section .data
 testsize: dd 0

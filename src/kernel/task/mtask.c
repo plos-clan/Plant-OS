@@ -2,17 +2,20 @@
 
 #include <kernel.h>
 
+void task_switch(task_t next) __attr(fastcall); // 切换任务
+void task_start(task_t next) __attr(fastcall);  // 开始任务
+
 // 内核栈不应该超过 64K
 #define STACK_SIZE (64 * 1024)
 
 void free_pde(u32 addr);
 
-TSS32            tss;
-task_t           mtask_current = null;
-static avltree_t tasks         = null;
+TSS32  tss;
+task_t mtask_current = null;
 
-task_t      next_set   = null;
-struct task empty_task = {.tid = -1, .pde = PDE_ADDRESS};
+static avltree_t tasks      = null;
+static task_t    next_set   = null;
+struct task      empty_task = {.tid = -1, .pde = PDE_ADDRESS};
 
 // --------------------------------------------------
 //; 分配任务
@@ -155,8 +158,6 @@ task_t running_tasks_pop() {
 
 // --------------------------------------------------
 
-static fpu_regs_t public_fpu;
-
 extern task_t mouse_use_task;
 
 void task_tick() {
@@ -193,7 +194,13 @@ void task_next() {
 
   if (next != task) {
     asm_clr_em, asm_clr_ts;
-    if (task->fpu_enabled) asm volatile("fnsave (%0)\n\t" ::"r"(&task->fpu) : "memory");
+    if (task->fpu_enabled) {
+      if (cpuids.sse) {
+        asm volatile("fxsave (%0)\n\t" ::"r"(task->extra_regs) : "memory");
+      } else {
+        asm volatile("fnsave (%0)\n\t" ::"r"(task->extra_regs) : "memory");
+      }
+    }
     fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
   }
 
@@ -272,15 +279,7 @@ task_t get_current_task() {
   return mtask_current ?: &empty_task;
 }
 
-static void idle_loop() {
-  infinite_loop task_next();
-}
-
 void into_mtask() {
-  asm_clr_em, asm_clr_ts;
-  asm volatile("fninit");
-  asm volatile("fnsave (%%eax) \n" ::"a"(&public_fpu));
-  fpu_disable();
   SegmentDescriptor *gdt = (SegmentDescriptor *)GDT_ADDR;
   memset(&tss, 0, sizeof(tss));
   tss.ss0 = 1 * 8;
@@ -290,6 +289,8 @@ void into_mtask() {
   asm_set_em, asm_set_ts, asm_set_ne;
   task_ref(task);
   task_start(task);
+  klogf("into_mtask error");
+  abort();
 }
 
 void task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo) {
@@ -373,7 +374,7 @@ i32 waittid(i32 tid) {
     task_fall_blocked(THREAD_WAITING);
   }
   i32 status = target->status & I32_MAX;
-  klogd("task %d exit with code %d\n", tid, status);
+  klogd("task %d exit with code %d", tid, status);
   task_unref(target);
   return status;
 }
