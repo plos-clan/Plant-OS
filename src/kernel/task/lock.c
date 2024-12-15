@@ -14,7 +14,7 @@ void lock(lock_t *key) {
       key->waiter = current_task;
       if (key->value != LOCK_UNLOCKED && key->waiter) {
         task_run(key->owner);
-        task_fall_blocked(WAITING);
+        task_fall_blocked(THREAD_WAITING);
       }
     }
     key->waiter = NULL;

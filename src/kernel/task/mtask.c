@@ -43,10 +43,10 @@ static task_t task_alloc() {
   t->user_mode        = 0;
   t->running          = 0;
   t->timeout          = 0;
-  t->state            = EMPTY; // EMPTY
-  t->tid              = tid;   // task id
-  t->ptid             = -1;    // parent task id
-  t->keyboard_press   = null;  // keyboard hook
+  t->state            = THREAD_IDLE;
+  t->tid              = tid;  // task id
+  t->ptid             = -1;   // parent task id
+  t->keyboard_press   = null; // keyboard hook
   t->keyboard_release = null;
   t->fpu_enabled      = false;
   t->fifosleep        = 0;
@@ -79,8 +79,8 @@ static void task_free(task_t t) {
     kloge("task_free null");
     return;
   }
-  if (t->state != DIED) {
-    kloge("task_free state != DIED");
+  if (t->state != THREAD_DEAD) {
+    kloge("task_free state != THREAD_DEAD");
     return;
   }
   klogi("task_free %d", t->tid);
@@ -127,19 +127,19 @@ void running_tasks_push(task_t task) {
     kloge("running_tasks_push null");
     return;
   }
-  if (task->state == DIED) {
-    kloge("running_tasks_push task %d DIED", task->tid);
+  if (task->state == THREAD_DEAD) {
+    kloge("running_tasks_push task %d THREAD_DEAD", task->tid);
     return;
   }
   task_ref(task);
-  task->state = RUNNING;
+  task->state = THREAD_RUNNING;
   with_no_interrupts(queue_enqueue(&running_tasks[cpuid_coreid], task));
 }
 
 task_t running_tasks_pop() {
   task_t task = null;
   with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
-  while (task == null || task->state != RUNNING) {
+  while (task == null || task->state != THREAD_RUNNING) {
     if (task == null) {
       kloge("running_tasks_pop null");
       abort(); // 目前不应该这样
@@ -163,7 +163,7 @@ void task_tick() {
   const var task = mtask_current;
   assert(task != null);
   task->running++;
-  if (task->running < task->timeout && task->state == RUNNING && next_set == null) return;
+  if (task->running < task->timeout && task->state == THREAD_RUNNING && next_set == null) return;
   task_next();
 }
 
@@ -175,10 +175,10 @@ void task_next() {
 
   task->running = 0;
 
-  if (!task->is_switched && task->state == RUNNING) running_tasks_push(task);
+  if (!task->is_switched && task->state == THREAD_RUNNING) running_tasks_push(task);
   task->is_switched = false;
 
-  const var next = next_set && next_set->state == RUNNING ? next_set : running_tasks_pop();
+  const var next = next_set && next_set->state == THREAD_RUNNING ? next_set : running_tasks_pop();
   if (next == next_set) {
     next->is_switched = true;
     next_set          = null;
@@ -199,7 +199,11 @@ void task_next() {
 
   asm_sti;
 
-  if (next != task) task_switch(next); // 调度
+  if (next != task) {
+    task_unref(task);
+    task_ref(next);
+    task_switch(next); // 调度
+  }
 }
 
 task_t create_task(void *entry, u32 ticks, u32 floor) {
@@ -217,19 +221,12 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
-  t->state        = RUNNING;
+  t->state        = THREAD_RUNNING;
   t->jiffies      = 0;
 
   avltree_insert(tasks, t->tid, t);
   running_tasks_push(t);
   return t;
-}
-
-task_t get_task(u32 tid) {
-  task_t task = task_by_id(tid);
-  if (!task) return null;
-  if (task->state == READY) return null;
-  return task;
 }
 
 void task_to_user_mode(u32 eip, u32 esp) {
@@ -291,6 +288,7 @@ void into_mtask() {
   load_tr(103 * 8);
   const var task = create_task(user_init, 5, 1);
   asm_set_em, asm_set_ts, asm_set_ne;
+  task_ref(task);
   task_start(task);
 }
 
@@ -303,19 +301,9 @@ cir_queue8_t task_get_key_queue(task_t task) {
   return task->keyfifo;
 }
 
-void task_sleep(task_t task) {
-  task->state     = SLEEPING;
-  task->fifosleep = 1;
-}
-
-void task_wake_up(task_t task) {
-  task->state     = RUNNING;
-  task->fifosleep = 0;
-}
-
 void task_run(task_t task) {
-  if (task == null || task->status == DIED) return;
-  if (task->state == WAITING) running_tasks_push(task);
+  if (task == null || task->status == THREAD_DEAD) return;
+  if (task->state == THREAD_WAITING) running_tasks_push(task);
   next_set = task;
 }
 
@@ -325,10 +313,10 @@ cir_queue8_t task_get_mouse_fifo(task_t task) {
 
 u32 get_father_tid(task_t t) {
   if (t->ptid == -1) { return t->tid; }
-  return get_father_tid(get_task(t->ptid));
+  return get_father_tid(task_by_id(t->ptid));
 }
 
-void task_fall_blocked(enum STATE state) {
+void task_fall_blocked(ThreadState state) {
   klogd("task %d fall blocked %d", current_task->tid, state);
   current_task->state = state;
   task_next();
@@ -342,7 +330,7 @@ void task_kill(task_t task) {
 
   if (mouse_use_task == task) mouse_sleep(&mdec);
 
-  task->state = DIED;
+  task->state = THREAD_DEAD;
 
   avltree_free_with(task->children, (free_t)task_kill);
 
@@ -375,13 +363,14 @@ void task_exit(i32 status) {
 }
 
 i32 waittid(i32 tid) {
-  task_t target = get_task(tid);
+  task_t target = task_by_id(tid);
   if (target == null || target->ptid != current_task->tid) return -1;
   task_ref(target);
   // list_prepend(target->waiting_list, current_task);
   current_task->waittid = tid;
-  while (target->state != DIED && target->ptid == current_task->tid) {
-    task_fall_blocked(WAITING);
+  assert(target->ptid == current_task->tid);
+  while (target->state != THREAD_DEAD) {
+    task_fall_blocked(THREAD_WAITING);
   }
   i32 status = target->status & I32_MAX;
   klogd("task %d exit with code %d\n", tid, status);
@@ -453,7 +442,7 @@ int task_fork() {
     m->running = 0;
     m->jiffies = 0;
     m->timeout = 1;
-    m->state   = RUNNING;
+    m->state   = THREAD_RUNNING;
     m->ptid    = current_task->tid;
     m->tid     = tid;
     klogd("m->tid = %d\n", m->tid);

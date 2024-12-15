@@ -56,7 +56,7 @@ void v86_int(byte intnum, regs16 *regs) {
 
   for (i16 value = 0; !atom_cexch(&v86_requests->status, &value, 1); value = 0) {
     klogd("v86_int wait, status is %d\n", value);
-    task_run(get_task(v86_service_tid));
+    task_run(task_by_id(v86_service_tid));
     task_next();
   }
 
@@ -65,11 +65,11 @@ void v86_int(byte intnum, regs16 *regs) {
   v86_requests->func = intnum;
 
   atom_store(&v86_requests->status, 2); // 发送请求
-  task_run(get_task(v86_service_tid));
+  task_run(task_by_id(v86_service_tid));
   task_next();
 
   while (atom_load(&v86_requests->status) != 3) { // 等待完成
-    task_run(get_task(v86_service_tid));
+    task_run(task_by_id(v86_service_tid));
     task_next();
   }
 

@@ -8,14 +8,13 @@
 #define SIGINT 0
 #define SIGKIL 1
 
-enum STATE {
-  EMPTY,
-  RUNNING,
-  WAITING,
-  SLEEPING,
-  READY,
-  DIED
-};
+typedef enum ThreadState {
+  THREAD_IDLE,    // 线程被创建但未运行
+  THREAD_RUNNING, // 线程正在运行
+  THREAD_WAITING, // 线程正在等待
+  THREAD_STOPPED, // 线程已暂停
+  THREAD_DEAD,    // 线程已结束
+} ThreadState;
 
 typedef void (*cb_keyboard_t)(u8 data, u32 task);
 
@@ -27,8 +26,7 @@ typedef struct __PACKED__ task {
   u32           running;      // 已经占用了多少时间片
   u32           timeout;      // 需要占用多少时间片
   int           floor;
-  enum STATE    state;   // 此项为1（RUNNING） 即正常调度，为 2（WAITING） 3
-                         // （SLEEPING）的时候不执行 ，0 EMPTY 空闲格子
+  ThreadState   state;
   uint64_t      jiffies; // 最后一次执行的全局时间片
   i32           tid;
   i32           ptid;
@@ -69,10 +67,10 @@ task_t get_current_task();
 void   task_switch(task_t next); // 切换任务
 void   task_start(task_t next);  // 开始任务
 void   task_run(task_t task);
-void   task_exit(i32 status);
-task_t get_task(u32 tid);
+void   task_exit(i32 status) __attr(noreturn);
+task_t task_by_id(i32 tid);
 
-void task_fall_blocked(enum STATE state);
+void task_fall_blocked(ThreadState state);
 void user_init();
 
 cir_queue8_t task_get_key_queue(task_t task);
