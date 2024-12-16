@@ -222,7 +222,7 @@ static void inthandler21(i32 id, regs32 *regs) {
       // 按下键通常处理
       task_t task = task_by_id(i); // 每个进程都处理一遍
       if (task->state != THREAD_RUNNING || task->fifosleep) {
-        if (task->state == THREAD_WAITING && task->waittid < 0) { goto THROUGH; }
+        // if (task->state == THREAD_WAITING && task->waittid < 0) { goto THROUGH; }
         // 如果进程正在休眠或被锁了
         continue;
       }

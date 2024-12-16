@@ -30,6 +30,7 @@ typedef struct __PACKED__ task {
   uint64_t      jiffies; // 最后一次执行的全局时间片
   i32           tid;
   i32           ptid;
+  task_t        parent;
   u32           alloc_addr;
   u32          *alloc_size;
   u32           alloced;
@@ -41,7 +42,6 @@ typedef struct __PACKED__ task {
   cb_keyboard_t keyboard_release;
   bool          fifosleep;
   cstr          command_line;
-  i32           waittid;
   bool          sigint_up;
   i32           status; // 允许 0 到 255 的退出状态，绝对禁止负数
   u32           signal;
@@ -73,6 +73,7 @@ void   task_run(task_t task);
 void   task_exit(i32 status) __attr(noreturn);
 void   task_kill(task_t task);
 task_t task_by_id(i32 tid);
+i32    task_wait(task_t target);
 
 void task_fall_blocked(ThreadState state);
 void user_init();

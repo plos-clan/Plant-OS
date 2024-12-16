@@ -44,14 +44,12 @@ static task_t task_alloc() {
   t->running          = 0;
   t->timeout          = 0;
   t->state            = THREAD_IDLE;
-  t->tid              = tid;  // task id
-  t->ptid             = -1;   // parent task id
-  t->keyboard_press   = null; // keyboard hook
-  t->keyboard_release = null;
+  t->tid              = tid; // task id
+  t->ptid             = -1;  // parent task id
+  t->parent           = null;
   t->fpu_enabled      = false;
   t->fifosleep        = 0;
   t->command_line     = null;
-  t->waittid          = -1;
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
   t->alloced          = 0;
@@ -85,6 +83,8 @@ static void task_free(task_t t) {
     return;
   }
   klogi("task_free %d", t->tid);
+  kassert(t->children == null);
+  if (t->parent != null) avltree_delete(t->parent->children, t->tid);
   if (t == current_task) asm_set_cr3(PDE_ADDRESS);
   free_pde(t->pde);
   task_free_all_pages(t->tid); // 释放内存
@@ -266,7 +266,11 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->esp->eip  = (size_t)entry;                                      // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
 
-  t->ptid = current_task->tid;
+  if (task_current != null) {
+    t->ptid   = task_current->tid;
+    t->parent = task_current;
+    avltree_insert(task_current->children, t->tid, t);
+  }
 
   t->pde          = pde_clone(current_task->pde); // 启用了就复制一个
   t->stack_bottom = esp_alloced;                  // r0的esp
@@ -378,9 +382,10 @@ void task_kill(task_t task) {
   avltree_free_with(task->children, (free_t)task_kill);
 
   with_no_interrupts({
-    if (task->ptid != -1 && task_by_id(task->ptid)->waittid == tid) {
-      task_run(task_by_id(task->ptid));
+    list_foreach(task->waiting_list, node) {
+      task_run(node->data);
     }
+    list_free_with(task->waiting_list, (free_t)task_unref);
     avltree_delete_with(tasks, tid, (free_t)task_unref);
   });
 
@@ -406,20 +411,27 @@ void task_exit(i32 status) {
   abort();
 }
 
-i32 waittid(i32 tid) {
-  task_t target = task_by_id(tid);
-  if (target == null || target->ptid != current_task->tid) return -1;
+i32 task_wait(task_t target) {
+  kassert(task_current != null);
+  if (target == null) return -1;
   task_ref(target);
-  // list_prepend(target->waiting_list, current_task);
-  current_task->waittid = tid;
-  kassert(target->ptid == current_task->tid);
+
+  task_ref(task_current);
+  list_prepend(target->waiting_list, task_current);
+
   while (target->state != THREAD_DEAD) {
     task_fall_blocked(THREAD_WAITING);
   }
+
   i32 status = target->status & I32_MAX;
-  klogd("task %d exit with code %d", tid, status);
+  klogd("task %d exit with code %d", target->tid, status);
+
   task_unref(target);
   return status;
+}
+
+i32 waittid(i32 tid) {
+  return task_wait(task_by_id(tid));
 }
 
 // THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!
