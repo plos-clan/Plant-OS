@@ -110,8 +110,6 @@ u32 m_eip = 0;
 u32 times = 0;
 
 void inthandler2c(i32 id, regs32 *regs) {
-  asm_out8(PIC1_OCW2, 0x64);
-  asm_out8(PIC0_OCW2, 0x62);
   byte data = asm_in8(PORT_KEYDAT);
 
   klogd("mouse data=%02x\n", data);
@@ -120,7 +118,6 @@ void inthandler2c(i32 id, regs32 *regs) {
   if (times == 4) {
     times = 0;
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
-      //   klogd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
       cir_queue8_put(task_get_mouse_fifo(mouse_use_task), data);
 
       if (current_task != mouse_use_task) {
@@ -135,7 +132,6 @@ void inthandler2c(i32 id, regs32 *regs) {
     }
   } else {
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
-      //   klogd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
       cir_queue8_put(task_get_mouse_fifo(mouse_use_task), data);
     }
   }

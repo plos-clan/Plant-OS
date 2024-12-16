@@ -100,7 +100,7 @@ static void task_free(task_t t) {
   }
 }
 
-static task_t task_ref(task_t t) {
+finline task_t task_ref(task_t t) {
   if (t == null) {
     kloge("task_ref null");
     return null;
@@ -109,7 +109,7 @@ static task_t task_ref(task_t t) {
   return t;
 }
 
-static void task_unref(task_t t) {
+finline void task_unref(task_t t) {
   if (t == null) {
     kloge("task_unref null");
     return;
@@ -355,6 +355,7 @@ void task_exit(i32 status) {
   const var task = current_task;
   assert(task != null);
 
+  if (status < 0) klogw("task_exit status < 0");
   task->status = status & I32_MAX;
 
   task_kill(task);
