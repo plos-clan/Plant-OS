@@ -71,6 +71,7 @@ task_t get_current_task();
 void   task_run(task_t task);
 // 退出当前任务
 void   task_exit(i32 status) __attr(noreturn);
+void   task_kill(task_t task);
 task_t task_by_id(i32 tid);
 
 void task_fall_blocked(ThreadState state);

@@ -182,8 +182,6 @@ int os_execute(char *filename, char *line) {
 
   task_t t = create_task(&task_app, 1, 1);
 
-  t->ptid = current_task->tid;
-  klogd("ptid = %d", t->ptid);
   int old                 = current_task->sigint_up;
   current_task->sigint_up = 0;
   t->sigint_up            = 1;
