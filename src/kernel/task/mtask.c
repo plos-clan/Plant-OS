@@ -102,7 +102,13 @@ finline task_t task_ref(task_t t) {
     kloge("task_ref null");
     return null;
   }
-  t->rc++;
+  if (t->rc == 0) {
+    kloge("task_ref rc == 0");
+    return null;
+  }
+  u32 old_rc;
+  while (old_rc = t->rc, !atom_cexch(&t->rc, &old_rc, old_rc + 1)) {}
+  kassert(old_rc != 0);
   return t;
 }
 
@@ -115,7 +121,10 @@ finline void task_unref(task_t t) {
     kloge("task_unref rc == 0");
     return;
   }
-  if (--t->rc == 0) task_free(t);
+  u32 old_rc;
+  while (old_rc = t->rc, !atom_cexch(&t->rc, &old_rc, old_rc - 1)) {}
+  kassert(old_rc != 0);
+  if (old_rc == 1) task_free(t);
 }
 
 // --------------------------------------------------
@@ -127,29 +136,33 @@ void running_tasks_push(task_t task) {
     kloge("running_tasks_push null");
     return;
   }
+  const var is_sti = asm_is_sti;
+  asm_cli;
   if (task->state == THREAD_DEAD) {
     kloge("running_tasks_push task %d THREAD_DEAD", task->tid);
+    if (is_sti) asm_sti;
     return;
   }
   task_ref(task);
   task->state = THREAD_RUNNING;
-  with_no_interrupts(queue_enqueue(&running_tasks[cpuid_coreid], task));
+  queue_enqueue(&running_tasks[cpuid_coreid], task);
+  if (is_sti) asm_sti;
 }
 
 task_t running_tasks_pop() {
-  task_t task = null;
-  with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
+  const var is_sti = asm_is_sti;
+  asm_cli;
+  task_t task = queue_dequeue(&running_tasks[cpuid_coreid]);
   while (task == null || task->state != THREAD_RUNNING) {
     if (task == null) {
-      kloge("running_tasks_pop null");
-      abort(); // 目前不应该这样
-      asm_sti, asm_hlt;
+      asm_sti, asm_hlt, asm_cli;
     } else {
       task_unref(task);
     }
-    with_no_interrupts(task = queue_dequeue(&running_tasks[cpuid_coreid]));
+    task = queue_dequeue(&running_tasks[cpuid_coreid]);
   }
   task_unref(task);
+  if (is_sti) asm_sti;
   return task;
 }
 
@@ -191,17 +204,19 @@ extern task_t mouse_use_task;
 
 void task_tick() {
   const var task = mtask_current;
-  assert(task != null);
-  task->running++;
-  if (task->running < task->timeout && task->state == THREAD_RUNNING && next_set == null) return;
-  task_next();
+  kassert(task != null);
+  if (task->state == THREAD_RUNNING) {
+    task->running++;
+    if (task->running < task->timeout && next_set == null) return;
+    task_next();
+  }
 }
 
 void task_next() {
-  const var task = mtask_current;
-  assert(task != null);
-
   asm_cli;
+
+  const var task = mtask_current;
+  kassert(task != null);
 
   task->running = 0;
 
@@ -245,6 +260,8 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
   t->esp->eip  = (size_t)entry;                                      // 设置跳转地址
   t->user_mode = 0;                                                  // 设置是否是user_mode
+
+  t->ptid = current_task->tid;
 
   t->pde          = pde_clone(current_task->pde); // 启用了就复制一个
   t->stack_bottom = esp_alloced;                  // r0的esp
@@ -346,7 +363,7 @@ void task_fall_blocked(ThreadState state) {
 extern PageInfo *pages;
 
 void task_kill(task_t task) {
-  assert(task != null);
+  kassert(task != null);
   const var tid = task->tid;
 
   if (mouse_use_task == task) mouse_sleep(&mdec);
@@ -373,7 +390,7 @@ void task_kill(task_t task) {
 
 void task_exit(i32 status) {
   const var task = current_task;
-  assert(task != null);
+  kassert(task != null);
 
   if (status < 0) klogw("task_exit status < 0");
   task->status = status & I32_MAX;
@@ -390,7 +407,7 @@ i32 waittid(i32 tid) {
   task_ref(target);
   // list_prepend(target->waiting_list, current_task);
   current_task->waittid = tid;
-  assert(target->ptid == current_task->tid);
+  kassert(target->ptid == current_task->tid);
   while (target->state != THREAD_DEAD) {
     task_fall_blocked(THREAD_WAITING);
   }
