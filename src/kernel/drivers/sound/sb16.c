@@ -136,7 +136,9 @@ static void sb16_do_close() {
 
 static vsound_t snd;
 
-void sb16_handler(i32 id, regs32 *regs) {
+static inthandler_f sb16_handler;
+
+static void sb16_handler(i32 id, regs32 *regs) {
   asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);
 
 #if VSOUND_RWAPI

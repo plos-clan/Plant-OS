@@ -122,10 +122,15 @@ static void Read(int drive, u8 *buffer, u32 number, u32 lba) {
 static void Write(int drive, u8 *buffer, u32 number, u32 lba) {
   ide_write_sectors(drive_mapping[drive], number, lba, 1 * 8, (u32)buffer);
 }
-void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
 
+static inthandler_f ide_irq;
+
+void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
+  inthandler_set(0x2e, ide_irq);
+  inthandler_set(0x2f, ide_irq);
   irq_enable(15);
   irq_enable(14);
+
   int j, k, count = 0;
   for (int i = 0; i < 4; i++) {
     ide_devices[i].Reserved = 0;
@@ -534,15 +539,18 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
 
   return 0; // Easy, isn't it?
 }
+
 void ide_wait_irq() {
   while (!ide_irq_invoked)
     ;
   ide_irq_invoked = 0;
 }
-void ide_irq(i32 id, regs32 *regs) {
+
+static void ide_irq(i32 id, regs32 *regs) {
   klog("ide irq.");
   ide_irq_invoked = 1;
 }
+
 u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
   klog("cdrom read.");
   u32 channel  = ide_devices[drive].Channel;

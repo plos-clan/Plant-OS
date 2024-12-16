@@ -180,7 +180,7 @@ int os_execute(char *filename, char *line) {
 
   klogd("execute: %s by command %s", filename, line);
 
-  task_t t = create_task(task_app, 1, 1);
+  task_t t = create_task(&task_app, 1, 1);
 
   t->ptid = current_task->tid;
   klogd("ptid = %d", t->ptid);

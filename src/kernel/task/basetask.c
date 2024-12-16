@@ -136,7 +136,7 @@ void user_init() {
 
   screen_clear();
 
-  task_t t = create_task(v86_task, 1, 1);
+  task_t t = create_task(&v86_task, 1, 1);
 
   check_device();
   u32 *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);

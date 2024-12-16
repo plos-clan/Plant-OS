@@ -2,9 +2,6 @@
 
 #include <kernel.h>
 
-void task_switch(task_t next) __attr(fastcall); // 切换任务
-void task_start(task_t next) __attr(fastcall);  // 开始任务
-
 // 内核栈不应该超过 64K
 #define STACK_SIZE (64 * 1024)
 
@@ -157,6 +154,38 @@ task_t running_tasks_pop() {
 }
 
 // --------------------------------------------------
+//; 调度
+
+extern void asm_task_switch(task_t next) __attr(fastcall); // 切换任务
+extern void asm_task_start(task_t next) __attr(fastcall);  // 开始任务
+
+finline void task_switch(task_t next) {
+  var is_sti = asm_is_sti;
+  asm_cli;
+  if (next == mtask_current) {
+    klogw("task_switch next == current");
+  } else {
+    kassert(next != null, "Can't switch to null task");
+    task_ref(next);
+    kassert(mtask_current != null, "Can't switch from null task");
+    task_unref(mtask_current);
+    asm_task_switch(next);
+    kassert(mtask_current != null);
+    kassert(mtask_current->state == THREAD_RUNNING);
+  }
+  if (is_sti) asm_sti;
+}
+
+__attr(noreturn) finline void task_start(task_t task) {
+  asm_cli;
+  kassert(task != null, "task_start null");
+  task_ref(task);
+  asm_task_start(task);
+  klogf("task_start error");
+  abort();
+}
+
+// --------------------------------------------------
 
 extern task_t mouse_use_task;
 
@@ -204,13 +233,7 @@ void task_next() {
     fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
   }
 
-  asm_sti;
-
-  if (next != task) {
-    task_unref(task);
-    task_ref(next);
-    task_switch(next); // 调度
-  }
+  if (next != task) task_switch(next);
 }
 
 task_t create_task(void *entry, u32 ticks, u32 floor) {
@@ -285,12 +308,9 @@ void into_mtask() {
   tss.ss0 = 1 * 8;
   set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
-  const var task = create_task(user_init, 5, 1);
-  asm_set_em, asm_set_ts, asm_set_ne;
-  task_ref(task);
+  const var task = create_task(&user_init, 5, 1);
+  asm_set_ts, asm_set_em, asm_set_ne;
   task_start(task);
-  klogf("into_mtask error");
-  abort();
 }
 
 void task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo) {

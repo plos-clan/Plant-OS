@@ -79,7 +79,7 @@ void user_init();
 cir_queue8_t task_get_key_queue(task_t task);
 cir_queue8_t task_get_mouse_fifo(task_t task);
 void         into_mtask();
-task_t       create_task(void *func, u32 ticks, u32 floor);
+task_t       create_task(void *entry, u32 ticks, u32 floor);
 i32          waittid(i32 tid);
 void         task_set_fifo(task_t task, cir_queue8_t kfifo, cir_queue8_t mfifo);
 int          task_fork();

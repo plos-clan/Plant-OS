@@ -54,7 +54,7 @@ static u32  *output_buffer    = null;
 static u32   hda_codec_number = 0;
 static void *hda_buffer_ptr   = null;
 
-void hda_interrupt_handler(i32 id, regs32 *regs);
+static inthandler_f hda_interrupt_handler;
 
 static void wait(int ticks) {
   int tick = system_tick;
@@ -630,7 +630,7 @@ static int hda_open(vsound_t vsound) {
   return 0;
 }
 
-void hda_interrupt_handler(i32 id, regs32 *regs) {
+static void hda_interrupt_handler(i32 id, regs32 *regs) {
   // printf("hda interrupt has been called");
   if (hda_stopping) {
     hda_stop();

@@ -142,7 +142,8 @@ void init_page();
 void init_gdtidt();
 void fpu_disable();
 
-typedef void (*inthandler_t)(i32 id, regs32 *regs);
+typedef void(inthandler_f)(i32 id, regs32 *regs) __attr(fastcall);
+typedef void (*inthandler_t)(i32 id, regs32 *regs) __attr(fastcall);
 
 inthandler_t inthandler_get(i32 id);
 inthandler_t inthandler_set(i32 id, inthandler_t handler);

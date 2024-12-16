@@ -5,6 +5,8 @@
 
 task_t mouse_use_task = NULL;
 
+static inthandler_f inthandler2c;
+
 static void mouse_wait(byte a_type) {
   u32 _time_out = 100000;
   if (a_type == 0) {
@@ -38,8 +40,9 @@ static void   mouse_reset() {
   mouse_write(0xff);
 }
 
-static void enable_mouse(struct MOUSE_DEC *mdec) {
+void enable_mouse(struct MOUSE_DEC *mdec) {
   lock_init(&mouse_l);
+  inthandler_set(0x2c, inthandler2c);
   /* 激活鼠标 */
   wait_KBC_sendready();
   asm_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
@@ -109,7 +112,7 @@ u32 m_cr3 = 0;
 u32 m_eip = 0;
 u32 times = 0;
 
-void inthandler2c(i32 id, regs32 *regs) {
+static void inthandler2c(i32 id, regs32 *regs) {
   byte data = asm_in8(PORT_KEYDAT);
 
   klogd("mouse data=%02x\n", data);

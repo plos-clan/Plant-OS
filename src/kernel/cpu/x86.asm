@@ -89,9 +89,9 @@ move_cursor_by_idx:           ;移动光标
 	ret
 	
 	extern mtask_current
-	global task_switch, task_start
-task_switch:                  ; void task_switch(task_t next) __attr(fastcall);
-	cli
+	global asm_task_switch, asm_task_start
+	; 注意进入函数时必须 cli
+asm_task_switch:              ; void asm_task_switch(task_t next) __attr(fastcall);
 	push ebp
 	push edi
 	push esi
@@ -101,7 +101,7 @@ task_switch:                  ; void task_switch(task_t next) __attr(fastcall);
 	push eax
 	mov eax, [mtask_current]
 	mov [eax], esp               ; 保存esp
-task_start:                   ; void task_start(task_t next) __attr(fastcall);
+asm_task_start:               ; void asm_task_start(task_t next) __attr(fastcall);
 	mov [mtask_current], ecx
 	mov esp, [ecx]
 	mov eax, [ecx + 4]
@@ -113,7 +113,7 @@ task_start:                   ; void task_start(task_t next) __attr(fastcall);
 	pop esi
 	pop edi
 	pop ebp
-	sti
+	sti                          ; 这边必须 sti
 	ret
 	
 entering_v86:                 ; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
