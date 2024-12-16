@@ -16,7 +16,7 @@ for i in range(0, 256):
   # push (byte)i                   ; 6a xx
   data += b'\x6a' + i.to_bytes(1, byteorder='little', signed=False)
   # jmp near asm_into_inthandler   ; e9 xx xx xx xx 注：如果该中断已有错误码则跳转到 asm_into_inthandler 的后一个语句
-  distance = 7 * (i + 1) + (2 if i in has_errcode else 4)
+  distance = 7 * (i + 1) + (4 if i in has_errcode else 2)
   data += b'\xe9' + (-distance).to_bytes(4, byteorder='little', signed=True)
 
 values = []

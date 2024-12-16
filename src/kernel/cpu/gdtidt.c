@@ -31,8 +31,7 @@ static void (*const asm_handlers[IDT_LEN])() = {
     [0x00] = asm_error0,  [0x01] = asm_error1,  [0x03] = asm_error3,  [0x04] = asm_error4,
     [0x05] = asm_error5,  [0x06] = asm_error6,  [0x07] = asm_error7,  [0x08] = asm_error8,
     [0x09] = asm_error9,  [0x0a] = asm_error10, [0x0b] = asm_error11, [0x0c] = asm_error12,
-    [0x0d] = asm_error13, [0x0e] = asm_error14, [0x10] = asm_error16, [0x11] = asm_error17,
-    [0x12] = asm_error18,
+    [0x0d] = asm_error13, [0x10] = asm_error16, [0x11] = asm_error17, [0x12] = asm_error18,
 };
 
 // --------------------------------------------------

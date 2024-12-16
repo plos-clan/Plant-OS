@@ -8,7 +8,7 @@
 void free_pde(u32 addr);
 
 TSS32  tss;
-task_t mtask_current = null;
+task_t task_current = null;
 
 static avltree_t tasks      = null;
 static task_t    next_set   = null;
@@ -64,6 +64,7 @@ static task_t task_alloc() {
   t->keyboard_release = null;
   t->keyfifo          = null;
   t->mousefifo        = null;
+  t->status           = INT_MAX;
   t->signal           = 0;
   t->v86_mode         = 0;
 
@@ -128,6 +129,7 @@ finline void task_unref(task_t t) {
 }
 
 // --------------------------------------------------
+//; 运行队列
 
 static struct queue running_tasks[8];
 
@@ -169,22 +171,23 @@ task_t running_tasks_pop() {
 // --------------------------------------------------
 //; 调度
 
-extern void asm_task_switch(task_t next) __attr(fastcall); // 切换任务
-extern void asm_task_start(task_t next) __attr(fastcall);  // 开始任务
+extern void asm_task_switch(task_t current, task_t next) __attr(fastcall); // 切换任务
+extern void asm_task_start(task_t current, task_t next) __attr(fastcall);  // 开始任务
 
 finline void task_switch(task_t next) {
   var is_sti = asm_is_sti;
   asm_cli;
-  if (next == mtask_current) {
+  const var task = task_current;
+  kassert(next != null, "Can't switch to null task");
+  kassert(task != null, "Can't switch from null task");
+  if (next == task) {
     klogw("task_switch next == current");
   } else {
-    kassert(next != null, "Can't switch to null task");
     task_ref(next);
-    kassert(mtask_current != null, "Can't switch from null task");
-    task_unref(mtask_current);
-    asm_task_switch(next);
-    kassert(mtask_current != null);
-    kassert(mtask_current->state == THREAD_RUNNING);
+    task_unref(task);
+    task_current = next;
+    asm_task_switch(task, next);
+    kassert(task->state == THREAD_RUNNING);
   }
   if (is_sti) asm_sti;
 }
@@ -192,8 +195,10 @@ finline void task_switch(task_t next) {
 __attr(noreturn) finline void task_start(task_t task) {
   asm_cli;
   kassert(task != null, "task_start null");
+  kassert(task_current == null);
   task_ref(task);
-  asm_task_start(task);
+  task_current = task;
+  asm_task_start(null, task);
   klogf("task_start error");
   abort();
 }
@@ -203,7 +208,7 @@ __attr(noreturn) finline void task_start(task_t task) {
 extern task_t mouse_use_task;
 
 void task_tick() {
-  const var task = mtask_current;
+  const var task = task_current;
   kassert(task != null);
   if (task->state == THREAD_RUNNING) {
     task->running++;
@@ -215,7 +220,7 @@ void task_tick() {
 void task_next() {
   asm_cli;
 
-  const var task = mtask_current;
+  const var task = task_current;
   kassert(task != null);
 
   task->running = 0;
@@ -277,7 +282,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
 }
 
 void task_to_user_mode(u32 eip, u32 esp) {
-  u32 addr = (u32)mtask_current->stack_bottom;
+  u32 addr = (u32)task_current->stack_bottom;
 
   addr                 -= sizeof(intr_frame_t);
   intr_frame_t *iframe  = (intr_frame_t *)(addr);
@@ -291,17 +296,17 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->ecx       = 0;
   iframe->eax       = 0;
 
-  iframe->gs               = 0;
-  iframe->ds               = GET_SEL(3 * 8, SA_RPL3);
-  iframe->es               = GET_SEL(3 * 8, SA_RPL3);
-  iframe->fs               = GET_SEL(3 * 8, SA_RPL3);
-  iframe->ss               = GET_SEL(3 * 8, SA_RPL3);
-  iframe->cs               = GET_SEL(4 * 8, SA_RPL3);
-  iframe->eip              = eip;
-  iframe->eflags           = (0 << 12 | 0b10 | 1 << 9);
-  iframe->esp              = esp; // 设置用户态堆栈
-  mtask_current->user_mode = 1;
-  tss.esp0                 = mtask_current->stack_bottom;
+  iframe->gs              = 0;
+  iframe->ds              = GET_SEL(3 * 8, SA_RPL3);
+  iframe->es              = GET_SEL(3 * 8, SA_RPL3);
+  iframe->fs              = GET_SEL(3 * 8, SA_RPL3);
+  iframe->ss              = GET_SEL(3 * 8, SA_RPL3);
+  iframe->cs              = GET_SEL(4 * 8, SA_RPL3);
+  iframe->eip             = eip;
+  iframe->eflags          = (0 << 12 | 0b10 | 1 << 9);
+  iframe->esp             = esp; // 设置用户态堆栈
+  task_current->user_mode = 1;
+  tss.esp0                = task_current->stack_bottom;
   klogd("tid: %d\n", current_task->tid);
   asm_cli;
   asm volatile("movl %0, %%esp\n\t"
@@ -316,7 +321,7 @@ void task_to_user_mode(u32 eip, u32 esp) {
 }
 
 task_t get_current_task() {
-  return mtask_current ?: &empty_task;
+  return task_current ?: &empty_task;
 }
 
 void into_mtask() {
@@ -418,7 +423,7 @@ i32 waittid(i32 tid) {
 }
 
 // THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!
-void interrput_exit();
+void asm_inthandler_quit();
 
 static void build_fork_stack(task_t task) {
   u32 addr              = task->stack_bottom;
@@ -432,7 +437,7 @@ static void build_fork_stack(task_t task) {
   sframe->ebx          = 0;
   sframe->ecx          = 0;
   sframe->edx          = 0;
-  sframe->eip          = (size_t)interrput_exit;
+  sframe->eip          = (size_t)asm_inthandler_quit;
 
   task->esp = sframe;
 }

@@ -32,3 +32,7 @@ fi
 if [ -f test.qoi ]; then
   mcopy -i hd.img test.qoi ::
 fi
+
+if [ -f pf.bin ]; then
+  mcopy -i hd.img pf.bin ::
+fi

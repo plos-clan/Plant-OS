@@ -5,6 +5,8 @@
 #define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
+static inthandler_f page_fault;
+
 // 刷新虚拟地址 vaddr 的 块表 TLB
 finline void flush_tlb(size_t vaddr) {
   asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
@@ -335,6 +337,7 @@ void page_unlink(u32 addr) {
 }
 
 void init_page() {
+  inthandler_set(0x0e, &page_fault);
   init_pdepte(PDE_ADDRESS, PTE_ADDRESS, PAGE_END);
   page_manager_init(pages);
   // kernel 加载到0x280000
@@ -654,24 +657,23 @@ void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 pde_backup)
 
 extern TSS32 tss;
 
-void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, u32 gs, u32 fs,
-        u32 es, u32 ds, u32 error, u32 eip, u32 cs, u32 eflags) {
-  u32 pde = current_task->pde;
+static void page_fault(i32 id, regs32 *regs) {
   asm_cli;
+  u32 pde = current_task->pde;
   asm_set_cr3(PDE_ADDRESS); // 设置一个安全的页表
+
   void *line_address = (void *)asm_get_cr2();
   if (!(page_get_attr(pde, (u32)line_address) & PAGE_P) ||      // 不存在
       (!(page_get_attr(pde, (u32)line_address) & PAGE_USER))) { // 用户不可写
-    error("Attempt to read/write a non-existent/kernel memory %p at %p. System halt.", line_address,
-          eip);
-    if (current_task->user_mode) { // 用户级FAULT
-      task_exit(I32_MAX);          // 强制退出
-      infinite_loop;
+    error("Attempt to read/write a non-existent/kernel memory %p at %p.", line_address, regs->eip);
+    if (current_task->user_mode) {
+      task_kill(current_task);
+    } else {
+      abort(); // 系统级FAULT
     }
-    asm_cli;
-    abort(); // 系统级FAULT
   }
   copy_on_write((u32)line_address);
+
   asm_set_cr3(pde);
   asm_cli;
 }

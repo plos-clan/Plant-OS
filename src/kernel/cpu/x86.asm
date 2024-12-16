@@ -1,5 +1,4 @@
 	[BITS 32]
-	section .data
 	GLOBAL asm_get_flags, asm_set_flags
 	GLOBAL move_cursor_by_idx
 	GLOBAL memtest_sub, start_app
@@ -88,10 +87,10 @@ move_cursor_by_idx:           ;移动光标
 	out dx, al
 	ret
 	
-	extern mtask_current
+	extern task_current
 	global asm_task_switch, asm_task_start
 	; 注意进入函数时必须 cli
-asm_task_switch:              ; void asm_task_switch(task_t next) __attr(fastcall);
+asm_task_switch:              ; void asm_task_switch(task_t current, task_t next) __attr(fastcall);
 	push ebp
 	push edi
 	push esi
@@ -99,12 +98,10 @@ asm_task_switch:              ; void asm_task_switch(task_t next) __attr(fastcal
 	push ecx
 	push ebx
 	push eax
-	mov eax, [mtask_current]
-	mov [eax], esp               ; 保存esp
-asm_task_start:               ; void asm_task_start(task_t next) __attr(fastcall);
-	mov [mtask_current], ecx
-	mov esp, [ecx]
-	mov eax, [ecx + 4]
+	mov [ecx], esp               ; 保存esp
+asm_task_start:               ; void asm_task_start(task_t current, task_t next) __attr(fastcall);
+	mov esp, [edx]
+	mov eax, [edx + 4]
 	mov cr3, eax
 	pop eax
 	pop ebx

@@ -270,6 +270,7 @@ static const struct {
     {"test", "/fatfs1/testapp.bin"  },
     {"zstd", "/fatfs1/zstd-test.bin"},
     {"plui", "/fatfs1/plui-app.bin" },
+    {"pf",   "/fatfs1/pf.bin"       },
 };
 
 void debug_shell() {

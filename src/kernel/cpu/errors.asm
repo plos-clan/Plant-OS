@@ -6,7 +6,7 @@
 	GLOBAL asm_error17, asm_error18
 	section .text
 	EXTERN ERROR0, ERROR1, ERROR3, ERROR4, ERROR5, ERROR6, ERROR7, ERROR8
-	EXTERN ERROR9, ERROR10, ERROR11, ERROR12, ERROR13, PF, ERROR16
+	EXTERN ERROR9, ERROR10, ERROR11, ERROR12, ERROR13, ERROR16
 	EXTERN ERROR17, ERROR18
 	EXTERN KILLAPP
 asm_error0:
@@ -132,24 +132,6 @@ asm_error13:
 	pop ds
 	add esp, 4
 	xchg bx, bx
-	iret
-	EXTERN Print_Hex
-asm_error14:
-	cli
-	push ds
-	push es
-	push fs
-	push gs
-	pusha
-	call PF
-	popa
-	pop gs
-	pop fs
-	pop es
-	pop ds
-	add esp, 4
-	; what the fuck is esp doing?
-	sti
 	iret
 asm_error16:
 	cli

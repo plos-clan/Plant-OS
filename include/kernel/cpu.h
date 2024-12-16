@@ -133,7 +133,7 @@ typedef struct regs16 {
 typedef struct regs32 {
   u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
   u32 gs, fs, es, ds;
-  u32 err, id;
+  u32 id, err;
   u32 eip, cs, flags;
 } regs32;
 
