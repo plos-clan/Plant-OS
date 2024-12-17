@@ -11,7 +11,7 @@
 // 获取表达式的类型，类似于 auto
 #define typeof(arg) __typeof__((void)0, arg)
 
-#define offsetof(s, m) __builtin_offsetof(s, m)
+#define offsetof(t, d) __builtin_offsetof(t, d)
 
 #define alloca(size) __builtin_alloca(size)
 

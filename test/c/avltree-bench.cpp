@@ -5,7 +5,7 @@
 #define NO_STD 0
 #define AVL_IMPLEMENTATION
 extern "C" {
-#include <data-structure/avltree.h>
+#include <data-structure/sorted-map/avltree.h>
 }
 
 std::vector<i32> keys;
