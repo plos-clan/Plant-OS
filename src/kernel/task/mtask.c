@@ -96,6 +96,7 @@ static void task_free(task_t t) {
     page_free(t->release_keyfifo->buf, 4096);
     free(t->release_keyfifo);
   }
+  free(t->command_line);
 }
 
 finline task_t task_ref(task_t t) {
@@ -286,19 +287,15 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
 }
 
 void task_to_user_mode(u32 eip, u32 esp) {
-  u32 addr = (u32)task_current->stack_bottom;
+  regs32 *iframe = (regs32 *)task_current->stack_bottom - 1;
 
-  addr                 -= sizeof(intr_frame_t);
-  intr_frame_t *iframe  = (intr_frame_t *)(addr);
-
-  iframe->edi       = 0;
-  iframe->esi       = 0;
-  iframe->ebp       = 0;
-  iframe->esp_dummy = 0;
-  iframe->ebx       = 0;
-  iframe->edx       = 0;
-  iframe->ecx       = 0;
-  iframe->eax       = 0;
+  iframe->edi = 0;
+  iframe->esi = 0;
+  iframe->ebp = 0;
+  iframe->ebx = 0;
+  iframe->edx = 0;
+  iframe->ecx = 0;
+  iframe->eax = 0;
 
   iframe->gs              = 0;
   iframe->ds              = GET_SEL(3 * 8, SA_RPL3);
@@ -307,20 +304,13 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->ss              = GET_SEL(3 * 8, SA_RPL3);
   iframe->cs              = GET_SEL(4 * 8, SA_RPL3);
   iframe->eip             = eip;
-  iframe->eflags          = (0 << 12 | 0b10 | 1 << 9);
+  iframe->flags           = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp             = esp; // 设置用户态堆栈
   task_current->user_mode = 1;
   tss.esp0                = task_current->stack_bottom;
-  klogd("tid: %d\n", current_task->tid);
-  asm_cli;
-  asm volatile("movl %0, %%esp\n\t"
-               "popa\n\t"
-               "pop %%gs\n\t"
-               "pop %%fs\n\t"
-               "pop %%es\n\t"
-               "pop %%ds\n\t"
-               "iret\n\t" ::"m"(iframe)
-               : "memory");
+
+  asm volatile("mov %0, %%esp\n\t" ::"r"(iframe));
+  asm volatile("jmp asm_inthandler_quit\n\t");
   __builtin_unreachable();
 }
 
@@ -434,22 +424,16 @@ i32 waittid(i32 tid) {
   return task_wait(task_by_id(tid));
 }
 
-// THE FUNCTION CAN ONLY BE CALLED IN USER MODE!!!!
-void asm_inthandler_quit();
-
 static void build_fork_stack(task_t task) {
-  u32 addr              = task->stack_bottom;
-  addr                 -= sizeof(intr_frame_t);
-  intr_frame_t *iframe  = (intr_frame_t *)addr;
-  iframe->eax           = 0;
+  regs32 *iframe = (regs32 *)task->stack_bottom - 1;
+  iframe->eax    = 0;
   klogd("iframe = %08x\n", iframe->eip);
-  addr                -= sizeof(stack_frame);
-  stack_frame *sframe  = (stack_frame *)addr;
-  sframe->ebp          = 0;
-  sframe->ebx          = 0;
-  sframe->ecx          = 0;
-  sframe->edx          = 0;
-  sframe->eip          = (size_t)asm_inthandler_quit;
+  stack_frame *sframe = (stack_frame *)iframe - 1;
+  sframe->ebp         = 0;
+  sframe->ebx         = 0;
+  sframe->ecx         = 0;
+  sframe->edx         = 0;
+  sframe->eip         = (size_t)asm_inthandler_quit;
 
   task->esp = sframe;
 }

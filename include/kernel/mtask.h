@@ -93,3 +93,5 @@ void lock_init(lock_t *l);
 
 void   running_tasks_push(task_t task);
 task_t running_tasks_pop();
+
+i32 os_execute(cstr filename, cstr line);

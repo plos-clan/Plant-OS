@@ -6,30 +6,6 @@ typedef struct {
   u32 eip;
 } stack_frame;
 
-typedef struct intr_frame_t {
-  u32 edi;
-  u32 esi;
-  u32 ebp;
-  // 虽然 pushad 把 esp 也压入，但 esp 是不断变化的，所以会被 popad 忽略
-  u32 esp_dummy;
-
-  u32 ebx;
-  u32 edx;
-  u32 ecx;
-  u32 eax;
-
-  u32 gs;
-  u32 fs;
-  u32 es;
-  u32 ds;
-
-  u32 eip;
-  u32 cs;
-  u32 eflags;
-  u32 esp;
-  u32 ss;
-} intr_frame_t;
-
 typedef struct v86_frame_t {
   u32 edi;
   u32 esi;
@@ -131,10 +107,10 @@ typedef struct regs16 {
 } regs16;
 
 typedef struct regs32 {
-  u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
+  u32 edi, esi, ebp, _, ebx, edx, ecx, eax;
   u32 gs, fs, es, ds;
   u32 id, err;
-  u32 eip, cs, flags;
+  u32 eip, cs, flags, esp, ss;
 } regs32;
 
 void v86_int(byte intnum, regs16 *regs);
@@ -147,3 +123,10 @@ typedef void (*inthandler_t)(i32 id, regs32 *regs) __attr(fastcall);
 
 inthandler_t inthandler_get(i32 id);
 inthandler_t inthandler_set(i32 id, inthandler_t handler);
+
+//! 仅用于多任务切换到用户态
+//!   不能直接调用！请：
+//:     asm volatile("mov %0, %%esp\n\t" ::"r"(iframe));
+//:     asm volatile("jmp asm_inthandler_quit\n\t");
+//:     __builtin_unreachable();
+void asm_inthandler_quit();

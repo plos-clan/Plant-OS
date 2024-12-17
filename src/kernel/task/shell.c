@@ -6,8 +6,6 @@
 #include <pl_readline.h>
 #include <plty.h>
 
-int os_execute(char *filename, char *line);
-
 void list_files(char *path) {
   klogd("%s", path);
   vfs_node_t p = vfs_open(path);
