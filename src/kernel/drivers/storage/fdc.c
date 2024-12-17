@@ -246,7 +246,7 @@ static byte getbyte_or_zero() {
 }
 
 void wait_floppy_interrupt() {
-  // task_fall_blocked(THREAD_WAITING);
+  // task_fall_blocked();
   asm_sti;
   waitif(!floppy_int_count);
   statsz = 0; // 清空状态

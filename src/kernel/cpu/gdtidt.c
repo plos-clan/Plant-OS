@@ -40,10 +40,12 @@ __attr(fastcall) void inthandler(i32 id, regs32 *regs) {
 }
 
 inthandler_t inthandler_get(i32 id) {
+  kassert(0 <= id && id < IDT_LEN);
   return handlers[id];
 }
 
 inthandler_t inthandler_set(i32 id, inthandler_t handler) {
+  kassert(0 <= id && id < IDT_LEN);
   var old      = handlers[id];
   handlers[id] = handler;
   if (old != null) klogw("Overwrite interrupt %02x's (%d's) handler", id, id);

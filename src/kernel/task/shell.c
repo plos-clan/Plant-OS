@@ -65,8 +65,6 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     free(s);
     return;
   }
-  // 使用pl_readline_word_maker_add(char *word, pl_readline_words_t words, bool
-  // is_first)
 
   // 添加words中的单词
   list_foreach(p->child, i) {

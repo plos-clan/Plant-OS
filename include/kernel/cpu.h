@@ -65,23 +65,58 @@ typedef struct regs16 {
 
 // 可参考 https://www.felixcloutier.com/x86/iret:iretd:iretq
 
+/**
+ *\brief 32 位保护模式下中断处理程序的寄存器
+ *
+ */
 typedef struct regs32 {
   u32 edi, esi, ebp, _, ebx, edx, ecx, eax;
   u32 gs, fs, es, ds;
-  u32 id, err;
+  u32 id, err; // err: 当中断具有错误码时为错误码，否则为中断号
   u32 eip, cs, flags, esp, ss;
 } regs32;
 
-void v86_int(byte intnum, regs16 *regs);
-void init_page();
-void init_gdtidt();
-void init_error_inthandler();
-void fpu_disable();
+// 目前 plos 并没有 64 位的实现
 
+typedef struct regs64 {
+  u64 r15, r14, r13, r12, r11, r10, r9, r8;
+  u64 rdi, rsi, rbp, _, rbx, rdx, rcx, rax;
+  u64 gs, fs, es, ds;
+  u64 id, err; // err: 当中断具有错误码时为错误码，否则为中断号
+  u64 rip, cs, rflags, rsp, ss;
+} regs64;
+
+void v86_int(byte intnum, regs16 *regs); // 调用虚拟86模式中断
+void init_page();                        // 初始化分页
+void init_gdtidt();                      // 初始化全局描述符表和中断描述符表
+void init_error_inthandler();            // 初始化错误中断处理程序
+void fpu_disable();                      // 禁用浮点运算单元
+
+#if __x86_64__
+typedef void(inthandler_f)(i32 id, regs64 *regs);
+typedef void (*inthandler_t)(i32 id, regs64 *regs);
+#else
+//. 注意 fastcall 调用约定
 typedef void(inthandler_f)(i32 id, regs32 *regs) __attr(fastcall);
+//. 注意 fastcall 调用约定
 typedef void (*inthandler_t)(i32 id, regs32 *regs) __attr(fastcall);
+#endif
 
+/**
+ *\brief 获取中断处理函数
+ *
+ *\param id       中断号
+ *\return 处理函数
+ */
 inthandler_t inthandler_get(i32 id);
+
+/**
+ *\brief 设置中断处理函数
+ *
+ *\param id       中断号
+ *\param handler  处理函数
+ *\return 之前的处理函数
+ */
 inthandler_t inthandler_set(i32 id, inthandler_t handler);
 
 //! 仅用于多任务切换到用户态

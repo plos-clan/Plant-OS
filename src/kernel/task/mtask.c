@@ -352,9 +352,9 @@ u32 get_father_tid(task_t t) {
   return get_father_tid(task_by_id(t->ptid));
 }
 
-void task_fall_blocked(ThreadState state) {
-  klogd("task %d fall blocked %d", current_task->tid, state);
-  current_task->state = state;
+void task_fall_blocked() {
+  klogd("task %d fall blocked", current_task->tid);
+  current_task->state = THREAD_WAITING;
   task_next();
 }
 
@@ -362,6 +362,9 @@ extern PageInfo *pages;
 
 void task_kill(task_t task) {
   kassert(task != null);
+
+  if (task->state == THREAD_IDLE) {}
+
   const var tid = task->tid;
 
   if (mouse_use_task == task) mouse_sleep(&mdec);
@@ -409,7 +412,7 @@ i32 task_wait(task_t target) {
   list_prepend(target->waiting_list, task_current);
 
   while (target->state != THREAD_DEAD) {
-    task_fall_blocked(THREAD_WAITING);
+    task_fall_blocked();
   }
 
   i32 status = target->status & I32_MAX;
