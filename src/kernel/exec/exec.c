@@ -13,13 +13,8 @@ extern PageInfo *pages;
 #define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
 void task_app() {
-  klogd("task_app");
-  while (!current_task->command_line) {
-    task_next();
-  }
   klogd("%s", current_task->command_line);
   klogd("%08x", current_task->stack_bottom);
-  // klogd("%p %d", current_task->nfs, vfs_filesize("testapp.bin"));
   char *kfifo = (char *)page_malloc_one();
   char *mfifo = (char *)page_malloc_one();
   char *kbuf  = (char *)page_malloc_one();
@@ -73,6 +68,8 @@ void task_app() {
   infinite_loop;
 }
 
+extern task_t mouse_use_task;
+
 #define STACK_SIZE 1024 // 4MiB
 
 void task_to_user_mode_elf() {
@@ -86,7 +83,12 @@ void task_to_user_mode_elf() {
   }
 
   vfs_node_t file = vfs_open(args.argv[0]);
-  if (!file) goto err;
+  if (file == null) {
+    if (mouse_use_task == current_task) mouse_sleep(&mdec);
+    kloge();
+    task_exit(I32_MAX);
+    __builtin_unreachable();
+  }
 
   regs32 *iframe = (regs32 *)current_task->stack_bottom - 1;
   iframe->edi    = (size_t)args.argc;
@@ -111,22 +113,16 @@ void task_to_user_mode_elf() {
   tss.eflags     = 0x202;
 
   klogd("%lu", file->size);
-  char *p = page_alloc(file->size);
-  vfs_read(file, p, 0, file->size);
-  klogd();
-  if (!elf32_is_validate((Elf32_Ehdr *)p)) {
-    klogd();
-    extern task_t mouse_use_task;
-    page_free(p, file->size);
-  err:
-
+  char *elf_data = page_alloc(file->size);
+  vfs_read(file, elf_data, 0, file->size);
+  if (!elf32_is_validate((Elf32_Ehdr *)elf_data)) {
+    page_free(elf_data, file->size);
     if (mouse_use_task == current_task) mouse_sleep(&mdec);
-
     kloge();
     task_exit(I32_MAX);
     __builtin_unreachable();
   }
-  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)p) & 0xfffff000) + PAGE_SIZE;
+  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)elf_data) & 0xfffff000) + PAGE_SIZE;
   klogd("alloc_addr = %08x", alloc_addr);
 
   u32 pg = PADDING_UP(*(current_task->alloc_size), PAGE_SIZE) / PAGE_SIZE;
@@ -138,18 +134,16 @@ void task_to_user_mode_elf() {
   iframe->esp               = alloced_esp;
   current_task->alloc_addr  = alloc_addr;
   current_task->v86_mode    = 0;
-  iframe->eip               = load_elf((Elf32_Ehdr *)p);
+  iframe->eip               = load_elf((Elf32_Ehdr *)elf_data);
   klogd("eip = %08x", iframe->eip);
   current_task->user_mode = 1;
   tss.esp0                = current_task->stack_bottom;
-  change_page_task_id(current_task->tid, p, file->size);
+  change_page_task_id(current_task->tid, elf_data, file->size);
 
   asm volatile("mov %0, %%esp\n\t" ::"r"(iframe));
   asm volatile("jmp asm_inthandler_quit\n\t");
   __builtin_unreachable();
 }
-
-extern task_t mouse_use_task;
 
 i32 os_execute(cstr filename, cstr line) {
   task_t backup = mouse_use_task;
@@ -168,6 +162,8 @@ i32 os_execute(cstr filename, cstr line) {
   t->command_line = strdup(line);
 
   klogd("t->tid %d %d", t->tid, t->ptid);
+
+  task_run(t);
 
   i32 status              = waittid(t->tid);
   current_task->fifosleep = o;

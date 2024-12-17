@@ -1,11 +1,8 @@
-	[BITS 32]
-	GLOBAL asm_get_flags, asm_set_flags
-	GLOBAL move_cursor_by_idx
-	GLOBAL memtest_sub, start_app
-	GLOBAL return_to_app, entering_v86
+	[bits 32]
+	global move_cursor_by_idx
+	global memtest_sub, start_app
 	
 	section .text
-	%define ADR_BOTPAK 0x0
 	
 memtest_sub:                  ; u32 memtest_sub(u32 start, u32 end)
 	CLI
@@ -113,6 +110,7 @@ asm_task_start:               ; void asm_task_start(task_t current, task_t next)
 	sti                          ; 这边必须 sti
 	ret
 	
+	global entering_v86
 entering_v86:                 ; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 	mov ebp, esp                 ; save stack pointer
 	push dword [ebp + 4]         ; ss

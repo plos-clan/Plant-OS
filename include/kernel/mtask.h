@@ -68,7 +68,7 @@ void task_next(); // 请求切换任务
 
 task_t get_current_task();
 // 将 waiting 状态的任务转换为 running 状态，并将任务设置为下一个调度任务
-void   task_run(task_t task);
+task_t task_run(task_t task);
 // 退出当前任务
 void   task_exit(i32 status) __attr(noreturn);
 void   task_kill(task_t task);

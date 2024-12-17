@@ -278,11 +278,9 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
-  t->state        = THREAD_RUNNING;
   t->jiffies      = 0;
 
-  avltree_insert(tasks, t->tid, t);
-  running_tasks_push(t);
+  with_no_interrupts(avltree_insert(tasks, t->tid, t));
   return t;
 }
 
@@ -324,7 +322,7 @@ void into_mtask() {
   tss.ss0 = 1 * 8;
   set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
-  const var task = create_task(&user_init, 5, 1);
+  const var task = task_run(create_task(&user_init, 5, 1));
   asm_set_ts, asm_set_em, asm_set_ne;
   task_start(task);
 }
@@ -338,10 +336,11 @@ cir_queue8_t task_get_key_queue(task_t task) {
   return task->keyfifo;
 }
 
-void task_run(task_t task) {
-  if (task == null || task->status == THREAD_DEAD) return;
-  if (task->state == THREAD_WAITING) running_tasks_push(task);
+task_t task_run(task_t task) {
+  if (task == null || task->status == THREAD_DEAD || task->status == THREAD_STOPPED) return task;
+  if (task->state != THREAD_RUNNING) running_tasks_push(task);
   next_set = task;
+  return task;
 }
 
 cir_queue8_t task_get_mouse_fifo(task_t task) {

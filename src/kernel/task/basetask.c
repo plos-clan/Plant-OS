@@ -135,7 +135,7 @@ void user_init() {
 
   screen_clear();
 
-  task_t t = create_task(&v86_task, 1, 1);
+  task_t t = task_run(create_task(&v86_task, 1, 1));
 
   check_device();
 
@@ -189,8 +189,8 @@ void user_init() {
 #endif
   plty_set_default(tty);
 
-  const var shell_task       = create_task(&shell, 1, 1);
-  const var debug_shell_task = create_task(&debug_shell, 1, 1);
+  const var shell_task       = task_run(create_task(&shell, 1, 1));
+  const var debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
 
   debug_enabled = true;
 

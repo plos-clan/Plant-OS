@@ -6,31 +6,6 @@ typedef struct {
   u32 eip;
 } stack_frame;
 
-typedef struct v86_frame_t {
-  u32 edi;
-  u32 esi;
-  u32 ebp;
-  // 虽然 pushad 把 esp 也压入，但 esp 是不断变化的，所以会被 popad 忽略
-  u32 esp_dummy;
-
-  u32 ebx;
-  u32 edx;
-  u32 ecx;
-  u32 eax;
-
-  u32 gs;
-  u32 fs;
-  u32 es;
-  u32 ds;
-
-  u32 error;
-  u32 eip;
-  u32 cs;
-  u32 eflags;
-  u32 esp;
-  u32 ss;
-} v86_frame_t;
-
 #define SA_RPL_MASK      0xFFFC
 #define SA_TI_MASK       0xFFFB
 #define SA_TIL           4 // 设置此项，将从LDT中寻找
@@ -83,28 +58,12 @@ typedef struct GateDescriptor {
 void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar);
 void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar);
 
-void asm_error0();
-void asm_error1();
-void asm_error3();
-void asm_error4();
-void asm_error5();
-void asm_error6();
-void asm_error7();
-void asm_error8();
-void asm_error9();
-void asm_error10();
-void asm_error11();
-void asm_error12();
-void asm_error13();
-void asm_error14();
-void asm_error16();
-void asm_error17();
-void asm_error18();
-
 typedef struct regs16 {
   u16 di, si, bp, sp, bx, dx, cx, ax;
   u16 gs, fs, es, ds, flags;
 } regs16;
+
+// 可参考 https://www.felixcloutier.com/x86/iret:iretd:iretq
 
 typedef struct regs32 {
   u32 edi, esi, ebp, _, ebx, edx, ecx, eax;
@@ -116,6 +75,7 @@ typedef struct regs32 {
 void v86_int(byte intnum, regs16 *regs);
 void init_page();
 void init_gdtidt();
+void init_error_inthandler();
 void fpu_disable();
 
 typedef void(inthandler_f)(i32 id, regs32 *regs) __attr(fastcall);
