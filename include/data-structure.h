@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 #include "data-structure/base.h"
+#include "data-structure/kernel/kqueue.h"
 #include "data-structure/ordered-map/slist-strptr.h"
 #include "data-structure/ordered-set/array-list.h"
 #include "data-structure/ordered-set/bitmap.h"

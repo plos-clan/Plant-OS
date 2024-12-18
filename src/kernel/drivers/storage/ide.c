@@ -246,9 +246,12 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
         vd.flag = 1;
       }
 
-      vd.read          = Read;
-      vd.write         = Write;
-      vd.size          = ide_devices[i].Size * 512;
+      vd.read  = Read;
+      vd.write = Write;
+      vd.size  = ide_devices[i].Size * 512;
+      if (vd.flag == 2) {
+        vd.size = 700 * 1024 * 1024; // ATAPI CD-ROM size.
+      }
       vd.sector_size   = vd.flag == 2 ? 2048 : 512;
       vd.type          = VDISK_BLOCK;
       int c            = regist_vdisk(vd);
