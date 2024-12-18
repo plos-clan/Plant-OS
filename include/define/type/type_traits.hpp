@@ -1,7 +1,12 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "type_traits"
+
+//+ C++ 标准头过于抽象故不会更新
 
 namespace cpp {
 

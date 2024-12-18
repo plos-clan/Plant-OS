@@ -1,6 +1,9 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "00-include.hpp"
 
 #define assert_type_is_int(T)   static_assert(std::is_integral_v<T>, "类型 " #T " 必须是整数")

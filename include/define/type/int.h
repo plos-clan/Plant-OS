@@ -2,6 +2,8 @@
 
 #pragma once
 
+#pragma GCC system_header
+
 #if __INT_WIDTH__ != 32
 #  error "int 必须为 int32"
 #endif

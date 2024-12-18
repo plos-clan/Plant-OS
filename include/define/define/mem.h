@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma GCC system_header
+
 #define mem_geti(addr)   ({ *(volatile ssize_t *)(addr); })
 #define mem_geti8(addr)  ({ *(volatile i8 *)(addr); })
 #define mem_geti16(addr) ({ *(volatile i16 *)(addr); })

@@ -1,6 +1,9 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "00-include.h"
 
 #ifdef __cplusplus
@@ -13,7 +16,7 @@ static const auto null = nullptr;
 
 // gcc 扩展，让 C 中的 auto 具有和 C++ 类似的语义
 // 神经你 C23 加这鬼玩意干嘛，没活可以咬个打火机
-#if !defined(__cplusplus) && __STDC_VERSION__ < 202300L
+#if !defined(__cplusplus) && __STDC_VERSION__ < 202311L
 #  define auto __auto_type
 #endif
 

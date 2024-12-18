@@ -2,6 +2,8 @@
 
 #pragma once
 
+#pragma GCC system_header
+
 #ifndef __cplusplus
 typedef __UINT8_TYPE__ char8_t; // 我们认为 char8 就是 uint8
 typedef __CHAR16_TYPE__ char16_t;

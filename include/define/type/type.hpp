@@ -1,6 +1,9 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "00-include.hpp"
 #include "type_traits.hpp"
 

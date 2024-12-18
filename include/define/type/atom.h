@@ -2,14 +2,20 @@
 
 #pragma once
 
+#pragma GCC system_header
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~ 标准库原子操作部分
+
+//- 参考 gcc   /usr/lib/gcc/x86_64-linux-gnu/14/include/stdatomic.h
+//- 参考 clang /usr/lib/llvm-19/lib/clang/19/include/stdatomic.h
+//-   注意 clang 兼容 gcc 标准头文件，所以我们可以直接参照 gcc 的实现
 
 // 看到底下 NO_STD || !defined(__cplusplus) 了没
 // 都是为了和标准库能够共存搞的
 
 #ifndef __cplusplus
-typedef enum {
+typedef enum memory_order { //+ 但在 gcc 中这个 enum 没有名称
   // 最低限度的内存顺序语义。
   // 在这种模式下，编译器和处理器可以采取任意措施来优化性能，并不需要遵循任何顺序。
   memory_order_relaxed = __ATOMIC_RELAXED,
@@ -62,6 +68,8 @@ inline constexpr auto memory_order_release = memory_order::release;
 inline constexpr auto memory_order_acq_rel = memory_order::acq_rel;
 inline constexpr auto memory_order_seq_cst = memory_order::seq_cst;
 #endif
+
+//~ 自定义简写部分
 
 enum {
   // 最低限度的内存顺序语义。

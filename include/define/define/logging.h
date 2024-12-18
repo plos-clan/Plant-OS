@@ -1,6 +1,9 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "00-include.h"
 
 #define CRGB(r, g, b)  "\033[38;2;" #r ";" #g ";" #b "m"
@@ -21,7 +24,7 @@
 
 static inline
     __attribute__((always_inline, nonnull(1, 2), access(read_only, 1, 3), access(read_only, 2, 3)))
-#if !defined(__cplusplus) && __STDC_VERSION__ < 202300L
+#if !defined(__cplusplus) && __STDC_VERSION__ < 202311L
     _Bool
 #else
     bool
@@ -30,13 +33,13 @@ static inline
   const __UINT8_TYPE__ *p = (const __UINT8_TYPE__ *)a;
   const __UINT8_TYPE__ *q = (const __UINT8_TYPE__ *)b;
   for (__UINTPTR_TYPE__ i = 0; i < size; i++) {
-#if !defined(__cplusplus) && __STDC_VERSION__ < 202300L
+#if !defined(__cplusplus) && __STDC_VERSION__ < 202311L
     if (p[i] != q[i]) return (_Bool)0;
 #else
     if (p[i] != q[i]) return false;
 #endif
   }
-#if !defined(__cplusplus) && __STDC_VERSION__ < 202300L
+#if !defined(__cplusplus) && __STDC_VERSION__ < 202311L
   return (_Bool)1;
 #else
   return true;
