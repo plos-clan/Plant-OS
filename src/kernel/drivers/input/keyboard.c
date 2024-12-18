@@ -112,7 +112,7 @@ static int sc2a(int sc) {
 int    disable_flag      = 0;
 task_t keyboard_use_task = NULL;
 
-static void inthandler21(i32 id, regs32 *regs) {
+__attr(fastcall) void inthandler21(i32 id, regs32 *regs) {
   // 键盘中断处理函数
   u8 data, s[4];
   asm_out8(PIC0_OCW2, 0x61);

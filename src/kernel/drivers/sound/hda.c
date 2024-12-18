@@ -630,7 +630,7 @@ static int hda_open(vsound_t vsound) {
   return 0;
 }
 
-static void hda_interrupt_handler(i32 id, regs32 *regs) {
+__attr(fastcall) void hda_interrupt_handler(i32 id, regs32 *regs) {
   // printf("hda interrupt has been called");
   if (hda_stopping) {
     hda_stop();

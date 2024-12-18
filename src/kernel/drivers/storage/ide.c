@@ -549,7 +549,7 @@ void ide_wait_irq() {
   ide_irq_invoked = 0;
 }
 
-static void ide_irq(i32 id, regs32 *regs) {
+__attr(fastcall) void ide_irq(i32 id, regs32 *regs) {
   klog("ide irq.");
   ide_irq_invoked = 1;
 }

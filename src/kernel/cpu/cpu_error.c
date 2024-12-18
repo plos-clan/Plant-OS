@@ -1,9 +1,9 @@
 #include <kernel.h>
 
-inthandler_f error_inthandler;
-inthandler_f ERROR7;
-inthandler_f ERROR13;
-inthandler_f irq13;
+static inthandler_f error_inthandler;
+static inthandler_f ERROR7;
+static inthandler_f ERROR13;
+static inthandler_f irq13;
 
 void fpu_disable() {
   asm_set_ts, asm_set_em;
@@ -69,7 +69,7 @@ static const struct {
     [31] = {"--", "Reserved"                      },
 };
 
-void error_inthandler(i32 id, regs32 *regs) {
+__attr(fastcall) void error_inthandler(i32 id, regs32 *regs) {
   kassert(id >= 0);
   kassert(id < 32);
   kassert(regs != null);
@@ -78,11 +78,11 @@ void error_inthandler(i32 id, regs32 *regs) {
   abort();
 }
 
-void ERROR7(i32 id, regs32 *reg) {
+__attr(fastcall) void ERROR7(i32 id, regs32 *reg) {
   fpu_enable(current_task);
 }
 
-void irq13(i32 id, regs32 *reg) {
+__attr(fastcall) void irq13(i32 id, regs32 *reg) {
   kloge("IRQ 13 should not be triggered");
   fpu_enable(current_task);
 }
@@ -105,7 +105,7 @@ extern byte *IVT;
 
 extern task_t v86_using_task;
 
-void ERROR13(i32 id, regs32 *regs) {
+__attr(fastcall) void ERROR13(i32 id, regs32 *regs) {
   const var frame = regs;
   const var task  = current_task;
   if (current_task->v86_mode != 1) {

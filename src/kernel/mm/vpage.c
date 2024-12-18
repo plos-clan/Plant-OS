@@ -657,7 +657,7 @@ void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 pde_backup)
 
 extern TSS32 tss;
 
-static void page_fault(i32 id, regs32 *regs) {
+__attr(fastcall) void page_fault(i32 id, regs32 *regs) {
   asm_cli;
   u32 pde = current_task->pde;
   asm_set_cr3(PDE_ADDRESS); // 设置一个安全的页表

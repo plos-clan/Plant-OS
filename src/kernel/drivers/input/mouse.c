@@ -112,7 +112,7 @@ u32 m_cr3 = 0;
 u32 m_eip = 0;
 u32 times = 0;
 
-static void inthandler2c(i32 id, regs32 *regs) {
+__attr(fastcall) void inthandler2c(i32 id, regs32 *regs) {
   byte data = asm_in8(PORT_KEYDAT);
 
   klogd("mouse data=%02x\n", data);
