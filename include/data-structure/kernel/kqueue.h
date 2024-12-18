@@ -1,46 +1,50 @@
 #pragma once
 #include <define.h>
 
+#ifdef __cplusplus
+#  error "内核不允许使用 C++"
+#endif
+
 // 未完成
 
-typedef struct {
+typedef struct kqueue {
   void **buffer;
   size_t head;
   size_t tail;
   size_t capacity;
   size_t size;
-} kqueue_t;
+} *kqueue_t;
 
-static inline void kqueue_init(kqueue_t *queue, void **buffer, size_t capacity) {
+finline void kqueue_init(kqueue_t queue, void **buffer, size_t capacity) {
   queue->buffer   = buffer;
   queue->head     = 0;
   queue->tail     = 0;
   queue->capacity = capacity;
-  atomic_store(&queue->size, 0);
+  atom_store(&queue->size, 0);
 }
 
-static inline bool kqueue_enqueue(kqueue_t *queue, void *item) {
-  size_t size = atomic_load(&queue->size);
+finline bool kqueue_enqueue(kqueue_t queue, void *item) {
+  size_t size = atom_load(&queue->size);
   if (size == queue->capacity) {
     return false; // Queue is full
   }
   queue->buffer[queue->tail] = item;
   queue->tail                = (queue->tail + 1) % queue->capacity;
-  atomic_fetch_add(&queue->size, 1);
+  atom_add(&queue->size, 1);
   return true;
 }
 
-static inline bool kqueue_dequeue(kqueue_t *queue, void **item) {
+finline bool kqueue_dequeue(kqueue_t queue, void **item) {
   size_t size = atomic_load(&queue->size);
   if (size == 0) {
     return false; // Queue is empty
   }
   *item       = queue->buffer[queue->head];
   queue->head = (queue->head + 1) % queue->capacity;
-  atomic_fetch_sub(&queue->size, 1);
+  atom_sub(&queue->size, 1);
   return true;
 }
 
-static inline size_t kqueue_size(kqueue_t *queue) {
-  return atomic_load(&queue->size);
+finline size_t kqueue_size(kqueue_t queue) {
+  return atom_load(&queue->size);
 }
