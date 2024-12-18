@@ -21,25 +21,10 @@ void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar) {
   gd->offset_high  = (offset >> 16) & 0xffff;
 }
 
-extern void asm_inthandler() __attr(naked);
-extern void inthandler(i32 id, regs32 *regs) __attr(fastcall);
+// --------------------------------------------------
+//; 通用处理逻辑
 
-static void (*const asm_handlers[IDT_LEN])() = {
-    [0x00] = asm_error0,  [0x01] = asm_error1,  [0x03] = asm_error3,  [0x04] = asm_error4,
-    [0x05] = asm_error5,  [0x06] = asm_error6,  [0x07] = asm_error7,  [0x08] = asm_error8,
-    [0x09] = asm_error9,  [0x0a] = asm_error10, [0x0b] = asm_error11, [0x0c] = asm_error12,
-    [0x0d] = asm_error13, [0x0e] = asm_error14, [0x10] = asm_error16, [0x11] = asm_error17,
-    [0x12] = asm_error18,
-};
-
-void inthandler2c(i32 id, regs32 *regs);
-void ide_irq(i32 id, regs32 *regs);
-
-static inthandler_t handlers[IDT_LEN] = {
-    [0x2c]      = inthandler2c, // 鼠标中断
-    [0x20 + 14] = ide_irq,      // IDE中断
-    [0x20 + 15] = ide_irq,      // IDE中断
-};
+static inthandler_t handlers[IDT_LEN];
 
 size_t syscall(size_t eax, size_t ebx, size_t ecx, size_t edx, size_t esi, size_t edi);
 
@@ -50,19 +35,27 @@ __attr(fastcall) void inthandler(i32 id, regs32 *regs) {
   } else if (handlers[id]) {
     handlers[id](id, regs);
   } else {
-    klogd("Unknown interrupt %02x (%d)", id, id);
+    klogw("Unknown interrupt %02x (%d)", id, id);
   }
 }
 
 inthandler_t inthandler_get(i32 id) {
+  kassert(0 <= id && id < IDT_LEN);
   return handlers[id];
 }
 
 inthandler_t inthandler_set(i32 id, inthandler_t handler) {
+  kassert(0 <= id && id < IDT_LEN);
   var old      = handlers[id];
   handlers[id] = handler;
+  if (old != null) klogw("Overwrite interrupt %02x's (%d's) handler", id, id);
   return old;
 }
+
+// --------------------------------------------------
+//; 初始化GDT和IDT
+
+extern void asm_inthandler() __attr(naked);
 
 void init_gdtidt() {
   // 初始化 GDT
@@ -85,13 +78,7 @@ void init_gdtidt() {
   for (size_t i = 0; i < IDT_LEN; i++) {
     int    ar      = i >= 0x30 ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
     size_t handler = (size_t)&asm_inthandler + i * 7;
-    set_gatedesc(idt + i, (size_t)asm_handlers[i] ?: handler, 2 * 8, ar);
+    set_gatedesc(idt + i, handler, 2 * 8, ar);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
-}
-
-// 注册中断处理函数
-void regist_intr_handler(int id, void *addr) {
-  var idt = (GateDescriptor *)IDT_ADDR;
-  set_gatedesc(idt + id, (size_t)addr, 2 * 8, AR_INTGATE32);
 }

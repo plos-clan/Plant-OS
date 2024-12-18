@@ -5,6 +5,8 @@
 
 task_t mouse_use_task = NULL;
 
+static inthandler_f inthandler2c;
+
 static void mouse_wait(byte a_type) {
   u32 _time_out = 100000;
   if (a_type == 0) {
@@ -38,8 +40,9 @@ static void   mouse_reset() {
   mouse_write(0xff);
 }
 
-static void enable_mouse(struct MOUSE_DEC *mdec) {
+void enable_mouse(struct MOUSE_DEC *mdec) {
   lock_init(&mouse_l);
+  inthandler_set(0x2c, inthandler2c);
   /* 激活鼠标 */
   wait_KBC_sendready();
   asm_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
@@ -109,9 +112,7 @@ u32 m_cr3 = 0;
 u32 m_eip = 0;
 u32 times = 0;
 
-void inthandler2c(i32 id, regs32 *regs) {
-  asm_out8(PIC1_OCW2, 0x64);
-  asm_out8(PIC0_OCW2, 0x62);
+static void inthandler2c(i32 id, regs32 *regs) {
   byte data = asm_in8(PORT_KEYDAT);
 
   klogd("mouse data=%02x\n", data);
@@ -120,16 +121,13 @@ void inthandler2c(i32 id, regs32 *regs) {
   if (times == 4) {
     times = 0;
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
-      //   klogd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
       cir_queue8_put(task_get_mouse_fifo(mouse_use_task), data);
 
       if (current_task != mouse_use_task) {
         //   klogd("SET 1\n");
         mouse_use_task->timeout = 5;
-        mouse_use_task->ready   = 1;
-        mouse_use_task->urgent  = 1;
         mouse_use_task->running = 0;
-        mtask_run_now(mouse_use_task);
+        task_run(mouse_use_task);
         task_next();
       } else {
         mouse_use_task->running = 0;
@@ -137,7 +135,6 @@ void inthandler2c(i32 id, regs32 *regs) {
     }
   } else {
     if (mouse_use_task != NULL || !mouse_use_task->fifosleep || mouse_use_task->state == 1) {
-      //   klogd("put %08x\n",task_get_mouse_fifo(mouse_use_task));
       cir_queue8_put(task_get_mouse_fifo(mouse_use_task), data);
     }
   }

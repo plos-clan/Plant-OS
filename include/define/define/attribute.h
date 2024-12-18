@@ -1,6 +1,9 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "00-include.h"
 
 // 部分数据结构不应该有 padding

@@ -200,15 +200,15 @@ static char        gbuf[2048];
 
 #define get_now_dir(vfs) ((l9660_fs_status_t *)(vfs->cache))->now_dir
 
-static inline uint16_t fsectoff(l9660_file *f) {
+finline uint16_t fsectoff(l9660_file *f) {
   return f->position % 2048;
 }
 
-static inline uint32_t fsector(l9660_file *f) {
+finline uint32_t fsector(l9660_file *f) {
   return f->position / 2048;
 }
 
-static inline uint32_t fnextsectpos(l9660_file *f) {
+finline uint32_t fnextsectpos(l9660_file *f) {
   return (f->position + 2047) & ~2047;
 }
 
@@ -343,7 +343,7 @@ l9660_status l9660_opendirat(l9660_dir *dir, l9660_dir *parent, const char *path
   return openat_raw(&dir->file, parent, path, true);
 }
 
-static inline unsigned aligneven(unsigned v) {
+finline unsigned aligneven(unsigned v) {
   return v + (v & 1);
 }
 

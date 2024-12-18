@@ -3,5 +3,8 @@
 void kernel_main() {
   sysinit();
   into_mtask();
-  infinite_loop;
+  infinite_loop {
+    klogf("kernel_main error");
+    abort();
+  }
 }

@@ -15,6 +15,7 @@ template <BasePixelTemplate>
 auto BasePixelT::RGB2Grayscale() -> BasePixel & {
   T gray = r * (FT).299 + g * (FT).587 + b * (FT).114;
   r = g = b = gray;
+  return *this;
 }
 
 #if FAST_COLOR_TRANSFORM
@@ -31,6 +32,7 @@ template <>
 auto BasePixelBT::RGB2Grayscale() -> BasePixel & {
   byte gray = (r * 19595 + g * 38470 + b * 7471) / 65536;
   r = g = b = gray;
+  return *this;
 }
 
 template <>
@@ -46,6 +48,7 @@ template <>
 auto BasePixelST::RGB2Grayscale() -> BasePixel & {
   u16 gray = (r * 19595U + g * 38470U + b * 7471U) / 65536U;
   r = g = b = gray;
+  return *this;
 }
 
 template <>
@@ -61,6 +64,7 @@ template <>
 auto BasePixelIT::RGB2Grayscale() -> BasePixel & {
   u32 gray = (r * 19595ULL + g * 38470ULL + b * 7471ULL) / 65536ULL;
   r = g = b = gray;
+  return *this;
 }
 #endif
 

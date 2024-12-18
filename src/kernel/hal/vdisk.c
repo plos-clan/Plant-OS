@@ -87,8 +87,8 @@ bool set_drive(u8 *name) {
 }
 
 u32 get_drive_code(u8 *name) {
-  for (int i = 0; i != 16; i++) {
-    if (strcmp((char *)drive_name[i], (char *)name) == 0) { return i; }
+  for (int i = 0; i < 16; i++) {
+    if (streq((cstr)drive_name[i], (cstr)name)) return i;
   }
   return 16;
 }

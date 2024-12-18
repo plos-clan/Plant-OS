@@ -29,7 +29,7 @@ void wait_KBC_sendready() {
   }
 }
 
-void inthandler21(i32 id, regs32 *regs);
+static inthandler_f inthandler21;
 
 // 初始化键盘控制电路
 void init_keyboard() {
@@ -71,21 +71,11 @@ int getch() {
 extern struct tty *tty_default;
 
 int tty_fifo_status() {
-  task_t task = current_task;
-  if (task->TTY->is_using != 1) {
-    return tty_default->fifo_status(tty_default);
-  } else {
-    return task->TTY->fifo_status(task->TTY);
-  }
+  return tty_default->fifo_status(tty_default);
 }
 
 int tty_fifo_get() {
-  task_t task = current_task;
-  if (task->TTY->is_using != 1) {
-    return tty_default->fifo_get(tty_default);
-  } else {
-    return task->TTY->fifo_get(task->TTY);
-  }
+  return tty_default->fifo_get(tty_default);
 }
 
 static int input_char_inSM() {
@@ -122,7 +112,7 @@ static int sc2a(int sc) {
 int    disable_flag      = 0;
 task_t keyboard_use_task = NULL;
 
-void inthandler21(i32 id, regs32 *regs) {
+static void inthandler21(i32 id, regs32 *regs) {
   // 键盘中断处理函数
   u8 data, s[4];
   asm_out8(PIC0_OCW2, 0x61);
@@ -152,8 +142,8 @@ void inthandler21(i32 id, regs32 *regs) {
   // 快捷键处理
   if (data == 0x2e && ctrl) {
     for (int i = 0; i < 255; i++) {
-      if (!get_task(i)) { continue; }
-      if (get_task(i)->sigint_up) { get_task(i)->signal |= MASK32(SIGINT); }
+      if (!task_by_id(i)) { continue; }
+      if (task_by_id(i)->sigint_up) { task_by_id(i)->signal |= MASK32(SIGINT); }
     }
     // return;
   }
@@ -180,21 +170,19 @@ void inthandler21(i32 id, regs32 *regs) {
       }
       if (current_task != keyboard_use_task) {
         keyboard_use_task->timeout = 5;
-        keyboard_use_task->ready   = 1;
-        keyboard_use_task->urgent  = 1;
         keyboard_use_task->running = 0;
-        mtask_run_now(keyboard_use_task);
+        task_run(keyboard_use_task);
         task_next();
       } else {
         keyboard_use_task->running = 0;
       }
     } else
       for (int i = 0; i < 255; i++) {
-        if (!get_task(i)) { continue; }
-        if (get_task(i)->keyboard_release != NULL) {
+        if (!task_by_id(i)) { continue; }
+        if (task_by_id(i)->keyboard_release != NULL) {
           // TASK结构体中有对松开键特殊处理的
-          if (e0_flag) { get_task(i)->keyboard_release(0xe0, i); }
-          get_task(i)->keyboard_release(data, i); // 处理松开键
+          if (e0_flag) { task_by_id(i)->keyboard_release(0xe0, i); }
+          task_by_id(i)->keyboard_release(data, i); // 处理松开键
 
           if (disable_flag) {}
         }
@@ -212,10 +200,8 @@ void inthandler21(i32 id, regs32 *regs) {
     if (current_task != keyboard_use_task) {
       //   klogd("SET 1\n");
       keyboard_use_task->timeout = 5;
-      keyboard_use_task->ready   = 1;
-      keyboard_use_task->urgent  = 1;
       keyboard_use_task->running = 0;
-      mtask_run_now(keyboard_use_task);
+      task_run(keyboard_use_task);
       task_next();
     } else {
       keyboard_use_task->running = 0;
@@ -223,20 +209,20 @@ void inthandler21(i32 id, regs32 *regs) {
   } else
     for (int i = 0; i < 255; i++) {
       // printk("up\n");
-      if (!get_task(i)) { continue; }
-      if (get_task(i)->keyboard_press != NULL) {
+      if (!task_by_id(i)) { continue; }
+      if (task_by_id(i)->keyboard_press != NULL) {
         // TASK结构体中有对按下键特殊处理的
-        if (e0_flag) { get_task(i)->keyboard_press(0xe0, i); }
-        get_task(i)->keyboard_press(data, i); // 处理按下键
+        if (e0_flag) { task_by_id(i)->keyboard_press(0xe0, i); }
+        task_by_id(i)->keyboard_press(data, i); // 处理按下键
       }
     }
   if (disable_flag == 0)
     for (int i = 0; i < 255; i++) {
-      if (!get_task(i)) { continue; }
+      if (!task_by_id(i)) { continue; }
       // 按下键通常处理
-      task_t task = get_task(i); // 每个进程都处理一遍
-      if (task->state != RUNNING || task->fifosleep) {
-        if (task->state == WAITING && task->waittid < 0) { goto THROUGH; }
+      task_t task = task_by_id(i); // 每个进程都处理一遍
+      if (task->state != THREAD_RUNNING || task->fifosleep) {
+        // if (task->state == THREAD_WAITING && task->waittid < 0) { goto THROUGH; }
         // 如果进程正在休眠或被锁了
         continue;
       }

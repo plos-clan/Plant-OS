@@ -12,7 +12,6 @@
 #define PTE_ADDRESS   (PDE_ADDRESS + 0x1000)
 #define PAGE_END      (PTE_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
-#define NULL_TID      11459810
 
 typedef struct __PACKED__ PageInfo {
   u8 task_id;
@@ -47,9 +46,8 @@ finline size_t mk_linear_addr(size_t table, size_t page, size_t off) {
 }
 #endif
 
-u32   page_get_attr(u32 vaddr);
-u32   page_get_attr_pde(u32 vaddr, u32 pde);
-u32   page_get_phy_pde(u32 vaddr, u32 pde);
+u32   page_get_attr(u32 pde, u32 vaddr);
+u32   page_get_phy(u32 pde, u32 vaddr);
 void  tpo2page(int *page, int t, int p);
 void *page_malloc_one_count_from_4gb();
 void *page_alloc(size_t size);

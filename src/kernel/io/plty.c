@@ -61,6 +61,5 @@ struct tty *plty_set_tty(plty_t plty) {
 extern struct tty *tty_default;
 
 void plty_set_default(plty_t plty) {
-  tty_default       = plty_set_tty(plty);
-  current_task->TTY = tty_default;
+  tty_default = plty_set_tty(plty);
 }

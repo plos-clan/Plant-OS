@@ -1,5 +1,5 @@
 #pragma once
-#include "base.h"
+#include "../base.h"
 
 #pragma GCC system_header
 
@@ -10,7 +10,7 @@
 #ifdef RBTREE_SP_IMPLEMENTATION
 #  define SLIST_SP_IMPLEMENTATION
 #endif
-#include "slist-strptr.h"
+#include "../ordered-map/slist-strptr.h"
 
 #ifndef _RBTREE_ENUM_
 #  define _RBTREE_ENUM_
@@ -135,8 +135,8 @@ static rbtree_sp_t rbtree_sp_right_rotate(rbtree_sp_t root, rbtree_sp_t y) __THR
  *\param[in] v 替换后的子树根节点
  *\return 替换后的树的根节点
  */
-static rbtree_sp_t rbtree_sp_transplant(rbtree_sp_t root, rbtree_sp_t u, rbtree_sp_t v)
-    __THROW __wur;
+static rbtree_sp_t rbtree_sp_transplant(rbtree_sp_t root, rbtree_sp_t u, rbtree_sp_t v) __THROW
+__wur;
 
 /**
  *\brief 执行插入操作后修复红黑树性质

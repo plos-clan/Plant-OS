@@ -85,6 +85,8 @@ static void Write(int drive, byte *buffer, uint number, uint lba) {
   floppy_use = NULL;
 }
 
+static inthandler_f flint;
+
 static void flint(i32 id, regs32 *regs) {
   floppy_int_count = 1; // 设置中断计数器为1，代表中断已经发生（或者是系统已经收到了中断）
   asm_out8(0x20, 0x20); // 发送EOI信号，告诉PIC，我们已经处理完了这个中断
@@ -237,20 +239,28 @@ static int getbyte() {
   return -1; /* 没读取到 */
 }
 
+static byte getbyte_or_zero() {
+  int data = getbyte();
+  if (data < 0) return 0;
+  return data;
+}
+
 void wait_floppy_interrupt() {
-  // task_fall_blocked(WAITING);
+  // task_fall_blocked();
   asm_sti;
   waitif(!floppy_int_count);
   statsz = 0; // 清空状态
   //  状态寄存器的低四位是1（TRUE，所以这里不用写==），说明软盘驱动器没发送完所有的数据，当我们获取完所有的数据（状态变量=7），就可以跳出循环了
   while ((statsz < 7) && (asm_in8(FDC_MSR) & (1 << 4))) {
-    status[statsz++] = getbyte(); // 获取数据
+    int data = getbyte();
+    if (data < 0) kloge("getbyte error");
+    status[statsz++] = data; // 获取数据
   }
 
   /* 获取中断状态 */
   sendbyte(CMD_SENSEI);
-  sr0       = getbyte();
-  fdc_track = getbyte();
+  sr0       = getbyte_or_zero();
+  fdc_track = getbyte_or_zero();
 
   floppy_int_count = 0;
   waiter           = NULL;
@@ -270,8 +280,8 @@ static int fdc_rw(int block, byte *blockbuff, int read, u64 nosectors) {
   set_waiter(current_task);
   int   head, track, sector, tries, copycount = 0;
   byte *p_tbaddr = (byte *)0x80000; // 512byte
-      // 缓冲区（大家可以放心，我们再page.c已经把这里设置为占用了）
-  byte *p_blockbuff = blockbuff; // r/w的数据缓冲区
+                                    // 缓冲区（大家可以放心，我们再page.c已经把这里设置为占用了）
+  byte *p_blockbuff = blockbuff;    // r/w的数据缓冲区
 
   /* 获取block对应的ths */
   block2hts(block, &track, &head, &sector);

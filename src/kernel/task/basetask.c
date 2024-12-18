@@ -7,7 +7,6 @@
 #include <plty.h>
 
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
-int  os_execute(char *filename, char *line);
 void v86_task();
 void shell();
 void debug_shell();
@@ -76,7 +75,9 @@ static void draw(int n) {
   }
 }
 
-void init() {
+extern bool debug_enabled;
+
+void user_init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
   vfs_mkdir("/dev");
@@ -133,11 +134,16 @@ void init() {
   // }
 
   screen_clear();
-  task_t t = create_task(v86_task, 1, 1);
+
+  task_t t = task_run(create_task(&v86_task, 1, 1));
+
   check_device();
+
   u32 *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
   klogd("ok vram = %p", vram);
   lgmemset32(vram, 0, screen_w * screen_h);
+
+  task_kill(t);
 
 #if 0 // 尝试 os-terminal 库
   void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
@@ -181,15 +187,15 @@ void init() {
     plty_flush(tty);
   }
 #endif
-  void task_kill(u32 tid);
   plty_set_default(tty);
-  task_kill(t->tid);
 
-  create_task(shell, 1, 1);
-  create_task(debug_shell, 1, 1);
+  const var shell_task       = task_run(create_task(&shell, 1, 1));
+  const var debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
 
-  extern bool debug_enabled;
   debug_enabled = true;
 
-  infinite_loop task_next();
+  waittid(shell_task->tid);
+  waittid(debug_shell_task->tid);
+
+  fatal("all tasks exited");
 }

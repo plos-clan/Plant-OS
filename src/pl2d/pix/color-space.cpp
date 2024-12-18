@@ -180,6 +180,7 @@ auto BasePixelT::RGB2XYZ() -> BasePixel & {
   this->r = (x / (FT)0.950456) * (FT)T_MAX;
   this->g = (y / (FT)1.000000) * (FT)T_MAX;
   this->b = (z / (FT)1.088754) * (FT)T_MAX;
+  return *this;
 }
 
 template <BasePixelTemplate>

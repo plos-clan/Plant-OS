@@ -1,6 +1,9 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "00-include.h"
 
 // 获取数组的长度
@@ -10,6 +13,8 @@
 
 // 获取表达式的类型，类似于 auto
 #define typeof(arg) __typeof__((void)0, arg)
+
+#define offsetof(t, d) __builtin_offsetof(t, d)
 
 #define alloca(size) __builtin_alloca(size)
 

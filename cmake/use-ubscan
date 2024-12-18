@@ -11,9 +11,9 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     implicit-integer-sign-change #
     integer-divide-by-zero #
     nonnull-attribute #
-    # null #
+    null #
     nullability #
-    # pointer-overflow #
+    pointer-overflow #
     return #
     returns-nonnull-attribute #
     shift #

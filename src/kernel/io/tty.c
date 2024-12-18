@@ -101,15 +101,6 @@ void tty_free(struct tty *res) {
   page_free((void *)res, sizeof(struct tty));
 }
 
-struct tty *tty_set(task_t task, struct tty *res) {
-  if (res->is_using == 1) {
-    struct tty *old = task->TTY;
-    task->TTY       = res;
-    return old;
-  }
-  return NULL;
-}
-
 struct tty *tty_set_default(struct tty *res) {
   if (res->is_using == 1) {
     struct tty *old = tty_default;

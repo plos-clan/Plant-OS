@@ -2,9 +2,11 @@
 
 #pragma once
 
+#pragma GCC system_header
+
 // 神经你 C23 加这鬼玩意干嘛，没活可以咬个打火机
 #ifndef __cplusplus
-#  if __STDC_VERSION__ < 202300L
+#  if __STDC_VERSION__ < 202311L
 #    define bool  _Bool
 #    define true  ((bool)1)
 #    define false ((bool)0)

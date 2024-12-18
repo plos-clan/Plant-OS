@@ -10,7 +10,7 @@ static void pit_set(u16 value) {
   asm_out8(PIT_CNT0, value >> 8);
 }
 
-void inthandler20(i32 id, regs32 *regs);
+static inthandler_f inthandler20;
 
 #define PIT_FREQ 100
 
@@ -37,13 +37,13 @@ void sleep(uint64_t time_s) {
   //   } while (now_time.sec < end_time.sec || now_time.nsec < end_time.nsec);
 }
 
-void inthandler20(i32 id, regs32 *regs) {
+static void inthandler20(i32 id, regs32 *regs) {
   // gettime_ns(NULL); // 更新时间
 
   system_tick++;
 
   kenel_debugger_tick();
 
-  extern task_t mtask_current;
-  if (mtask_current) task_next();
+  extern task_t task_current;
+  if (task_current) task_tick();
 }

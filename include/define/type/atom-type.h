@@ -1,17 +1,25 @@
 // This code is released under the MIT License
 
 #pragma once
+
+#pragma GCC system_header
+
 #include "bool.h"
 #include "int.h"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~ 原子类型
+//~ 标准库原子类型
+
+//- 参考 gcc   /usr/lib/gcc/x86_64-linux-gnu/14/include/stdatomic.h
+//- 参考 clang /usr/lib/llvm-19/lib/clang/19/include/stdatomic.h
+//-   注意 clang 兼容 gcc 标准头文件，所以我们可以直接参照 gcc 的实现
 
 #if NO_STD || !defined(__cplusplus)
 #  define atomic _Atomic
 #endif
 
 #if defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__)
+//+ 使用 gcc 编译 C++ 代码
 
 #  if 0
 
@@ -64,6 +72,8 @@ typedef __atomic_base<bool> atomic_flag_t;
 #  endif
 
 #else
+//+ 使用 gcc 编译 C 代码
+//+ 使用 clang 编译
 
 typedef _Atomic bool               atomic_bool;
 typedef _Atomic char               atomic_char;
@@ -114,11 +124,12 @@ typedef _Atomic bool atomic_flag_t;
 #  define atomic_is_lock_free(obj) __atomic_is_lock_free(sizeof(*(obj)), (obj))
 #endif
 
+//+ 我不知道为什么，但能用就行
 #if NO_STD && !(defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__))
 #  define ATOMIC_FLAG_INIT false
 #endif
 
-//~ 自定义的
+//~ 自定义原子类型简称
 
 #if defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__)
 

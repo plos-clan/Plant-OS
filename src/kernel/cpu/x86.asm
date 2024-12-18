@@ -1,12 +1,8 @@
-	[BITS 32]
-	section .data
-	GLOBAL asm_get_flags, asm_set_flags
-	GLOBAL move_cursor_by_idx
-	GLOBAL memtest_sub, start_app
-	GLOBAL return_to_app, entering_v86
+	[bits 32]
+	global move_cursor_by_idx
+	global memtest_sub, start_app
 	
 	section .text
-	%define ADR_BOTPAK 0x0
 	
 memtest_sub:                  ; u32 memtest_sub(u32 start, u32 end)
 	CLI
@@ -88,23 +84,21 @@ move_cursor_by_idx:           ;移动光标
 	out dx, al
 	ret
 	
-	extern mtask_current
-	global task_switch, task_start
-task_switch:
+	extern task_current
+	global asm_task_switch, asm_task_start
+	; 注意进入函数时必须 cli
+asm_task_switch:              ; void asm_task_switch(task_t current, task_t next) __attr(fastcall);
 	push ebp
-	mov ebp, esp
 	push edi
 	push esi
 	push edx
 	push ecx
 	push ebx
 	push eax
-	mov eax, [mtask_current]
-	mov [eax], esp               ; 保存esp
-	mov eax, [ebp + 8]           ; next
-	mov [mtask_current], eax
-	mov esp, [eax]
-	mov eax, [eax + 4]
+	mov [ecx], esp               ; 保存esp
+asm_task_start:               ; void asm_task_start(task_t current, task_t next) __attr(fastcall);
+	mov esp, [edx]
+	mov eax, [edx + 4]
 	mov cr3, eax
 	pop eax
 	pop ebx
@@ -113,34 +107,11 @@ task_switch:
 	pop esi
 	pop edi
 	pop ebp
+	sti                          ; 这边必须 sti
 	ret
-task_start:
-	mov eax, [esp + 4]           ; next
-	mov [mtask_current], eax
-	mov esp, [eax]
-	mov eax, [eax + 4]
-	mov cr3, eax
-	pop eax
-	pop ebx
-	pop ecx
-	pop edx
-	pop esi
-	pop edi
-	pop ebp
-	ret
-	; return_to_app:
-	; mov eax, 0x56
-	; int 0x36
-	; popa
-	; pop gs
-	; pop fs
-	; pop es
-	; pop ds
-	; ret
-	; retuen_to_app_end:
 	
-	; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
-entering_v86:
+	global entering_v86
+entering_v86:                 ; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);
 	mov ebp, esp                 ; save stack pointer
 	push dword [ebp + 4]         ; ss
 	push dword [ebp + 8]         ; esp
@@ -150,5 +121,5 @@ entering_v86:
 	push dword [ebp + 16]        ; eip
 	iret
 	
-	[SECTION .data]
+	section .data
 testsize: dd 0

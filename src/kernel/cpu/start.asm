@@ -24,11 +24,12 @@ header_start:
 header_end:
 	
 	global _start
-	extern kernel_main, init_gdtidt
+	extern kernel_main, init_gdtidt, init_error_inthandler
 	section .text
 _start:
 	cli
 	call init_gdtidt
+	call init_error_inthandler
 	jmp 2 * 8:.next
 .next:
 	mov ax, 1 * 8

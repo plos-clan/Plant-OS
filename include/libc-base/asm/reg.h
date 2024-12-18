@@ -19,6 +19,10 @@
                  : "r"((size_t)(flags)));                                                          \
   })
 
+#define asm_is_sti (asm_get_flags() & (1 << 9))
+
+#define asm_is_cli (!asm_is_sti)
+
 #define asm_get_sp()                                                                               \
   ({                                                                                               \
     size_t sp;                                                                                     \

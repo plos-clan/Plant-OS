@@ -40,9 +40,9 @@ void v86_task() {
     page_link_addr_pde(i, pde, i);
   }
   // 设置状态
-  tss.esp0                = current_task->top;
+  tss.esp0                = current_task->stack_bottom;
   tss.eflags              = 0x202 | (1 << 17);
-  tss.iomap               = ((u32)offsetof(TSS32, io_map));
+  tss.iomap               = offsetof(TSS32, io_map);
   current_task->v86_mode  = 1;
   current_task->user_mode = 1;
   current_task->v86_if    = 1;
@@ -56,7 +56,7 @@ void v86_int(byte intnum, regs16 *regs) {
 
   for (i16 value = 0; !atom_cexch(&v86_requests->status, &value, 1); value = 0) {
     klogd("v86_int wait, status is %d\n", value);
-    task_run(get_task(v86_service_tid));
+    task_run(task_by_id(v86_service_tid));
     task_next();
   }
 
@@ -65,11 +65,11 @@ void v86_int(byte intnum, regs16 *regs) {
   v86_requests->func = intnum;
 
   atom_store(&v86_requests->status, 2); // 发送请求
-  task_run(get_task(v86_service_tid));
+  task_run(task_by_id(v86_service_tid));
   task_next();
 
   while (atom_load(&v86_requests->status) != 3) { // 等待完成
-    task_run(get_task(v86_service_tid));
+    task_run(task_by_id(v86_service_tid));
     task_next();
   }
 

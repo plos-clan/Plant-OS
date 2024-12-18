@@ -12,7 +12,7 @@ typedef struct thread  *thread_t;
 enum {
   THREAD_IDLE,    // 线程被创建但未运行
   THREAD_RUNNING, // 线程正在运行
-  THREAD_WAITING, // 线程正在等待被调度
+  THREAD_WAITING, // 线程正在等待
   THREAD_STOPPED, // 线程已暂停
   THREAD_DEAD,    // 线程已结束
 };
@@ -92,7 +92,7 @@ void thread_switch(thread_t thread) {}
 
 void thread_start(thread_t thread) {
   // thread->stat = THREAD_RUNNING;
-  // TODO 开始线程 (将状态从 IDLE 调整到 RUNNING)
+  // TODO 开始线程 (将状态从 IDLE 调整到 THREAD_RUNNING)
 }
 
 void thread_create() {

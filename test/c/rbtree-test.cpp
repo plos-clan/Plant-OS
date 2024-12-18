@@ -3,7 +3,7 @@
 #define NO_STD 0
 #define RBTREE_IMPLEMENTATION
 extern "C" {
-#include <data-structure/rbtree.h>
+#include <data-structure/sorted-map/rbtree.h>
 }
 
 TEST(RBTreeTest, InsertAndGet) {

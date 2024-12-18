@@ -1,5 +1,5 @@
 #pragma once
-#include "base.h"
+#include "../base.h"
 
 #pragma GCC system_header
 
@@ -33,6 +33,13 @@ extern avltree_t avltree_alloc(int32_t key, void *value) __THROW __attr_malloc;
  *\param[in] root 树的根节点
  */
 extern void avltree_free(avltree_t root) __THROW;
+
+/**
+ *\brief 释放AVL树，并调用回调函数处理节点值
+ *\param[in] root 树的根节点
+ *\param[in] callback 回调函数指针，用于处理节点值
+ */
+extern void avltree_free_with(avltree_t root, void (*callback)(void *)) __THROW;
 
 /**
  *\brief 获取AVL树中指定键值的节点值指针
@@ -216,6 +223,14 @@ static void avltree_free(avltree_t root) noexcept {
   free(root);
 }
 
+static void avltree_free_with(avltree_t root, void (*callback)(void *)) noexcept {
+  if (root == null) return;
+  avltree_free_with(root->left, callback);
+  avltree_free_with(root->right, callback);
+  if (callback) callback(root->value);
+  free(root);
+}
+
 static void *avltree_get(avltree_t root, int32_t key) noexcept {
   while (root != null && root->key != key) {
     if (key < root->key)
@@ -320,9 +335,9 @@ static avltree_t avltree_delete_with(avltree_t root, int32_t key,
   if (root == null) { return null; }
 
   if (key < root->key) {
-    root->left = avltree_delete(root->left, key);
+    root->left = avltree_delete_with(root->left, key, callback);
   } else if (key > root->key) {
-    root->right = avltree_delete(root->right, key);
+    root->right = avltree_delete_with(root->right, key, callback);
   } else {
     if (root->left == null) {
       if (callback) callback(root->value);
@@ -335,6 +350,7 @@ static avltree_t avltree_delete_with(avltree_t root, int32_t key,
       free(root);
       return temp;
     } else {
+      if (callback) callback(root->value);
       avltree_t temp = avltree_min(root->right);
       root->key      = temp->key;
       root->value    = temp->value;

@@ -5,6 +5,8 @@
 #define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
+static inthandler_f page_fault;
+
 // 刷新虚拟地址 vaddr 的 块表 TLB
 finline void flush_tlb(size_t vaddr) {
   asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
@@ -60,9 +62,9 @@ u32 pde_clone(u32 addr) {
     *pde_entry &= ~PAGE_WRABLE;
     for (int j = 0; j < PAGE_SIZE; j += 4) {
       u32 *pte_entry = (u32 *)(p + j);
-      if ((page_get_attr(mk_linear_addr(i / 4, j / 4, 0)) & PAGE_USER)) {
+      if ((page_get_attr(addr, mk_linear_addr(i / 4, j / 4, 0)) & PAGE_USER)) {
         pages[IDX(*pte_entry)].count++;
-        if (page_get_attr(mk_linear_addr(i / 4, j / 4, 0)) & PAGE_SHARED) {
+        if (page_get_attr(addr, mk_linear_addr(i / 4, j / 4, 0)) & PAGE_SHARED) {
           *pte_entry |= PAGE_WRABLE;
           continue;
         }
@@ -284,7 +286,7 @@ void page_link_share(u32 addr) {
 void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
   size_t pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < pg; i++) {
-    memcpy((void *)page_get_phy_pde(line, pde), (void *)phy, min(size, PAGE_SIZE));
+    memcpy((void *)page_get_phy(pde, line), (void *)phy, min(size, PAGE_SIZE));
     size -= PAGE_SIZE;
     line += PAGE_SIZE;
     phy  += PAGE_SIZE;
@@ -294,7 +296,7 @@ void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
 void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
   size_t pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < pg; i++) {
-    memset((void *)page_get_phy_pde(line, pde), val, min(size, PAGE_SIZE));
+    memset((void *)page_get_phy(pde, line), val, min(size, PAGE_SIZE));
     size -= PAGE_SIZE;
     line += PAGE_SIZE;
   }
@@ -335,6 +337,7 @@ void page_unlink(u32 addr) {
 }
 
 void init_page() {
+  inthandler_set(0x0e, &page_fault);
   init_pdepte(PDE_ADDRESS, PTE_ADDRESS, PAGE_END);
   page_manager_init(pages);
   // kernel 加载到0x280000
@@ -518,26 +521,18 @@ void change_page_task_id(int task_id, void *p, u32 size) {
   }
 }
 
-u32 page_get_attr_pde(u32 vaddr, u32 pde) {
+u32 page_get_attr(u32 pde, u32 vaddr) {
   pde       += (u32)(DIDX(vaddr) * 4);
   void *pte  = (void *)(*(u32 *)pde & 0xfffff000);
   pte       += (u32)(TIDX(vaddr) * 4);
   return (*(u32 *)pte) & 0x00000fff;
 }
 
-u32 page_get_attr(u32 vaddr) {
-  return page_get_attr_pde(vaddr, current_task->pde);
-}
-
-u32 page_get_phy_pde(u32 vaddr, u32 pde) {
+u32 page_get_phy(u32 pde, u32 vaddr) {
   pde       += (u32)(DIDX(vaddr) * 4);
   void *pte  = (void *)(*(u32 *)pde & 0xfffff000);
   pte       += (u32)(TIDX(vaddr) * 4);
   return (*(u32 *)pte) & 0xfffff000;
-}
-
-u32 page_get_phy(u32 vaddr) {
-  return page_get_phy_pde(vaddr, current_task->pde);
 }
 
 void copy_on_write(u32 vaddr) {
@@ -565,7 +560,6 @@ void copy_on_write(u32 vaddr) {
   PDE_FLUSH:
     // 刷新快表
     flush_tlb(*(u32 *)(pde));
-  } else {
   }
   void *pt  = (void *)(*(u32 *)pde & 0xfffff000);
   void *pte = pt + (u32)(TIDX(vaddr) * 4);
@@ -663,24 +657,23 @@ void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 pde_backup)
 
 extern TSS32 tss;
 
-void PF(u32 edi, u32 esi, u32 ebp, u32 esp, u32 ebx, u32 edx, u32 ecx, u32 eax, u32 gs, u32 fs,
-        u32 es, u32 ds, u32 error, u32 eip, u32 cs, u32 eflags) {
-  u32 pde = current_task->pde;
+static void page_fault(i32 id, regs32 *regs) {
   asm_cli;
+  u32 pde = current_task->pde;
   asm_set_cr3(PDE_ADDRESS); // 设置一个安全的页表
+
   void *line_address = (void *)asm_get_cr2();
-  if (!(page_get_attr((u32)line_address) & PAGE_P) ||      // 不存在
-      (!(page_get_attr((u32)line_address) & PAGE_USER))) { // 用户不可写
-    error("Attempt to read/write a non-existent/kernel memory %p at %p. System halt.", line_address,
-          eip);
-    if (current_task->user_mode) { // 用户级FAULT
-      task_exit(-1);               // 强制退出
-      infinite_loop;
+  if (!(page_get_attr(pde, (u32)line_address) & PAGE_P) ||      // 不存在
+      (!(page_get_attr(pde, (u32)line_address) & PAGE_USER))) { // 用户不可写
+    error("Attempt to read/write a non-existent/kernel memory %p at %p.", line_address, regs->eip);
+    if (current_task->user_mode) {
+      task_kill(current_task);
+    } else {
+      abort(); // 系统级FAULT
     }
-    asm_cli;
-    abort(); // 系统级FAULT
   }
   copy_on_write((u32)line_address);
+
   asm_set_cr3(pde);
   asm_cli;
 }

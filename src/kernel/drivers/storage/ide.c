@@ -107,7 +107,7 @@ void ide_read_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi);
 void ide_write_sectors(u8 drive, u8 numsects, u32 lba, u16 es, u32 edi);
 void ide_read_buffer(u8 channel, u8 reg, u32 buffer, u32 quads);
 
-static inline void insl(u32 port, u32 *addr, int cnt) {
+finline void insl(u32 port, u32 *addr, int cnt) {
   asm volatile("cld\n\t"
                "repne\n\t"
                "insl\n\t"
@@ -122,10 +122,15 @@ static void Read(int drive, u8 *buffer, u32 number, u32 lba) {
 static void Write(int drive, u8 *buffer, u32 number, u32 lba) {
   ide_write_sectors(drive_mapping[drive], number, lba, 1 * 8, (u32)buffer);
 }
-void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
 
+static inthandler_f ide_irq;
+
+void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
+  inthandler_set(0x2e, ide_irq);
+  inthandler_set(0x2f, ide_irq);
   irq_enable(15);
   irq_enable(14);
+
   int j, k, count = 0;
   for (int i = 0; i < 4; i++) {
     ide_devices[i].Reserved = 0;
@@ -241,9 +246,12 @@ void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4) {
         vd.flag = 1;
       }
 
-      vd.read          = Read;
-      vd.write         = Write;
-      vd.size          = ide_devices[i].Size * 512;
+      vd.read  = Read;
+      vd.write = Write;
+      vd.size  = ide_devices[i].Size * 512;
+      if (vd.flag == 2) {
+        vd.size = 700 * 1024 * 1024; // ATAPI CD-ROM size.
+      }
       vd.sector_size   = vd.flag == 2 ? 2048 : 512;
       vd.type          = VDISK_BLOCK;
       int c            = regist_vdisk(vd);
@@ -390,7 +398,7 @@ u8 ide_print_error(u32 drive, u8 err) {
 
   return err;
 }
-// static inline void insl(u32 port, void *addr, int cnt) {
+// finline void insl(u32 port, void *addr, int cnt) {
 //   asm volatile("cld;"
 //                "repne; insl;"
 //                : "=D"(addr), "=c"(cnt)
@@ -534,15 +542,18 @@ u8 ide_ata_access(u8 direction, u8 drive, u32 lba, u8 numsects, u16 selector, u3
 
   return 0; // Easy, isn't it?
 }
+
 void ide_wait_irq() {
   while (!ide_irq_invoked)
     ;
   ide_irq_invoked = 0;
 }
-void ide_irq(i32 id, regs32 *regs) {
+
+static void ide_irq(i32 id, regs32 *regs) {
   klog("ide irq.");
   ide_irq_invoked = 1;
 }
+
 u8 ide_atapi_read(u8 drive, u32 lba, u8 numsects, u16 selector, u32 edi) {
   klog("cdrom read.");
   u32 channel  = ide_devices[drive].Channel;

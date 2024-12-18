@@ -3,6 +3,8 @@
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_flag("-Wno-compound-token-split-by-macro")
   add_compile_flag("-Wno-pointer-integer-compare")
+  add_compile_flag("-Wno-pointer-bool-conversion")
+  add_compile_flag("-Wno-nan-infinity-disabled")
 endif()
 add_compile_flag("-Wno-address-of-packed-member")
 add_compile_flag("-Wno-attributes")
