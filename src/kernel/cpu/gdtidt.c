@@ -63,22 +63,20 @@ void init_gdtidt() {
   for (int i = 0; i < GDT_LEN; i++) {
     set_segmdesc(gdt + i, 0, 0, 0);
   }
-  set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
-  set_segmdesc(gdt + 2, 0xffffffff, 0x00000000, AR_CODE32_ER);
-  set_segmdesc(gdt + 3, 0xffffffff, 0x00000000, AR_DATA32_RW | 3 << 5);
-  set_segmdesc(gdt + 4, 0xffffffff, 0x00000000, AR_CODE32_ER | 3 << 5);
-  set_segmdesc(gdt + 5, 0xffffffff, 0x70000000, AR_DATA32_RW | 3 << 5);
-  set_segmdesc(gdt + 1000, 0xffffffff, 0, AR_CODE32_ER); // CODE32
-  set_segmdesc(gdt + 1001, 0xfffff, 0, AR_CODE16_ER);    // CODE16
-  set_segmdesc(gdt + 1002, 0xfffff, 0, AR_DATA16_RW);    // DATA16
-  load_gdt(gdt, GDT_LEN);                                // 加载GDT表
+  set_segmdesc(gdt + 1, U32_MAX, 0, AR_CODE32_ER);
+  set_segmdesc(gdt + 2, U32_MAX, 0, AR_DATA32_RW);
+  set_segmdesc(gdt + 3, U32_MAX, 0, AR_CODE32_ER | 3 << 5);
+  set_segmdesc(gdt + 4, U32_MAX, 0, AR_DATA32_RW | 3 << 5);
+  load_gdt(gdt, GDT_LEN); // 加载GDT表
+
+  asm_wrmsr(IA32_SYSENTER_CS, RING0_CS, 0); // 为 sysenter 设置 msr
 
   // 初始化 IDT
   var idt = (GateDescriptor *)IDT_ADDR;
   for (size_t i = 0; i < IDT_LEN; i++) {
     int    ar      = i >= 0x30 ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
     size_t handler = (size_t)&asm_inthandler + i * 7;
-    set_gatedesc(idt + i, handler, 2 * 8, ar);
+    set_gatedesc(idt + i, handler, RING0_CS, ar);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 }

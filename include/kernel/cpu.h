@@ -1,8 +1,15 @@
 #pragma once
 #include <define.h>
 
+// 遵守 sysenter/sysexit 的要求
+// 原则上不应该修改，如要修改需同时修改汇编中的定义
+#define RING0_CS (1 * 8)
+#define RING0_DS (2 * 8)
+#define RING3_CS (3 * 8)
+#define RING3_DS (4 * 8)
+
 typedef struct {
-  u32 eax, ebx, ecx, edx, esi, edi, ebp;
+  u32 edi, esi, ebp, _, ebx, edx, ecx, eax;
   u32 eip;
 } stack_frame;
 
@@ -16,10 +23,10 @@ typedef struct {
 #define GET_SEL(cs, rpl) ((cs & SA_RPL_MASK & SA_TI_MASK) | (rpl))
 
 typedef struct __PACKED__ TSS32 {
-  i32  backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
-  i32  eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
-  i32  es, cs, ss, ds, fs, gs;
-  i32  ldtr;
+  u32  backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
+  u32  eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+  u32  es, cs, ss, ds, fs, gs;
+  u32  ldtr;
   u16  trap, iomap;
   byte io_map[8192];
 } TSS32;
@@ -59,8 +66,8 @@ void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar);
 void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar);
 
 typedef struct regs16 {
-  u16 di, si, bp, sp, bx, dx, cx, ax;
-  u16 gs, fs, es, ds, flags;
+  u16 di, si, bp, _, bx, dx, cx, ax;
+  u16 gs, fs, es, ds;
 } regs16;
 
 // 可参考 https://www.felixcloutier.com/x86/iret:iretd:iretq

@@ -10,6 +10,9 @@
 	i386 equ 0
 	length equ header_end - header_start
 	
+	%define RING0_CS 1 * 8
+	%define RING0_DS 2 * 8
+	
 	section .multiboot2
 header_start:
 	dd magic                     ; 魔数
@@ -30,9 +33,9 @@ _start:
 	cli
 	call init_gdtidt
 	call init_error_inthandler
-	jmp 2 * 8:.next
+jmp RING0_CS:.next
 .next:
-	mov ax, 1 * 8
+	mov ax, RING0_DS
 	mov ds, ax
 	mov es, ax
 	mov ss, ax

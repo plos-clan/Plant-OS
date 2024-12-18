@@ -117,10 +117,10 @@ finline void insl(u32 port, u32 *addr, int cnt) {
 }
 int         drive_mapping[26] = {0};
 static void Read(int drive, u8 *buffer, u32 number, u32 lba) {
-  ide_read_sectors(drive_mapping[drive], number, lba, 1 * 8, (u32)buffer);
+  ide_read_sectors(drive_mapping[drive], number, lba, RING0_DS, (u32)buffer);
 }
 static void Write(int drive, u8 *buffer, u32 number, u32 lba) {
-  ide_write_sectors(drive_mapping[drive], number, lba, 1 * 8, (u32)buffer);
+  ide_write_sectors(drive_mapping[drive], number, lba, RING0_DS, (u32)buffer);
 }
 
 static inthandler_f ide_irq;

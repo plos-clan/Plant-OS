@@ -99,17 +99,17 @@ void task_to_user_mode_elf() {
   iframe->edx    = (size_t)args.envp;
   iframe->ecx    = 0;
   iframe->eax    = 0;
-  iframe->gs     = GET_SEL(5 * 8, SA_RPL3);
-  iframe->fs     = GET_SEL(3 * 8, SA_RPL3);
-  iframe->es     = GET_SEL(3 * 8, SA_RPL3);
-  iframe->ds     = GET_SEL(3 * 8, SA_RPL3);
+  iframe->gs     = 0;
+  iframe->fs     = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->es     = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->ds     = GET_SEL(RING3_DS, SA_RPL3);
   iframe->id     = 0;
   iframe->err    = 0;
   iframe->eip    = 0;
-  iframe->cs     = GET_SEL(4 * 8, SA_RPL3);
+  iframe->cs     = GET_SEL(RING3_CS, SA_RPL3);
   iframe->flags  = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp    = 0;
-  iframe->ss     = GET_SEL(3 * 8, SA_RPL3);
+  iframe->ss     = GET_SEL(RING3_DS, SA_RPL3);
   tss.eflags     = 0x202;
 
   klogd("%lu", file->size);

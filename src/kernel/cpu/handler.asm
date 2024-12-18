@@ -1,6 +1,10 @@
 	[bits 32]
-	global asm_inthandler, asm_inthandler_quit
+	global asm_inthandler, asm_inthandler_quit, asm_sysenter_handler
 	extern inthandler
+	
+	%define RING3_CS 3 * 8
+	%define RING3_DS 4 * 8
+	
 	section .text
 	
 asm_inthandler_main:
@@ -89,3 +93,39 @@ asm_inthandler:               ; DON'T EDIT THE CODE BELOW!
 	dd 0xe9f76aff, 0xfffff936, 0x2fe9f86a, 0x6afffff9, 0xf928e9f9, 0xfa6affff, 0xfff921e9, 0xe9fb6aff
 	dd 0xfffff91a, 0x13e9fc6a, 0x6afffff9, 0xf90ce9fd, 0xfe6affff, 0xfff905e9, 0xe9ff6aff, 0xfffff8fe
 asm_inthandler_end:           ; DON'T EDIT THE CODE ABOVE!
+	
+asm_sysenter_handler:
+	push RING3_DS                ; push ss
+	push ecx                     ; push esp
+	pushf                        ; push flags
+	push RING3_CS                ; push cs
+	push edx                     ; push eip
+	push 0x36                    ; push error code
+	push 0x36                    ; push interrupt number
+	push ds
+	push es
+	push fs
+	push gs
+	mov ecx, esi                 ; in sysenter, arg2 ecx replaced with esi
+	mov edx, edi                 ; in sysenter, arg3 edx replaced with edi
+	pusha
+	mov eax, dword [esp + 17 * 4]; eax <== ring3 esp
+	mov esi, dword [eax]         ; ecx <== syscall arg4
+	mov edi, dword [eax + 4]     ; edx <== syscall arg5
+	mov dword [esp + 4], esi     ; set syscall arg4 esi
+	mov dword [esp], edi         ; set syscall arg5 edi
+	mov ecx, 0x36                ; arg1 <== id
+	mov edx, esp                 ; arg2 <== regs
+	call inthandler              ; void inthandler(i32 id, regs32 * regs) __attribute__((fastcall));
+	popa
+	pop gs
+	pop fs
+	pop es
+	pop ds
+	add esp, 8                   ; pop error code and interrupt number
+	pop edx                      ; pop eip
+	add esp, 4                   ; pop cs
+	popf                         ; pop flags
+	pop ecx                      ; pop esp
+	add esp, 4                   ; pop ss
+	sysexit

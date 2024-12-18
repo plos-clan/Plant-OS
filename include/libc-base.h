@@ -14,6 +14,7 @@ extern "C" {
 #include "libc-base/asm/cr.h"
 #include "libc-base/asm/io.h"
 #include "libc-base/asm/mem.h"
+#include "libc-base/asm/msr.h"
 #include "libc-base/asm/reg.h"
 #include "libc-base/asm/syscall.h"
 #include "libc-base/color.h"

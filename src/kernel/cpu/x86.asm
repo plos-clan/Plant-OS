@@ -88,25 +88,13 @@ move_cursor_by_idx:           ;移动光标
 	global asm_task_switch, asm_task_start
 	; 注意进入函数时必须 cli
 asm_task_switch:              ; void asm_task_switch(task_t current, task_t next) __attr(fastcall);
-	push ebp
-	push edi
-	push esi
-	push edx
-	push ecx
-	push ebx
-	push eax
+	pusha
 	mov [ecx], esp               ; 保存esp
 asm_task_start:               ; void asm_task_start(task_t current, task_t next) __attr(fastcall);
 	mov esp, [edx]
 	mov eax, [edx + 4]
 	mov cr3, eax
-	pop eax
-	pop ebx
-	pop ecx
-	pop edx
-	pop esi
-	pop edi
-	pop ebp
+	popa
 	sti                          ; 这边必须 sti
 	ret
 	

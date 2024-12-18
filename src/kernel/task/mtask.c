@@ -238,6 +238,7 @@ void task_next() {
   if (next->user_mode || next->v86_mode) {
     tss.esp0  = next->stack_bottom;
     tss.iomap = next->v86_mode ? offsetof(TSS32, io_map) : 0;
+    asm_wrmsr(IA32_SYSENTER_ESP, next->stack_bottom, 0);
   }
 
   next->jiffies = system_tick;
@@ -255,17 +256,19 @@ void task_next() {
   }
 
   if (next != task) task_switch(next);
+
+  asm_sti;
 }
 
 task_t create_task(void *entry, u32 ticks, u32 floor) {
   const var t = task_alloc();
 
   if (t == null) return null;
-  u32 esp_alloced = (u32)page_alloc(STACK_SIZE) + STACK_SIZE;
-  change_page_task_id(t->tid, (void *)(esp_alloced - STACK_SIZE), STACK_SIZE);
-  t->esp       = (stack_frame *)(esp_alloced - sizeof(stack_frame)); // switch用到的栈帧
-  t->esp->eip  = (size_t)entry;                                      // 设置跳转地址
-  t->user_mode = 0;                                                  // 设置是否是user_mode
+  void *stack = page_alloc(STACK_SIZE);
+  u32   esp   = (u32)stack + STACK_SIZE;
+  change_page_task_id(t->tid, stack, STACK_SIZE);
+  t->esp      = (stack_frame *)esp - 1; // switch用到的栈帧
+  t->esp->eip = (size_t)entry;          // 设置跳转地址
 
   if (task_current != null) {
     t->ptid   = task_current->tid;
@@ -273,8 +276,8 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
     avltree_insert(task_current->children, t->tid, t);
   }
 
-  t->pde          = pde_clone(current_task->pde); // 启用了就复制一个
-  t->stack_bottom = esp_alloced;                  // r0的esp
+  t->pde          = pde_clone(current_task->pde);
+  t->stack_bottom = esp;
   t->floor        = floor;
   t->running      = 0;
   t->timeout      = ticks;
@@ -296,11 +299,11 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->eax = 0;
 
   iframe->gs              = 0;
-  iframe->ds              = GET_SEL(3 * 8, SA_RPL3);
-  iframe->es              = GET_SEL(3 * 8, SA_RPL3);
-  iframe->fs              = GET_SEL(3 * 8, SA_RPL3);
-  iframe->ss              = GET_SEL(3 * 8, SA_RPL3);
-  iframe->cs              = GET_SEL(4 * 8, SA_RPL3);
+  iframe->ds              = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->es              = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->fs              = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->ss              = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->cs              = GET_SEL(RING3_CS, SA_RPL3);
   iframe->eip             = eip;
   iframe->flags           = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp             = esp; // 设置用户态堆栈
@@ -319,7 +322,7 @@ task_t get_current_task() {
 void into_mtask() {
   SegmentDescriptor *gdt = (SegmentDescriptor *)GDT_ADDR;
   memset(&tss, 0, sizeof(tss));
-  tss.ss0 = 1 * 8;
+  tss.ss0 = RING0_DS;
   set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
   const var task = task_run(create_task(&user_init, 5, 1));
