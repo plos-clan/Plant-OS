@@ -17,7 +17,6 @@ typedef enum {
   MODE_m = 'm'
 } vt100_mode_t;
 
-void move_cursor_by_idx(int idx);
 void print(const char *str);
 void screen_clear();
 void putchar(int ch);

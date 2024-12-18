@@ -1,7 +1,6 @@
 	[BITS 32]
 	EXTERN flint                 ; 在 fdc.c 中定义
 	GLOBAL memtest_sub
-	GLOBAL move_cursor_by_idx
 	GLOBAL floppy_int
 	[SECTION .text]
 	
@@ -63,9 +62,6 @@ mts_nomore:
 	POP ESI
 	POP EDI
 	RET
-	
-move_cursor_by_idx:           ;移动光标
-	ret
 	
 	[SECTION .data]
 testsize: dd 0

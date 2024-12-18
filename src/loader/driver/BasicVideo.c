@@ -1,5 +1,20 @@
 #include <loader.h>
 
+static int get_cursor_idx() {
+  asm_out8(0x03d4, 0x0e);
+  byte hi = asm_in8(0x03d5);
+  asm_out8(0x03d4, 0x0f);
+  byte lo = asm_in8(0x03d5);
+  return (hi << 8) + lo;
+}
+
+static void set_cursor_idx(int idx) {
+  asm_out8(0x03d4, 0x0e);
+  asm_out8(0x03d5, idx >> 8);
+  asm_out8(0x03d4, 0x0f);
+  asm_out8(0x03d5, idx & 0xff);
+}
+
 static int x, y;
 static int cons_x, cons_y;
 
@@ -89,7 +104,7 @@ void putchar(char ch) {
 }
 void Move_Cursor(i16 x, i16 y) {
   int res = y * 80 + x;
-  move_cursor_by_idx(res);
+  set_cursor_idx(res);
 }
 void print(cstr str) {
   putstr(str, getlength(str));

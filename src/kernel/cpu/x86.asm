@@ -1,6 +1,5 @@
 	[bits 32]
-	global move_cursor_by_idx
-	global memtest_sub, start_app
+	global memtest_sub
 	
 	section .text
 	
@@ -51,38 +50,6 @@ memtest_sub:                  ; u32 memtest_sub(u32 start, u32 end)
 	POP ESI
 	POP EDI
 	RET
-	
-move_cursor_by_idx:           ;移动光标
-	mov dx, 03d4h                ;03d4h是索引端口
-	mov al, 0eh                  ;内部的0eh位置存放着光标位置的高八位
-	out dx, al
-	inc dx                       ;03d5h是数据端口用于读写数据
-	in al, dx                    ;读取光标的高八位并且放入bh
-	mov bh, al
-	
-	dec dx                       ;这儿开始读取光标位置的低八位放入bl
-	mov al, 0fh                  ;0fh位置存放着光标位置的低八位
-	out dx, al
-	inc dx
-	in al, dx
-	mov bl, al
-	
-	mov word bx, [esp + 4]       ;获取参数中的光标位置
-	
-	mov dx, 03d4h                ;这段代码将改变后的光标位置写入端口内相应的地方以便下次访问
-	mov al, 0eh                  ;写入光标位置高八位
-	out dx, al
-	inc dx
-	mov al, bh
-	out dx, al
-	
-	dec dx
-	mov al, 0fh                  ;写入光标位置低八位
-	out dx, al
-	inc dx
-	mov al, bl
-	out dx, al
-	ret
 	
 	extern task_current
 	global asm_task_switch, asm_task_start
