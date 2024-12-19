@@ -63,7 +63,7 @@ asm_task_start:               ; void asm_task_start(task_t current, task_t next)
 	mov cr3, eax
 	popa
 	sti                          ; 这边必须 sti
-	ret
+	ret                          ; 注意 sti 指令的实现，sti ret 会在返回之后才设置 IF 位
 	
 	global entering_v86
 entering_v86:                 ; extern void entering_v86(u32 ss, u32 esp, u32 cs, u32 eip);

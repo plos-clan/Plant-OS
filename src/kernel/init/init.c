@@ -15,6 +15,8 @@ void *pci_addr_base;
 
 void init_serial();
 
+#define KERNEL_HEAP_SIZE (128 * 1024 * 1024)
+
 void sysinit() {
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_page();
@@ -32,10 +34,8 @@ void sysinit() {
   init_pit();
 
   asm_sti;
-  irq_enable(0);
-  irq_enable(1);
 
-  memory_init(page_alloc(128 * 1024 * 1024), 128 * 1024 * 1024);
+  memory_init(page_alloc(KERNEL_HEAP_SIZE), KERNEL_HEAP_SIZE);
 
   vbe_init();
 
@@ -62,5 +62,6 @@ void sysinit() {
     info("the memory test has been passed! Your PC has %dMiB memory",
          total_mem_size / (1024 * 1024));
   }
+
   init_keyboard();
 }

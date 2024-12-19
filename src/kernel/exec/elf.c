@@ -4,6 +4,16 @@ bool elf32_is_validate(Elf32_Ehdr *hdr) {
   return *(u32 *)hdr->e_ident == ELF_MAGIC;
 }
 
+void print_section_names(Elf32_Ehdr *hdr) {
+  Elf32_Shdr *shdr   = (Elf32_Shdr *)((u32)hdr + hdr->e_shoff);
+  char       *strtab = (char *)hdr + shdr[hdr->e_shstrndx].sh_offset;
+
+  klogd("Section Headers:");
+  for (int i = 0; i < hdr->e_shnum; i++) {
+    klogd("  [%2d] %s", i, strtab + shdr[i].sh_name);
+  }
+}
+
 u32 elf32_get_max_vaddr(Elf32_Ehdr *hdr) {
   Elf32_Phdr *phdr = (Elf32_Phdr *)((u32)hdr + hdr->e_phoff);
   u32         max  = 0;
@@ -35,6 +45,7 @@ u32 load_elf(Elf32_Ehdr *hdr) {
     load_segment(phdr, (void *)hdr);
     phdr++;
   }
+  print_section_names(hdr);
   return hdr->e_entry;
 }
 
@@ -49,4 +60,6 @@ void elf32_load_data(Elf32_Ehdr *elfhdr, u8 *ptr) {
       ptr[shdr->sh_addr + i] = p[shdr->sh_offset + i];
     }
   }
+
+  print_section_names(elfhdr);
 }

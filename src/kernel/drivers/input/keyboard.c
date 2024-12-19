@@ -38,6 +38,7 @@ void init_keyboard() {
   asm_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
   wait_KBC_sendready();
   asm_out8(PORT_KEYDAT, KBC_MODE);
+  irq_enable(1);
 }
 
 int getch() {

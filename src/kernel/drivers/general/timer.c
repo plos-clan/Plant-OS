@@ -18,6 +18,7 @@ void init_pit() {
   inthandler_set(0x20, inthandler20);
   asm_out8(PIT_CTRL, 0x34);
   pit_set(1193182 / PIT_FREQ);
+  irq_enable(0);
 }
 
 #define NANOSEC_IN_SEC 1000000000
@@ -44,6 +45,5 @@ __attr(fastcall) void inthandler20(i32 id, regs32 *regs) {
 
   kenel_debugger_tick();
 
-  extern task_t task_current;
-  if (task_current) task_tick();
+  if (current_task->tid >= 0) task_tick();
 }

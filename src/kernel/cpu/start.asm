@@ -5,7 +5,7 @@
 	;
 	; Copyright (C) 2024~ plos - clan
 	;
-	bits 32
+	[bits 32]
 	magic equ 0xe85250d6
 	i386 equ 0
 	length equ header_end - header_start
@@ -47,5 +47,5 @@ jmp RING0_CS:.next
 	
 	section .bss
 stack:
-	resb 0x1000
+	resb 4096
 stack_end:
