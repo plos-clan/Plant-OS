@@ -26,11 +26,11 @@ void task_app() {
   current_task->alloc_size    = (u32 *)malloc(4);
   current_task->alloced       = 1;
   *(current_task->alloc_size) = 2 * 1024 * 1024;
-  u32 pde                     = current_task->pde;
+  u32 pde                     = current_task->cr3;
   asm_cli;
-  asm_set_cr3(PDE_ADDRESS);
-  current_task->pde = PDE_ADDRESS;
-  klogd("P1 %08x", current_task->pde);
+  asm_set_cr3(PD_ADDRESS);
+  current_task->cr3 = PD_ADDRESS;
+  klogd("P1 %08x", current_task->cr3);
   for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
 
@@ -45,7 +45,7 @@ void task_app() {
         *pde_entry = (u32)page_malloc_one_count_from_4gb();
         memcpy((void *)(*pde_entry), (void *)old, PAGE_SIZE);
         pages[IDX(old)].count--;
-        *pde_entry |= PAGE_USER | PAGE_P | PAGE_WRABLE;
+        *pde_entry |= PAGE_USER | PAGE_PRESENT | PAGE_WRABLE;
       } else {
         *pde_entry &= 0xfffff;
         *pde_entry |= 7;
@@ -56,11 +56,11 @@ void task_app() {
       u32 *pte_entry = (u32 *)(p + j);
       if ((*pte_entry & PAGE_SHARED)) {
         *pte_entry &= 0xfffff000;
-        *pte_entry |= PAGE_USER | PAGE_P;
+        *pte_entry |= PAGE_USER | PAGE_PRESENT;
       }
     }
   }
-  current_task->pde = pde;
+  current_task->cr3 = pde;
   asm_sti;
   asm_set_cr3(pde);
   klogd("go to task_to_usermode_elf");

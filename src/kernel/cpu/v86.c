@@ -32,7 +32,7 @@ void v86_task() {
   assert(p, "open /fatfs2/v86_service.bin failed");
   vfs_read(p, code, 0, p->size);
   // 映射页面
-  u32 pde = current_task->pde;
+  u32 pde = current_task->cr3;
   page_link_addr_pde(0x2000, pde, (u32)code);
   page_link_addr_pde(0x3000, pde, (u32)ptr);
   page_link_addr_pde(0x0, pde, 0x0);

@@ -19,7 +19,7 @@ void init_serial();
 
 void sysinit() {
   total_mem_size = memtest(0x00400000, 0xbfffffff);
-  init_page();
+  init_paging();
 
   cpuid_do_cache(); // 缓存 CPUID 信息
 

@@ -1,16 +1,19 @@
 #pragma once
 #include <define.h>
 
-#define PAGE_P      MASK(0)
-#define PAGE_WRABLE MASK(1)
-#define PAGE_USER   MASK(2)
-#define PAGE_WT     MASK(3) // 使用直写而不是写回
-#define PAGE_CD     MASK(4) // 禁用缓存
-#define PAGE_SHARED 1024    // 自定义的
+#define PAGE_PRESENT MASK(0)  // 存在
+#define PAGE_WRABLE  MASK(1)  // 可写
+#define PAGE_USER    MASK(2)  // 用户态
+#define PAGE_WT      MASK(3)  // 使用直写而不是写回
+#define PAGE_CD      MASK(4)  // 禁用缓存
+#define PAGE_ACCESS  MASK(5)  // 访问位
+#define PAGE_DIRTY   MASK(6)  // 脏页
+#define PAGE_GLOBAL  MASK(8)  // 全局页
+#define PAGE_SHARED  MASK(10) // 自定义的
 
-#define PDE_ADDRESS   0x400000
-#define PTE_ADDRESS   (PDE_ADDRESS + 0x1000)
-#define PAGE_END      (PTE_ADDRESS + 0x400000)
+#define PD_ADDRESS    0x400000
+#define PT_ADDRESS    (PD_ADDRESS + 0x1000)
+#define PAGE_END      (PT_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
 
 typedef struct __PACKED__ PageInfo {
@@ -54,7 +57,7 @@ void *page_alloc(size_t size);
 void  page_free(void *p, size_t size);
 void  task_free_all_pages(u32 tid);
 void  change_page_task_id(int task_id, void *p, u32 size);
-u32   pde_clone(u32 addr);
+u32   pd_clone(u32 addr);
 void *page_malloc_one();
 void *page_malloc_one_no_mark();
 void  page_link(u32 addr);

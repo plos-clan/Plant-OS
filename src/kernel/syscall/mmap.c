@@ -12,7 +12,7 @@ void *syscall_mmap(void *start, u32 length) {
   u32  page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
   bool size_is_2M = page_count == 512;
 
-  u32   addr            = current_task->pde;
+  u32   addr            = current_task->cr3;
   void *line_addr_start = null;
   for (int i = DIDX(0x70000000), c = 0; i < 1024; i++) {
     u32 *pde_entry = (u32 *)addr + i;

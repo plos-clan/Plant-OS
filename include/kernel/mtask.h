@@ -20,7 +20,7 @@ typedef void (*cb_keyboard_t)(u8 data, u32 task);
 
 typedef struct __PACKED__ task {
   stack_frame  *esp;
-  u32           pde;
+  u32           cr3;
   u32           user_mode;
   u32           stack_bottom; // ring0 栈底
   u32           running;      // 已经占用了多少时间片

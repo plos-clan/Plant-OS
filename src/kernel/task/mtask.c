@@ -12,7 +12,7 @@ task_t task_current = null;
 
 static avltree_t tasks      = null;
 static task_t    next_set   = null;
-struct task      empty_task = {.tid = -1, .pde = PDE_ADDRESS};
+struct task      empty_task = {.tid = -1, .cr3 = PD_ADDRESS};
 
 // --------------------------------------------------
 //; 分配任务
@@ -53,7 +53,7 @@ static task_t task_alloc() {
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
   t->alloced          = 0;
-  t->pde              = 0;
+  t->cr3              = 0;
   t->press_key_fifo   = null;
   t->release_keyfifo  = null;
   t->sigint_up        = 0;
@@ -85,8 +85,8 @@ static void task_free(task_t t) {
   klogi("task_free %d", t->tid);
   kassert(t->children == null);
   if (t->parent != null) avltree_delete(t->parent->children, t->tid);
-  if (t == current_task) asm_set_cr3(PDE_ADDRESS);
-  free_pde(t->pde);
+  if (t == current_task) asm_set_cr3(PD_ADDRESS);
+  free_pde(t->cr3);
   task_free_all_pages(t->tid); // 释放内存
   if (t->press_key_fifo) {
     page_free(t->press_key_fifo->buf, 4096);
@@ -276,7 +276,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
     avltree_insert(task_current->children, t->tid, t);
   }
 
-  t->pde          = pde_clone(current_task->pde);
+  t->cr3          = pd_clone(current_task->cr3);
   t->stack_bottom = esp;
   t->floor        = floor;
   t->running      = 0;
@@ -483,7 +483,7 @@ int task_fork() {
       m->mousefifo->buf = page_malloc_one();
       memcpy(m->mousefifo->buf, current_task->mousefifo->buf, 4096);
     }
-    m->pde     = pde_clone(current_task->pde);
+    m->cr3     = pd_clone(current_task->cr3);
     m->running = 0;
     m->jiffies = 0;
     m->timeout = 1;
