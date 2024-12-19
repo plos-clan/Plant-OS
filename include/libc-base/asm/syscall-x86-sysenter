@@ -8,7 +8,7 @@
                  "1:\n\t"                                                                          \
                  : "=a"(rets)                                                                      \
                  : "0"(id)                                                                         \
-                 : "memory", "cc", "ecx", "edx");                                                  \
+                 : "memory", "cc", "cx", "dx");                                                  \
     rets;                                                                                          \
   })
 
@@ -23,7 +23,7 @@
                  "1:\n\t"                                                                          \
                  : "=a"(rets)                                                                      \
                  : "0"(id), "r"(_a1)                                                               \
-                 : "memory", "cc", "ecx", "edx");                                                  \
+                 : "memory", "cc", "cx", "dx");                                                  \
     rets;                                                                                          \
   })
 
@@ -40,7 +40,7 @@
                  "1:\n\t"                                                                          \
                  : "=a"(rets)                                                                      \
                  : "0"(id), "r"(_a1), "r"(_a2)                                                     \
-                 : "memory", "cc", "ecx", "edx");                                                  \
+                 : "memory", "cc", "cx", "dx");                                                  \
     rets;                                                                                          \
   })
 
@@ -59,7 +59,7 @@
                  "1:\n\t"                                                                          \
                  : "=a"(rets)                                                                      \
                  : "0"(id), "r"(_a1), "r"(_a2), "r"(_a3)                                           \
-                 : "memory", "cc", "ecx", "edx");                                                  \
+                 : "memory", "cc", "cx", "dx");                                                  \
     rets;                                                                                          \
   })
 

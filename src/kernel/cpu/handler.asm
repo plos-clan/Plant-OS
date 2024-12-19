@@ -94,6 +94,7 @@ asm_inthandler:               ; DON'T EDIT THE CODE BELOW!
 	dd 0xfffff91a, 0x13e9fc6a, 0x6afffff9, 0xf90ce9fd, 0xfe6affff, 0xfff905e9, 0xe9ff6aff, 0xfffff8fe
 asm_inthandler_end:           ; DON'T EDIT THE CODE ABOVE!
 	
+	extern check_memory_permission, task_abort
 asm_sysenter_handler:
 	push RING3_DS                ; push ss
 	push ecx                     ; push esp
@@ -108,16 +109,25 @@ asm_sysenter_handler:
 	push gs
 	mov ecx, esi                 ; in sysenter, arg2 ecx replaced with esi
 	mov edx, edi                 ; in sysenter, arg3 edx replaced with edi
-	pusha
-	mov eax, dword [esp + 17 * 4]; eax <== ring3 esp
-	mov esi, dword [eax]         ; ecx <== syscall arg4
-	mov edi, dword [eax + 4]     ; edx <== syscall arg5
+	pusha                        ; | and arg4, arg5 replaced with ring3 [esp] [esp + 4]
+	mov ebx, dword [esp + 17 * 4]; ebx <== ring3 esp
+	push 0                       ; ==================================================
+	push 8                       ;
+	push ebx                     ;
+	call check_memory_permission ; If ring3 esp is not accessible, we should abort the task.
+	cmp eax, 0                   ;
+	je task_abort                ;
+	add esp, 12                  ; ==================================================
+	mov esi, dword [ebx]         ; esi <== syscall arg4 ring3 [esp]
+	mov edi, dword [ebx + 4]     ; edi <== syscall arg5 ring3 [esp + 4]
 	mov dword [esp + 4], esi     ; set syscall arg4 esi
 	mov dword [esp], edi         ; set syscall arg5 edi
 	mov ecx, 0x36                ; arg1 <== id
 	mov edx, esp                 ; arg2 <== regs
 	call inthandler              ; void inthandler(i32 id, regs32 * regs) __attribute__((fastcall));
 	popa
+	mov esi, ecx                 ; restore esi
+	mov edi, edx                 ; restore edi
 	pop gs
 	pop fs
 	pop es
