@@ -74,3 +74,30 @@ enum {
   PAGE_TYPE_HEAP,  // 堆页
   PAGE_TYPE_ALLOC, // 分配页
 };
+
+/**
+ *\brief 检查用户是否有对指定内存地址的访问权限
+ *
+ *\param addr     内存地址
+ *\param wr       是否写权限
+ *\return 是否有权限
+ */
+bool check_address_permission(const void *addr, bool wr);
+
+/**
+ *\brief 检查用户是否有对指定内存区域的访问权限
+ *
+ *\param addr     内存地址
+ *\param size     内存大小
+ *\param wr       是否写权限
+ *\return 是否有权限
+ */
+bool check_memory_permission(const void *addr, size_t size, bool wr);
+
+/**
+ *\brief 检查用户是否有对指定字符串的读取权限
+ *
+ *\param addr     内存地址
+ *\return 是否有权限
+ */
+bool check_string_permission(cstr addr);

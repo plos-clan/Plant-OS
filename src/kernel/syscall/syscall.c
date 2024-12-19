@@ -9,6 +9,9 @@ u32 syscall_heapsize() {
 }
 
 static int syscall_vbe_getmode(void **vram, int *width, int *height) {
+  if (!check_memory_permission(vram, sizeof(void *), true)) task_abort();
+  if (!check_memory_permission(width, sizeof(int), true)) task_abort();
+  if (!check_memory_permission(height, sizeof(int), true)) task_abort();
   *vram   = vbe_frontbuffer;
   *width  = screen_w;
   *height = screen_h;
@@ -25,6 +28,7 @@ static int syscall_vbe_flip() {
 }
 
 static int syscall_vbe_flush(const void *buf) {
+  if (!check_memory_permission(buf, screen_w * screen_h * 4, false)) task_abort();
   return vbe_flush(buf);
 }
 
@@ -33,6 +37,7 @@ static int syscall_vbe_clear(byte r, byte g, byte b) {
 }
 
 static ssize_t syscall_file_size(cstr path) {
+  if (!check_string_permission(path)) task_abort();
   vfs_node_t file = vfs_open(path);
   if (file == null) return -1;
   size_t size = file->size;
@@ -41,6 +46,8 @@ static ssize_t syscall_file_size(cstr path) {
 }
 
 static ssize_t syscall_load_file(cstr path, void *buf, size_t size) {
+  if (!check_string_permission(path)) task_abort();
+  if (!check_memory_permission(buf, size, true)) task_abort();
   vfs_node_t file = vfs_open(path);
   if (file == null) return -1;
   size_t ret = vfs_read(file, buf, 0, size);
@@ -49,6 +56,8 @@ static ssize_t syscall_load_file(cstr path, void *buf, size_t size) {
 }
 
 static ssize_t syscall_save_file(cstr path, const void *buf, size_t size) {
+  if (!check_string_permission(path)) task_abort();
+  if (!check_memory_permission(buf, size, false)) task_abort();
   vfs_node_t file = vfs_open(path);
   if (file == null) return -1;
   size_t ret = vfs_write(file, buf, 0, size);
@@ -56,11 +65,16 @@ static ssize_t syscall_save_file(cstr path, const void *buf, size_t size) {
   return ret;
 }
 
+void syscall_print(cstr s) {
+  if (!check_string_permission(s)) task_abort();
+  print(s);
+}
+
 void *sycall_handlers[MAX_SYSCALLS] = {
     [SYSCALL_EXIT]    = &syscall_exit,
     [SYSCALL_PUTC]    = &putchar,
     [SYSCALL_FORK]    = &task_fork,
-    [SYSCALL_PRINT]   = &print,
+    [SYSCALL_PRINT]   = &syscall_print,
     [SYSCALL_GETHEAP] = &syscall_getheap,
     [SYSCALL_HEAPSZ]  = &syscall_heapsize,
     [SYSCALL_MMAP]    = &syscall_mmap,

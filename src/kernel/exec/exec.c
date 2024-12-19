@@ -7,10 +7,10 @@ void task_to_user_mode_elf();
 extern TSS32     tss;
 extern PageInfo *pages;
 
-#define IDX(addr)  ((u32)(addr) >> 12)           // 获取 addr 的页索引
-#define DIDX(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
+#define IDX(addr) ((u32)(addr) >> 12)           // 获取 addr 的页索引
+#define PDI(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
+#define PTI(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
+#define PAGE(idx) ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
 void task_app() {
   klogd("%s", current_task->command_line);
@@ -31,7 +31,7 @@ void task_app() {
   asm_set_cr3(PD_ADDRESS);
   current_task->cr3 = PD_ADDRESS;
   klogd("P1 %08x", current_task->cr3);
-  for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
+  for (int i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
 
     if ((*pde_entry & PAGE_SHARED) || pages[IDX(*pde_entry)].count > 1) {

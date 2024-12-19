@@ -1,9 +1,9 @@
 #include <kernel.h>
 
-#define IDX(addr)  ((u32)(addr) >> 12)           // 获取 addr 的页索引
-#define DIDX(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define TIDX(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PAGE(idx)  ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
+#define IDX(addr) ((u32)(addr) >> 12)           // 获取 addr 的页索引
+#define PDI(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
+#define PTI(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
+#define PAGE(idx) ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
 static inthandler_f page_fault;
 
@@ -47,7 +47,7 @@ void page_set_alloced(PageInfo *pg, u32 start, u32 end) {
 // OS应该是用不完0x70000000的，所以应用程序大概是可以用满2GB
 
 u32 pd_clone(u32 addr) {
-  for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
+  for (int i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry = (u32 *)(addr + i);
     u32  p         = *pde_entry & (0xfffff000);
     pages[IDX(*pde_entry)].count++;
@@ -74,7 +74,7 @@ u32 pd_clone(u32 addr) {
 }
 
 static void pde_reset(u32 addr) {
-  for (int i = DIDX(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
+  for (int i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry  = (u32 *)(addr + i);
     *pde_entry     |= PAGE_WRABLE;
   }
@@ -82,7 +82,7 @@ static void pde_reset(u32 addr) {
 
 void free_pde(u32 addr) {
   if (addr == PD_ADDRESS) return;
-  for (int i = DIDX(0x70000000) * 4; i < DIDX(0xf1000000) * 4; i += 4) {
+  for (int i = PDI(0x70000000) * 4; i < PDI(0xf1000000) * 4; i += 4) {
     u32 *pde_entry = (u32 *)(addr + i);
     u32  p         = *pde_entry & (0xfffff000);
     if (!(*pde_entry & PAGE_USER) && !(*pde_entry & PAGE_PRESENT)) { continue; }
@@ -102,7 +102,7 @@ static void page_link_pde(u32 addr, u32 pde) {
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
-  t        = DIDX(addr);
+  t        = PDI(addr);
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
 
@@ -133,7 +133,7 @@ void page_link_addr_pde(u32 addr, u32 pde, u32 map_addr) {
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
-  t        = DIDX(addr);
+  t        = PDI(addr);
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
 
@@ -164,7 +164,7 @@ static void page_link_pde_share(u32 addr, u32 pde) {
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
-  t        = DIDX(addr);
+  t        = PDI(addr);
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
 
@@ -201,7 +201,7 @@ static void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
-  t        = DIDX(addr);
+  t        = PDI(addr);
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
   // klogd("*pte = %08x\n",*pte);
@@ -299,7 +299,7 @@ void page_unlink_pde(u32 addr, u32 pde) {
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
-  t        = DIDX(addr);
+  t        = PDI(addr);
   p        = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
 
@@ -514,23 +514,23 @@ void change_page_task_id(int task_id, void *p, u32 size) {
 }
 
 u32 page_get_attr(u32 pde, u32 vaddr) {
-  pde       += (u32)(DIDX(vaddr) * 4);
+  pde       += (u32)(PDI(vaddr) * 4);
   void *pte  = (void *)(*(u32 *)pde & 0xfffff000);
-  pte       += (u32)(TIDX(vaddr) * 4);
+  pte       += (u32)(PTI(vaddr) * 4);
   return (*(u32 *)pte) & 0x00000fff;
 }
 
 u32 page_get_phy(u32 pde, u32 vaddr) {
-  pde       += (u32)(DIDX(vaddr) * 4);
+  pde       += (u32)(PDI(vaddr) * 4);
   void *pte  = (void *)(*(u32 *)pde & 0xfffff000);
-  pte       += (u32)(TIDX(vaddr) * 4);
+  pte       += (u32)(PTI(vaddr) * 4);
   return (*(u32 *)pte) & 0xfffff000;
 }
 
 void copy_on_write(u32 vaddr) {
-  void *pd      = (void *)current_task->cr3;                  // PDE页目录地址
-  void *pde     = (void *)((u32)pd + (u32)(DIDX(vaddr) * 4)); // PTE地址
-  void *pde_phy = (void *)(*(u32 *)(pde) & 0xfffff000);       // 页
+  void *pd      = (void *)current_task->cr3;                 // PDE页目录地址
+  void *pde     = (void *)((u32)pd + (u32)(PDI(vaddr) * 4)); // PTE地址
+  void *pde_phy = (void *)(*(u32 *)(pde) & 0xfffff000);      // 页
 
   if (!(*(u32 *)pde & PAGE_WRABLE) || !(*(u32 *)pde & PAGE_USER)) { // PDE如果不可写
     // 不可写的话，就需要对PDE做COW操作
@@ -554,7 +554,7 @@ void copy_on_write(u32 vaddr) {
     flush_tlb(*(u32 *)(pde));
   }
   void *pt  = (void *)(*(u32 *)pde & 0xfffff000);
-  void *pte = pt + (u32)(TIDX(vaddr) * 4);
+  void *pte = pt + (u32)(PTI(vaddr) * 4);
   if (!(*(u32 *)pte & PAGE_WRABLE)) {
     if (pages[IDX(*(u32 *)pte)].count < 2 || // 只有一个人引用
         *(u32 *)pte & PAGE_SHARED /*或   这是一个SHARED页*/) {
@@ -597,7 +597,7 @@ void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
-  t        = DIDX(vaddr);
+  t        = PDI(vaddr);
   p        = (vaddr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((cr3_backup + t * 4));
   if (pages[IDX(*pte)].count > 1 && !(*pte & PAGE_SHARED)) { // 这里SHARED页就不进行COW操作
@@ -623,7 +623,7 @@ void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
 
 void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 cr3_backup) {
   u32 t, p;
-  t        = DIDX(vaddr);
+  t        = PDI(vaddr);
   p        = (vaddr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((cr3_backup + t * 4));
   if (pages[IDX(*pte)].count > 1) { // 这里SHARED页就不进行COW操作
@@ -657,7 +657,7 @@ __attr(fastcall) void page_fault(i32 id, regs32 *regs) {
       (!(page_get_attr(pde, (u32)line_address) & PAGE_USER))) {  // 用户不可写
     error("Attempt to read/write a non-existent/kernel memory %p at %p.", line_address, regs->eip);
     if (current_task->user_mode) {
-      task_kill(current_task);
+      task_abort();
     } else {
       abort(); // 系统级FAULT
     }
@@ -671,10 +671,41 @@ __attr(fastcall) void page_fault(i32 id, regs32 *regs) {
 void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
   int count = PADDING_UP(end - start, PAGE_SIZE) / PAGE_SIZE;
   for (int i = 0; i < count; i++) {
-    u32 *pde_entry  = (u32 *)(pde + DIDX(start + i * PAGE_SIZE) * 4);
+    u32 *pde_entry  = (u32 *)(pde + PDI(start + i * PAGE_SIZE) * 4);
     u32  p          = *pde_entry & (0xfffff000);
-    u32 *pte_entry  = (u32 *)(p + TIDX(start + i * PAGE_SIZE) * 4);
+    u32 *pte_entry  = (u32 *)(p + PTI(start + i * PAGE_SIZE) * 4);
     *pte_entry     |= attr;
   }
   asm_set_cr3(pde);
+}
+
+bool check_address_permission(const void *addr, bool wr) {
+  size_t cr3 = asm_get_cr3();
+  size_t pde = mem_get(cr3 + PDI(addr) * 4);
+  if (!(pde & PAGE_PRESENT)) return false;
+  if (wr && !(pde & PAGE_WRABLE)) return false;
+  if (!(pde & PAGE_USER)) return false;
+  size_t pte = mem_get((pde & 0xfffff000) + PTI(addr) * 4);
+  if (!(pte & PAGE_PRESENT)) return false;
+  if (wr && !(pte & PAGE_WRABLE)) return false;
+  if (!(pte & PAGE_USER)) return false;
+  return true;
+}
+
+bool check_memory_permission(const void *_addr, size_t size, bool wr) {
+  const void *addr     = (void *)PADDING_DOWN(_addr, PAGE_SIZE);
+  const void *end_addr = _addr + size;
+  for (; addr < end_addr; addr += PAGE_SIZE) {
+    if (!check_address_permission(addr, wr)) return false;
+  }
+  return true;
+}
+
+bool check_string_permission(cstr addr) {
+  if (!check_address_permission(addr, false)) return false;
+  for (addr++;; addr++) {
+    if (!((size_t)addr & 0xfff) && !check_address_permission(addr, false)) return false;
+    if (*addr == '\0') break;
+  }
+  return true;
 }

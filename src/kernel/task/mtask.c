@@ -406,6 +406,16 @@ void task_exit(i32 status) {
   abort();
 }
 
+void task_abort() {
+  const var task = current_task;
+  kassert(task != null);
+
+  task_kill(task);
+
+  klogf("task_abort error");
+  abort();
+}
+
 i32 task_wait(task_t target) {
   kassert(task_current != null);
   if (target == null) return -1;

@@ -73,6 +73,8 @@ task_t task_run(task_t task);
 void   task_exit(i32 status) __attr(noreturn);
 // 杀死任务
 void   task_kill(task_t task);
+// 异常退出
+void   task_abort() __attr(noreturn);
 
 /**
  *\brief 通过任务 ID 获取任务

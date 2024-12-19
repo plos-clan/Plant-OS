@@ -73,8 +73,13 @@ __attr(fastcall) void error_inthandler(i32 id, regs32 *regs) {
   kassert(id >= 0);
   kassert(id < 32);
   kassert(regs != null);
-  if (regs->fs != RING0_DS) task_kill(current_task);
-  klogf("%02x: %s (#%s)", id, error_names[id].fullname, error_names[id].shortname);
+  if (regs->fs != RING0_DS) {
+    klogw("task %d error %02x: %s (#%s)", current_task->tid, id, error_names[id].fullname,
+          error_names[id].shortname);
+    task_abort();
+    __builtin_unreachable();
+  }
+  klogf("error %02x: %s (#%s)", id, error_names[id].fullname, error_names[id].shortname);
   abort();
 }
 
