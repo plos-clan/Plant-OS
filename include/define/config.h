@@ -8,6 +8,7 @@ extern "C" {
 #include "config/check.h"
 #include "config/data-structure.h"
 #include "config/log.h"
+#include "config/plos.h"
 #include "config/plui.h"
 #include "config/string-format.h"
 #include "config/undef.h"
