@@ -3,8 +3,8 @@
 struct MOUSE_DEC mdec;
 size_t           total_mem_size;
 byte            *IVT;
-
-void abort() {
+void             init_acpi(void);
+void             abort() {
   kloge("aborted");
   infinite_loop {
     asm_cli, asm_hlt;
@@ -45,6 +45,7 @@ void sysinit() {
   pci_addr_base = page_alloc(1 * 1024 * 1024);
   init_pci(pci_addr_base);
 
+  init_acpi();
   sb16_init();
   sb16_regist();
   hda_init();
