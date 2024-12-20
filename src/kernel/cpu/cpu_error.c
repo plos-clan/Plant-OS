@@ -22,7 +22,7 @@ void fpu_enable(task_t task) {
     klogd("FPU create state for task %p\n", task);
   } else {
     if (cpuids.sse) {
-      asm volatile("fxrstor (%0) \n" ::"r"(task->extra_regs) : "memory");
+      asm volatile("frstor (%0) \n" ::"r"(task->extra_regs) : "memory");
     } else {
       asm volatile("frstor (%0) \n" ::"r"(task->extra_regs) : "memory");
     }

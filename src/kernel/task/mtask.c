@@ -247,7 +247,7 @@ void task_next() {
     asm_clr_em, asm_clr_ts;
     if (task->fpu_enabled) {
       if (cpuids.sse) {
-        asm volatile("fxsave (%0)\n\t" ::"r"(task->extra_regs) : "memory");
+        asm volatile("fnsave (%0)\n\t" ::"r"(task->extra_regs) : "memory");
       } else {
         asm volatile("fnsave (%0)\n\t" ::"r"(task->extra_regs) : "memory");
       }
