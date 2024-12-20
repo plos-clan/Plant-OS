@@ -60,8 +60,8 @@ finline void load_tr(size_t selector) {
 
 #define with_no_interrupts(code)                                                                   \
   ({                                                                                               \
-    var _flag_ = asm_get_flags();                                                                  \
+    const bool _is_sti_ = asm_is_sti;                                                              \
     asm_cli;                                                                                       \
     (code);                                                                                        \
-    asm_set_flags(_flag_);                                                                         \
+    if (_is_sti_) asm_sti;                                                                         \
   })

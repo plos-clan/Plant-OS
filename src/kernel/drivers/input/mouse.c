@@ -3,6 +3,8 @@
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE     0xf4
 
+struct MOUSE_DEC mdec;
+
 task_t mouse_use_task = NULL;
 
 static inthandler_f inthandler2c;

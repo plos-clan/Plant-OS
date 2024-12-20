@@ -1,10 +1,9 @@
 #include <kernel.h>
 
-struct MOUSE_DEC mdec;
-size_t           total_mem_size;
-byte            *IVT;
-void             init_acpi(void);
-void             abort() {
+size_t total_mem_size;
+byte  *IVT;
+
+void abort() {
   kloge("aborted");
   infinite_loop {
     asm_cli, asm_hlt;

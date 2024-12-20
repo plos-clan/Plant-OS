@@ -1,2 +1,4 @@
 
 #define SYSCALL_USE_INTERRPUT 0
+
+#define PLOS_DEBUG_SHELL 1

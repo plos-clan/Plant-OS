@@ -1,4 +1,5 @@
 #include <kernel.h>
+
 struct ACPI_RSDP {
   char Signature[8];
   u8   Checksum;
@@ -10,6 +11,7 @@ struct ACPI_RSDP {
   u8   ExtendedChecksum;
   u8   Reserved[3];
 };
+
 struct ACPISDTHeader {
   char Signature[4];
   u32  Length;
@@ -21,10 +23,12 @@ struct ACPISDTHeader {
   u32  CreatorID;
   u32  CreatorRevision;
 };
+
 struct ACPI_RSDT {
   struct ACPISDTHeader header;
   u32                  Entry;
 };
+
 typedef struct {
   u8  AddressSpace;
   u8  BitWidth;
@@ -32,6 +36,7 @@ typedef struct {
   u8  AccessSize;
   u32 Address[2];
 } GenericAddressStructure;
+
 struct ACPI_FADT {
   struct ACPISDTHeader h;
   u32                  FirmwareCtrl;
@@ -98,29 +103,26 @@ struct ACPI_FADT {
   GenericAddressStructure X_GPE0Block;
   GenericAddressStructure X_GPE1Block;
 } __PACKED__;
-void              lapic_find();
-void              hpet_initialize();
+
+void lapic_find();
+void hpet_initialize();
+
 struct ACPI_RSDP *RSDP;
 struct ACPI_RSDT *RSDT;
 struct ACPI_FADT *FADT;
 
-char checksum(u8 *addr, u32 length) {
-  int i   = 0;
-  u8  sum = 0;
-
-  for (i = 0; i < length; i++) {
-    sum += ((u8 *)addr)[i];
+static bool verify_checksum(const byte *addr, u32 size) {
+  byte sum = 0;
+  for (size_t i = 0; i < size; i++) {
+    sum = (byte)(sum + addr[i]);
   }
-
   return sum == 0;
 }
 
 u32 *acpi_find_rsdp() {
-  u32 *addr;
-
-  for (addr = (u32 *)0x000e0000; addr < (u32 *)0x00100000; addr++) {
+  for (u32 *addr = (u32 *)0x000e0000; addr < (u32 *)0x00100000; addr++) {
     if (memcmp(addr, "RSD PTR ", 8) == 0) {
-      if (checksum((u8 *)addr, ((struct ACPI_RSDP *)addr)->Length)) { return addr; }
+      if (verify_checksum((u8 *)addr, ((struct ACPI_RSDP *)addr)->Length)) return addr;
     }
   }
   return 0;
@@ -133,22 +135,22 @@ u32 acpi_find_table(char *Signature) {
   // iterate on ACPI table pointers
   for (len = *((u32 *)(rsdt + 4)), ptr2 = rsdt + 36; ptr2 < rsdt + len;
        ptr2 += rsdt[0] == 'X' ? 8 : 4) {
-    ptr = (u8 *)(uintptr_t)(rsdt[0] == 'X' ? *((uint64_t *)ptr2) : *((u32 *)ptr2));
+    ptr = (u8 *)(uintptr_t)(rsdt[0] == 'X' ? *((u64 *)ptr2) : *((u32 *)ptr2));
     if (!memcmp(ptr, Signature, 4)) { return (unsigned)ptr; }
   }
   // printk("not found.\n");
   return 0;
 }
 
-void init_acpi(void) {
+void init_acpi() {
   RSDP = (struct ACPI_RSDP *)acpi_find_rsdp();
   if (RSDP == 0) return;
   RSDT = (struct ACPI_RSDT *)RSDP->RsdtAddress;
   // checksum(RSDT, RSDT->header.Length);
-  if (!checksum((u8 *)RSDT, RSDT->header.Length)) return;
+  if (!verify_checksum((u8 *)RSDT, RSDT->header.Length)) return;
 
   FADT = (struct ACPI_FADT *)acpi_find_table("FACP");
-  if (!checksum((u8 *)FADT, FADT->h.Length)) return;
+  if (!verify_checksum((u8 *)FADT, FADT->h.Length)) return;
 
   if (!(asm_in16(FADT->PM1aControlBlock) & 1)) {
     if (FADT->SMI_CommandPort && FADT->AcpiEnable) {
@@ -170,7 +172,6 @@ void init_acpi(void) {
   }
   lapic_find();
   hpet_initialize();
-  return;
 }
 
 /*
@@ -224,34 +225,34 @@ int acpi_shutdown() {
 }
 // copy from EXOS(https://gitee.com/yywd123/EXOS)
 typedef struct {
-  char     sign[4];
-  u32      len;
-  char     revision;
-  char     checksum;
-  char     oemid[6];
-  uint64_t oem_table_id;
-  u32      oem_revision;
-  u32      creator_id;
-  u32      creator_revision;
-} __attribute__((packed)) MADT;
+  char sign[4];
+  u32  len;
+  char revision;
+  char checksum;
+  char oemid[6];
+  u64  oem_table_id;
+  u32  oem_revision;
+  u32  creator_id;
+  u32  creator_revision;
+} __PACKED__ MADT;
 typedef struct {
-  uint64_t configurationAndCapability;
-  uint64_t comparatorValue;
-  uint64_t fsbInterruptRoute;
-  uint64_t unused;
-} __attribute__((packed)) HpetTimer;
+  u64 configurationAndCapability;
+  u64 comparatorValue;
+  u64 fsbInterruptRoute;
+  u64 unused;
+} __PACKED__ HpetTimer;
 
 typedef struct {
-  uint64_t  generalCapabilities;
-  uint64_t  reserved0;
-  uint64_t  generalConfiguration;
-  uint64_t  reserved1;
-  uint64_t  generalIntrruptStatus;
+  u64       generalCapabilities;
+  u64       reserved0;
+  u64       generalConfiguration;
+  u64       reserved1;
+  u64       generalIntrruptStatus;
   u8        reserved3[0xc8];
-  uint64_t  mainCounterValue;
-  uint64_t  reserved4;
+  u64       mainCounterValue;
+  u64       reserved4;
   HpetTimer timers[0];
-} __attribute__((packed)) HpetInfo;
+} __PACKED__ HpetInfo;
 
 typedef struct {
   u8        addressSpaceID;
@@ -259,7 +260,7 @@ typedef struct {
   u8        registerBitOffset;
   u8        accessWidth; //  acpi 3.0
   uintptr_t address;
-} __attribute__((packed)) AcpiAddress;
+} __PACKED__ AcpiAddress;
 
 typedef struct {
   u32         signature;
@@ -281,20 +282,20 @@ typedef struct {
   u8          hpetNumber;
   u16         minimumTick;
   u8          pageProtection;
-} __attribute__((packed)) HPET;
+} __PACKED__ HPET;
 
 static HpetInfo *hpetInfo   = NULL;
-static uint64_t  hpetPeriod = 0;
+static u64       hpetPeriod = 0;
 
 void hpet_initialize() {
   HPET *hpet = (HPET *)acpi_find_table("HPET");
   if (!hpet) { klogd("can not found acpi hpet table"); }
   hpetInfo = (HpetInfo *)hpet->hpetAddress.address;
-  klogd("hpetInfo %016x\n", hpetInfo);
+  klogd("hpetInfo %016x", hpetInfo);
 
   u32 counterClockPeriod = hpetInfo->generalCapabilities >> 32;
   hpetPeriod             = counterClockPeriod / 1000000;
-  klogd("hpet period: 0x%016x\n", hpetPeriod);
+  klogd("hpet period: 0x%016x", hpetPeriod);
 
   hpetInfo->generalConfiguration |= 1; //  启用hpet
 }
@@ -302,10 +303,10 @@ void hpet_initialize() {
 #define NANOSEC_IN_SEC 1000000000
 
 // void gettime_ns(time_ns_t *ptr) {
-//   static uint64_t time_sec  = 0;
-//   static uint64_t time_ns   = 0;
-//   static uint64_t val_old   = 0;
-//   uint64_t        val       = hpetInfo->mainCounterValue * hpetPeriod - val_old;
+//   static u64 time_sec  = 0;
+//   static u64 time_ns   = 0;
+//   static u64 val_old   = 0;
+//   u64        val       = hpetInfo->mainCounterValue * hpetPeriod - val_old;
 //   val_old                  += val;
 //   time_ns                  += val;
 //   while (time_ns > NANOSEC_IN_SEC) {
@@ -317,27 +318,24 @@ void hpet_initialize() {
 //   ptr->nsec = time_ns;
 // }
 
-void usleep(uint64_t time_us) {
-//   time_ns_t end_time;
-//   gettime_ns(&end_time);
-//   end_time.sec  = time_us / 1000000;
-//   end_time.nsec = time_us % 1000000 * 1000;
-//   if (end_time.nsec > NANOSEC_IN_SEC) {
-//     end_time.sec  += 1;
-//     end_time.nsec -= NANOSEC_IN_SEC;
-//   }
-//   time_ns_t now_time;
-//   do {
-//     gettime_ns(&now_time);
-//   } while (now_time.sec < end_time.sec || now_time.nsec < end_time.nsec);
+void usleep(u64 time_us) {
+  //   time_ns_t end_time;
+  //   gettime_ns(&end_time);
+  //   end_time.sec  = time_us / 1000000;
+  //   end_time.nsec = time_us % 1000000 * 1000;
+  //   if (end_time.nsec > NANOSEC_IN_SEC) {
+  //     end_time.sec  += 1;
+  //     end_time.nsec -= NANOSEC_IN_SEC;
+  //   }
+  //   time_ns_t now_time;
+  //   do {
+  //     gettime_ns(&now_time);
+  //   } while (now_time.sec < end_time.sec || now_time.nsec < end_time.nsec);
 }
 
 void lapic_find() {
   MADT *p = (MADT *)acpi_find_table("APIC");
-  klogd("%08x\n", p);
-  klogd("MADT : len = %08x\n", p->len);
-  klogd("oemid : ");
-  for (int i = 0; i < 6; i++) {
-    klogd("%c", p->oemid[i]);
-  }
+  klogd("%08x", p);
+  klogd("MADT : len = %08x", p->len);
+  klogd("oemid: %s", strndup(p->oemid, 6));
 }
