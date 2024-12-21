@@ -97,6 +97,7 @@ static void task_free(task_t t) {
     free(t->release_keyfifo);
   }
   if (t->command_line) page_free(t->command_line, strlen(t->command_line) + 1);
+  
   page_free(t, sizeof(*t));
 }
 
@@ -283,6 +284,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->running      = 0;
   t->timeout      = ticks;
   t->jiffies      = 0;
+  page_link_addr_pde(0xf0001000, t->cr3, (u32)t->_user_part);
 
   with_no_interrupts(avltree_insert(tasks, t->tid, t));
   return t;

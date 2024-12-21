@@ -421,7 +421,7 @@ void *page_malloc_one_count_from_4gb() {
   }
   return NULL;
 }
-
+// TODO: 当实现线程时，这里需要修改
 void task_free_all_pages(u32 tid) {
   for (int i = 0; i < 1024 * 1024; i++) {
     if (pages[i].count && pages[i].task_id == tid) {
@@ -471,11 +471,11 @@ void *page_alloc(size_t size) {
 void page_free(void *p, size_t size) {
   if (((size_t)p & (PAGE_SIZE - 1)) != 0) fatal("炸啦！");
   for (size_t id = (size_t)p / PAGE_SIZE, i = 0; i < size; i += PAGE_SIZE, id++) {
-    if (id >= 1024 * 1024) fatal("炸啦！");                               // 超过最大页
-    if (pages[id].count <= 1 || pages[id].task_id == current_task->tid) { //
-      pages[id].task_id = 0;
-    }
-    pages[id].count--;
+    if (id >= 1024 * 1024) fatal("炸啦！"); // 超过最大页
+    // page_free只应用于free page_malloc分配的内存，因此count直接设置为0
+    // 如果是page_link出来的，那么task_free_all_pages会清理，free_pde也会清理
+    pages[id].count   = 0;
+    pages[id].task_id = 0;
   }
 }
 

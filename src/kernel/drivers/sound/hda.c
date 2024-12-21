@@ -29,6 +29,8 @@
 #define HDA_PIN_COMPLEX_SPDIF_IN           0xc
 #define HDA_PIN_COMPLEX_DIG_IN             0xd
 
+
+static inthandler_t prev_handler;
 static u8   hda_bus = 255, hda_slot = 255, hda_func = 255;
 static u32  hda_base, output_base;
 static u32 *corb             = null;

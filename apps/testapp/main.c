@@ -8,6 +8,8 @@ int main(int argc, char **argv) {
   for (int i = 0; i < argc; i++) {
     printf("argv[%d]: %s\n", i, argv[i]);
   }
-  printf("%p\n", aligned_alloc(4096, 114));
+  // printf("%p\n", aligned_alloc(4096, 114));
+  i32 *tid = (i32 *)(0xf0001000);
+  printf("tid: %d\n", *tid);
   return 0;
 }
