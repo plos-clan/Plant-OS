@@ -34,3 +34,4 @@ u32  read_bar_n(u8 bus, u8 device, u8 function, u8 bar_n);
 void write_pci(u8 bus, u8 device, u8 function, u8 registeroffset, u32 value);
 u32  read_pci(u8 bus, u8 device, u8 function, u8 registeroffset);
 u8   pci_get_drive_irq(u8 bus, u8 slot, u8 func);
+bool pci_check_interrupt_status(u8 bus, u8 slot, u8 func);

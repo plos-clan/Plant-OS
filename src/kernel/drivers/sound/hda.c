@@ -632,12 +632,16 @@ static int hda_open(vsound_t vsound) {
 
 __attr(fastcall) void hda_interrupt_handler(i32 id, regs32 *regs) {
   // printf("hda interrupt has been called");
+  bool result = pci_check_interrupt_status(hda_bus, hda_slot, hda_func);
+  // 不是我们的中断我们不要
+  if (!result) { return; }
   if (hda_stopping) {
     hda_stop();
   } else {
     vsound_played(snd);
   }
   asm_wbinvd;
+
   mem_set8(output_base + 0x3, 1 << 2);
   task_run(use_task);
 }

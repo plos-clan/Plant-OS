@@ -46,7 +46,12 @@ u32 pci_read_command_status(u8 bus, u8 slot, u8 func) {
 void pci_write_command_status(u8 bus, u8 slot, u8 func, u32 value) {
   write_pci(bus, slot, func, 0x04, value);
 }
-
+// true: there is an interrupt pending(handling or unhandling)
+// false: there is no interrupt pending or it has been handled
+bool pci_check_interrupt_status(u8 bus, u8 slot, u8 func) {
+  u32 status = pci_read_command_status(bus, slot, func) >> 16; // 我们需要status寄存器
+  return (status & (1 << 3)) != 0;
+}
 static base_address_register get_base_address_register(u8 bus, u8 device, u8 function, u8 bar) {
   base_address_register result;
 
@@ -118,112 +123,46 @@ void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
 // TODO 重构循环体到新函数
 
 void init_pci(void *addr_base) {
-  u32 i, BUS, Equipment, F, ADDER, *i1;
-  u8 *PCI_DATA = (void *)addr_base, *PCI_DATA1;
-  for (BUS = 0; BUS < 256; BUS++) {                    //查询总线
-    for (Equipment = 0; Equipment < 32; Equipment++) { //查询设备
-      for (F = 0; F < 8; F++) {                        //查询功能
-        pci_config(BUS, F, Equipment, 0);
+  u32 i, bus, equipment, func, addr, *i1;
+  u8 *pci_dat = (void *)addr_base, *pci_dat1;
+  for (bus = 0; bus < 256; bus++) {                    //查询总线
+    for (equipment = 0; equipment < 32; equipment++) { //查询设备
+      for (func = 0; func < 8; func++) {               //查询功能
+        pci_config(bus, func, equipment, 0);
         if (asm_in32(PCI_DATA_PORT) != 0xFFFFFFFF) {
           //当前插槽有设备
           //把当前设备信息映射到PCI数据区
           int key = 1;
           while (key) {
             //此配置表为空
-            // printf("PCI_DATA:%x\n", PCI_DATA);
-            // getch();
-            PCI_DATA1  = PCI_DATA;
-            *PCI_DATA1 = 0xFF; //表占用标志
-            PCI_DATA1++;
-            *PCI_DATA1 = BUS; //总线号
-            PCI_DATA1++;
-            *PCI_DATA1 = Equipment; //设备号
-            PCI_DATA1++;
-            *PCI_DATA1 = F; //功能号
-            PCI_DATA1++;
-            PCI_DATA1 = PCI_DATA1 + 8;
+            pci_dat1  = pci_dat;
+            *pci_dat1 = 0xFF; //表占用标志
+            pci_dat1++;
+            *pci_dat1 = bus; //总线号
+            pci_dat1++;
+            *pci_dat1 = equipment; //设备号
+            pci_dat1++;
+            *pci_dat1 = func; //功能号
+            pci_dat1++;
+            pci_dat1 = pci_dat1 + 8;
             //写入寄存器配置
-            for (ADDER = 0; ADDER < 256; ADDER = ADDER + 4) {
-              pci_config(BUS, F, Equipment, ADDER);
+            for (addr = 0; addr < 256; addr = addr + 4) {
+              pci_config(bus, func, equipment, addr);
               i  = asm_in32(PCI_DATA_PORT);
               i1 = (void *)i;
-              //*i1 = PCI_DATA1;
-              memcpy(PCI_DATA1, &i, 4);
-              PCI_DATA1 = PCI_DATA1 + 4;
+              memcpy(pci_dat1, &i, 4);
+              pci_dat1 = pci_dat1 + 4;
             }
-            for (u8 barNum = 0; barNum < 6; barNum++) {
-              base_address_register bar = get_base_address_register(BUS, Equipment, F, barNum);
+            for (u8 bar_num = 0; bar_num < 6; bar_num++) {
+              base_address_register bar = get_base_address_register(bus, equipment, func, bar_num);
               if (bar.address && (bar.type == input_output)) {
-                PCI_DATA1 += 4;
-                int i      = ((u32)(bar.address));
-                memcpy(PCI_DATA1, &i, 4);
+                pci_dat1 += 4;
+                int i     = ((u32)(bar.address));
+                memcpy(pci_dat1, &i, 4);
               }
             }
-            /*PCI_DATA += 12;
-            struct PCI_CONFIG_SPACE_PUCLIC *PCI_CONFIG_SPACE = (struct
-            PCI_CONFIG_SPACE_PUCLIC *)PCI_DATA; PCI_DATA -= 12;
-            printf("PCI_CONFIG_SPACE:%08x\n", PCI_CONFIG_SPACE);
-            printf("PCI_CONFIG_SPACE->VendorID:%08x\n",
-            PCI_CONFIG_SPACE->VendorID);
-            printf("PCI_CONFIG_SPACE->DeviceID:%08x\n",
-            PCI_CONFIG_SPACE->DeviceID);
-            printf("PCI_CONFIG_SPACE->Command:%08x\n",
-            PCI_CONFIG_SPACE->Command);
-            printf("PCI_CONFIG_SPACE->Status:%08x\n", PCI_CONFIG_SPACE->Status);
-            printf("PCI_CONFIG_SPACE->RevisionID:%08x\n",
-            PCI_CONFIG_SPACE->RevisionID);
-            printf("PCI_CONFIG_SPACE->ProgIF:%08x\n", PCI_CONFIG_SPACE->ProgIF);
-            printf("PCI_CONFIG_SPACE->SubClass:%08x\n",
-            PCI_CONFIG_SPACE->SubClass);
-            printf("PCI_CONFIG_SPACE->BaseCode:%08x\n",
-            PCI_CONFIG_SPACE->BaseClass);
-            printf("PCI_CONFIG_SPACE->CacheLineSize:%08x\n",
-            PCI_CONFIG_SPACE->CacheLineSize);
-            printf("PCI_CONFIG_SPACE->LatencyTimer:%08x\n",
-            PCI_CONFIG_SPACE->LatencyTimer);
-            printf("PCI_CONFIG_SPACE->HeaderType:%08x\n",
-            PCI_CONFIG_SPACE->HeaderType);
-            printf("PCI_CONFIG_SPACE->BIST:%08x\n", PCI_CONFIG_SPACE->BIST);
-            printf("PCI_CONFIG_SPACE->BaseAddr0:%08x\n",
-            PCI_CONFIG_SPACE->BaseAddr[0]);
-            printf("PCI_CONFIG_SPACE->BaseAddr1:%08x\n",
-            PCI_CONFIG_SPACE->BaseAddr[1]);
-            printf("PCI_CONFIG_SPACE->BaseAddr2:%08x\n",
-            PCI_CONFIG_SPACE->BaseAddr[2]);
-            printf("PCI_CONFIG_SPACE->BaseAddr3:%08x\n",
-            PCI_CONFIG_SPACE->BaseAddr[3]);
-            printf("PCI_CONFIG_SPACE->BaseAddr4:%08x\n",
-            PCI_CONFIG_SPACE->BaseAddr[4]);
-            printf("PCI_CONFIG_SPACE->BaseAddr5:%08x\n",
-            PCI_CONFIG_SPACE->BaseAddr[5]);
-            printf("PCI_CONFIG_SPACE->CardbusCISPtr:%08x\n",
-            PCI_CONFIG_SPACE->CardbusCIS);
-            printf("PCI_CONFIG_SPACE->SubsystemVendorID:%08x\n",
-            PCI_CONFIG_SPACE->SubVendorID);
-            printf("PCI_CONFIG_SPACE->SubsystemID:%08x\n",
-            PCI_CONFIG_SPACE->SubSystemID);
-            printf("PCI_CONFIG_SPACE->ExpansionROMBaseAddr:%08x\n",
-            PCI_CONFIG_SPACE->ROMBaseAddr);
-            printf("PCI_CONFIG_SPACE->CapabilitiesPtr:%08x\n",
-            PCI_CONFIG_SPACE->CapabilitiesPtr);
-            printf("PCI_CONFIG_SPACE->Reserved1:%08x\n",
-            PCI_CONFIG_SPACE->Reserved[0]);
-            printf("PCI_CONFIG_SPACE->Reserved2:%08x\n",
-            PCI_CONFIG_SPACE->Reserved[1]);
-            printf("PCI_CONFIG_SPACE->InterruptLine:%08x\n",
-            PCI_CONFIG_SPACE->InterruptLine);
-            printf("PCI_CONFIG_SPACE->InterruptPin:%08x\n",
-            PCI_CONFIG_SPACE->InterruptPin);
-            printf("PCI_CONFIG_SPACE->MinGrant:%08x\n",
-            PCI_CONFIG_SPACE->MinGrant);
-            printf("PCI_CONFIG_SPACE->MaxLatency:%08x\n",
-            PCI_CONFIG_SPACE->MaxLatency); for (int i = 0; i < 272+4; i++)
-            {
-                printf("%02x ", PCI_DATA[i]);
-            }
-            printf("\n");*/
-            PCI_DATA = PCI_DATA + 0x110 + 4;
-            key      = 0;
+            pci_dat = pci_dat + 0x110 + 4;
+            key     = 0;
           }
         }
       }
