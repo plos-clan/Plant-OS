@@ -133,7 +133,7 @@ int shell_exec(char *path, cstr comand) {
       else
         sprintf(path, "%s/%s", path, s);
     }
-    if (vfs_open(path) == null) {
+    if (vfs_open(path) == null || vfs_open(path)->type != file_dir) {
       printf("cd: %s: No such directory\n", s);
       sprintf(path, "%s", old);
       free(old);
