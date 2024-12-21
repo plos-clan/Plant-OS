@@ -1,5 +1,7 @@
 #include <kernel.h>
 
+bool acpi_inited = false;
+
 struct ACPI_RSDP {
   char Signature[8];
   u8   Checksum;
@@ -172,6 +174,8 @@ void init_acpi() {
   }
   lapic_find();
   hpet_initialize();
+
+  acpi_inited = true;
 }
 
 /*
@@ -300,37 +304,32 @@ void hpet_initialize() {
   hpetInfo->generalConfiguration |= 1; //  启用hpet
 }
 
-#define NANOSEC_IN_SEC 1000000000
-
-// void gettime_ns(time_ns_t *ptr) {
-//   static u64 time_sec  = 0;
-//   static u64 time_ns   = 0;
-//   static u64 val_old   = 0;
-//   u64        val       = hpetInfo->mainCounterValue * hpetPeriod - val_old;
-//   val_old                  += val;
-//   time_ns                  += val;
-//   while (time_ns > NANOSEC_IN_SEC) {
-//     time_sec += 1;
-//     time_ns  -= NANOSEC_IN_SEC;
-//   }
-//   if (ptr == NULL) return;
-//   ptr->sec  = time_sec;
-//   ptr->nsec = time_ns;
-// }
+void gettime_ns(timespec *ptr) {
+  static timespec time     = {};
+  static u64      val_old  = 0;
+  u64             val      = hpetInfo->mainCounterValue * hpetPeriod - val_old;
+  val_old                 += val;
+  time.tv_nsec            += (i64)val;
+  while (time.tv_nsec > NANOSEC_IN_SEC) {
+    time.tv_sec  += 1;
+    time.tv_nsec -= NANOSEC_IN_SEC;
+  }
+  if (ptr) *ptr = time;
+}
 
 void usleep(u64 time_us) {
-  //   time_ns_t end_time;
-  //   gettime_ns(&end_time);
-  //   end_time.sec  = time_us / 1000000;
-  //   end_time.nsec = time_us % 1000000 * 1000;
-  //   if (end_time.nsec > NANOSEC_IN_SEC) {
-  //     end_time.sec  += 1;
-  //     end_time.nsec -= NANOSEC_IN_SEC;
-  //   }
-  //   time_ns_t now_time;
-  //   do {
-  //     gettime_ns(&now_time);
-  //   } while (now_time.sec < end_time.sec || now_time.nsec < end_time.nsec);
+  timespec end_time;
+  gettime_ns(&end_time);
+  end_time.tv_sec  += time_us / 1000000;
+  end_time.tv_nsec += time_us % 1000000 * 1000;
+  if (end_time.tv_nsec > NANOSEC_IN_SEC) {
+    end_time.tv_sec  += 1;
+    end_time.tv_nsec -= NANOSEC_IN_SEC;
+  }
+  timespec now_time;
+  do {
+    gettime_ns(&now_time);
+  } while (now_time.tv_sec < end_time.tv_sec || now_time.tv_nsec < end_time.tv_nsec);
 }
 
 void lapic_find() {

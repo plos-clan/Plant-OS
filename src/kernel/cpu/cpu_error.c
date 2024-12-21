@@ -73,6 +73,7 @@ __attr(fastcall) void error_inthandler(i32 id, regs32 *regs) {
   kassert(id >= 0);
   kassert(id < 32);
   kassert(regs != null);
+  klogi("at %08x", regs->eip);
   if (regs->fs != RING0_DS) {
     klogw("task %d error %02x: %s (#%s)", current_task->tid, id, error_names[id].fullname,
           error_names[id].shortname);

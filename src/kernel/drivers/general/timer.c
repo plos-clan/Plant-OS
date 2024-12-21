@@ -21,25 +21,40 @@ void init_pit() {
   irq_enable(0);
 }
 
-#define NANOSEC_IN_SEC 1000000000
+void sleep(u64 time_s) {
+  timespec end_time;
+  gettime_ns(&end_time);
+  end_time.tv_sec  += time_s / 1000;
+  end_time.tv_nsec += time_s % 1000 * 1000000;
+  if (end_time.tv_nsec > NANOSEC_IN_SEC) {
+    end_time.tv_sec  += 1;
+    end_time.tv_nsec -= NANOSEC_IN_SEC;
+  }
+  timespec now_time;
+  do {
+    gettime_ns(&now_time);
+  } while (now_time.tv_sec < end_time.tv_sec || now_time.tv_nsec < end_time.tv_nsec);
+}
 
-void sleep(uint64_t time_s) {
-  //   time_ns_t end_time;
-  //   gettime_ns(&end_time);
-  //   end_time.sec  = time_s / 1000;
-  //   end_time.nsec = time_s % 1000 * 1000000;
-  //   if (end_time.nsec > NANOSEC_IN_SEC) {
-  //     end_time.sec  += 1;
-  //     end_time.nsec -= NANOSEC_IN_SEC;
-  //   }
-  //   time_ns_t now_time;
-  //   do {
-  //     gettime_ns(&now_time);
-  //   } while (now_time.sec < end_time.sec || now_time.nsec < end_time.nsec);
+struct timespec calc_time_by_tick(u64 tick) {
+  const u64 ticktime_ns = NANOSEC_IN_SEC * (u64)(1193182 / PIT_FREQ) / 1193182;
+  const i64 error_ns    = NANOSEC_IN_SEC / PIT_FREQ - ticktime_ns;
+
+  const i64 error = error_ns * (i64)tick;
+
+  timespec time = {
+      .tv_sec  = (i64)tick / PIT_FREQ - error / NANOSEC_IN_SEC,
+      .tv_nsec = (i64)(tick % PIT_FREQ) * (NANOSEC_IN_SEC / PIT_FREQ) - error % NANOSEC_IN_SEC,
+  };
+  if (time.tv_nsec >= NANOSEC_IN_SEC) {
+    time.tv_sec++;
+    time.tv_nsec -= NANOSEC_IN_SEC;
+  }
+  return time;
 }
 
 __attr(fastcall) void inthandler20(i32 id, regs32 *regs) {
-  // gettime_ns(NULL); // 更新时间
+  if (acpi_inited) gettime_ns(null); // 更新时间
 
   system_tick++;
 
