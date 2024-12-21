@@ -37,13 +37,11 @@ static byte mouse_read() {
   return asm_in8(0x60);
 }
 
-static lock_t mouse_l;
-static void   mouse_reset() {
+static void mouse_reset() {
   mouse_write(0xff);
 }
 
 void enable_mouse(struct MOUSE_DEC *mdec) {
-  lock_init(&mouse_l);
   inthandler_set(0x2c, inthandler2c);
   /* 激活鼠标 */
   wait_KBC_sendready();

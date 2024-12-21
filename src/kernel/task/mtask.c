@@ -32,7 +32,7 @@ finline int alloc_tid() {
 }
 
 static task_t task_alloc() {
-  task_t t = malloc(sizeof(*t));
+  task_t t = page_alloc(sizeof(*t));
   if (t == null) {
     kloge("task_alloc failed");
     return null;
@@ -96,7 +96,8 @@ static void task_free(task_t t) {
     page_free(t->release_keyfifo->buf, 4096);
     free(t->release_keyfifo);
   }
-  free(t->command_line);
+  if (t->command_line) page_free(t->command_line, strlen(t->command_line) + 1);
+  page_free(t, sizeof(*t));
 }
 
 finline task_t task_ref(task_t t) {

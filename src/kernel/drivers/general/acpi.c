@@ -227,6 +227,7 @@ int acpi_shutdown() {
   }
   return 1;
 }
+
 // copy from EXOS(https://gitee.com/yywd123/EXOS)
 typedef struct {
   char sign[4];
@@ -239,6 +240,7 @@ typedef struct {
   u32  creator_id;
   u32  creator_revision;
 } __PACKED__ MADT;
+
 typedef struct {
   u64 configurationAndCapability;
   u64 comparatorValue;

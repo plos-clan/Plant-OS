@@ -159,7 +159,8 @@ i32 os_execute(cstr filename, cstr line) {
   const int o             = current_task->fifosleep;
   current_task->fifosleep = 1;
 
-  t->command_line = strdup(line);
+  t->command_line = page_alloc(strlen(line) + 1);
+  strcpy(t->command_line, line);
 
   klogd("t->tid %d %d", t->tid, t->ptid);
 
