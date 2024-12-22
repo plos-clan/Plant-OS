@@ -29,8 +29,6 @@
 #define HDA_PIN_COMPLEX_SPDIF_IN           0xc
 #define HDA_PIN_COMPLEX_DIG_IN             0xd
 
-
-static inthandler_t prev_handler;
 static u8   hda_bus = 255, hda_slot = 255, hda_func = 255;
 static u32  hda_base, output_base;
 static u32 *corb             = null;
@@ -57,6 +55,7 @@ static u32   hda_codec_number = 0;
 static void *hda_buffer_ptr   = null;
 
 static inthandler_f hda_interrupt_handler;
+static inthandler_t prev_handler;
 
 static void wait(int ticks) {
   int tick = system_tick;
@@ -382,7 +381,7 @@ void hda_init() {
 
   int irq = pci_get_drive_irq(hda_bus, hda_slot, hda_func);
   irq_enable(irq);
-  inthandler_set(0x20 + irq, hda_interrupt_handler);
+  prev_handler = inthandler_set(0x20 + irq, hda_interrupt_handler);
   mem_set32(hda_base + 0x20, ((u32)1 << 31) | ((u32)1 << input_stream_count));
 
   info("%x", pci_get_drive_irq(hda_bus, hda_slot, hda_func));
@@ -634,6 +633,7 @@ static int hda_open(vsound_t vsound) {
 
 __attr(fastcall) void hda_interrupt_handler(i32 id, regs32 *regs) {
   // printf("hda interrupt has been called");
+  if (prev_handler) { prev_handler(id, regs); }
   bool result = pci_check_interrupt_status(hda_bus, hda_slot, hda_func);
   // 不是我们的中断我们不要
   if (!result) { return; }
