@@ -7,6 +7,8 @@
 
 A simple OS used to study made by several students。
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F2F4186F89)
+
 [网页版文档](https://doc.plos-clan.org)
 
 <br>
