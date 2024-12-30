@@ -35,10 +35,6 @@ void task_app() {
     u32 *pde_entry = (u32 *)(pde + i);
 
     if ((*pde_entry & PAGE_SHARED) || pages[IDX(*pde_entry)].count > 1) {
-      // if (pde_entry == 0x08e6b718) {
-      //   while (true)
-      //     ;
-      // }
       if (pages[IDX(*pde_entry)].count > 1) {
         u32 old    = *pde_entry & 0xfffff000;
         u32 attr   = *pde_entry & 0xfff;
@@ -138,7 +134,6 @@ void task_to_user_mode_elf() {
   klogd("eip = %08x", iframe->eip);
   current_task->user_mode = 1;
   tss.esp0                = current_task->stack_bottom;
-  change_page_task_id(current_task->tid, elf_data, file->size);
 
   asm volatile("mov %0, %%esp\n\t" ::"r"(iframe));
   asm volatile("jmp asm_inthandler_quit\n\t");

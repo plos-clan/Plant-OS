@@ -85,7 +85,7 @@ static void task_free(task_t t) {
   if (t->parent != null) avltree_delete(t->parent->children, t->tid);
   if (t == current_task) asm_set_cr3(PD_ADDRESS);
   pd_free(t->cr3);
-  task_free_all_pages(t->tid); // 释放内存
+  // task_free_all_pages(t->tid); // 释放内存
   if (t->press_key_fifo) {
     page_free(t->press_key_fifo->buf, 4096);
     free(t->press_key_fifo);
@@ -266,7 +266,6 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   if (t == null) return null;
   void *stack = page_alloc(STACK_SIZE);
   u32   esp   = (u32)stack + STACK_SIZE;
-  change_page_task_id(t->tid, stack, STACK_SIZE);
   t->esp      = (stack_frame *)esp - 1; // switch用到的栈帧
   t->esp->eip = (size_t)entry;          // 设置跳转地址
 
@@ -282,7 +281,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->running      = 0;
   t->timeout      = ticks;
   t->jiffies      = 0;
-  page_link_addr_pde(TASK_USER_PART_ADDR, t->cr3, (u32)t->_user_part);
+  page_link_addr_pde(TASK_USER_PART_ADDR, t->cr3, (usize)t->_user_part);
 
   with_no_interrupts(avltree_insert(tasks, t->tid, t));
   return t;
@@ -299,16 +298,17 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->ecx = 0;
   iframe->eax = 0;
 
-  iframe->gs              = 0;
-  iframe->ds              = GET_SEL(RING3_DS, SA_RPL3);
-  iframe->es              = GET_SEL(RING3_DS, SA_RPL3);
-  iframe->fs              = GET_SEL(RING3_DS, SA_RPL3);
-  iframe->ss              = GET_SEL(RING3_DS, SA_RPL3);
-  iframe->cs              = GET_SEL(RING3_CS, SA_RPL3);
-  iframe->eip             = eip;
-  iframe->flags           = (0 << 12 | 0b10 | 1 << 9);
-  iframe->esp             = esp; // 设置用户态堆栈
-  task_current->user_mode = 1;
+  iframe->gs    = 0;
+  iframe->ds    = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->es    = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->fs    = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->ss    = GET_SEL(RING3_DS, SA_RPL3);
+  iframe->cs    = GET_SEL(RING3_CS, SA_RPL3);
+  iframe->eip   = eip;
+  iframe->flags = (0 << 12 | 0b10 | 1 << 9);
+  iframe->esp   = esp; // 设置用户态堆栈
+
+  task_current->user_mode = true;
   tss.esp0                = task_current->stack_bottom;
 
   asm volatile("mov %0, %%esp\n\t" ::"r"(iframe));
@@ -463,8 +463,6 @@ int task_fork() {
   with_no_interrupts({
     memcpy(m, current_task, sizeof(struct task));
     u32 stack = (u32)page_alloc(STACK_SIZE);
-    change_page_task_id(tid, (void *)stack, STACK_SIZE);
-    // u32 off = m->top - (u32)m->esp;
     memcpy((void *)stack, (void *)(m->stack_bottom - STACK_SIZE), STACK_SIZE);
     klogd("s = %08x \n", m->stack_bottom - STACK_SIZE);
     m->stack_bottom = stack += STACK_SIZE;

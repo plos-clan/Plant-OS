@@ -12,9 +12,11 @@
 static inthandler_f page_fault;
 
 // 刷新虚拟地址 vaddr 的 块表 TLB
-finline void flush_tlb(size_t vaddr) {
+finline void flush_tlb(usize vaddr) {
   asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
 }
+
+#define flush_tlb(vaddr) flush_tlb((usize)(vaddr))
 
 PageInfo *pages = (PageInfo *)PAGE_MANNAGER;
 
@@ -50,7 +52,7 @@ void page_set_alloced(PageInfo *pg, u32 start, u32 end) {
 // 为了防止应用程序和操作系统抢占前0x70000000的内存，所以page_link和copy_on_write是从后往前分配的
 // OS应该是用不完0x70000000的，所以应用程序大概是可以用满2GB
 
-u32 pd_clone(u32 addr) {
+usize pd_clone(usize addr) {
   const var pd = (PDE *)addr;
   for (usize i = PDI(0x70000000); i < 1024; i++) {
     var pde = &pd[i];
@@ -63,12 +65,12 @@ u32 pd_clone(u32 addr) {
       pte->wrable = pte->shared ? true : false;
     }
   }
-  u32 result = (u32)page_malloc_one_no_mark();
-  memcpy((void *)result, (void *)addr, PAGE_SIZE);
+  var result = page_malloc_one();
+  memcpy(result, (void *)addr, PAGE_SIZE);
   flush_tlb(result);
   flush_tlb(addr);
   asm_set_cr3(addr);
-  return result;
+  return (usize)result;
 }
 
 static void pde_reset(u32 addr) {
@@ -78,7 +80,7 @@ static void pde_reset(u32 addr) {
   }
 }
 
-void pd_free(u32 addr) {
+void pd_free(usize addr) {
   if (addr == PD_ADDRESS) return;
   for (int i = PDI(0x70000000) * 4; i < PDI(0xf1000000) * 4; i += 4) {
     u32 *pde_entry = (u32 *)(addr + i);
@@ -126,7 +128,7 @@ static void page_link_pde(u32 addr, u32 pd) {
   asm_set_cr3(cr3_backup);
 }
 
-void page_link_addr_pde(u32 addr, u32 pde, u32 map_addr) {
+void page_link_addr_pde(usize addr, usize pde, usize map_addr) {
   u32 cr3_backup    = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
@@ -245,8 +247,7 @@ void page_links_pde(u32 start, u32 numbers, u32 pde) {
   int j = 0;
   for (i = IDX(total_mem_size) - 1; i >= 0 && times < numbers; i--) {
     if (pages[i].count == 0) {
-      u32 addr         = PAGE(i);
-      pages[i].task_id = current_task->tid;
+      u32 addr = PAGE(i);
       pages[i].count++;
       a[j++] = addr;
     }
@@ -363,70 +364,28 @@ void tpo2page(int *page, int t, int p) {
   *page = (t * 1024) + p;
 }
 
-void *page_malloc_one_no_mark() {
-  int i;
-  for (i = 0; i != 1024 * 1024; i++) {
-    if (pages[i].count == 0) {
-      int t, p;
-      page2tpo(i, &t, &p);
-      u32 addr         = mk_linear_addr(t, p, 0);
-      pages[i].task_id = 0;
-      pages[i].count++;
-      return (void *)addr;
-    }
-  }
-  return NULL;
-}
-
 void *page_malloc_one() {
   for (int i = 0; i != 1024 * 1024; i++) {
     if (pages[i].count == 0) {
       int t, p;
       page2tpo(i, &t, &p);
-      u32 addr         = mk_linear_addr(t, p, 0);
-      pages[i].task_id = current_task->tid;
+      u32 addr = mk_linear_addr(t, p, 0);
       pages[i].count++;
       return (void *)addr;
     }
   }
-  return NULL;
-}
-
-void *page_malloc_one_mark(u32 tid) {
-  int i;
-  for (i = 0; i != 1024 * 1024; i++) {
-    if (pages[i].count == 0) {
-      int t, p;
-      page2tpo(i, &t, &p);
-      u32 addr         = mk_linear_addr(t, p, 0);
-      pages[i].task_id = tid;
-      pages[i].count++;
-      return (void *)addr;
-    }
-  }
-
   return NULL;
 }
 
 void *page_malloc_one_count_from_4gb() {
   for (int i = IDX(total_mem_size) - 1; i >= 0; i--) {
     if (pages[i].count == 0) {
-      u32 addr         = PAGE(i);
-      pages[i].task_id = current_task->tid;
+      u32 addr = PAGE(i);
       pages[i].count++;
       return (void *)addr;
     }
   }
   return NULL;
-}
-// TODO: 当实现线程时，这里需要修改
-void task_free_all_pages(u32 tid) {
-  for (int i = 0; i < 1024 * 1024; i++) {
-    if (pages[i].count && pages[i].task_id == tid) {
-      pages[i].count   = 0;
-      pages[i].task_id = 0;
-    }
-  }
 }
 
 int get_pageinpte_address(int t, int p) {
@@ -446,7 +405,6 @@ int find_kpage(int line, int n) {
     }
     if (free == n) {
       for (int j = line - n + 1; j != line + 1; j++) {
-        pages[j].task_id = 0;
         pages[j].count++;
       }
       line -= n - 1;
@@ -472,8 +430,7 @@ void page_free(void *p, size_t size) {
     if (id >= 1024 * 1024) fatal("炸啦！"); // 超过最大页
     // page_free只应用于free page_malloc分配的内存，因此count直接设置为0
     // 如果是page_link出来的，那么task_free_all_pages会清理，free_pde也会清理
-    pages[id].count   = 0;
-    pages[id].task_id = 0;
+    pages[id].count = 0;
   }
 }
 
@@ -501,13 +458,6 @@ void page_map(void *target, void *start, void *end) {
     var tmp2 = phy_addr_from_linear_addr(start + i * 4 * 1024);
     set_phy_addr_of_linear_addr(target + i * 4 * 1024, tmp2);
     set_phy_addr_of_linear_addr(start + i * 4 * 1024, tmp1);
-  }
-}
-
-void change_page_task_id(int task_id, void *p, u32 size) {
-  int page = get_page_from_line_address((int)p);
-  for (int i = 0; i != ((size - 1) / (4 * 1024)) + 1; i++) {
-    pages[page + i].task_id = task_id;
   }
 }
 

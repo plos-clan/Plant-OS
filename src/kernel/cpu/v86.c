@@ -33,10 +33,10 @@ void v86_task() {
   vfs_read(p, code, 0, p->size);
   // 映射页面
   u32 pde = current_task->cr3;
-  page_link_addr_pde(0x2000, pde, (u32)code);
-  page_link_addr_pde(0x3000, pde, (u32)ptr);
+  page_link_addr_pde(0x2000, pde, (usize)code);
+  page_link_addr_pde(0x3000, pde, (usize)ptr);
   page_link_addr_pde(0x0, pde, 0x0);
-  for (int i = 0x7000; i < 0x100000; i += PAGE_SIZE) {
+  for (usize i = 0x7000; i < 0x100000; i += PAGE_SIZE) {
     page_link_addr_pde(i, pde, i);
   }
   // 设置状态

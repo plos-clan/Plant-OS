@@ -377,7 +377,7 @@ void hda_init() {
   info("input stream count: %d", input_stream_count);
   output_base = hda_base + 0x80 + (0x20 * input_stream_count);
   info("output base address: 0x%x", output_base);
-  output_buffer = page_malloc_one_no_mark();
+  output_buffer = page_malloc_one();
 
   int irq = pci_get_drive_irq(hda_bus, hda_slot, hda_func);
   irq_enable(irq);
@@ -394,7 +394,7 @@ void hda_init() {
   mem_set8(hda_base + 0x4c, 0);
   mem_set8(hda_base + 0x5c, 0);
 
-  corb = page_malloc_one_no_mark();
+  corb = page_malloc_one();
   mem_set32(hda_base + 0x40, (u32)corb);
   mem_set32(hda_base + 0x44, 0);
 
@@ -438,7 +438,7 @@ void hda_init() {
   corb_write_pointer = 1;
   info("corb has been reset already");
 
-  rirb = page_malloc_one_no_mark();
+  rirb = page_malloc_one();
   mem_set32(hda_base + 0x50, (u32)rirb);
   mem_set32(hda_base + 0x54, 0);
 

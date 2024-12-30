@@ -16,6 +16,10 @@
 #define PAGE_END      (PT_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
 
+#ifdef __x86_64__
+
+#else
+
 typedef struct PDE {
   u32 present : 1;  // 存在位
   u32 wrable  : 1;  // 读写位
@@ -48,9 +52,10 @@ typedef struct PTE {
   u32 addr    : 20; // 一定要左移 12 位
 } PTE;
 
+#endif
+
 typedef struct __PACKED__ PageInfo {
-  u8 task_id;
-  u8 count;
+  u16 count;
 } PageInfo;
 
 #ifdef __x86_64__
@@ -87,17 +92,22 @@ void  tpo2page(int *page, int t, int p);
 void *page_malloc_one_count_from_4gb();
 void *page_alloc(size_t size);
 void  page_free(void *p, size_t size);
-void  task_free_all_pages(u32 tid);
-void  change_page_task_id(int task_id, void *p, u32 size);
-u32   pd_clone(u32 addr);
-void  pd_free(u32 addr);
+usize pd_clone(usize addr);
+void  pd_free(usize addr);
 void *page_malloc_one();
-void *page_malloc_one_no_mark();
 void  page_link(u32 addr);
 void  page_link_share(u32 addr);
 void  page_unlink(u32 addr);
 u32   page_get_alloced();
-void  page_link_addr_pde(u32 addr, u32 pde, u32 map_addr);
+
+/**
+ *\brief 
+ *
+ *\param addr     目标(虚拟)地址
+ *\param cr3      分页设置(cr3)
+ *\param map_addr 源(物理)地址
+ */
+void page_link_addr_pde(usize addr, usize cr3, usize map_addr);
 
 // u8 PageType
 enum {

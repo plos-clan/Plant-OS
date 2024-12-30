@@ -11,9 +11,9 @@ typedef struct _NAME _NAME;
 
 struct _NAME {
   stack_frame  *esp;              //
-  u32           cr3;              //
+  usize         cr3;              //
   bool          user_mode;        //
-  u32           stack_bottom;     // ring0 栈底
+  usize         stack_bottom;     // ring0 栈底
   u32           running;          // 已经占用了多少时间片
   u32           timeout;          // 需要占用多少时间片
   char         *command_line;     // 运行程序所使用的命令行 (在单独的页面)
