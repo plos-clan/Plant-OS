@@ -103,62 +103,85 @@ static void page_link_pde(u32 addr, u32 pd) {
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
   t        = PDI(addr);
-  p        = (addr >> 12) & 0x3ff;
-  u32 *pte = (u32 *)((pd + t * 4));
+  p        = PTI(addr);
+  PDE *pde = (PDE *)((pd + t * 4));
 
-  if (pages[IDX(*pte)].count > 1) {
+  // 其实我们应该判断一下这里user能不能写的
+  // 但是大多数情况下pde都比较干净，所以先不判断了
+  if (pages[pde->addr].count > 1) {
     // 这个页目录还有人引用，所以需要复制
-    pages[IDX(*pte)].count--;
-    u32 old = *pte & 0xfffff000;
-    *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
-    *pte |= 7;
+    pages[pde->addr].count--;
+    void *old = (void *)PAGE(pde->addr);
+    pde->addr = IDX(page_malloc_one_count_from_4gb());
+    memcpy((void *)(PAGE(pde->addr)), old, PAGE_SIZE);
+    pde->wrable  = true;
+    pde->user    = true;
+    pde->present = true;
   } else {
-    *pte |= 7;
+    pde->wrable  = true;
+    pde->user    = true;
+    pde->present = true;
   }
 
-  u32 *physics = (u32 *)((*pte & 0xfffff000) + p * 4); // PTE页表
+  PTE *physics = (PTE *)(PAGE(pde->addr) + p * 4); // PTE页表
   // COW
-  if (pages[IDX(*physics)].count > 1) { pages[IDX(*physics)].count--; }
-  *physics  = (u32)page_malloc_one_count_from_4gb();
-  *physics |= 7;
-  flush_tlb((u32)pte);
+  // 本来就不是给你用户访问的就不需要操作引用计数了
+  // 这里不需要大于1,因为我们就相当于是抛弃了原来的页
+  if (pages[physics->addr].count && physics->user) { pages[physics->addr].count--; }
+  physics->addr    = IDX(page_malloc_one_count_from_4gb());
+  physics->wrable  = true;
+  physics->user    = true;
+  physics->present = true;
+  flush_tlb((void *)pde);
   flush_tlb(addr);
   current_task->cr3 = cr3_backup;
   asm_set_cr3(cr3_backup);
 }
 
-void page_link_addr_pde(usize addr, usize pde, usize map_addr) {
+void page_link_addr_pde(usize addr, usize pd, usize map_addr) {
   u32 cr3_backup    = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
   t        = PDI(addr);
-  p        = (addr >> 12) & 0x3ff;
-  u32 *pte = (u32 *)((pde + t * 4));
+  p        = PTI(addr);
+  PDE *pde = (PDE *)((pd + t * 4));
 
-  if (pages[IDX(*pte)].count > 1) {
+  // 其实我们应该判断一下这里user能不能写的
+  // 但是大多数情况下pde都比较干净，所以先不判断了
+  if (pages[pde->addr].count > 1) {
     // 这个页目录还有人引用，所以需要复制
-    pages[IDX(*pte)].count--;
-    u32 old = *pte & 0xfffff000;
-    *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
-    *pte |= 7;
+    pages[pde->addr].count--;
+    void *old = (void *)PAGE(pde->addr);
+    pde->addr = IDX(page_malloc_one_count_from_4gb());
+    memcpy((void *)(PAGE(pde->addr)), old, PAGE_SIZE);
+    pde->wrable  = true;
+    pde->user    = true;
+    pde->present = true;
   } else {
-    *pte |= 7;
+    pde->wrable  = true;
+    pde->user    = true;
+    pde->present = true;
   }
 
-  u32 *physics = (u32 *)((*pte & 0xfffff000) + p * 4); // PTE页表
+  PTE *physics = (PTE *)(PAGE(pde->addr) + p * 4); // PTE页表
+
   // COW
-  if (pages[IDX(*physics)].count > 1) { pages[IDX(*physics)].count--; }
-  *physics  = (u32)map_addr;
-  *physics |= 7;
-  flush_tlb((u32)pte);
+  // 这里不需要大于1,因为我们就相当于是抛弃了原来的页
+  if (pages[physics->addr].count && physics->user) { pages[physics->addr].count--; }
+  physics->addr    = IDX(map_addr);
+  physics->wrable  = true;
+  physics->user    = true;
+  physics->present = true;
+  flush_tlb((void *)pde);
   flush_tlb(addr);
   current_task->cr3 = cr3_backup;
   asm_set_cr3(cr3_backup);
 }
 
+// share 和 没有share的区别是
+// share会处理PAGE_SHARED标志，如果这个PDE已经被多个进程引用，那么则会直接覆写
+// 而没有share遇到PAGE_SHARED标志，那么如果这个PDE已经被多个进程引用，那么会复制一份
 static void page_link_pde_share(u32 addr, u32 pde) {
   u32 cr3_backup    = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
@@ -238,32 +261,6 @@ u32 page_get_alloced() {
     if (pages[i].count) r++;
   }
   return r;
-}
-
-void page_links_pde(u32 start, u32 numbers, u32 pde) {
-  int i     = 0;
-  int times = 0;
-  u32 a[2];
-  int j = 0;
-  for (i = IDX(total_mem_size) - 1; i >= 0 && times < numbers; i--) {
-    if (pages[i].count == 0) {
-      u32 addr = PAGE(i);
-      pages[i].count++;
-      a[j++] = addr;
-    }
-    if (j == 2) {
-      page_link_pde_paddr(start, pde, &(a[0]), a[1]);
-      times++;
-      start += PAGE_SIZE;
-      j      = 0;
-      if (a[0] != 0) { j = 1; }
-    }
-  }
-  if (j) { page_free((void *)a[j - 1], PAGE_SIZE); }
-}
-
-void page_links(u32 start, u32 numbers) {
-  page_links_pde(start, numbers, current_task->cr3);
 }
 
 void page_link(u32 addr) {

@@ -107,7 +107,7 @@ u32   page_get_alloced();
  *\param cr3      分页设置(cr3)
  *\param map_addr 源(物理)地址
  */
-void page_link_addr_pde(usize addr, usize cr3, usize map_addr);
+void page_link_addr_pde(usize addr, usize pd, usize map_addr);
 
 // u8 PageType
 enum {
