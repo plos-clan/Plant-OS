@@ -73,9 +73,9 @@ extern task_t mouse_use_task;
 #define STACK_SIZE 1024 // 4MiB
 
 void task_to_user_mode_elf() {
-  page_link(0xf0000000);
+  page_link(TASK_ARGS_ADDR);
 
-  struct args args = {.cmdline = current_task->command_line, .sp = (void *)0xf0000000};
+  struct args args = {.cmdline = current_task->command_line, .sp = (void *)TASK_ARGS_ADDR};
   parse_args(&args);
   klogd("argc: %d", args.argc);
   for (int i = 0; i < args.argc; i++) {
@@ -161,6 +161,7 @@ i32 os_execute(cstr filename, cstr line) {
 
   t->command_line = page_alloc(strlen(line) + 1);
   strcpy(t->command_line, line);
+  page_link_addr_pde(TASK_CMDLINE_ADDR, t->cr3, (u32)t->command_line);
 
   klogd("t->tid %d %d", t->tid, t->ptid);
 

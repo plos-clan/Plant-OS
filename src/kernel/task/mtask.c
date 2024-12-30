@@ -5,8 +5,6 @@
 // 内核栈不应该超过 64K
 #define STACK_SIZE (64 * 1024)
 
-void free_pde(u32 addr);
-
 TSS32  tss;
 task_t task_current = null;
 
@@ -86,7 +84,7 @@ static void task_free(task_t t) {
   kassert(t->children == null);
   if (t->parent != null) avltree_delete(t->parent->children, t->tid);
   if (t == current_task) asm_set_cr3(PD_ADDRESS);
-  free_pde(t->cr3);
+  pd_free(t->cr3);
   task_free_all_pages(t->tid); // 释放内存
   if (t->press_key_fifo) {
     page_free(t->press_key_fifo->buf, 4096);
@@ -97,7 +95,7 @@ static void task_free(task_t t) {
     free(t->release_keyfifo);
   }
   if (t->command_line) page_free(t->command_line, strlen(t->command_line) + 1);
-  
+
   page_free(t, sizeof(*t));
 }
 
@@ -284,7 +282,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->running      = 0;
   t->timeout      = ticks;
   t->jiffies      = 0;
-  page_link_addr_pde(0xf0001000, t->cr3, (u32)t->_user_part);
+  page_link_addr_pde(TASK_USER_PART_ADDR, t->cr3, (u32)t->_user_part);
 
   with_no_interrupts(avltree_insert(tasks, t->tid, t));
   return t;

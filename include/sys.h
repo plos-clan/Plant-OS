@@ -6,6 +6,7 @@ extern "C" {
 #endif
 #include "sys/osapi.h"
 #include "sys/plos-syscall.h"
+#include "sys/task-user-part.h"
 #ifdef __cplusplus
 }
 #endif

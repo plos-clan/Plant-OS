@@ -16,6 +16,38 @@
 #define PAGE_END      (PT_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
 
+typedef struct PDE {
+  u32 present : 1;  // 存在位
+  u32 wrable  : 1;  // 读写位
+  u32 user    : 1;  // 用户位
+  u32 wt      : 1;  // 直写位
+  u32 cd      : 1;  // 禁用缓存
+  u32 access  : 1;  // 访问位
+  u32 dirty   : 1;  // 脏页
+  u32 ps      : 1;  // 页大小
+  u32 global  : 1;  // 全局页
+  u32 bit9    : 1;  //
+  u32 shared  : 1;  // 共享页 (自定义的)
+  u32 bit11   : 1;  //
+  u32 addr    : 20; // 一定要左移 12 位
+} PDE;
+
+typedef struct PTE {
+  u32 present : 1;  // 存在位
+  u32 wrable  : 1;  // 读写位
+  u32 user    : 1;  // 用户位
+  u32 wt      : 1;  // 直写位
+  u32 cd      : 1;  // 禁用缓存
+  u32 access  : 1;  // 访问位
+  u32 dirty   : 1;  // 脏页
+  u32 pat     : 1;  // 页属性表
+  u32 global  : 1;  // 全局页
+  u32 bit9    : 1;  //
+  u32 shared  : 1;  // 共享页 (自定义的)
+  u32 bit11   : 1;  //
+  u32 addr    : 20; // 一定要左移 12 位
+} PTE;
+
 typedef struct __PACKED__ PageInfo {
   u8 task_id;
   u8 count;
@@ -58,6 +90,7 @@ void  page_free(void *p, size_t size);
 void  task_free_all_pages(u32 tid);
 void  change_page_task_id(int task_id, void *p, u32 size);
 u32   pd_clone(u32 addr);
+void  pd_free(u32 addr);
 void *page_malloc_one();
 void *page_malloc_one_no_mark();
 void  page_link(u32 addr);

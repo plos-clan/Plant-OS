@@ -5,6 +5,10 @@
 #define PTI(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
 #define PAGE(idx) ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
+//* ----------------------------------------------------------------------------------------------------
+//; 页表管理
+//* ----------------------------------------------------------------------------------------------------
+
 static inthandler_f page_fault;
 
 // 刷新虚拟地址 vaddr 的 块表 TLB
@@ -47,21 +51,16 @@ void page_set_alloced(PageInfo *pg, u32 start, u32 end) {
 // OS应该是用不完0x70000000的，所以应用程序大概是可以用满2GB
 
 u32 pd_clone(u32 addr) {
-  for (int i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
-    u32 *pde_entry = (u32 *)(addr + i);
-    u32  p         = *pde_entry & (0xfffff000);
-    pages[IDX(*pde_entry)].count++;
-    *pde_entry &= ~PAGE_WRABLE;
-    for (int j = 0; j < PAGE_SIZE; j += 4) {
-      u32 *pte_entry = (u32 *)(p + j);
-      if ((page_get_attr(addr, mk_linear_addr(i / 4, j / 4, 0)) & PAGE_USER)) {
-        pages[IDX(*pte_entry)].count++;
-        if (page_get_attr(addr, mk_linear_addr(i / 4, j / 4, 0)) & PAGE_SHARED) {
-          *pte_entry |= PAGE_WRABLE;
-          continue;
-        }
-      }
-      *pte_entry &= ~PAGE_WRABLE;
+  const var pd = (PDE *)addr;
+  for (usize i = PDI(0x70000000); i < 1024; i++) {
+    var pde = &pd[i];
+    pages[pde->addr].count++;
+    pde->wrable = false;
+    var pt      = (PTE *)(pde->addr << 12);
+    for (usize j = 0; j < 1024; j++) {
+      var pte = &pt[j];
+      if (pte->user) pages[pte->addr].count++;
+      pte->wrable = pte->shared ? true : false;
     }
   }
   u32 result = (u32)page_malloc_one_no_mark();
@@ -69,18 +68,17 @@ u32 pd_clone(u32 addr) {
   flush_tlb(result);
   flush_tlb(addr);
   asm_set_cr3(addr);
-
   return result;
 }
 
 static void pde_reset(u32 addr) {
   for (int i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
-    u32 *pde_entry  = (u32 *)(addr + i);
-    *pde_entry     |= PAGE_WRABLE;
+    u32 *pde  = (u32 *)(addr + i);
+    *pde     |= PAGE_WRABLE;
   }
 }
 
-void free_pde(u32 addr) {
+void pd_free(u32 addr) {
   if (addr == PD_ADDRESS) return;
   for (int i = PDI(0x70000000) * 4; i < PDI(0xf1000000) * 4; i += 4) {
     u32 *pde_entry = (u32 *)(addr + i);
@@ -97,14 +95,14 @@ void free_pde(u32 addr) {
   page_free((void *)addr, PAGE_SIZE);
 }
 
-static void page_link_pde(u32 addr, u32 pde) {
+static void page_link_pde(u32 addr, u32 pd) {
   u32 cr3_backup    = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t, p;
   t        = PDI(addr);
   p        = (addr >> 12) & 0x3ff;
-  u32 *pte = (u32 *)((pde + t * 4));
+  u32 *pte = (u32 *)((pd + t * 4));
 
   if (pages[IDX(*pte)].count > 1) {
     // 这个页目录还有人引用，所以需要复制
@@ -235,7 +233,7 @@ static void page_link_pde_paddr(u32 addr, u32 pde, u32 *paddr1, u32 paddr2) {
 u32 page_get_alloced() {
   u32 r = 0;
   for (int i = 0; i < PADDING_UP(total_mem_size, PAGE_SIZE) / PAGE_SIZE; i++) {
-    if (pages[i].count) { r++; }
+    if (pages[i].count) r++;
   }
   return r;
 }
@@ -678,6 +676,10 @@ void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
   }
   asm_set_cr3(pde);
 }
+
+//* ----------------------------------------------------------------------------------------------------
+//; 内存权限检查
+//* ----------------------------------------------------------------------------------------------------
 
 bool check_address_permission(const void *addr, bool wr) {
   size_t cr3 = asm_get_cr3();
