@@ -16,6 +16,12 @@
 #define PAGE_END      (PT_ADDRESS + 0x400000)
 #define PAGE_MANNAGER PAGE_END
 
+#define PF_PRESENT  MASK(0) // 程序尝试访问的页面是否存在于内存中
+#define PF_WRITE    MASK(1) // 程序进行的访问类型是否为写入
+#define PF_USER     MASK(2) // 错误是否在用户态下发生
+#define PF_RESERVED MASK(3) // 程序是否尝试访问保留的地址
+#define PF_IFETCH   MASK(4) // 是否为 cpu 取指时发生的错误
+
 #ifdef __x86_64__
 
 #else
@@ -86,19 +92,37 @@ finline size_t mk_linear_addr(size_t table, size_t page, size_t off) {
 }
 #endif
 
-u32   page_get_attr(u32 pde, u32 vaddr);
-u32   page_get_phy(u32 pde, u32 vaddr);
-void  tpo2page(int *page, int t, int p);
+u32 page_get_attr(u32 pde, u32 vaddr);
+
+usize page_get_phy2(usize addr, usize pd);
+usize page_get_phy1(usize addr);
+#define page_get_phy(...) CONCAT(page_get_phy, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
+
+void tpo2page(int *page, int t, int p);
+
 void *page_malloc_one_count_from_4gb();
+
 void *page_alloc(size_t size);
-void  page_free(void *p, size_t size);
+
+void page_free(void *p, size_t size);
+
 usize pd_clone(usize addr);
-void  pd_free(usize addr);
+
+void pd_free(usize addr);
+
 void *page_malloc_one();
-void  page_link(u32 addr);
-void  page_link_share(u32 addr);
-void  page_unlink(u32 addr);
-u32   page_get_alloced();
+
+void page_link2(usize addr, usize pd);
+void page_link1(usize addr);
+#define page_link(...) CONCAT(page_link, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
+
+void page_link_share2(usize addr, usize pd);
+void page_link_share1(usize addr);
+#define page_link_share(...) CONCAT(page_link_share, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
+
+void page_unlink(u32 addr);
+
+u32 page_get_alloced();
 
 /**
  *\brief 
@@ -122,10 +146,42 @@ enum {
  *\brief 检查用户是否有对指定内存地址的访问权限
  *
  *\param addr     内存地址
- *\param wr       是否写权限
+ *\param wr       是否写权限     (默认 false)
+ *\param cr3      分页设置(cr3)  (默认 当前 cr3)
  *\return 是否有权限
  */
-bool check_address_permission(const void *addr, bool wr);
+bool check_address_permission3(const void *addr, bool wr, usize cr3);
+
+/**
+ *\brief 检查用户是否有对指定内存地址的访问权限
+ *
+ *\param addr     内存地址
+ *\param wr       是否写权限    (默认 false)
+ *\return 是否有权限
+ */
+bool check_address_permission2(const void *addr, bool wr);
+
+/**
+ *\brief 检查用户是否有对指定内存地址的访问权限
+ *
+ *\param addr     内存地址
+ *\return 是否有权限
+ */
+bool check_address_permission1(const void *addr);
+
+#define check_address_permission(...)                                                              \
+  CONCAT(check_address_permission, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
+
+/**
+ *\brief 检查用户是否有对指定内存区域的访问权限
+ *
+ *\param addr     内存地址
+ *\param size     内存大小
+ *\param wr       是否写权限
+ *\param cr3      分页设置(cr3)  (默认 当前 cr3)
+ *\return 是否有权限
+ */
+bool check_memory_permission4(const void *addr, size_t size, bool wr, usize cr3);
 
 /**
  *\brief 检查用户是否有对指定内存区域的访问权限
@@ -135,7 +191,28 @@ bool check_address_permission(const void *addr, bool wr);
  *\param wr       是否写权限
  *\return 是否有权限
  */
-bool check_memory_permission(const void *addr, size_t size, bool wr);
+bool check_memory_permission3(const void *addr, size_t size, bool wr);
+
+/**
+ *\brief 检查用户是否有对指定内存区域的访问权限
+ *
+ *\param addr     内存地址
+ *\param size     内存大小
+ *\return 是否有权限
+ */
+bool check_memory_permission2(const void *addr, size_t size);
+
+#define check_memory_permission(...)                                                               \
+  CONCAT(check_memory_permission, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
+
+/**
+ *\brief 检查用户是否有对指定字符串的读取权限
+ *
+ *\param addr     内存地址
+ *\param cr3      分页设置(cr3)  (默认 当前 cr3)
+ *\return 是否有权限
+ */
+bool check_string_permission2(cstr addr, usize cr3);
 
 /**
  *\brief 检查用户是否有对指定字符串的读取权限
@@ -143,4 +220,7 @@ bool check_memory_permission(const void *addr, size_t size, bool wr);
  *\param addr     内存地址
  *\return 是否有权限
  */
-bool check_string_permission(cstr addr);
+bool check_string_permission1(cstr addr);
+
+#define check_string_permission(...)                                                               \
+  CONCAT(check_string_permission, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)

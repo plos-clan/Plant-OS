@@ -94,7 +94,7 @@ asm_inthandler:               ; DON'T EDIT THE CODE BELOW!
 	dd 0xfffff91a, 0x13e9fc6a, 0x6afffff9, 0xf90ce9fd, 0xfe6affff, 0xfff905e9, 0xe9ff6aff, 0xfffff8fe
 asm_inthandler_end:           ; DON'T EDIT THE CODE ABOVE!
 	
-	extern check_memory_permission, task_abort
+	extern check_memory_permission3, task_abort
 asm_sysenter_handler:
 	push RING3_DS                ; push ss
 	push ecx                     ; push esp
@@ -114,7 +114,7 @@ asm_sysenter_handler:
 	push 0                       ; ==================================================
 	push 8                       ;
 	push ebx                     ;
-	call check_memory_permission ; If ring3 esp is not accessible, we should abort the task.
+	call check_memory_permission3; If ring3 esp is not accessible, we should abort the task.
 	cmp eax, 0                   ;
 	je task_abort                ;
 	add esp, 12                  ; ==================================================
