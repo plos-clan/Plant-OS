@@ -150,10 +150,9 @@ void qoa_player(cstr path) {
   snd->volume   = 1;
   vsound_open(snd);
   for (int i = 0; i < qoa.samples; i += snd->bufsize / qoa.channels) {
-    klogd("writing %d samples", i);
     vsound_write(snd, data + i * qoa.channels, snd->bufsize / qoa.channels);
-    printf("\r%d/%d sec", (int)((float)i / (float)qoa.samplerate),
-           (int)((float)qoa.samples / (float)qoa.samplerate));
+    printf("\r %6.2f / %.2f sec", (float)i / (float)qoa.samplerate,
+           (float)qoa.samples / (float)qoa.samplerate);
   }
   vsound_close(snd);
   free(data);
@@ -175,11 +174,11 @@ void mp3_player(cstr path) {
   snd->volume   = 1;
   vsound_open(snd);
   for (int i = 0; i < samples; i += snd->bufsize / mp3.channels) {
-    klogd("writing %d samples", i);
     vsound_write(snd, data + i * mp3.channels, snd->bufsize / mp3.channels);
-    printf("\r%d/%d sec", (int)((float)i / (float)mp3.sampleRate),
-           (int)((float)samples / (float)mp3.sampleRate));
+    printf("\r %6.2f / %.2f sec", (float)i / (float)mp3.sampleRate,
+           (float)samples / (float)mp3.sampleRate);
   }
+  printf("\n");
   vsound_close(snd);
   free(data);
   free(buf1);
