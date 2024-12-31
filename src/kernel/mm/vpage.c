@@ -591,26 +591,31 @@ void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 cr3_backup)
 }
 
 __attr(fastcall) void page_fault(i32 id, regs32 *regs) {
-  u32 pde = current_task->cr3;
+  u32 pd = current_task->cr3;
   asm_set_cr3(PD_ADDRESS); // 设置一个安全的页表
 
-  const var address = asm_get_cr2();
+  const var addr = asm_get_cr2();
 
-  if (!(page_get_attr(address, pde) & PAGE_PRESENT) ||        // 不存在
-      (!(page_get_attr(address, pde) & PAGE_USER))) {         // 用户不可写
+  var pde = pdeof(addr, pd);
+  var pte = pteof(addr, pde->addr << 12);
+
+  if (!pte->present || !pte->user) {
+    info("task %d", current_task->tid);
     error("Attempt to %s a %s memory %p at %p.",              //
           regs->err & PF_WRITE ? "write" : "read",            //
           regs->err & PF_PRESENT ? "kernel" : "non-existent", //
-          address, regs->eip);
-    if (current_task->user_mode) {
+          addr, regs->eip);
+    if (regs->err & PF_USER) {
+      kassert(current_task->user_mode);
       task_abort();
     } else {
-      abort(); // 系统级FAULT
+      abort();
     }
   }
-  copy_on_write(address);
 
-  asm_set_cr3(pde);
+  copy_on_write(addr);
+
+  asm_set_cr3(pd);
 }
 
 void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
