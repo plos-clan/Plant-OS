@@ -315,19 +315,23 @@ int printf(cstr _rest fmt, ...) {
   int rets = vsprintf(print_buf, fmt, va);
   va_end(va);
   print(print_buf);
+#if PLOS_LOGGING_PRINTS
   size_t len = strlen(print_buf);
   while (len > 0 && print_buf[len - 1] == '\n') {
     print_buf[len - 1] = '\0';
     len--;
   }
   klogi("print: %s", print_buf);
+#endif
   return rets;
 }
 
 void puts(cstr s) {
   print(s);
   print("\n");
+#if PLOS_LOGGING_PRINTS
   klogi("print: %s", s);
+#endif
 }
 
 static void _debugger_tick() {

@@ -109,6 +109,54 @@ extern void plac_player(cstr path);
 extern void qoa_player(cstr path);
 extern void mp3_player(cstr path);
 
+static bool isprint(char c) {
+  return c >= 0x20 && c <= 0x7e;
+}
+
+static int print_file(cstr path) {
+  vfs_node_t file = vfs_open(path);
+  if (file == null) {
+    printf("open %s failed\n", path);
+    return 1;
+  }
+  if (file->type != file_block) {
+    printf("not a file\n");
+    return 1;
+  }
+  if (file->size > 1024 * 1024) {
+    printf("file too large\n");
+    return 1;
+  }
+  byte *buf = malloc(file->size);
+  vfs_read(file, buf, 0, file->size);
+  printf("\033[1;35mHEX DUMP\033[0m  ");
+  for (usize j = 0; j < 16; j++) {
+    printf("\033[1;37m%02x\033[0m ", j);
+  }
+  printf(" \033[1;36mCHAR\033[0m\n");
+  for (usize i = 0; i < file->size; i += 16) {
+    printf("\033[1;33m%08x\033[0m  ", i);
+    for (usize j = 0; j < 16; j++) {
+      if (i + j < file->size) {
+        printf("%02x ", buf[i + j]);
+      } else {
+        printf("   ");
+      }
+    }
+    printf(" ");
+    for (usize j = 0; j < 16; j++) {
+      if (i + j >= file->size) break;
+      if (isprint(buf[i + j]))
+        printf("\033[1;32m%c\033[0m", buf[i + j]);
+      else
+        printf("\033[1;30m.\033[0m");
+    }
+    printf("\n");
+  }
+  free(buf);
+  return 0;
+}
+
 int shell_exec(char *path, cstr comand) {
   if (!strlen(comand)) return 0;
   int retcode = 0;
@@ -153,37 +201,14 @@ int shell_exec(char *path, cstr comand) {
     vfs_node_t stdout = vfs_open("/dev/stdout");
     vfs_write(stdout, "Hello, world!\n", 0, 14);
   } else if (strneq(comand, "file ", 5)) {
-    cstr path = comand + 5;
-    cstr type = filetype_from_name(path);
+    cstr type = filetype_from_name(comand + 5);
     if (type) {
       printf("%s\n", type);
     } else {
       printf("unknown file\n");
     }
   } else if (strneq(comand, "read ", 5)) {
-    char      *s = comand + 5;
-    vfs_node_t p = vfs_open(s);
-    if (!p) {
-      printf("open %s failed\n", s);
-      return 1;
-    }
-    if (p->type == file_dir) {
-      printf("not a file\n");
-      return 1;
-    }
-    size_t size = p->size;
-    byte  *buf  = malloc(1024);
-    size_t pos  = 0;
-    while (1) {
-      size_t len = vfs_read(p, buf, pos, 1024);
-      if (len == 0) break;
-      for (int i = 0; i < len; i++) {
-        printf("%02x ", buf[i]);
-        if ((i + 1) % 32 == 0) printf("\n");
-      }
-      pos += len;
-    }
-    free(buf);
+    return print_file(comand + 5);
   } else if (strneq(comand, "mkdir ", 6)) {
     vfs_mkdir(comand + 6);
   } else if (strneq(comand, "mount ", 6)) {
