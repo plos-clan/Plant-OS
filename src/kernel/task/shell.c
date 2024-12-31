@@ -112,7 +112,9 @@ extern void mp3_player(cstr path);
 int shell_exec(char *path, cstr comand) {
   if (!strlen(comand)) return 0;
   int retcode = 0;
-  if (strneq(comand, "cd ", 3)) {
+  if (strneq(comand, "echo ", 5)) {
+    printf("%s\n", comand + 5);
+  } else if (strneq(comand, "cd ", 3)) {
     char *s = comand + 3;
     if (s[strlen(s) - 1] == '/' && strlen(s) > 1) { s[strlen(s) - 1] = '\0'; }
     if (streq(s, ".")) return 0;
@@ -214,6 +216,28 @@ int shell_exec(char *path, cstr comand) {
   return retcode;
 }
 
+void autorun() {
+  var file = vfs_open("/fatfs2/autorun.txt");
+  if (file == null) return;
+  size_t size = file->size;
+  char  *buf  = malloc(size + 1);
+  vfs_read(file, buf, 0, size);
+  char *p = buf;
+  while (p < buf + size) {
+    const char *line = p;
+    while (*p != '\n' && p < buf + size) {
+      p++;
+    }
+    *p = '\0';
+    if (line != p) {
+      printf("# %s\n", line);
+      shell_exec("/", line);
+    }
+    p++;
+  }
+  task_exit(0);
+}
+
 void shell() {
   printi("shell has been started");
   void *kfifo = page_malloc_one();
@@ -226,7 +250,7 @@ void shell() {
   sprintf(path, "/");
   char prompt[256];
   while (true) {
-    sprintf(prompt, "%s# ", path);
+    sprintf(prompt, "root:%s# ", path);
     cstr line = pl_readline(n, prompt);
     shell_exec(path, line);
   }

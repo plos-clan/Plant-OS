@@ -22,18 +22,16 @@ mcopy -i hd.img world_execute_me.qoa ::
 mcopy -i hd.img do_you_hear_the_people_sing.qoa ::
 mcopy -i hd.img disk.img ::
 
-if [ -f zstd-test.bin ]; then
-  mcopy -i hd.img zstd-test.bin ::
-fi
+mcopy -i hd.img zstd-test.bin ::
+mcopy -i hd.img plui-app.bin ::
+mcopy -i hd.img test.qoi ::
+mcopy -i hd.img pf.bin ::
 
-if [ -f plui-app.bin ]; then
-  mcopy -i hd.img plui-app.bin ::
-fi
-
-if [ -f test.qoi ]; then
-  mcopy -i hd.img test.qoi ::
-fi
-
-if [ -f pf.bin ]; then
-  mcopy -i hd.img pf.bin ::
-fi
+echo -n '
+echo Hello, world!
+/fatfs1/testapp.bin
+/fatfs1/testapp-cpp.bin
+/fatfs1/pf.bin
+' >./autorun.txt
+mcopy -i disk.img autorun.txt ::
+rm ./autorun.txt

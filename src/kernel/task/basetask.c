@@ -8,6 +8,7 @@
 
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
 void v86_task();
+void autorun();
 void shell();
 void debug_shell();
 
@@ -188,6 +189,9 @@ void user_init() {
   }
 #endif
   plty_set_default(tty);
+
+  const var autorun_task = task_run(create_task(&autorun, 1, 1));
+  waittid(autorun_task->tid);
 
   const var shell_task       = task_run(create_task(&shell, 1, 1));
   const var debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
