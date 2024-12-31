@@ -182,26 +182,6 @@ int shell_exec(char *path, cstr comand) {
       pos += len;
     }
     free(buf);
-  } else if (strneq(comand, "readhex ", 8)) {
-    char      *s = comand + 8;
-    vfs_node_t p = vfs_open(s);
-    if (!p) {
-      printf("open %s failed\n", s);
-      return 1;
-    }
-    if (p->type == file_dir) {
-      printf("not a file\n");
-      return 1;
-    }
-    size_t size = p->size;
-    byte  *buf  = malloc(size);
-    memset(buf, 0, size);
-    vfs_read(p, buf, 0, size);
-    for (size_t i = 0; i < size; i++) {
-      printf("%02x ", buf[i]);
-    }
-    printf("\n");
-    free(buf);
   } else if (strneq(comand, "mkdir ", 6)) {
     vfs_mkdir(comand + 6);
   } else if (strneq(comand, "mount ", 6)) {
