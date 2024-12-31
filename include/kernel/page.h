@@ -1,4 +1,5 @@
 #pragma once
+#include "assert.h"
 #include <define.h>
 
 #define PAGE_PRESENT MASK(0)  // 存在
@@ -62,6 +63,7 @@ typedef struct PTE {
 
 typedef struct __PACKED__ PageInfo {
   u16 count;
+  u16 reserved;
 } PageInfo;
 
 #ifdef __x86_64__
@@ -87,12 +89,17 @@ finline size_t mk_linear_addr(size_t pml4, size_t pdpt, size_t pd, size_t pt, si
  *\param off      页内偏移地址
  *\return 线性地址
  */
-finline size_t mk_linear_addr(size_t table, size_t page, size_t off) {
+finline usize mk_linear_addr(usize table, usize page, usize off) {
+  kassert(table < 1024);
+  kassert(page < 1024);
+  kassert(off < 4096);
   return (table << 22) + (page << 12) + off;
 }
 #endif
 
-u32 page_get_attr(u32 pde, u32 vaddr);
+usize page_get_attr2(usize addr, usize pd);
+usize page_get_attr1(usize addr);
+#define page_get_attr(...) CONCAT(page_get_attr, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
 usize page_get_phy2(usize addr, usize pd);
 usize page_get_phy1(usize addr);
@@ -141,6 +148,9 @@ enum {
   PAGE_TYPE_HEAP,  // 堆页
   PAGE_TYPE_ALLOC, // 分配页
 };
+
+// --------------------------------------------------
+//; 内存权限检查
 
 /**
  *\brief 检查用户是否有对指定内存地址的访问权限

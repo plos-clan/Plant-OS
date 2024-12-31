@@ -38,7 +38,7 @@ struct _NAME {
   u32           rc;               // 引用计数
   list_t        waiting_list;     // 正在等待该线程的线程列表
   avltree_t     children;         // 子线程
-  bool          is_switched;      // 是否是从其它进程切换过来的
+  bool          is_switched;      // 是否是因其它进程请求切换过来的
   bool          fpu_enabled;      // 是否开启了 fpu/sse/avx
   byte          extra_regs[512];  // FPU 108
                                   // SSE 512

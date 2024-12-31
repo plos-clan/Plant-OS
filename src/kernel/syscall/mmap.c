@@ -1,9 +1,9 @@
 #include <kernel.h>
 
-#define IDX(addr) ((u32)addr >> 12)           // 获取 addr 的页索引
-#define PDI(addr) (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define PTI(addr) (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PAGE(idx) ((u32)idx << 12)            // 获取页索引 idx 对应的页开始的位置
+#define PIDX(addr) ((u32)addr >> 12)           // 获取 addr 的页索引
+#define PDI(addr)  (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
+#define PTI(addr)  (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
+#define PADDR(idx) ((u32)idx << 12)            // 获取页索引 idx 对应的页开始的位置
 
 extern PageInfo *pages;
 
@@ -12,14 +12,14 @@ void *syscall_mmap(void *start, u32 length) {
   u32  page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
   bool size_is_2M = page_count == 512;
 
-  u32   addr            = current_task->cr3;
-  void *line_addr_start = null;
+  const usize cr3             = current_task->cr3;
+  void       *line_addr_start = null;
   for (int i = PDI(0x70000000), c = 0; i < 1024; i++) {
-    u32 *pde_entry = (u32 *)addr + i;
+    u32 *pde_entry = (u32 *)cr3 + i;
     u32  p         = *pde_entry & (0xfffff000);
     for (int j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
       u32 *pte_entry = (u32 *)p + j;
-      if (!(page_get_attr(addr, mk_linear_addr(i, j, 0)) & PAGE_WRABLE)) {
+      if (!(page_get_attr(mk_linear_addr(i, j, 0), cr3) & PAGE_WRABLE)) {
         if (c == 0) line_addr_start = (void *)mk_linear_addr(i, j, 0);
         c++;
       } else {

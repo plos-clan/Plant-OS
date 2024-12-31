@@ -7,10 +7,10 @@ void task_to_user_mode_elf();
 extern TSS32     tss;
 extern PageInfo *pages;
 
-#define IDX(addr) ((u32)(addr) >> 12)           // 获取 addr 的页索引
-#define PDI(addr) (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define PTI(addr) (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PAGE(idx) ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
+#define PIDX(addr) ((u32)(addr) >> 12)           // 获取 addr 的页索引
+#define PDI(addr)  (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
+#define PTI(addr)  (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
+#define PADDR(idx) ((u32)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
 void task_app() {
   klogd("%s", current_task->command_line);
@@ -34,13 +34,13 @@ void task_app() {
   for (int i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
     u32 *pde_entry = (u32 *)(pde + i);
 
-    if ((*pde_entry & PAGE_SHARED) || pages[IDX(*pde_entry)].count > 1) {
-      if (pages[IDX(*pde_entry)].count > 1) {
+    if ((*pde_entry & PAGE_SHARED) || pages[PIDX(*pde_entry)].count > 1) {
+      if (pages[PIDX(*pde_entry)].count > 1) {
         u32 old    = *pde_entry & 0xfffff000;
         u32 attr   = *pde_entry & 0xfff;
         *pde_entry = (u32)page_malloc_one_count_from_4gb();
         memcpy((void *)(*pde_entry), (void *)old, PAGE_SIZE);
-        pages[IDX(old)].count--;
+        pages[PIDX(old)].count--;
         *pde_entry |= PAGE_USER | PAGE_PRESENT | PAGE_WRABLE;
       } else {
         *pde_entry &= 0xfffff;

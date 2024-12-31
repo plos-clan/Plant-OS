@@ -18,7 +18,7 @@ typedef enum ThreadState {
 
 typedef void (*cb_keyboard_t)(u8 data, u32 task);
 
-typedef struct __PACKED__ task {
+typedef struct task {
   union {
     byte _kernel_part[PAGE_SIZE];
 #define _NAME

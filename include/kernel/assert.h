@@ -2,6 +2,7 @@
 
 #pragma once
 #include "00-include.h"
+#include "logging.h"
 
 #define kassert(expr, ...)                                                                         \
   ({                                                                                               \

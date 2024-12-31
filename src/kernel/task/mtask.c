@@ -85,7 +85,6 @@ static void task_free(task_t t) {
   if (t->parent != null) avltree_delete(t->parent->children, t->tid);
   if (t == current_task) asm_set_cr3(PD_ADDRESS);
   pd_free(t->cr3);
-  // task_free_all_pages(t->tid); // 释放内存
   if (t->press_key_fifo) {
     page_free(t->press_key_fifo->buf, 4096);
     free(t->press_key_fifo);
@@ -95,7 +94,6 @@ static void task_free(task_t t) {
     free(t->release_keyfifo);
   }
   if (t->command_line) page_free(t->command_line, strlen(t->command_line) + 1);
-
   page_free(t, sizeof(*t));
 }
 
@@ -108,8 +106,7 @@ finline task_t task_ref(task_t t) {
     kloge("task_ref rc == 0");
     return null;
   }
-  u32 old_rc;
-  while (old_rc = t->rc, !atom_cexch(&t->rc, &old_rc, old_rc + 1)) {}
+  u32 old_rc = atom_add(&t->rc, 1);
   kassert(old_rc != 0);
   return t;
 }
@@ -123,8 +120,7 @@ finline void task_unref(task_t t) {
     kloge("task_unref rc == 0");
     return;
   }
-  u32 old_rc;
-  while (old_rc = t->rc, !atom_cexch(&t->rc, &old_rc, old_rc - 1)) {}
+  u32 old_rc = atom_sub(&t->rc, 1);
   kassert(old_rc != 0);
   if (old_rc == 1) task_free(t);
 }
