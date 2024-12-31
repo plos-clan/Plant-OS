@@ -37,7 +37,7 @@ void page_manager_init(PageInfo *pg) { // 全部置为0就好
 }
 
 void page_set_alloced(PageInfo *pg, u32 start, u32 end) {
-  for (int i = PIDX(start); i <= PIDX(end); i++) {
+  for (usize i = PIDX(start); i <= PIDX(end); i++) {
     pg[i].count++; // 设置占用，但是没有进程引用
   }
 }
@@ -175,12 +175,11 @@ void page_link_addr_pde(usize addr, usize pd, usize map_addr) {
 // share会处理PAGE_SHARED标志，如果这个PDE已经被多个进程引用，那么则会直接覆写
 // 而没有share遇到PAGE_SHARED标志，那么如果这个PDE已经被多个进程引用，那么会复制一份
 void page_link_share2(usize addr, usize pde) {
-  u32 cr3_backup    = current_task->cr3;
+  usize cr3_backup  = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
-  u32 t, p;
-  t        = PDI(addr);
-  p        = (addr >> 12) & 0x3ff;
+  u32  t   = PDI(addr);
+  u32  p   = (addr >> 12) & 0x3ff;
   u32 *pte = (u32 *)((pde + t * 4));
 
   if (pages[PIDX(*pte)].count > 1 && !(*pte & PAGE_SHARED)) {
@@ -202,8 +201,7 @@ void page_link_share2(usize addr, usize pde) {
     klogd("THIS\n");
     flag = 1;
   }
-  *physics  = (u32)page_malloc_one_count_from_4gb();
-  *physics |= 7;
+  *physics = (u32)page_malloc_one_count_from_4gb() | 7;
   if (flag) { *physics |= PAGE_SHARED; }
   flush_tlb((u32)pte);
   flush_tlb(addr);
@@ -282,38 +280,37 @@ void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
   }
 }
 
-void page_unlink_pde(u32 addr, u32 pde) {
-  u32 cr3_backup    = current_task->cr3;
-  current_task->cr3 = PD_ADDRESS;
+void page_unlink_pd(usize addr, usize pd) {
+  const usize cr3_backup = current_task->cr3;
+  current_task->cr3      = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
-  u32 t, p;
-  t        = PDI(addr);
-  p        = (addr >> 12) & 0x3ff;
-  u32 *pte = (u32 *)((pde + t * 4));
+  u32 t   = PDI(addr);
+  u32 p   = (addr >> 12) & 0x3ff;
+  var pde = pdeof(addr, pd);
 
-  if (pages[PIDX(*pte)].count > 1 && !(*pte & PAGE_SHARED)) {
+  if (pages[pde->addr].count > 1 && !pde->shared) {
     // 这个页目录还有人引用，所以需要复制
-    pages[PIDX(*pte)].count--;
-    u32 old = *pte & 0xfffff000;
-    *pte    = (u32)page_malloc_one_count_from_4gb();
-    memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
-    *pte |= 7;
-  } else {
-    *pte |= 7;
+    pages[pde->addr].count--;
+    usize old     = pde->addr;
+    void *alloced = page_malloc_one_count_from_4gb();
+    memcpy(alloced, (void *)old, PAGE_SIZE);
+    pde->addr    = (usize)alloced >> 12;
+    pde->present = true;
+    pde->wrable  = true;
+    pde->user    = true;
   }
 
-  u32 *physics = (u32 *)((*pte & 0xfffff000) + p * 4); // PTE页表
-  // COW
-  if (pages[PIDX(*physics)].count > 1) { pages[PIDX(*physics)].count--; }
-  *physics = NULL;
-  flush_tlb((u32)pte);
+  var pte = pteof(addr, pde->addr << 12);
+  if (pages[pte->addr].count > 1) pages[pte->addr].count--;
+  pte->present = false;
+  flush_tlb((u32)pde);
   flush_tlb(addr);
   current_task->cr3 = cr3_backup;
   asm_set_cr3(cr3_backup);
 }
 
 void page_unlink(u32 addr) {
-  page_unlink_pde(addr, current_task->cr3);
+  page_unlink_pd(addr, current_task->cr3);
 }
 
 void init_paging() {
@@ -327,13 +324,6 @@ void init_paging() {
   page_set_alloced(pages, 0xc0000000, 0xffffffff);
   asm_set_cr3(PD_ADDRESS);
   asm_set_pg;
-}
-
-void pf_set(u32 memsize) {
-  u32 *pte = (u32 *)PT_ADDRESS;
-  for (int i = 0; pte != (u32 *)PAGE_END; pte++, i++) {
-    if (i >= memsize / 4096 && i <= 0xc0000000 / 4096) { *pte = 0; }
-  }
 }
 
 int get_page_from_line_address(int line_address) {

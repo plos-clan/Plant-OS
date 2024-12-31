@@ -1,16 +1,18 @@
 
 #ifndef _NAME
 #  include <define.h>
+#  include <libc-base.h>
 #  define _NAME TaskUserPart
 typedef struct _NAME _NAME;
 #endif
 
 struct _NAME {
-  i32 tid;            // 线程 ID
-  i32 ptid;           // 父线程 ID
-  u32 signal;         //
-  u32 signal_disable; //
-  u64 cpu_time;       // CPU 时间
+  i32      tid;         // 线程 ID
+  i32      ptid;        // 父线程 ID
+  u32      signal;      //
+  u32      signal_mask; //
+  timespec starttime;   // 程序开始运行的时间
+  timespec cputime;     // 程序实际运行的 CPU 时间
 };
 
 #undef _NAME

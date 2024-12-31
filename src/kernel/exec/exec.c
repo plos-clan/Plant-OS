@@ -24,7 +24,6 @@ void task_app() {
   cir_queue8_init((cir_queue8_t)mfifo, 4096, (u8 *)mbuf);
   task_set_fifo(current_task, (cir_queue8_t)kfifo, (cir_queue8_t)mfifo);
   current_task->alloc_size    = (u32 *)malloc(4);
-  current_task->alloced       = 1;
   *(current_task->alloc_size) = 2 * 1024 * 1024;
   u32 pde                     = current_task->cr3;
   asm_cli;

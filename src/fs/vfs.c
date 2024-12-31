@@ -127,19 +127,14 @@ int vfs_mkfile(cstr name) {
     free(path);
     return -1;
   }
-  for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
-    if (streq(buf, ".")) {
-      goto go;
-    } else if (streq(buf, "..")) {
-      if (current->parent && current->type == file_dir) {
-        current = current->parent;
-        goto go;
-      } else {
-        goto err;
-      }
+  for (const char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
+    if (streq(buf, ".")) continue;
+    if (streq(buf, "..")) {
+      if (!current->parent || current->type != file_dir) goto err;
+      current = current->parent;
+      continue;
     }
     current = vfs_child_find(current, buf);
-  go:
     if (current == null || current->type != file_dir) goto err;
   }
 

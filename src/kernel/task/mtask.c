@@ -42,32 +42,35 @@ static task_t task_alloc() {
   t->running          = 0;
   t->timeout          = 0;
   t->state            = THREAD_IDLE;
-  t->tid              = tid; // task id
-  t->ptid             = -1;  // parent task id
   t->parent           = null;
   t->fpu_enabled      = false;
   t->fifosleep        = 0;
   t->command_line     = null;
   t->alloc_addr       = 0;
   t->alloc_size       = 0;
-  t->alloced          = 0;
   t->cr3              = 0;
   t->press_key_fifo   = null;
   t->release_keyfifo  = null;
   t->sigint_up        = 0;
-  t->signal_disable   = 1; // 目前暂时关闭信号
   t->keyboard_press   = null;
   t->keyboard_release = null;
   t->keyfifo          = null;
   t->mousefifo        = null;
   t->status           = INT_MAX;
-  t->signal           = 0;
   t->v86_mode         = 0;
-
-  t->rc           = 1;
-  t->waiting_list = null;
-  t->children     = null;
-  t->is_switched  = false;
+  t->rc               = 1;
+  t->waiting_list     = null;
+  t->children         = null;
+  t->is_switched      = false; //
+                               //
+  t->tid               = tid;  // task id
+  t->ptid              = -1;   // parent task id
+  t->signal            = 0;
+  t->signal_mask       = U32_MAX;
+  t->starttime.tv_sec  = 0;
+  t->starttime.tv_nsec = 0;
+  t->cputime.tv_sec    = 0;
+  t->cputime.tv_nsec   = 0;
   return t;
 }
 
@@ -261,9 +264,9 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
 
   if (t == null) return null;
   void *stack = page_alloc(STACK_SIZE);
-  u32   esp   = (u32)stack + STACK_SIZE;
+  usize esp   = (usize)stack + STACK_SIZE;
   t->esp      = (stack_frame *)esp - 1; // switch用到的栈帧
-  t->esp->eip = (size_t)entry;          // 设置跳转地址
+  t->esp->eip = (usize)entry;           // 设置跳转地址
 
   if (task_current != null) {
     t->ptid   = task_current->tid;

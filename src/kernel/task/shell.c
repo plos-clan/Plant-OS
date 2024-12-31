@@ -6,7 +6,7 @@
 #include <pl_readline.h>
 #include <plty.h>
 
-void list_files(char *path) {
+static void list_files(char *path) {
   klogd("%s", path);
   vfs_node_t p = vfs_open(path);
   assert(p, "open %s failed", path);
@@ -18,7 +18,7 @@ void list_files(char *path) {
   printf("\n");
 }
 
-int readline_getch() {
+static int readline_getch() {
   int ch;
   screen_flush();
   while ((ch = getch()) == 0) {}
@@ -32,7 +32,7 @@ int readline_getch() {
   return ch;
 }
 
-void handle_tab(char *buf, pl_readline_words_t words) {
+static void handle_tab(char *buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("cd", words, true, ' ');
   pl_readline_word_maker_add("ls", words, true, ' ');
   pl_readline_word_maker_add("pcils", words, true, ' ');
@@ -80,7 +80,8 @@ void handle_tab(char *buf, pl_readline_words_t words) {
   }
   free(s);
 }
-void pci_list() {
+
+static void pci_list() {
   extern void *pci_addr_base;
   u8          *pci_drive = (u8 *)pci_addr_base;
   //输出PCI表的内容
@@ -189,6 +190,7 @@ int shell_exec(char *path, cstr comand) {
       free(old);
       return 1;
     }
+    free(old);
   } else if (streq(comand, "ls")) {
     list_files(path);
   } else if (streq(comand, "pcils")) {
@@ -213,13 +215,15 @@ int shell_exec(char *path, cstr comand) {
     vfs_mkdir(comand + 6);
   } else if (strneq(comand, "mount ", 6)) {
     // 用strtok分割参数
-    char *dev_name = strtok(comand + 6, " ");
-    char *dir_name = strtok(null, " ");
+    cstr dev_name = strtok(comand + 6, " ");
+    cstr dir_name = strtok(null, " ");
     vfs_mount(dev_name, vfs_open(dir_name));
   } else if (strneq(comand, "umount ", 7)) {
-    char *dir_name = comand + 7;
-    int   ret      = vfs_unmount(dir_name);
-    if (ret == -1) { printf("umount %s failed\n", dir_name); }
+    cstr dir_name = comand + 7;
+    if (vfs_unmount(dir_name) < 0) {
+      printf("umount %s failed\n", dir_name);
+      return 1;
+    }
   } else {
     char *path = exec_name_from_cmdline(comand);
     cstr  type = filetype_from_name(path);

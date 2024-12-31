@@ -9,6 +9,7 @@ Checks: >
   -readability-identifier-length,
   -readability-magic-numbers,
   -readability-implicit-bool-conversion,
+  -readability-math-missing-parentheses,
   -bugprone-reserved-identifier,
   -bugprone-easily-swappable-parameters,
   -readability-isolate-declaration,
@@ -25,6 +26,9 @@ Checks: >
 #     哥们别老是误报啊。
 #     if (a == 1 && b == 2) // a, b 为 int
 #     这有啥错？
+
+# readability-math-missing-parentheses
+#     给 a * b + c 加上括号（？）
 
 # bugprone-reserved-identifier
 #     属于是逮着前缀下划线就报了。
