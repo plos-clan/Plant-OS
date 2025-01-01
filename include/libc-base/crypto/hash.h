@@ -25,27 +25,27 @@ inline_pure u32 strhash(cstr _rest src) {
   return h;
 }
 
-inline_const u32 i8hash(i8 val) {
-  return (u32)val * 2491757;
+inline_const u32 i8hash(i8 value) {
+  return (u32)value * 2491757;
 }
-inline_const u32 u8hash(u8 val) {
-  return val * 2491757;
+inline_const u32 u8hash(u8 value) {
+  return value * 2491757;
 }
-inline_const u32 i16hash(i16 val) {
-  return (u32)val * 2491757;
+inline_const u32 i16hash(i16 value) {
+  return (u32)value * 2491757;
 }
-inline_const u32 u16hash(u16 val) {
-  return val * 2491757;
+inline_const u32 u16hash(u16 value) {
+  return value * 2491757;
 }
-inline_const u32 i32hash(i32 val) {
-  return (u32)val * 2491757;
+inline_const u32 i32hash(i32 value) {
+  return (u32)value * 2491757;
 }
-inline_const u32 u32hash(u32 val) {
-  return val * 2491757;
+inline_const u32 u32hash(u32 value) {
+  return value * 2491757;
 }
-inline_const u32 i64hash(i64 val) {
-  return ((u32)val * 2491757) ^ (((u64)val >> 32) * 491747);
+inline_const u32 i64hash(i64 value) {
+  return ((u32)value * 2491757) ^ (((u64)value >> 32) * 491747);
 }
-inline_const u32 u64hash(u64 val) {
-  return (val * 2491757) ^ ((val >> 32) * 491747);
+inline_const u32 u64hash(u64 value) {
+  return (value * 2491757) ^ ((value >> 32) * 491747);
 }

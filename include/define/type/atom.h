@@ -105,10 +105,10 @@ enum {
 #endif
 
 #if NO_STD
-#  define ATOMIC_VAR_INIT(val) (val)
+#  define ATOMIC_VAR_INIT(value) (value)
 #endif
 
 #if NO_STD || !defined(__cplusplus)
 // 用VAL初始化由PTR指向的原子对象。
-#  define atomic_init(ptr, val) __atom_store(ptr, val, __atom_relaxed)
+#  define atomic_init(ptr, value) __atom_store(ptr, value, __atom_relaxed)
 #endif

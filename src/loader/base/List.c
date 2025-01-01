@@ -1,6 +1,6 @@
 // 链表
 #include <loader.h>
-void AddVal(uintptr_t val, struct List *Obj) {
+void AddVal(uintptr_t value, struct List *Obj) {
   while (Obj->next != NULL)
     Obj = Obj->next;
   Obj              = Obj->ctl->end;
@@ -10,10 +10,10 @@ void AddVal(uintptr_t val, struct List *Obj) {
   new->prev        = Obj;
   new->ctl         = Obj->ctl;
   new->next        = (List *)NULL;
-  new->val         = val;
+  new->value       = value;
   new->ctl->all++;
   // printk("Address:%08x Val:%08x Start:%08x
-  // Count:%d\n",new,val,Obj->ctl->start,GetLastCount(Obj->ctl->start));
+  // Count:%d\n",new,value,Obj->ctl->start,GetLastCount(Obj->ctl->start));
 }
 struct List *FindForCount(size_t count, struct List *Obj) {
   int          count_last = GetLastCount(Obj);
@@ -56,18 +56,18 @@ struct List *NewList() {
   Obj->ctl            = ctl;
   Obj->ctl->start     = Obj;
   Obj->ctl->end       = Obj;
-  Obj->val            = 0x123456; // 头结点数据不可用
+  Obj->value          = 0x123456; // 头结点数据不可用
   Obj->prev           = (List *)NULL;
   Obj->next           = (List *)NULL;
   Obj->ctl->all       = 0;
   return Obj;
 }
-void Change(size_t count, struct List *Obj, uintptr_t val) {
+void Change(size_t count, struct List *Obj, uintptr_t value) {
   struct List *Will_Change = FindForCount(count + 1, Obj);
   if (Will_Change != NULL) {
-    Will_Change->val = val;
+    Will_Change->value = value;
   } else {
-    AddVal(val, Obj);
+    AddVal(value, Obj);
   }
 }
 // 获取尾节点的count

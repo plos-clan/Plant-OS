@@ -117,14 +117,14 @@ u16 hda_get_connection_list_entry(u32 codec, u32 node, u32 index) {
   return 0;
 }
 void hda_pin_set_output_volume(u32 codec, u32 node, u32 cap, u32 volume) {
-  u32 val  = (1 << 12) | (1 << 13);
-  val     |= 0x8000;
+  u32 value  = (1 << 12) | (1 << 13);
+  value     |= 0x8000;
   if (volume == 0 && cap & 0x80000000) {
-    val |= (1 << 7);
+    value |= (1 << 7);
   } else {
-    val |= ((cap >> 8) & 0x7F) * volume / 100;
+    value |= ((cap >> 8) & 0x7F) * volume / 100;
   }
-  hda_verb(codec, node, 0x3, val);
+  hda_verb(codec, node, 0x3, value);
 }
 void hda_init_audio_selector(u32 codec, u32 node);
 void hda_init_audio_output(u32 codec, u32 node) {

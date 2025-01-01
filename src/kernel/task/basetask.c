@@ -7,19 +7,19 @@
 #include <plty.h>
 
 void ide_initialize(u32 BAR0, u32 BAR1, u32 BAR2, u32 BAR3, u32 BAR4);
-void v86_task();
+void v86_task_main();
 void autorun();
 void shell();
 void debug_shell();
 
-static void scan_files(char *path) {
-  vfs_node_t p = vfs_open(path);
-  assert(p, "open %s failed", path);
-  assert(p->type == file_dir);
-  list_foreach(p->child, i) {
-    vfs_node_t c        = (vfs_node_t)i->data;
-    char      *new_path = pathcat(path, c->name);
-    if (c->type == file_dir) {
+static void scan_files(cstr path) {
+  val dir = vfs_open(path);
+  assert(dir, "open %s failed", path);
+  assert(dir->type == file_dir);
+  list_foreach(dir->child, node) {
+    val file     = (vfs_node_t)node->data;
+    val new_path = pathcat(path, file->name);
+    if (file->type == file_dir) {
       scan_files(new_path);
     } else {
       printf("%s\n", new_path);
@@ -29,10 +29,10 @@ static void scan_files(char *path) {
 }
 
 static plff_t load_font(cstr path) {
-  auto  file = vfs_open(path);
+  val   file = vfs_open(path);
   byte *buf  = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
-  auto font = plff_load_from_mem(buf, file->size);
+  val font = plff_load_from_mem(buf, file->size);
   klogi("font %s: %d %d %d", path, font->nchars, font->height, font->channels);
   free(buf);
   return font;
@@ -82,7 +82,7 @@ void user_init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
   vfs_mkdir("/dev");
-  vfs_mount(NULL, vfs_open("/dev"));
+  vfs_mount(null, vfs_open("/dev"));
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   vdisk vd;
@@ -136,7 +136,7 @@ void user_init() {
 
   screen_clear();
 
-  task_t t = task_run(create_task(&v86_task, 1, 1));
+  val v86_task = task_run(create_task(&v86_task_main, 1, 1));
 
   check_device();
 
@@ -144,7 +144,7 @@ void user_init() {
   klogd("ok vram = %p", vram);
   lgmemset32(vram, 0, screen_w * screen_h);
 
-  task_kill(t);
+  task_kill(v86_task);
 
 #if 0 // 尝试 os-terminal 库
   void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
@@ -171,10 +171,10 @@ void user_init() {
   }
 #endif
 
-  var font1 = load_font("/fatfs1/font1.plff");
-  // var font2 = load_font("/fatfs1/font2.plff");
+  val font1 = load_font("/fatfs1/font1.plff");
+  // val font2 = load_font("/fatfs1/font2.plff");
 
-  var tty = plty_alloc(vram, screen_w, screen_h, font1);
+  val tty = plty_alloc(vram, screen_w, screen_h, font1);
   // plty_addfont(tty, font2);
 
 #if 0
@@ -190,11 +190,11 @@ void user_init() {
 #endif
   plty_set_default(tty);
 
-  const var autorun_task = task_run(create_task(&autorun, 1, 1));
+  val autorun_task = task_run(create_task(&autorun, 1, 1));
   waittid(autorun_task->tid);
 
-  const var shell_task       = task_run(create_task(&shell, 1, 1));
-  const var debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
+  val shell_task       = task_run(create_task(&shell, 1, 1));
+  val debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
 
   debug_enabled = true;
 

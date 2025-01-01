@@ -15,14 +15,14 @@ extern PageInfo *pages;
 void task_app() {
   klogd("%s", current_task->command_line);
   klogd("%08x", current_task->stack_bottom);
-  char *kfifo = (char *)page_malloc_one();
-  char *mfifo = (char *)page_malloc_one();
-  char *kbuf  = (char *)page_malloc_one();
-  char *mbuf  = (char *)page_malloc_one();
+  cir_queue8_t kfifo = malloc(sizeof(struct cir_queue8));
+  cir_queue8_t mfifo = malloc(sizeof(struct cir_queue8));
+  var          kbuf  = page_malloc_one();
+  var          mbuf  = page_malloc_one();
+  cir_queue8_init(kfifo, 4096, kbuf);
+  cir_queue8_init(mfifo, 4096, mbuf);
 
-  cir_queue8_init((cir_queue8_t)kfifo, 4096, (u8 *)kbuf);
-  cir_queue8_init((cir_queue8_t)mfifo, 4096, (u8 *)mbuf);
-  task_set_fifo(current_task, (cir_queue8_t)kfifo, (cir_queue8_t)mfifo);
+  task_set_fifo(current_task, kfifo, mfifo);
   current_task->alloc_size    = (u32 *)malloc(4);
   *(current_task->alloc_size) = 2 * 1024 * 1024;
   u32 pde                     = current_task->cr3;
@@ -140,17 +140,17 @@ void task_to_user_mode_elf() {
 }
 
 i32 os_execute(cstr filename, cstr line) {
-  task_t backup = mouse_use_task;
+  val backup = mouse_use_task;
 
   klogd("execute: %s by command %s", filename, line);
 
   task_t t = create_task(&task_app, 1, 1);
 
-  const int old           = current_task->sigint_up;
+  val old                 = current_task->sigint_up;
   current_task->sigint_up = 0;
   t->sigint_up            = 1;
 
-  const int o             = current_task->fifosleep;
+  val o                   = current_task->fifosleep;
   current_task->fifosleep = 1;
 
   t->command_line = page_alloc(strlen(line) + 1);
@@ -161,7 +161,7 @@ i32 os_execute(cstr filename, cstr line) {
 
   task_run(t);
 
-  i32 status              = waittid(t->tid);
+  val status              = waittid(t->tid);
   current_task->fifosleep = o;
 
   klogd();

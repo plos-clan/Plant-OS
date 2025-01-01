@@ -9,7 +9,7 @@ auto BaseTexture<T>::paste_from(const BaseTexture<T2> &tex, i32 dx, i32 dy) -> B
   Rect rect = {(i32)tex.width, (i32)tex.height};
   rect.trunc(-dx, -dy, (i32)width - dx - 1, (i32)height - dy - 1);
 #if USE_ITERATOR
-  for (const auto [x, y] : rect) {
+  for (val[x, y] : rect) {
     (*this)(x + dx, y + dy) = tex(x, y);
   }
 #else
@@ -28,7 +28,7 @@ auto BaseTexture<T>::paste_from_mix(const BaseTexture<T2> &tex, i32 dx, i32 dy) 
   Rect rect = {(i32)tex.width, (i32)tex.height};
   rect.trunc(-dx, -dy, (i32)width - dx - 1, (i32)height - dy - 1);
 #if USE_ITERATOR
-  for (const auto [x, y] : rect) {
+  for (val[x, y] : rect) {
     (*this)(x + dx, y + dy).mix(tex(x, y));
   }
 #else
@@ -48,7 +48,7 @@ auto BaseTexture<T>::paste_from_opaque(const BaseTexture<T2> &tex, i32 dx, i32 d
   Rect rect = {(i32)tex.width, (i32)tex.height};
   rect.trunc(-dx, -dy, (i32)width - dx - 1, (i32)height - dy - 1);
 #if USE_ITERATOR
-  for (const auto [x, y] : rect) {
+  for (val[x, y] : rect) {
     (*this)(x + dx, y + dy).mix_opaque(tex(x, y));
   }
 #else

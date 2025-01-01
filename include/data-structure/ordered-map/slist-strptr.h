@@ -14,7 +14,7 @@
 typedef struct slist_sp *slist_sp_t;
 struct slist_sp {
   char      *key;
-  void      *val;
+  void      *value;
   slist_sp_t next;
 };
 
@@ -25,10 +25,10 @@ struct slist_sp {
 /**
  *\brief 创建一个新的带字符串键的单向链表节点
  *\param[in] key 节点键值（字符串）
- *\param[in] val 节点值指针
+ *\param[in] value 节点值指针
  *\return 新的单向链表节点指针
  */
-extern slist_sp_t slist_sp_alloc(const char *key, void *val) __THROW;
+extern slist_sp_t slist_sp_alloc(const char *key, void *value) __THROW;
 
 /**
  *\brief 释放带字符串键的单向链表
@@ -42,19 +42,19 @@ extern void slist_sp_free_with(slist_sp_t list, void (*free_value)(void *)) __TH
  *\brief 在带字符串键的单向链表末尾插入节点
  *\param[in] list 单向链表头指针
  *\param[in] key 节点键值（字符串）
- *\param[in] val 节点值指针
+ *\param[in] value 节点值指针
  *\return 更新后的单向链表头指针
  */
-extern slist_sp_t slist_sp_append(slist_sp_t list, const char *key, void *val) __THROW;
+extern slist_sp_t slist_sp_append(slist_sp_t list, const char *key, void *value) __THROW;
 
 /**
  *\brief 在带字符串键的单向链表开头插入节点
  *\param[in] list 单向链表头指针
  *\param[in] key 节点键值（字符串）
- *\param[in] val 节点值指针
+ *\param[in] value 节点值指针
  *\return 更新后的单向链表头指针
  */
-extern slist_sp_t slist_sp_prepend(slist_sp_t list, const char *key, void *val) __THROW;
+extern slist_sp_t slist_sp_prepend(slist_sp_t list, const char *key, void *value) __THROW;
 
 /**
  *\brief 在带字符串键的单向链表中根据键值查找对应的节点值
@@ -75,19 +75,19 @@ extern slist_sp_t slist_sp_get_node(slist_sp_t list, const char *key) __THROW;
 /**
  *\brief 在带字符串键的单向链表中查找对应值的键值
  *\param[in] list 单向链表头指针
- *\param[in] val 要查找的值指针
+ *\param[in] value 要查找的值指针
  *\param[out] key 用于存储键值的指针
  *\return 若找到对应值的键值，则返回true，否则返回false
  */
-extern bool slist_sp_search(slist_sp_t list, void *val, const char **key) __THROW;
+extern bool slist_sp_search(slist_sp_t list, void *value, const char **key) __THROW;
 
 /**
  *\brief 在带字符串键的单向链表中查找对应值的节点
  *\param[in] list 单向链表头指针
- *\param[in] val 要查找的值指针
+ *\param[in] value 要查找的值指针
  *\return 若找到对应值的节点指针，否则返回NULL
  */
-extern slist_sp_t slist_sp_search_node(slist_sp_t list, void *val) __THROW;
+extern slist_sp_t slist_sp_search_node(slist_sp_t list, void *value) __THROW;
 
 /**
  *\brief 在带字符串键的单向链表中根据键值删除节点
@@ -130,12 +130,12 @@ extern void slist_sp_print(slist_sp_t list) __THROW;
 
 #ifdef SLIST_SP_IMPLEMENTATION
 
-static slist_sp_t slist_sp_alloc(const char *key, void *val) {
+static slist_sp_t slist_sp_alloc(const char *key, void *value) {
   slist_sp_t node = malloc(sizeof(*node));
   if (node == null) return null;
-  node->key  = key ? strdup(key) : null;
-  node->val  = val;
-  node->next = null;
+  node->key   = key ? strdup(key) : null;
+  node->value = value;
+  node->next  = null;
   return node;
 }
 
@@ -152,14 +152,14 @@ static void slist_sp_free_with(slist_sp_t list, void (*free_value)(void *)) {
   while (list != null) {
     slist_sp_t next = list->next;
     free(list->key);
-    free_value(list->val);
+    free_value(list->value);
     free(list);
     list = next;
   }
 }
 
-static slist_sp_t slist_sp_append(slist_sp_t list, const char *key, void *val) {
-  slist_sp_t node = slist_sp_alloc(key, val);
+static slist_sp_t slist_sp_append(slist_sp_t list, const char *key, void *value) {
+  slist_sp_t node = slist_sp_alloc(key, value);
   if (node == null) return list;
 
   if (list == null) {
@@ -175,8 +175,8 @@ static slist_sp_t slist_sp_append(slist_sp_t list, const char *key, void *val) {
   return list;
 }
 
-static slist_sp_t slist_sp_prepend(slist_sp_t list, const char *key, void *val) {
-  slist_sp_t node = slist_sp_alloc(key, val);
+static slist_sp_t slist_sp_prepend(slist_sp_t list, const char *key, void *value) {
+  slist_sp_t node = slist_sp_alloc(key, value);
   if (node == null) return list;
 
   node->next = list;
@@ -187,7 +187,7 @@ static slist_sp_t slist_sp_prepend(slist_sp_t list, const char *key, void *val) 
 
 static void *slist_sp_get(slist_sp_t list, const char *key) {
   for (slist_sp_t current = list; current; current = current->next) {
-    if (streq(current->key, key)) return current->val;
+    if (streq(current->key, key)) return current->value;
   }
   return null;
 }
@@ -199,9 +199,9 @@ static slist_sp_t slist_sp_get_node(slist_sp_t list, const char *key) {
   return null;
 }
 
-static bool slist_sp_search(slist_sp_t list, void *val, const char **key) {
+static bool slist_sp_search(slist_sp_t list, void *value, const char **key) {
   for (slist_sp_t current = list; current; current = current->next) {
-    if (current->val == val) {
+    if (current->value == value) {
       if (key) *key = current->key;
       return true;
     }
@@ -209,9 +209,9 @@ static bool slist_sp_search(slist_sp_t list, void *val, const char **key) {
   return false;
 }
 
-static slist_sp_t slist_sp_search_node(slist_sp_t list, void *val) {
+static slist_sp_t slist_sp_search_node(slist_sp_t list, void *value) {
   for (slist_sp_t current = list; current; current = current->next) {
-    if (current->val == val) return current;
+    if (current->value == value) return current;
   }
   return null;
 }
@@ -249,7 +249,7 @@ static slist_sp_t slist_sp_delete_with(slist_sp_t list, const char *key,
     slist_sp_t temp = list;
     list            = list->next;
     free(temp->key);
-    free_value(temp->val);
+    free_value(temp->value);
     free(temp);
     return list;
   }
@@ -259,7 +259,7 @@ static slist_sp_t slist_sp_delete_with(slist_sp_t list, const char *key,
     if (streq(current->key, key)) {
       prev->next = current->next;
       free(current->key);
-      free_value(current->val);
+      free_value(current->value);
       free(current);
       break;
     }
@@ -302,7 +302,7 @@ static slist_sp_t slist_sp_delete_node_with(slist_sp_t list, slist_sp_t node,
     slist_sp_t temp = list;
     list            = list->next;
     free(temp->key);
-    free_value(temp->val);
+    free_value(temp->value);
     free(temp);
     return list;
   }
@@ -312,7 +312,7 @@ static slist_sp_t slist_sp_delete_node_with(slist_sp_t list, slist_sp_t node,
     if (current == node) {
       prev->next = current->next;
       free(current->key);
-      free_value(current->val);
+      free_value(current->value);
       free(current);
       break;
     }
@@ -335,7 +335,7 @@ static size_t slist_sp_length(slist_sp_t slist_sp) {
 static void slist_sp_print(slist_sp_t slist_sp) {
   slist_sp_t current = slist_sp;
   while (current != null) {
-    printf("%p -> ", current->val);
+    printf("%p -> ", current->value);
     current = current->next;
   }
   printf("null\n");
@@ -347,16 +347,16 @@ static void slist_sp_print(slist_sp_t slist_sp) {
 /**
  *\brief 在单向链表末尾插入节点
  *\param[in,out] list 单向链表头指针
- *\param[in] val 节点值
+ *\param[in] value 节点值
  */
-#define slist_sp_append(list, key, val) (list) = (slist_sp_append(list, key, val))
+#define slist_sp_append(list, key, value) (list) = (slist_sp_append(list, key, value))
 
 /**
  *\brief 在单向链表开头插入节点
  *\param[in,out] list 单向链表头指针
- *\param[in] val 节点值
+ *\param[in] value 节点值
  */
-#define slist_sp_prepend(list, key, val) ((list) = slist_sp_prepend(list, key, val))
+#define slist_sp_prepend(list, key, value) ((list) = slist_sp_prepend(list, key, value))
 
 /**
  *\brief 删除单向链表中的节点

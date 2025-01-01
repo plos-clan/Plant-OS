@@ -7,7 +7,7 @@ typedef struct ListCtl ListCtl;
 struct List {
   ListCtl  *ctl;
   List     *prev;
-  uintptr_t val;
+  uintptr_t value;
   List     *next;
 };
 
@@ -17,10 +17,10 @@ struct ListCtl {
   int   all;
 };
 
-void  AddVal(uintptr_t val, List *Obj);
+void  AddVal(uintptr_t value, List *Obj);
 List *FindForCount(size_t count, List *Obj);
 void  DeleteVal(size_t count, List *Obj);
 List *NewList();
-void  Change(size_t count, List *Obj, uintptr_t val);
+void  Change(size_t count, List *Obj, uintptr_t value);
 int   GetLastCount(List *Obj);
 void  DeleteList(List *Obj);

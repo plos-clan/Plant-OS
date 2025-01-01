@@ -56,7 +56,7 @@ dlexport plff_t plff_load_from_mem(const void *data, size_t size) {
 dlexport void *font_save_to_mem(plff_t font, size_t *size_p) {
   if (font == null || size_p == null) return null;
 
-  const auto last_char = font->chars_list[font->nchars - 1];
+  val    last_char = font->chars_list[font->nchars - 1];
   size_t img_size = last_char.img + last_char.height * last_char.width * font->channels - font->img;
 
   size_t img_zippedsize;

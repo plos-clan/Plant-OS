@@ -82,7 +82,7 @@ int vfs_mkdir(cstr name) {
   char      *path     = strdup(name + 1);
   char      *save_ptr = path;
   vfs_node_t current  = rootdir;
-  for (char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
+  for (cstr buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
     const vfs_node_t father = current;
     if (streq(buf, ".")) continue;
     if (streq(buf, "..")) {
@@ -127,7 +127,7 @@ int vfs_mkfile(cstr name) {
     free(path);
     return -1;
   }
-  for (const char *buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
+  for (cstr buf = pathtok(&save_ptr); buf; buf = pathtok(&save_ptr)) {
     if (streq(buf, ".")) continue;
     if (streq(buf, "..")) {
       if (!current->parent || current->type != file_dir) goto err;

@@ -31,7 +31,7 @@ static void BM_INSERT(benchmark::State &state) {
   ::keys = generate_nums(10000, 114514);
   for (auto _ : state) {
     rbtree_t tree = null;
-    for (const auto key : keys) {
+    for (val key : keys) {
       rbtree_insert(tree, key, null);
     }
     benchmark::DoNotOptimize(tree);
@@ -41,13 +41,13 @@ static void BM_INSERT(benchmark::State &state) {
 
 static void BM_GET(benchmark::State &state) {
   rbtree_t tree = null;
-  for (const auto key : keys) {
+  for (val key : keys) {
     rbtree_insert(tree, key, null);
   }
   for (auto _ : state) {
-    for (const auto key : keys) {
-      auto val = rbtree_get(tree, key);
-      benchmark::DoNotOptimize(val);
+    for (val key : keys) {
+      auto value = rbtree_get(tree, key);
+      benchmark::DoNotOptimize(value);
     }
   }
   rbtree_free(tree);
@@ -56,10 +56,10 @@ static void BM_GET(benchmark::State &state) {
 static void BM_DELETE(benchmark::State &state) {
   for (auto _ : state) {
     rbtree_t tree = null;
-    for (const auto key : keys) {
+    for (val key : keys) {
       rbtree_insert(tree, key, null);
     }
-    for (const auto key : keys) {
+    for (val key : keys) {
       rbtree_delete(tree, key);
     }
     benchmark::DoNotOptimize(tree);

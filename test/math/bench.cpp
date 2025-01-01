@@ -20,8 +20,8 @@ std::vector<f64> nums_y = generate_nums(100, 1919810);
 
 static void BM_POW(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums_x) {
-      for (const auto y : nums_y) {
+    for (val x : nums_x) {
+      for (val y : nums_y) {
         benchmark::DoNotOptimize(cpp::pow(x, y));
       }
     }
@@ -29,8 +29,8 @@ static void BM_POW(benchmark::State &state) {
 }
 static void BM_STD_POW(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums_x) {
-      for (const auto y : nums_y) {
+    for (val x : nums_x) {
+      for (val y : nums_y) {
         benchmark::DoNotOptimize(std::pow(x, y));
       }
     }
@@ -41,14 +41,14 @@ BENCHMARK(BM_STD_POW);
 
 static void BM_ABS(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(cpp::abs(x));
     }
   }
 }
 static void BM_STD_ABS(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(std::abs(x));
     }
   }
@@ -58,14 +58,14 @@ BENCHMARK(BM_STD_ABS);
 
 static void BM_CLAMP(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(cpp::clamp(x, 0., 1.));
     }
   }
 }
 static void BM_STD_CLAMP(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(std::clamp(x, 0., 1.));
     }
   }
@@ -75,14 +75,14 @@ BENCHMARK(BM_STD_CLAMP);
 
 static void BM_SQRT(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(cpp::sqrt(x));
     }
   }
 }
 static void BM_STD_SQRT(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(std::sqrt(x));
     }
   }
@@ -92,14 +92,14 @@ BENCHMARK(BM_STD_SQRT);
 
 static void BM_CBRT(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(cpp::cbrt(x));
     }
   }
 }
 static void BM_STD_CBRT(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(std::cbrt(x));
     }
   }
@@ -109,8 +109,8 @@ BENCHMARK(BM_STD_CBRT);
 
 static void BM_FMOD(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums_x) {
-      for (const auto y : nums_y) {
+    for (val x : nums_x) {
+      for (val y : nums_y) {
         benchmark::DoNotOptimize(cpp::mod(x, y));
       }
     }
@@ -118,8 +118,8 @@ static void BM_FMOD(benchmark::State &state) {
 }
 static void BM_STD_FMOD(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums_x) {
-      for (const auto y : nums_y) {
+    for (val x : nums_x) {
+      for (val y : nums_y) {
         benchmark::DoNotOptimize(std::fmod(x, y));
       }
     }
@@ -130,14 +130,14 @@ BENCHMARK(BM_STD_FMOD);
 
 static void BM_SIN(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(cpp::sin(x));
     }
   }
 }
 static void BM_STD_SIN(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(std::sin(x));
     }
   }
@@ -147,14 +147,14 @@ BENCHMARK(BM_STD_SIN);
 
 static void BM_TAN(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(cpp::tan(x));
     }
   }
 }
 static void BM_STD_TAN(benchmark::State &state) {
   for (auto _ : state) {
-    for (const auto x : nums) {
+    for (val x : nums) {
       benchmark::DoNotOptimize(std::tan(x));
     }
   }

@@ -88,12 +88,20 @@ static void task_free(task_t t) {
   if (t->parent != null) avltree_delete(t->parent->children, t->tid);
   if (t == current_task) asm_set_cr3(PD_ADDRESS);
   pd_free(t->cr3);
+  if (t->mousefifo) {
+    page_free(t->mousefifo->buf, PAGE_SIZE);
+    free(t->mousefifo);
+  }
+  if (t->keyfifo) {
+    page_free(t->keyfifo->buf, PAGE_SIZE);
+    free(t->keyfifo);
+  }
   if (t->press_key_fifo) {
-    page_free(t->press_key_fifo->buf, 4096);
+    page_free(t->press_key_fifo->buf, PAGE_SIZE);
     free(t->press_key_fifo);
   }
   if (t->release_keyfifo) {
-    page_free(t->release_keyfifo->buf, 4096);
+    page_free(t->release_keyfifo->buf, PAGE_SIZE);
     free(t->release_keyfifo);
   }
   if (t->command_line) page_free(t->command_line, strlen(t->command_line) + 1);
@@ -138,7 +146,7 @@ void running_tasks_push(task_t task) {
     kloge("running_tasks_push null");
     return;
   }
-  const var is_sti = asm_is_sti;
+  val is_sti = asm_is_sti;
   asm_cli;
   if (task->state == THREAD_DEAD) {
     kloge("running_tasks_push task %d THREAD_DEAD", task->tid);
@@ -152,7 +160,7 @@ void running_tasks_push(task_t task) {
 }
 
 task_t running_tasks_pop() {
-  const var is_sti = asm_is_sti;
+  val is_sti = asm_is_sti;
   asm_cli;
   task_t task = queue_dequeue(&running_tasks[cpuid_coreid]);
   while (task == null || task->state != THREAD_RUNNING) {
@@ -177,7 +185,7 @@ extern void asm_task_start(task_t current, task_t next) __attr(fastcall);  // å¼
 finline void task_switch(task_t next) {
   var is_sti = asm_is_sti;
   asm_cli;
-  const var task = task_current;
+  val task = task_current;
   kassert(next != null, "Can't switch to null task");
   kassert(task != null, "Can't switch from null task");
   if (next == task) {
@@ -208,7 +216,7 @@ __attr(noreturn) finline void task_start(task_t task) {
 extern task_t mouse_use_task;
 
 void task_tick() {
-  const var task = task_current;
+  val task = task_current;
   kassert(task != null);
   if (task->state == THREAD_RUNNING) {
     task->running++;
@@ -220,7 +228,7 @@ void task_tick() {
 void task_next() {
   asm_cli;
 
-  const var task = task_current;
+  val task = task_current;
   kassert(task != null);
 
   task->running = 0;
@@ -228,7 +236,7 @@ void task_next() {
   if (!task->is_switched && task->state == THREAD_RUNNING) running_tasks_push(task);
   task->is_switched = false;
 
-  const var next = next_set && next_set->state == THREAD_RUNNING ? next_set : running_tasks_pop();
+  val next = next_set && next_set->state == THREAD_RUNNING ? next_set : running_tasks_pop();
   if (next == next_set) {
     next->is_switched = true;
     next_set          = null;
@@ -260,7 +268,7 @@ void task_next() {
 }
 
 task_t create_task(void *entry, u32 ticks, u32 floor) {
-  const var t = task_alloc();
+  val t = task_alloc();
 
   if (t == null) return null;
   void *stack = page_alloc(STACK_SIZE);
@@ -325,7 +333,7 @@ void into_mtask() {
   tss.ss0 = RING0_DS;
   set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
-  const var task = task_run(create_task(&user_init, 5, 1));
+  val task = task_run(create_task(&user_init, 5, 1));
   asm_set_ts, asm_set_em, asm_set_ne;
   task_start(task);
 }
@@ -368,7 +376,7 @@ void task_kill(task_t task) {
 
   if (task->state == THREAD_IDLE) {}
 
-  const var tid = task->tid;
+  val tid = task->tid;
 
   if (mouse_use_task == task) mouse_sleep(&mdec);
 
@@ -394,7 +402,7 @@ void task_kill(task_t task) {
 }
 
 void task_exit(i32 status) {
-  const var task = current_task;
+  val task = current_task;
   kassert(task != null);
 
   if (status < 0) klogw("task_exit status < 0");
@@ -407,7 +415,7 @@ void task_exit(i32 status) {
 }
 
 void task_abort() {
-  const var task = current_task;
+  val task = current_task;
   kassert(task != null);
 
   task_kill(task);
@@ -454,7 +462,7 @@ static void build_fork_stack(task_t task) {
 }
 
 int task_fork() {
-  const var m = task_alloc();
+  val m = task_alloc();
   if (m == null) return -1;
   klogd("get free %08x\n", m);
   klogd("current = %08x\n", current_task->tid);

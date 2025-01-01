@@ -9,11 +9,11 @@ extern PageInfo *pages;
 
 void *syscall_mmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
-  u32  page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
-  bool size_is_2M = page_count == 512;
+  val page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
+  val size_is_2M = page_count == 512;
 
-  const usize cr3             = current_task->cr3;
-  void       *line_addr_start = null;
+  val   cr3             = current_task->cr3;
+  void *line_addr_start = null;
   for (int i = PDI(0x70000000), c = 0; i < 1024; i++) {
     u32 *pde_entry = (u32 *)cr3 + i;
     u32  p         = *pde_entry & (0xfffff000);
@@ -39,7 +39,7 @@ _1:
 
 void syscall_munmap(void *start, u32 length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
-  u32 page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
+  val page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
 
   if (start > (void *)0xf0000000) {
     error("Couldn't unmap memory from %p to %p.", start, start + page_count * PAGE_SIZE);

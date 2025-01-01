@@ -19,6 +19,7 @@ extern "C" {
 #include "define/define/logging.h"
 #include "define/define/magic.h"
 #include "define/define/mem.h"
+#include "define/define/new.h"
 #include "define/define/rc.h"
 #include "define/define/va.h"
 #include "define/type/00-include.h"

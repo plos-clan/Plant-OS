@@ -53,9 +53,9 @@ err:
 }
 
 #if ARGS_NOT_IN_STACK
-#  define PUSH(val)                                                                                \
+#  define PUSH(value)                                                                              \
     ({                                                                                             \
-      *((size_t *)sp++) = (size_t)(val);                                                           \
+      *((size_t *)sp++) = (size_t)(value);                                                         \
       sp - sizeof(size_t);                                                                         \
     })
 #  define PUSHMEM(ptr, len)                                                                        \
@@ -66,9 +66,9 @@ err:
     })
 #  define PUSHSTR(str) PUSHMEM(str, strlen(str) + 1)
 #else
-#  define PUSH(val)                                                                                \
+#  define PUSH(value)                                                                              \
     ({                                                                                             \
-      *(--(size_t *)sp) = (size_t)(val);                                                           \
+      *(--(size_t *)sp) = (size_t)(value);                                                         \
       sp;                                                                                          \
     })
 #  define PUSHMEM(ptr, len)                                                                        \

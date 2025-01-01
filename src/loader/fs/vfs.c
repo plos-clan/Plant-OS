@@ -269,7 +269,7 @@ bool vfs_change_disk(u8 drive) {
   if (vfs_now != NULL) {
     while (FindForCount(1, vfs_now->path) != NULL) {
       // printk("%d\n",vfs_now->path->ctl->all);
-      page_free((void *)FindForCount(vfs_now->path->ctl->all, vfs_now->path)->val, 255);
+      page_free((void *)FindForCount(vfs_now->path->ctl->all, vfs_now->path)->value, 255);
       DeleteVal(vfs_now->path->ctl->all, vfs_now->path);
     }
     DeleteList(vfs_now->path);
@@ -295,7 +295,7 @@ bool vfs_change_disk_for_task(u8 drive, struct TASK *task) {
   if (vfs(task) != NULL) {
     while (FindForCount(1, vfs(task)->path) != NULL) {
       //("%d\n",vfs_now->path->ctl->all);
-      page_free((void *)FindForCount(vfs(task)->path->ctl->all, vfs(task)->path)->val, 255);
+      page_free((void *)FindForCount(vfs(task)->path->ctl->all, vfs(task)->path)->value, 255);
       DeleteVal(vfs(task)->path->ctl->all, vfs(task)->path);
     }
     DeleteList(vfs(task)->path);
@@ -330,7 +330,7 @@ void vfs_getPath(char *buffer) {
   int pos = strlen(buffer);
   for (int i = 1; FindForCount(i, vfs_now->path) != NULL; i++) {
     l    = FindForCount(i, vfs_now->path);
-    path = (char *)l->val;
+    path = (char *)l->value;
     insert_str(buffer, path, pos);
     pos += strlen(path);
     insert_char(buffer, pos, '\\');

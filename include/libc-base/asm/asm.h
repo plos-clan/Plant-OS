@@ -17,9 +17,10 @@
     _var;                                                                                          \
   })
 
-#define asm_setreg(reg, val) ({ asm volatile("mov %0, %%" #reg "\n\t" : : "r"((size_t)(val))); })
+#define asm_setreg(reg, value)                                                                     \
+  ({ asm volatile("mov %0, %%" #reg "\n\t" : : "r"((size_t)(value))); })
 
-#define used_val(val) ({ asm volatile("" : "r,m"(val) : : "memory"); })
+#define used_val(value) ({ asm volatile("" : "r,m"(value) : : "memory"); })
 
 /**
  *\brief 加载 GDT

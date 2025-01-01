@@ -24,10 +24,10 @@ int pl_readline_modify_history(_self) {
   return PL_READLINE_SUCCESS;
 }
 
-pl_readline_t
-pl_readline_init(int (*pl_readline_hal_getch)(void), void (*pl_readline_hal_putch)(int ch),
-                 void (*pl_readline_hal_flush)(void),
-                 void (*pl_readline_get_words)(char *buf, pl_readline_words_t words)) {
+pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
+                               void (*pl_readline_hal_putch)(int ch),
+                               void (*pl_readline_hal_flush)(),
+                               void (*pl_readline_get_words)(cstr buf, pl_readline_words_t words)) {
   pl_readline_t plreadln = malloc(sizeof(struct pl_readline));
   if (!plreadln) return NULL;
   // 设置回调函数
@@ -100,9 +100,9 @@ static bool pl_readline_handle_history(_self, int n) {
   list_t node = list_nth(self->history, n); // 获取历史记录
   if (!node) return false;
   pl_readline_reset(self, self->ptr, self->length); // 重置光标和输入的字符
-  self->pl_readline_hal_flush(); // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示
-  self->ptr    = 0;              // 光标移动到最左边
-  self->length = 0;              // 清空缓冲区长度
+  self->pl_readline_hal_flush();         // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示
+  self->ptr    = 0;                      // 光标移动到最左边
+  self->length = 0;                      // 清空缓冲区长度
   memset(self->buffer, 0, self->maxlen); // 清空缓冲区
   strcpy(self->buffer, node->data);
   pl_readline_print(self, self->buffer); // 打印历史记录

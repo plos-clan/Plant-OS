@@ -309,9 +309,9 @@ void hpet_initialize() {
 void gettime_ns(timespec *ptr) {
   static timespec time     = {};
   static u64      val_old  = 0;
-  u64             val      = hpetInfo->mainCounterValue * hpetPeriod - val_old;
-  val_old                 += val;
-  time.tv_nsec            += (i64)val;
+  u64             value    = hpetInfo->mainCounterValue * hpetPeriod - val_old;
+  val_old                 += value;
+  time.tv_nsec            += (i64)value;
   while (time.tv_nsec > NANOSEC_IN_SEC) {
     time.tv_sec  += 1;
     time.tv_nsec -= NANOSEC_IN_SEC;

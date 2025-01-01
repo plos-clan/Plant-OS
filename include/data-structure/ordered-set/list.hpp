@@ -11,8 +11,8 @@ struct List {
     Node *next = null;
 
     Node() = default;
-    Node(const T &val) : data(val) {}
-    Node(T &&val) : data(cpp::move(val)) {}
+    Node(const T &value) : data(value) {}
+    Node(T &&value) : data(cpp::move(value)) {}
   };
 
   class Iterator {

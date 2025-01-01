@@ -10,10 +10,8 @@ typedef struct file {
 static file_t file_alloc(size_t size) {
   file_t file = malloc(sizeof(struct file));
   if (file == null) return null;
-  size_t mallocsize = PADDING_UP(size, FILE_BLKSIZE) * sizeof(void *);
-  file->size        = size;
-  file->blocks      = malloc(mallocsize);
-  memset(file->blocks, 0, mallocsize);
+  file->size   = size;
+  file->blocks = new (void *, PADDING_UP(size, FILE_BLKSIZE) / FILE_BLKSIZE);
   return file;
 }
 

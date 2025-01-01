@@ -17,17 +17,17 @@ public:
 
   i32     color = black; /**< 节点颜色，取值为 red 或 black */
   TKey    key;           /**< 节点键值 */
-  TVal    val;           /**< 节点值 */
+  TVal    value;         /**< 节点值 */
   rbtree *left   = null; /**< 左子节点指针 */
   rbtree *right  = null; /**< 右子节点指针 */
   rbtree *parent = null; /**< 父节点指针 */
 
   explicit rbtree(const TKey &key) : key(key) {}
-  rbtree(const TKey &key, const TVal &val) : key(key), val(val) {}
+  rbtree(const TKey &key, const TVal &value) : key(key), value(value) {}
   explicit rbtree(TKey &&key) : key(cpp::move(key)) {}
-  rbtree(TKey &&key, const TVal &val) : key(cpp::move(key)), val(val) {}
-  rbtree(const TKey &key, TVal &&val) : key(key), val(cpp::move(val)) {}
-  rbtree(TKey &&key, TVal &&val) : key(cpp::move(key)), val(cpp::move(val)) {}
+  rbtree(TKey &&key, const TVal &value) : key(cpp::move(key)), value(value) {}
+  rbtree(const TKey &key, TVal &&value) : key(key), value(cpp::move(value)) {}
+  rbtree(TKey &&key, TVal &&value) : key(cpp::move(key)), value(cpp::move(value)) {}
   ~rbtree() {
     if (left) delete left;
     if (right) delete right;
@@ -36,13 +36,13 @@ public:
   auto get(const TKey &query) -> TVal * {
     if (query < key) return left ? left->get(query) : null;
     if (query > key) return right ? right->get(query) : null;
-    return &val;
+    return &value;
   }
 
   auto get(const TKey &query) const -> const TVal * {
     if (query < key) return left ? left->get(query) : null;
     if (query > key) return right ? right->get(query) : null;
-    return &val;
+    return &value;
   }
 
   auto getnode(const TKey &query) -> rbtree * {
@@ -60,51 +60,51 @@ public:
   auto getref(const TKey &query, rbtree *&r) -> TVal & {
     rbtree *result;
     r = insert_if_notexist(this, query, result);
-    return result->val;
+    return result->value;
   }
 
   auto search(const TVal &query) -> TKey * {
-    if (query == val) return &key;
+    if (query == value) return &key;
     if (left)
-      if (const auto ret = left->search(query); ret) return ret;
+      if (val ret = left->search(query); ret) return ret;
     if (right)
-      if (const auto ret = right->search(query); ret) return ret;
+      if (val ret = right->search(query); ret) return ret;
     return null;
   }
 
   auto search(const TVal &query) const -> const TKey * {
-    if (query == val) return &key;
+    if (query == value) return &key;
     if (left)
-      if (const auto ret = left->search(query); ret) return ret;
+      if (val ret = left->search(query); ret) return ret;
     if (right)
-      if (const auto ret = right->search(query); ret) return ret;
+      if (val ret = right->search(query); ret) return ret;
     return null;
   }
 
   auto searchnode(const TVal &query) -> rbtree * {
-    if (query == val) return this;
+    if (query == value) return this;
     if (left)
-      if (const auto ret = left->searchnode(query); ret) return ret;
+      if (val ret = left->searchnode(query); ret) return ret;
     if (right)
-      if (const auto ret = right->searchnode(query); ret) return ret;
+      if (val ret = right->searchnode(query); ret) return ret;
     return null;
   }
 
   auto searchnode(const TVal &query) const -> const rbtree * {
-    if (query == val) return this;
+    if (query == value) return this;
     if (left)
-      if (const auto ret = left->searchnode(query); ret) return ret;
+      if (val ret = left->searchnode(query); ret) return ret;
     if (right)
-      if (const auto ret = right->searchnode(query); ret) return ret;
+      if (val ret = right->searchnode(query); ret) return ret;
     return null;
   }
 
   auto min() -> TVal * {
-    return left ? left->min() : &val;
+    return left ? left->min() : &value;
   }
 
   auto min() const -> const TVal * {
-    return left ? left->min() : &val;
+    return left ? left->min() : &value;
   }
 
   auto minnode() -> rbtree * {
@@ -116,11 +116,11 @@ public:
   }
 
   auto max() -> TVal * {
-    return right ? right->max() : &val;
+    return right ? right->max() : &value;
   }
 
   auto max() const -> const TVal * {
-    return right ? right->max() : &val;
+    return right ? right->max() : &value;
   }
 
   auto maxnode() -> rbtree * {
@@ -152,7 +152,7 @@ public:
     if (left) left->print_inorder(deepth + 1);
     for (int i = 0; i < deepth; i++)
       printf("| ");
-    printf("%d %p\n", key, val);
+    printf("%d %p\n", key, value);
     if (right) right->print_inorder(deepth + 1);
   }
 
@@ -160,7 +160,7 @@ public:
     if (deepth == 0) printf("Pre-order traversal of the Red-Black Tree: \n");
     for (int i = 0; i < deepth; i++)
       printf("| ");
-    printf("%d %p\n", key, val);
+    printf("%d %p\n", key, value);
     if (left) left->print_preorder(deepth + 1);
     if (right) right->print_preorder(deepth + 1);
   }
@@ -171,7 +171,7 @@ public:
     if (right) right->print_postorder(deepth + 1);
     for (int i = 0; i < deepth; i++)
       printf("| ");
-    printf("%d %p\n", key, val);
+    printf("%d %p\n", key, value);
   }
 
 private:
@@ -271,8 +271,8 @@ private:
     return r;
   }
 
-  static auto insert(rbtree *r, const TKey &key, const TVal &val) -> rbtree * {
-    auto z   = new rbtree(key, val);
+  static auto insert(rbtree *r, const TKey &key, const TVal &value) -> rbtree * {
+    auto z   = new rbtree(key, value);
     z->color = red;
 
     rbtree *y = null;
@@ -451,7 +451,7 @@ public:
   }
 
   auto get(const TKey &query) -> TVal & {
-    return root ? root->getref(query, root) : (root = new base::rbtree<TKey, TVal>(query))->val;
+    return root ? root->getref(query, root) : (root = new base::rbtree<TKey, TVal>(query))->value;
   }
 
   auto getnode(const TKey &query) const -> const base::rbtree<TKey, TVal> * {
@@ -490,18 +490,18 @@ public:
     return root ? root->maxnode() : null;
   }
 
-  auto insert(const TKey &key, const TVal &val) -> void {
+  auto insert(const TKey &key, const TVal &value) -> void {
     if (root)
-      root = root->insert(key, val);
+      root = root->insert(key, value);
     else
-      root = new base::rbtree<TKey, TVal>(key, val);
+      root = new base::rbtree<TKey, TVal>(key, value);
   }
 
-  auto ins(const TKey &key, const TVal &val) -> void {
+  auto ins(const TKey &key, const TVal &value) -> void {
     if (root)
-      root = root->insert(key, val);
+      root = root->insert(key, value);
     else
-      root = new base::rbtree<TKey, TVal>(key, val);
+      root = new base::rbtree<TKey, TVal>(key, value);
   }
 
   auto del(const TKey &key) -> void {

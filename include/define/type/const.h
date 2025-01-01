@@ -12,7 +12,7 @@
 
 #define $void const void
 
-#define $auto const auto
+#define $auto val
 
 _CONST_(bool);
 

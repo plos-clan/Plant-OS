@@ -48,7 +48,7 @@
 
 #  define logged_assert(expr, ...)                                                                 \
     ({                                                                                             \
-      const auto &_val_ = (expr);                                                                  \
+      val &_val_ = (expr);                                                                         \
       if (_val_) {                                                                                 \
         info("assert " #expr " success.");                                                         \
       } else {                                                                                     \
@@ -59,23 +59,23 @@
 
 #  define assert(expr, ...)                                                                        \
     ({                                                                                             \
-      const auto &_val_ = (expr);                                                                  \
+      val &_val_ = (expr);                                                                         \
       if (!_val_) fatal("assert " #expr " failed: " __VA_ARGS__);                                  \
       _val_;                                                                                       \
     })
 
 #  define assert_eq(expr1, expr2, ...)                                                             \
     ({                                                                                             \
-      const auto &_val1_ = (expr1);                                                                \
-      const auto &_val2_ = (expr2);                                                                \
+      val &_val1_ = (expr1);                                                                       \
+      val &_val2_ = (expr2);                                                                       \
       if (!(_val1_ == _val2_)) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);      \
       _va1_;                                                                                       \
     })
 
 #  define assert_ne(expr1, expr2, ...)                                                             \
     ({                                                                                             \
-      const auto &_val1_ = (expr1);                                                                \
-      const auto &_val2_ = (expr2);                                                                \
+      val &_val1_ = (expr1);                                                                       \
+      val &_val2_ = (expr2);                                                                       \
       if (!(_val1_ != _val2_)) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);      \
       _va1_;                                                                                       \
     })

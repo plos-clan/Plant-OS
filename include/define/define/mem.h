@@ -20,8 +20,8 @@
 #define mem_get32(addr) mem_getu32(addr)
 #define mem_get64(addr) mem_getu64(addr)
 
-#define mem_set(addr, val)   ({ *(volatile size_t *)(addr) = (size_t)(val); })
-#define mem_set8(addr, val)  ({ *(volatile u8 *)(addr) = (u8)(val); })
-#define mem_set16(addr, val) ({ *(volatile u16 *)(addr) = (u16)(val); })
-#define mem_set32(addr, val) ({ *(volatile u32 *)(addr) = (u32)(val); })
-#define mem_set64(addr, val) ({ *(volatile u64 *)(addr) = (u64)(val); })
+#define mem_set(addr, value)   ({ *(volatile size_t *)(addr) = (size_t)(value); })
+#define mem_set8(addr, value)  ({ *(volatile u8 *)(addr) = (u8)(value); })
+#define mem_set16(addr, value) ({ *(volatile u16 *)(addr) = (u16)(value); })
+#define mem_set32(addr, value) ({ *(volatile u32 *)(addr) = (u32)(value); })
+#define mem_set64(addr, value) ({ *(volatile u64 *)(addr) = (u64)(value); })

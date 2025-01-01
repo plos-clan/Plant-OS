@@ -6,14 +6,14 @@
 #include <pl_readline.h>
 #include <plty.h>
 
-static void list_files(char *path) {
+static void list_files(cstr path) {
   klogd("%s", path);
-  vfs_node_t p = vfs_open(path);
-  assert(p, "open %s failed", path);
-  assert(p->type == file_dir);
-  list_foreach(p->child, i) {
-    vfs_node_t c = (vfs_node_t)i->data;
-    printf("%s\t ", c->name);
+  val dir = vfs_open(path);
+  assert(dir, "open %s failed", path);
+  assert(dir->type == file_dir);
+  list_foreach(dir->child, node) {
+    val file = (vfs_node_t)node->data;
+    printf("%s\t ", file->name);
   }
   printf("\n");
 }
@@ -32,7 +32,7 @@ static int readline_getch() {
   return ch;
 }
 
-static void handle_tab(char *buf, pl_readline_words_t words) {
+static void handle_tab(cstr buf, pl_readline_words_t words) {
   pl_readline_word_maker_add("cd", words, true, ' ');
   pl_readline_word_maker_add("ls", words, true, ' ');
   pl_readline_word_maker_add("pcils", words, true, ' ');
@@ -269,18 +269,18 @@ void autorun() {
 
 void shell() {
   printi("shell has been started");
-  void *kfifo = page_malloc_one();
-  void *kbuf  = page_malloc_one();
+  cir_queue8_t kfifo = malloc(sizeof(struct cir_queue8));
+  void        *kbuf  = page_malloc_one();
   cir_queue8_init(kfifo, PAGE_SIZE, kbuf);
-  current_task->keyfifo = (cir_queue8_t)kfifo;
-  char         *path    = malloc(1024);
-  pl_readline_t n;
-  n = pl_readline_init(readline_getch, putchar, screen_flush, handle_tab);
+  current_task->keyfifo = kfifo;
+  char *path            = malloc(1024);
+  val   readln          = pl_readline_init(readline_getch, putchar, screen_flush, handle_tab);
   sprintf(path, "/");
   char prompt[256];
   while (true) {
-    sprintf(prompt, "root:%s# ", path);
-    cstr line = pl_readline(n, prompt);
+    sprintf(prompt, "\033[1;32mroot\033[m:\033[1;36m%s\033[m#\033[1;33m ", path);
+    cstr line = pl_readline(readln, prompt);
+    printf("\033[m");
     shell_exec(path, line);
   }
 }

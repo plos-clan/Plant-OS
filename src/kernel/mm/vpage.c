@@ -55,7 +55,7 @@ void page_set_alloced(PageInfo *pg, u32 start, u32 end) {
 // OS应该是用不完0x70000000的，所以应用程序大概是可以用满2GB
 
 usize pd_clone(usize addr) {
-  const var pd = (PDE *)addr;
+  val pd = (PDE *)addr;
   for (usize i = PDI(0x70000000); i < 1024; i++) {
     var pde = &pd[i];
     pages[pde->addr].count++;
@@ -67,7 +67,7 @@ usize pd_clone(usize addr) {
       pte->wrable = pte->shared ? true : false;
     }
   }
-  var result = page_malloc_one();
+  val result = page_malloc_one();
   memcpy(result, (void *)addr, PAGE_SIZE);
   flush_tlb(result);
   flush_tlb(addr);
@@ -84,13 +84,13 @@ static void pd_reset(u32 addr) {
 
 void pd_free(usize addr) {
   if (addr == PD_ADDRESS) return;
-  for (usize i = PDI(0x70000000) * 4; i < PDI(0xf1000000) * 4; i += 4) {
-    var pde = (PDE *)(addr + i);
-    u32 p   = pde->addr << 12;
+  for (usize i = PDI(0x70000000); i < 1024; i++) {
+    val pde = (PDE *)addr + i;
     if (!pde->present || !pde->user) continue;
-    for (usize j = 0; j < PAGE_SIZE; j += 4) {
-      u32 *pte_entry = (u32 *)(p + j);
-      if (*pte_entry & PAGE_USER && *pte_entry & PAGE_PRESENT) { pages[PIDX(*pte_entry)].count--; }
+    for (usize j = 0; j < 1024; j++) {
+      val pte = (PTE *)(pde->addr << 12) + j;
+      if (!pte->present || !pte->user) continue;
+      pages[pte->addr].count--;
     }
     pages[pde->addr].count--;
   }
@@ -262,8 +262,8 @@ void page_link_share1(u32 addr) {
 }
 
 void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
-  size_t pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
-  for (int i = 0; i < pg; i++) {
+  val pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
+  for (usize i = 0; i < pg; i++) {
     memcpy((void *)page_get_phy(line, pde), (void *)phy, min(size, PAGE_SIZE));
     size -= PAGE_SIZE;
     line += PAGE_SIZE;
@@ -271,18 +271,18 @@ void copy_from_phy_to_line(u32 phy, u32 line, u32 pde, u32 size) {
   }
 }
 
-void set_line_address(u32 val, u32 line, u32 pde, u32 size) {
-  size_t pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
-  for (int i = 0; i < pg; i++) {
-    memset((void *)page_get_phy(line, pde), val, min(size, PAGE_SIZE));
+void set_line_address(u32 value, u32 line, u32 pde, u32 size) {
+  val pg = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
+  for (usize i = 0; i < pg; i++) {
+    memset((void *)page_get_phy(line, pde), value, min(size, PAGE_SIZE));
     size -= PAGE_SIZE;
     line += PAGE_SIZE;
   }
 }
 
 void page_unlink_pd(usize addr, usize pd) {
-  const usize cr3_backup = current_task->cr3;
-  current_task->cr3      = PD_ADDRESS;
+  val cr3_backup    = current_task->cr3;
+  current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
   u32 t   = PDI(addr);
   u32 p   = (addr >> 12) & 0x3ff;
@@ -584,7 +584,7 @@ __attr(fastcall) void page_fault(i32 id, regs32 *regs) {
   u32 pd = current_task->cr3;
   asm_set_cr3(PD_ADDRESS); // 设置一个安全的页表
 
-  const var addr = asm_get_cr2();
+  val addr = asm_get_cr2();
 
   var pde = pdeof(addr, pd);
   var pte = pteof(addr, pde->addr << 12);

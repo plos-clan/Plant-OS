@@ -22,6 +22,8 @@
 #define FF_DEFINED 80286 /* Revision ID */
 
 #include <fs.h>
+#undef val
+#undef var
 
 #ifdef __cplusplus
 extern "C" {

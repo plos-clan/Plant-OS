@@ -17,7 +17,7 @@ extern TSS32 tss;
 static u32   v86_service_tid = 0;
 task_t       v86_using_task  = null;
 
-void v86_task() {
+void v86_task_main() {
   klogd("v86_task is starting.");
   // 分配内存保存请求
   v86_bios_request_t ptr = page_malloc_one();

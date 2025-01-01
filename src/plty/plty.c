@@ -119,27 +119,31 @@ static int vram_putchar(plty_t tty, i32 x, i32 y, bool force) {
   struct __PACKED__ {
     byte b, g, r, a;
   } vbuf, *const vram = tty->vram;
-  const auto _ch  = &tty->text[y * tty->ncols + x];
-  const auto _ch2 = &tty->text2[y * tty->ncols + x];
-  auto       fg   = _ch->fg;
-  auto       bg   = _ch->bg;
-  const auto ch   = _ch->ch;
-  const auto cw   = ch ? (ch->advance + tty->charw - 1) / tty->charw : 1;
+  val _ch  = &tty->text[y * tty->ncols + x];
+  val _ch2 = &tty->text2[y * tty->ncols + x];
+  var fg   = _ch->fg;
+  var bg   = _ch->bg;
+  val ch   = _ch->ch;
+  val cw   = ch ? (ch->advance + tty->charw - 1) / tty->charw : 1;
   if (tty->backbuf == null && !force && cheq(_ch, _ch2)) return cw;
+  if (x == tty->cur_x && y == tty->cur_y && _ch->ch == null) {
+    fg = tty->cur_fg;
+    bg = tty->cur_bg;
+  }
   if (force && x == tty->cur_x && y == tty->cur_y) {
     auto tmp = fg;
     fg       = bg;
     bg       = tmp;
   }
   x *= tty->charw, y *= tty->charh;
-  const auto charw = cw * tty->charw;
+  val charw = cw * tty->charw;
   for (i32 dy = 0; dy < tty->charh; dy++) {
     const i32  vy = y + dy;
     const bool by = dy < ch->top || dy >= ch->top + ch->height;
     for (i32 dx = 0; dx < charw; dx++) {
       const i32  vx    = x + dx;
       const bool bx    = dx < ch->left || dx >= ch->left + ch->width;
-      const auto vramp = &vram[vy * tty->width + vx];
+      val        vramp = &vram[vy * tty->width + vx];
       if (ch == null || by || bx) {
         vbuf.r = bg.r;
         vbuf.g = bg.g;
