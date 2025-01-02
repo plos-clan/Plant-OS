@@ -15,6 +15,9 @@ static int syscall_vbe_getmode(void **vram, int *width, int *height) {
   *vram   = vbe_frontbuffer;
   *width  = screen_w;
   *height = screen_h;
+  for (usize i = 0; i < screen_w * screen_h * 4; i += PAGE_SIZE) {
+    page_link_addr_pde((usize)vbe_frontbuffer + i, current_task->cr3, (usize)vbe_frontbuffer + i);
+  }
   return 0;
 }
 

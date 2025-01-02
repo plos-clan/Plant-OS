@@ -144,7 +144,7 @@ void user_init() {
   klogd("ok vram = %p", vram);
   lgmemset32(vram, 0, screen_w * screen_h);
 
-  task_kill(v86_task);
+  // task_kill(v86_task);
 
 #if 0 // 尝试 os-terminal 库
   void terminal_init(int width, int height, u32 *screen, void *(*malloc)(size_t size),
