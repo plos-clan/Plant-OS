@@ -40,9 +40,6 @@ struct _NAME {
   avltree_t     children;         // 子线程
   bool          is_switched;      // 是否是因其它进程请求切换过来的
   bool          fpu_enabled;      // 是否开启了 fpu/sse/avx
-  byte          extra_regs[512];  // FPU 108
-                                  // SSE 512
-                                  // AVX 4096
 };
 
 #undef _NAME

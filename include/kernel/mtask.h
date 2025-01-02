@@ -29,6 +29,9 @@ typedef struct task {
 #define _NAME
 #include "task/user-part"
   };
+  byte extra_regs[4096]; // FPU 108
+                         // SSE 512
+                         // AVX 4096
 } *task_t;
 
 #define current_task (get_current_task())

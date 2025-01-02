@@ -22,6 +22,10 @@
 
 #define used_val(value) ({ asm volatile("" : "r,m"(value) : : "memory"); })
 
+#define compiler_barrier ({ asm volatile("" ::: "memory"); })
+
+#define memory_barrier ({ asm volatile("mfence" ::: "memory"); })
+
 /**
  *\brief 加载 GDT
  *

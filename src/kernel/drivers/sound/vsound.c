@@ -33,6 +33,7 @@ static void *getbuffer(vsound_t snd) {
     snd->is_dma_ready = true;
     snd->buf          = null;
   }
+  compiler_barrier; // 防止成为死循环
   if (snd->buf == null) {
     snd->buf    = queue_dequeue(&snd->bufs0);
     snd->bufpos = 0;
