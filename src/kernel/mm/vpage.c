@@ -161,6 +161,7 @@ void page_link_addr_pde(usize addr, usize pd, usize map_addr) {
   // COW
   // 这里不需要大于1,因为我们就相当于是抛弃了原来的页
   if (pages[physics->addr].count && physics->user) pages[physics->addr].count--;
+  pages[PIDX(map_addr)].count++;
   physics->addr    = PIDX(map_addr);
   physics->wrable  = true;
   physics->user    = true;
@@ -301,7 +302,7 @@ void page_unlink_pd(usize addr, usize pd) {
   }
 
   var pte = pteof(addr, pde->addr << 12);
-  if (pages[pte->addr].count > 1) pages[pte->addr].count--;
+  if (pages[pte->addr].count && pte->user) pages[pte->addr].count--;
   pte->present = false;
   flush_tlb((u32)pde);
   flush_tlb(addr);
