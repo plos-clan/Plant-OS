@@ -46,6 +46,7 @@ set_optim_flag("-g -O3") # 默认参数，请一直开启调试符号
 # set_optim_flag("-Ofast") #
 
 # add_compile_flag("-w") # 如果你不想编译器输出 warning
+add_link_flag("-w") # 可恶的链接器警告
 
 add_compile_flag("-fvisibility=hidden") # 隐藏符号
 
@@ -87,10 +88,14 @@ set_optim_flag("-g -O3") # 默认参数，请一直开启调试符号
 # set_optim_flag("-Ofast") #
 
 # add_compile_flag("-w") # 如果你不想编译器输出 warning
+add_link_flag("-w") # 可恶的链接器警告
 
 add_compile_flag("-fvisibility=hidden") # 隐藏符号
 
 # 目标环境
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  add_compile_flag("-target i386-none-elf")
+endif()
 add_compile_flag("-m32 -mmmx -mno-sse")
 add_compile_flag("-nostdlib -nostdinc") # 不使用标准库和标准头
 add_compile_flag("-ffreestanding") # 我们希望我们的标准库函数能够有和标准库一样的行为，所以我们希望可以不设置此项
@@ -102,9 +107,9 @@ include(cmake/code-gc) # 删除重复代码
 
 # add_compile_flag("-finstrument-functions") # 日志需要
 
-# if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-#   add_compile_flag("-emit-obj") # 不输出 llvm-ir
-# endif()
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  add_link_flag("-fuse-ld=lld")
+endif()
 
 # 其它选项
 add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查 (gcc 默认关闭)

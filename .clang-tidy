@@ -5,6 +5,7 @@ Checks: >
   portability-*,
   bugprone-*,
   modernize-*,
+  clang-analyzer-*,
   -readability-braces-around-statements,
   -readability-identifier-length,
   -readability-magic-numbers,

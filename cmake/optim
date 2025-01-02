@@ -10,7 +10,22 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   add_compile_flag("-fipa-icf") # 对函数和只读变量执行相同的代码折叠 (gcc O2)
   add_compile_flag("-fipa-pta") # 过程间指针分析 (gcc 默认关闭)
 endif()
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  add_compile_flag("-fcx-limited-range") # 启用涉及复杂算术运算的基本代数扩展 (?)
+  add_compile_flag("-ffine-grained-bitfield-accesses") # 对具有合法宽度和对齐的连续位域运行使用单独的访问
+  add_compile_flag("-fno-semantic-interposition") # 禁用语义插入
+  add_compile_flag("-fseparate-named-sections") # 对命名部分使用单独的段
+  add_compile_flag("-fshort-enums") # 为枚举类型分配声明的可能值范围所需的字节数
+  add_compile_flag("-ftree-slp-vectorize") # 启用树形 SLP 向量化
+  add_compile_flag("-fsplit-lto-unit") # 将 LTO 单元拆分为更小的单元
+  add_compile_flag("-fgpu-approx-transcendentals") # 使用 GPU 近似超越函数
+  add_compile_flag("-fvectorize")
+  add_compile_flag("-fwhole-program-vtables") # 启用整个程序 vtable 优化
+  add_compile_flag("-fwrapv") # 将有符号整数溢出视为二进制补码
+endif()
 add_compile_flag("-fmerge-all-constants") # 合并所有常量
 add_compile_flag("-fno-keep-static-consts") # 不保留 static 常量
 add_compile_flag("-fomit-frame-pointer") # 删除小函数的栈帧 (gcc O1)
 add_compile_flag("-ffast-math") # 优化浮点运算 (gcc Ofast)
+add_compile_flag("-fstrict-enums") # 严格枚举
+add_compile_flag("-fstrict-enums")
