@@ -189,12 +189,12 @@ void user_init() {
   }
 #endif
   plty_set_default(tty);
+  val debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
 
   val autorun_task = task_run(create_task(&autorun, 1, 1));
   waittid(autorun_task->tid);
 
-  val shell_task       = task_run(create_task(&shell, 1, 1));
-  val debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
+  val shell_task = task_run(create_task(&shell, 1, 1));
 
   debug_enabled = true;
 

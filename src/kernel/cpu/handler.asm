@@ -1,5 +1,5 @@
 	[bits 32]
-	global asm_inthandler, asm_inthandler_quit, asm_sysenter_handler
+	global asm_inthandler, asm_inthandler_quit, asm_sysenter_handler, asm_syscall_quit
 	extern inthandler
 	
 	%define RING3_CS 3 * 8
@@ -26,6 +26,7 @@ asm_inthandler_quit:
 	pop es
 	pop ds
 	add esp, 8                   ; pop error code and interrupt number
+	sti
 	iret
 asm_into_inthandler:          ; view `handlergen.py` for more information
 	sub esp, 4
@@ -101,7 +102,7 @@ asm_sysenter_handler:
 	pushf                        ; push flags
 	push RING3_CS                ; push cs
 	push edx                     ; push eip
-	push 0x36                    ; push error code
+	push 0                       ; push error code
 	push 0x36                    ; push interrupt number
 	push ds
 	push es
@@ -125,6 +126,7 @@ asm_sysenter_handler:
 	mov ecx, 0x36                ; arg1 <== id
 	mov edx, esp                 ; arg2 <== regs
 	call inthandler              ; void inthandler(i32 id, regs32 * regs) __attribute__((fastcall));
+asm_syscall_quit:
 	popa
 	mov esi, ecx                 ; restore esi
 	mov edi, edx                 ; restore edi
@@ -138,4 +140,5 @@ asm_sysenter_handler:
 	popf                         ; pop flags
 	pop ecx                      ; pop esp
 	add esp, 4                   ; pop ss
+	sti
 	sysexit

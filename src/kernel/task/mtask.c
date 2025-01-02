@@ -448,68 +448,55 @@ i32 waittid(i32 tid) {
 }
 
 static void build_fork_stack(task_t task) {
-  regs32 *iframe = (regs32 *)task->stack_bottom - 1;
-  iframe->eax    = 0;
-  klogd("iframe = %08x\n", iframe->eip);
-  stack_frame *sframe = (stack_frame *)iframe - 1;
-  sframe->ebp         = 0;
-  sframe->ebx         = 0;
-  sframe->ecx         = 0;
-  sframe->edx         = 0;
-  sframe->eip         = (size_t)asm_inthandler_quit;
-
-  task->esp = sframe;
+  val old_regs = (regs32 *)task_current->stack_bottom - 1;
+  val regs     = (regs32 *)task->stack_bottom - 1;
+  *regs        = *old_regs;
+  regs->eax    = 0;
+  val frame    = (stack_frame *)regs - 1;
+  frame->eip   = (size_t)(regs->err == 0x36 ? &asm_inthandler_quit : &asm_syscall_quit);
+  task->esp    = (void *)frame;
 }
 
 int task_fork() {
+  if (!task_current->user_mode) return -1;
   val m = task_alloc();
   if (m == null) return -1;
-  klogd("get free %08x\n", m);
-  klogd("current = %08x\n", current_task->tid);
-  int tid = m->tid;
   with_no_interrupts({
-    memcpy(m, current_task, sizeof(struct task));
-    u32 stack = (u32)page_alloc(STACK_SIZE);
-    memcpy((void *)stack, (void *)(m->stack_bottom - STACK_SIZE), STACK_SIZE);
-    klogd("s = %08x \n", m->stack_bottom - STACK_SIZE);
-    m->stack_bottom = stack += STACK_SIZE;
-    stack                   += STACK_SIZE;
-    m->esp                   = (stack_frame *)stack;
-    if (current_task->press_key_fifo) {
-      m->press_key_fifo = malloc(sizeof(struct event));
-      memcpy(m->press_key_fifo, current_task->press_key_fifo, sizeof(struct event));
+    val stack       = (usize)page_alloc(STACK_SIZE);
+    m->stack_bottom = stack + STACK_SIZE;
+    if (task_current->press_key_fifo) {
+      m->press_key_fifo = malloc(sizeof(struct cir_queue8));
+      memcpy(m->press_key_fifo, task_current->press_key_fifo, sizeof(struct cir_queue8));
       m->press_key_fifo->buf = page_alloc(4096);
-      memcpy(m->press_key_fifo->buf, current_task->press_key_fifo->buf, 4096);
+      memcpy(m->press_key_fifo->buf, task_current->press_key_fifo->buf, 4096);
     }
-    if (current_task->release_keyfifo) {
-      m->release_keyfifo = malloc(sizeof(struct event));
-      memcpy(m->release_keyfifo, current_task->release_keyfifo, sizeof(struct event));
+    if (task_current->release_keyfifo) {
+      m->release_keyfifo = malloc(sizeof(struct cir_queue8));
+      memcpy(m->release_keyfifo, task_current->release_keyfifo, sizeof(struct cir_queue8));
       m->release_keyfifo->buf = page_alloc(4096);
-      memcpy(m->release_keyfifo->buf, current_task->release_keyfifo->buf, 4096);
+      memcpy(m->release_keyfifo->buf, task_current->release_keyfifo->buf, 4096);
     }
-    if (current_task->keyfifo) {
-      m->keyfifo = page_malloc_one();
-      memcpy(m->keyfifo, current_task->keyfifo, sizeof(struct event));
+    if (task_current->keyfifo) {
+      m->keyfifo = malloc(sizeof(struct cir_queue8));
+      memcpy(m->keyfifo, task_current->keyfifo, sizeof(struct cir_queue8));
       m->keyfifo->buf = page_malloc_one();
-      memcpy(m->keyfifo->buf, current_task->keyfifo->buf, 4096);
+      memcpy(m->keyfifo->buf, task_current->keyfifo->buf, 4096);
     }
-    if (current_task->mousefifo) {
-      m->mousefifo = page_malloc_one();
-      memcpy(m->mousefifo, current_task->mousefifo, sizeof(struct event));
+    if (task_current->mousefifo) {
+      m->mousefifo = malloc(sizeof(struct cir_queue8));
+      memcpy(m->mousefifo, task_current->mousefifo, sizeof(struct cir_queue8));
       m->mousefifo->buf = page_malloc_one();
-      memcpy(m->mousefifo->buf, current_task->mousefifo->buf, 4096);
+      memcpy(m->mousefifo->buf, task_current->mousefifo->buf, 4096);
     }
-    m->cr3     = pd_clone(current_task->cr3);
-    m->running = 0;
-    m->jiffies = 0;
-    m->timeout = 1;
-    m->state   = THREAD_RUNNING;
-    m->ptid    = current_task->tid;
-    m->tid     = tid;
-    klogd("m->tid = %d\n", m->tid);
-    tid = m->tid;
-    klogd("BUILD FORK STACK\n");
+    m->cr3       = pd_clone(task_current->cr3);
+    m->user_mode = true;
+    m->running   = 0;
+    m->jiffies   = 0;
+    m->timeout   = 1;
+    m->ptid      = task_current->tid;
+    m->parent    = task_current;
     build_fork_stack(m);
   });
-  return tid;
+  task_run(m);
+  return m->tid;
 }

@@ -132,3 +132,4 @@ inthandler_t inthandler_set(i32 id, inthandler_t handler);
 //:     asm volatile("jmp asm_inthandler_quit\n\t");
 //:     __builtin_unreachable();
 void asm_inthandler_quit();
+void asm_syscall_quit();
