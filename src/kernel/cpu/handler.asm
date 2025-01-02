@@ -1,5 +1,5 @@
 	[bits 32]
-	global asm_inthandler, asm_inthandler_quit, asm_sysenter_handler
+	global asm_inthandler, asm_inthandler_quit, asm_sysenter_handler, asm_fork_exit
 	extern inthandler
 	
 	%define RING3_CS 3 * 8
@@ -26,6 +26,15 @@ asm_inthandler_quit:
 	pop es
 	pop ds
 	add esp, 8                   ; pop error code and interrupt number
+	iret
+asm_fork_exit:
+	xchg bx,bx
+	popa
+	pop gs
+	pop fs
+	pop es
+	pop ds              ; pop error code and interrupt number
+	add esp, 8
 	iret
 asm_into_inthandler:          ; view `handlergen.py` for more information
 	sub esp, 4

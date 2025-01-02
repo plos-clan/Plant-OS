@@ -11,5 +11,15 @@ int main(int argc, char **argv) {
   }
   printf("%p\n", aligned_alloc(4096, 114));
   printf("tid: %d\n", task_user_part->tid);
+
+  if (__syscall(SYSCALL_FORK)) {
+    printf("parent\n");
+    for (;;)
+      ;
+  } else {
+    printf("child\n");
+    for (;;)
+      ;
+  }
   return 0;
 }

@@ -140,9 +140,9 @@ void user_init() {
 
   check_device();
 
-  u32 *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
-  klogd("ok vram = %p", vram);
-  lgmemset32(vram, 0, screen_w * screen_h);
+  // u32 *vram = vbe_match_and_set_mode(screen_w, screen_h, 32);
+  // klogd("ok vram = %p", vram);
+  // lgmemset32(vram, 0, screen_w * screen_h);
 
   task_kill(v86_task);
 
@@ -171,10 +171,10 @@ void user_init() {
   }
 #endif
 
-  val font1 = load_font("/fatfs1/font1.plff");
+  // val font1 = load_font("/fatfs1/font1.plff");
   // val font2 = load_font("/fatfs1/font2.plff");
 
-  val tty = plty_alloc(vram, screen_w, screen_h, font1);
+  // val tty = plty_alloc(vram, screen_w, screen_h, font1);
   // plty_addfont(tty, font2);
 
 #if 0
@@ -188,7 +188,7 @@ void user_init() {
     plty_flush(tty);
   }
 #endif
-  plty_set_default(tty);
+  // plty_set_default(tty);
 
   val autorun_task = task_run(create_task(&autorun, 1, 1));
   waittid(autorun_task->tid);

@@ -446,19 +446,18 @@ i32 task_wait(task_t target) {
 i32 waittid(i32 tid) {
   return task_wait(task_by_id(tid));
 }
-
+void        asm_fork_exit();
 static void build_fork_stack(task_t task) {
-  regs32 *iframe = (regs32 *)task->stack_bottom - 1;
-  iframe->eax    = 0;
-  klogd("iframe = %08x\n", iframe->eip);
+  regs32 *iframe      = (regs32 *)task->stack_bottom - 1;
+  iframe->eax         = 0;
   stack_frame *sframe = (stack_frame *)iframe - 1;
   sframe->ebp         = 0;
-  sframe->ebx         = 0;
+  sframe->ebx         = 0x114514;
   sframe->ecx         = 0;
   sframe->edx         = 0;
-  sframe->eip         = (size_t)asm_inthandler_quit;
-
-  task->esp = sframe;
+  sframe->eip         = (size_t)asm_fork_exit;
+  task->esp           = sframe;
+  asm volatile("xchg %bx, %bx");
 }
 
 int task_fork() {
@@ -511,5 +510,6 @@ int task_fork() {
     klogd("BUILD FORK STACK\n");
     build_fork_stack(m);
   });
+  task_run(m);
   return tid;
 }
