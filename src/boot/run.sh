@@ -2,8 +2,9 @@ qemu-system-i386 \
   -cpu qemu64 \
   -smp sockets=1,cores=2,threads=2,maxcpus=4 \
   -bios seabios.bin \
-  -m 512 \
+  -m 256 \
   -device virtio-mouse-pci \
+  -device virtio-gpu-pci,hostmem=128M \
   -vga std -global VGA.vgamem_mb=32 \
   -net nic,model=pcnet -net user \
   -serial stdio \

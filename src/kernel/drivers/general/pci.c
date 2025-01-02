@@ -95,23 +95,25 @@ u32 pci_get_port_base(u8 bus, u8 slot, u8 func) {
   return io_port;
 }
 
-void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func) {
-  extern void *pci_addr_base;
-  u8          *pci_drive = pci_addr_base;
+extern void *pci_addr_base;
+
+int pci_get_device(int vendor_id, int device_id, int subsystem_id, u8 *bus, u8 *slot, u8 *func) {
+  byte *pci_drive = pci_addr_base;
   for (;; pci_drive += 0x110 + 4) {
-    if (pci_drive[0] == 0xff) {
-      var pci_config_space_puclic = (struct pci_config_space_public *)(pci_drive + 0x0c);
-      if (pci_config_space_puclic->VendorID == vendor_id &&
-          pci_config_space_puclic->DeviceID == device_id) {
-        *bus  = pci_drive[1];
-        *slot = pci_drive[2];
-        *func = pci_drive[3];
-        return;
-      }
-    } else {
-      break;
-    }
+    if (pci_drive[0] != 0xff) break;
+    val pci_config_space_puclic = (struct pci_config_space_public *)(pci_drive + 0x0c);
+    if (vendor_id >= 0 && pci_config_space_puclic->VendorID != vendor_id) continue;
+    if (device_id >= 0 && pci_config_space_puclic->DeviceID != device_id) continue;
+    if (subsystem_id >= 0 && pci_config_space_puclic->SubSystemID != subsystem_id) continue;
+    *bus  = pci_drive[1];
+    *slot = pci_drive[2];
+    *func = pci_drive[3];
+    return 0;
   }
+  *bus  = 0xff;
+  *slot = 0xff;
+  *func = 0xff;
+  return -1;
 }
 
 void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
@@ -171,9 +173,10 @@ void init_pci(void *addr_base) {
   //函数执行完PCI_DATA就是PCI设备表的结束地址
 }
 
-void pci_classcode_print(struct pci_config_space_public *pci_config_space_puclic) {
-  u8 *pci_drive = (u8 *)pci_config_space_puclic - 12;
-  klogd("%x %x", pci_config_space_puclic->VendorID, pci_config_space_puclic->DeviceID);
+void pci_classcode_print(const struct pci_config_space_public *pci_config_space_puclic) {
+  val pci_drive = (u8 *)pci_config_space_puclic - 12;
+  klogd("%04x %04x %04x", pci_config_space_puclic->VendorID, pci_config_space_puclic->DeviceID,
+        pci_config_space_puclic->SubSystemID);
   printf("BUS:%02x ", pci_drive[1]);
   printf("EQU:%02x ", pci_drive[2]);
   printf("F:%02x ", pci_drive[3]);

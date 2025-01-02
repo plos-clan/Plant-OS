@@ -28,8 +28,8 @@ struct pci_config_space_public {
 };
 
 void init_pci(void *adder_Base);
-void pci_classcode_print(struct pci_config_space_public *pci_config_space_puclic);
-void pci_get_device(u16 vendor_id, u16 device_id, u8 *bus, u8 *slot, u8 *func);
+void pci_classcode_print(const struct pci_config_space_public *pci_config_space_puclic);
+int  pci_get_device(int vendor_id, int device_id, int subsystem_id, u8 *bus, u8 *slot, u8 *func);
 u32  read_bar_n(u8 bus, u8 device, u8 function, u8 bar_n);
 void write_pci(u8 bus, u8 device, u8 function, u8 registeroffset, u32 value);
 u32  read_pci(u8 bus, u8 device, u8 function, u8 registeroffset);

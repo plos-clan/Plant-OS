@@ -13,6 +13,8 @@ void abort() {
 void *pci_addr_base;
 
 void init_serial();
+void virtio_init();
+void virtio_gpu_init();
 
 #define KERNEL_HEAP_SIZE (128 * 1024 * 1024)
 
@@ -46,6 +48,8 @@ void sysinit() {
   pci_addr_base = page_alloc(1 * 1024 * 1024);
   init_pci(pci_addr_base);
 
+  virtio_init();
+  virtio_gpu_init();
   init_acpi();
   sb16_init();
   sb16_regist();

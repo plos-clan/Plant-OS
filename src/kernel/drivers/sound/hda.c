@@ -336,11 +336,11 @@ void hda_init() {
   // 许多 HDA 设备的 Vendor ID 为 8086（Intel），Device ID 为 2668 或
   // 27D8，但其他 Vendor ID 也在使用中，例如 Vendor ID 1002（AMD）和 Device ID
   // 4383。
-  pci_get_device(0x8086, 0x2668, &hda_bus, &hda_slot, &hda_func);
+  pci_get_device(0x8086, 0x2668, -1, &hda_bus, &hda_slot, &hda_func);
   if (hda_bus == 255 || hda_slot == 255 || hda_func == 255) {
-    pci_get_device(0x8086, 0x27D8, &hda_bus, &hda_slot, &hda_func);
+    pci_get_device(0x8086, 0x27D8, -1, &hda_bus, &hda_slot, &hda_func);
     if (hda_bus == 255 || hda_slot == 255 || hda_func == 255) {
-      pci_get_device(0x1002, 0x4383, &hda_bus, &hda_slot, &hda_func);
+      pci_get_device(0x1002, 0x4383, -1, &hda_bus, &hda_slot, &hda_func);
     }
   }
   if (hda_bus == 255 || hda_slot == 255 || hda_func == 255) {
