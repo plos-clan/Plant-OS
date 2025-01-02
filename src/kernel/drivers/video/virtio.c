@@ -1,5 +1,7 @@
 #include <kernel.h>
 
+#include "virtio.h"
+
 inthandler_t old_irqhandler;
 
 static byte bus, slot, func;
@@ -16,14 +18,19 @@ void virtio_gpu_init() {
   val irq        = pci_get_drive_irq(bus, slot, func);
   old_irqhandler = inthandler_set(0x20 + irq, irqhandler);
 
-  for (uint8_t i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++) {
     val off       = 0x10 + i * 4;
     val bar_value = read_pci(bus, slot, func, off);
     if ((bar_value & 1) == 0) {
       mmio_base = bar_value & ~0xf;
-      klogd("VirtIO GPU MMIO Base Address: 0x%08X\n", mmio_base);
+      klogd("VirtIO GPU MMIO Base Address: %p", mmio_base);
       break;
     }
+  }
+
+  if (mem_get32(mmio_base) != 0x74726976) {
+    kloge("virtio-gpu: signature not found");
+    return;
   }
 }
 
