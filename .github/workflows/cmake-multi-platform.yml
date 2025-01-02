@@ -42,6 +42,11 @@ jobs:
           sudo apt update
           sudo apt install -y nasm mtools qemu-system-i386 libfreetype-dev extra-cmake-modules
 
+      - name: Install lld
+        if: matrix.c_compiler == 'clang'
+        run: |
+          sudo apt install -y lld
+
       - name: Build
         run: >
           ./init.sh

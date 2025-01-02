@@ -27,6 +27,6 @@ void virtio_gpu_init() {
   }
 }
 
-static void irqhandler(int id, regs32 *regs) {
+__attr(fastcall) void irqhandler(i32 id, regs32 *regs) {
   if (old_irqhandler) old_irqhandler(id, regs);
 }

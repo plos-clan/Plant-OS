@@ -5,7 +5,7 @@ qemu-system-i386 \
   -m 256 \
   -device virtio-mouse-pci \
   -device virtio-gpu-pci,hostmem=128M \
-  -vga std -global VGA.vgamem_mb=32 \
+  -vga virtio -global VGA.vgamem_mb=32 \
   -net nic,model=pcnet -net user \
   -serial stdio \
   -device sb16 -device intel-hda -device hda-micro \
