@@ -59,10 +59,10 @@ finline void load_tr(size_t selector) {
   asm volatile("ltr %0\n\t" : : "m"(selector));
 }
 
-#define with_no_interrupts(code)                                                                   \
+#define with_no_interrupts(...)                                                                    \
   ({                                                                                               \
     const bool _is_sti_ = asm_is_sti;                                                              \
     asm_cli;                                                                                       \
-    (code);                                                                                        \
+    (__VA_ARGS__);                                                                                 \
     if (_is_sti_) asm_sti;                                                                         \
   })

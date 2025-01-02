@@ -28,15 +28,15 @@
 #define CONCAT(a, b)  CONCAT_(a, b)
 
 #if STD_SAFE_API
-#  define __std_safe__(code) ((void)({code}))
+#  define __std_safe__(...) ((void)({__VA_ARGS__}))
 #else
-#  define __std_safe__(code) ((void)(0))
+#  define __std_safe__(...) ((void)(0))
 #endif
 
 #if SAFE_API
-#  define __safe__(code) ((void)({code}))
+#  define __safe__(...) ((void)({__VA_ARGS__}))
 #else
-#  define __safe__(code) ((void)(0))
+#  define __safe__(...) ((void)(0))
 #endif
 
 #define __ARGN_PRIVATE__(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15,     \

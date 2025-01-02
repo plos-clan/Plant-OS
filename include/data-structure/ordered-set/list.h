@@ -401,11 +401,12 @@ static void list_print(list_t list) {
  *\param[in] list 链表头指针
  *\param[in] node 用于迭代的节点指针变量
  */
-#define list_foreach_cnt(list, i, node, code)                                                      \
+#define list_foreach_cnt(list, i, node, ...)                                                       \
   ({                                                                                               \
     size_t i = 0;                                                                                  \
-    for (list_t node = (list); node; (node) = (node)->next, (i)++)                                 \
-      (code);                                                                                      \
+    for (list_t node = (list); node; (node) = (node)->next, (i)++) {                               \
+      (__VA_ARGS__);                                                                               \
+    }                                                                                              \
   })
 
 #define list_first_node(list, node, expr)                                                          \
