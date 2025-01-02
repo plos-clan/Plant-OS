@@ -1,8 +1,6 @@
 add_subdirectory(include)
 
-if(USE_UBSCAN)
-  include(../cmake/use-ubscan)
-endif()
+include(../cmake/use-ubscan)
 
 include_directories("${CMAKE_SOURCE_DIR}/apps/include")
 link_directories("${CMAKE_SOURCE_DIR}/apps/lib")

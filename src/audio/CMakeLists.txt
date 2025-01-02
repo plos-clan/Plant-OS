@@ -1,6 +1,4 @@
-if(USE_UBSCAN)
-  include(../../cmake/use-ubscan)
-endif()
+include(../../cmake/use-ubscan)
 
 mklib(audio)
 tgtlib(audio misc)

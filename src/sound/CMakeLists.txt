@@ -1,6 +1,4 @@
-if(USE_UBSCAN)
-  include(../../cmake/use-ubscan)
-endif()
+include(../../cmake/use-ubscan)
 set_optim_flag("-O3 -ffast-math")
 mklib(sound ${c_files} ${cpp_files})
 tgtlib(sound c-base)

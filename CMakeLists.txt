@@ -39,7 +39,7 @@ add_subdirectory(include)
 set_compile_flag("-std=gnu2x" "-std=gnu++2b")
 set_link_flag("")
 
-set_optim_flag("-g -O2") # 默认参数，请一直开启调试符号
+set_optim_flag("-g -O3") # 默认参数，请一直开启调试符号
 # set_optim_flag("-g -O1") # 调试开 O1
 # set_optim_flag("-O2") #
 # set_optim_flag("-O3") # 发布开 O3
@@ -59,6 +59,13 @@ include(cmake/code-gc) # 删除重复代码
 # 其它选项
 add_compile_flag("-finput-charset=UTF-8 -fexec-charset=UTF-8") # 使用 utf-8 (默认)
 
+set(USE_UBSCAN OFF)
+if(USE_UBSCAN)
+  add_compile_definitions(USE_UBSCAN=1)
+else()
+  add_compile_definitions(USE_UBSCAN=0)
+endif()
+
 include(cmake/disable-warning)
 
 message("本机 环境")
@@ -73,7 +80,7 @@ add_subdirectory(util)
 set_compile_flag("-std=gnu2x" "-std=gnu++2b") # 使用新的 C/C++ 版本
 set_link_flag("")
 
-set_optim_flag("-g -O2") # 默认参数，请一直开启调试符号
+set_optim_flag("-g -O3") # 默认参数，请一直开启调试符号
 # set_optim_flag("-O1") # 测试通过
 # set_optim_flag("-O2") # 测试通过
 # set_optim_flag("-O3") # 测试通过
@@ -100,7 +107,6 @@ include(cmake/code-gc) # 删除重复代码
 # endif()
 
 # 其它选项
-add_compile_flag("-fno-optimize-sibling-calls") # 关闭尾递归优化
 add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行的空指针检查 (gcc 默认关闭)
 add_compile_flag("-fno-strict-aliasing") # 禁用严格别名规则 (gcc 默认关闭)
 add_compile_flag("-finput-charset=UTF-8 -fexec-charset=UTF-8") # 使用 utf-8 (默认)
@@ -109,7 +115,12 @@ add_compile_flag("-fno-pic -fno-pie") # 不使用 pic 和 pie
 add_compile_flag("-fno-asynchronous-unwind-tables")
 add_compile_flag("-fno-exceptions")
 
-set(USE_UBSCAN ON)
+set(USE_UBSCAN OFF)
+if(USE_UBSCAN)
+  add_compile_definitions(USE_UBSCAN=1)
+else()
+  add_compile_definitions(USE_UBSCAN=0)
+endif()
 
 include(cmake/disable-warning)
 

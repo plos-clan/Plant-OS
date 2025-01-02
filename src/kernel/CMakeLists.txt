@@ -1,6 +1,4 @@
-if(USE_UBSCAN)
-  include(../../cmake/use-ubscan)
-endif()
+include(../../cmake/use-ubscan)
 add_exe_link_flag("-static -Wl,-Ttext -Wl,0x288000 -Wl,--section-start=.multiboot2=0x280000 -e _start")
 add_binary_exclude(kernel cpu/v86_service.asm)
 target_link_libraries(kernel c-base data-structure fs elf)

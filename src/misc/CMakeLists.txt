@@ -1,6 +1,4 @@
-if(USE_UBSCAN)
-  include(../../cmake/use-ubscan)
-endif()
+include(../../cmake/use-ubscan)
 
 add_compile_flag("-fvisibility=hidden") # 防止过多的导出条目 (动态链接)
 

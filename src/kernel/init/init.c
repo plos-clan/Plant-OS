@@ -26,7 +26,9 @@ void sysinit() {
   // kassert(!cpuids.x2apic, "x2apic is not supported");
 
   IVT = page_alloc(0x500);
+#if USE_UBSCAN
   klogi("蹲一个 UB, 马上要把 0 地址的 IVT 备份了啊");
+#endif
   memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
   init_pic();
   init_serial();
