@@ -5,8 +5,9 @@
 extern "C" {
 #endif
 #include "kernel/00-include.h"
-#include "kernel/8295a.h"
+#include "kernel/8259a.h"
 #include "kernel/acpi.h"
+#include "kernel/ahci.h"
 #include "kernel/assert.h"
 #include "kernel/cpu.h"
 #include "kernel/dma.h"

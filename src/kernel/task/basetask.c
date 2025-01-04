@@ -85,6 +85,7 @@ void user_init() {
   vfs_mount(null, vfs_open("/dev"));
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
+  ahci_init();
   vdisk vd;
   strcpy(vd.drive_name, "stdout");
   vd.flag        = 1;
