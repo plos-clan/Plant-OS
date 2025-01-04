@@ -1,0 +1,5 @@
+name: plui
+type: app
+subproj: true
+target: [ia32-plos-user, amd64-plos-user]
+impl: ["**.c", "**.cpp"]

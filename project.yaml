@@ -1,0 +1,54 @@
+#!build.plos -gui
+name: Plant-OS
+version: 0.0.0
+target: [ia32-none-none, amd64-linux-gnu]
+
+author: [min0911Y, copi143, duoduo70, xiaoyi1212, wenxuanjun, CLimber-Rong]
+license: MIT
+repo: https://github.com/plos-clan/Plant-OS
+type: meta
+issue: https://github.com/plos-clan/Plant-OS/issues
+sponsor: []
+
+languages: [c, c++, asm]
+
+c/c++:
+  std: [gnu2x, gnu++2b]
+  include: [include]
+
+# flags 规则：
+#   <模板>.<构建类型>.<编译/链接>
+
+flags:
+  debug: -g
+  link: -w
+  native: -march=native
+  plos.debug: []
+  plos.bench: []
+  plos.release: >
+    -O3
+  plos: >
+    -fvisibility=hidden
+
+flags.[compiler == 'gnu']: >
+  -std=$(c/c++.std)
+
+# target: x-native
+
+new.target:
+  ia32-plos-kernel:
+    from: ia32-none-none
+  ia32-plos-user:
+    from: ia32-none-none
+
+include:
+  - test
+  - src
+
+autorun:
+  init: [] # 在构建工具初始化时 (初始化储存库，下载资源文件等)
+  before: [] # 在所有编译单元编译前
+  pre: [] # 在每个编译单元编译前 (生成代码)
+  post: [] # 在每个编译单元编译后 (清理中间文件)
+  after: [] # 在所有编译单元编译后
+  deinit: [] # 在构建工具结束时 (清理储存库，删除资源文件等)

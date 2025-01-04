@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+import yaml
+from copy import copy, deepcopy
+import os
+import fnmatch
+import sys
+from tool import *
+
+logging.LOG_COLOR_RANDOMIZE = True
+
+# --- 位于 {0} 行 {1} 列 ---
+
+ERROR_NEW_TARGET_SHOULD_BE_DICT = '''
+new.target 应为映射，例如：
+new.target:
+    amd64-linux-mylib: xxx
+    arm64-linux-mylib: xxx
+'''
+
+
+def parse_target(target):
+  target = target.split('-')
+  return None if len(target) != 3 else target
+
+
+def scan_files(dirname: str) -> str:
+  ret = []
+  for root, dirs, files in os.walk(dirname):
+    for file in files:
+      ret.append(f'{root}/{file}')
+  return ret
+
+
+def match_files(pattern: str, base: str) -> str:
+  matches = []
+  for root, dirs, files in os.walk(base):
+    for filename in fnmatch.filter(files, pattern):
+      matches.append(os.path.join(root, filename))
+  return matches
+
+
+class Flags:
+  all = []
+  compile = []
+  link = []
+  optim = []
+
+
+class Config:
+  flags = {}
+  targets = {}  # 自定义目标
+
+  def parse_flag(self, obj):
+    if isinstance(obj, list) or isinstance(obj, str): pass
+
+  def parse_flags(self, obj):
+    if isinstance(obj, list) or isinstance(obj, str): return self.parse_flag(obj)
+    if not isinstance(obj, dict): raise ''
+    for key, value in obj.items():
+      if key in self.flags:
+        self.flags[key] = value
+
+  def new_target(self, obj: dict) -> None:
+    if not isinstance(obj, dict): raise ERROR_NEW_TARGET_SHOULD_BE_DICT
+    for key, value in obj.items():
+      target = parse_target(key)
+      self.targets[target] = value
+
+
+class Unit:
+
+  def __init__(self, command: str):
+    self.id: int = int.from_bytes(os.urandom(3), 'little')
+    self.depends: list[Unit] = []
+    self.command: str = command
+
+  def regen(self):
+    self.id = int.from_bytes(os.urandom(3), 'little')
+
+  def depend(self, unit):
+    self.depends.append(unit)
+    return self
+
+  def can_compile(self, compiled_units: set[int]) -> bool:
+    for unit in self.depends:
+      if unit.id not in compiled_units: return False
+    return True
+
+
+class Project:
+  name: str = ''  # 项目名
+  type: str = ''
+  unit: dict[int, Unit] = {}  # 编译单元
+  config: Config = Config()
+  parent = None  # 父项目
+  children = {}  # 子项目
+
+  # 检查项目配置是否正确
+  def check(self):
+    if not self.name: raise ValueError('project name is required')
+    if not self.type: raise ValueError('project type is required')
+    if not self.unit: raise ValueError('project unit is required')
+
+  # 编译项目
+  def compile(self):
+    compiled_units: set[int] = set()
+    while len(compiled_units) < len(self.unit):
+      for unit in self.unit.values():
+        if unit.id in compiled_units: continue
+        if not unit.can_compile(compiled_units): continue
+        print(f'compile unit: {unit.id}')
+        os.system(unit.command)
+        compiled_units.add(unit.id)
+
+
+def load_yaml(path):
+  try:
+    with open(path, 'r') as file:
+      return yaml.load(file, Loader=yaml.FullLoader)
+  except Exception as e:
+    print(e)
+    return None
+
+
+def parse_config(config):
+  c = deepcopy(Config)
+  for key, value in config.items():
+    if key in c.flags:
+      c.flags[key] = value
+  return c
+
+
+cmdline_args: dict[str, bool | str] = {}
+
+projects: dict[str, Project] = {}  # 项目列表
+
+
+def getopt(key: str, default: str | None = None) -> str | None:
+  return cmdline_args.get(key, default)
+
+
+# 从命令行读取参数
+def load_options():
+  for arg in sys.argv[1:]:
+    if arg[0] != '-': fatal(f'invalid argument: {arg}')
+    if len(arg) == 1: fatal(f'invalid argument: {arg}')
+    if arg[1] == '-' or arg[1] == '=': fatal(f'invalid argument: {arg}')
+    arg = arg[1:]
+    if '=' in arg:
+      k, v = arg.split('=', 1)
+      cmdline_args[k] = v
+    else:
+      cmdline_args[arg] = True
+  logging.DEBUG = True if getopt('debug') else False
+  debug(f'options: {cmdline_args}')
+
+
+ENV_VARS = {'compiler': 'clang'}
+
+
+def parse_yaml(path: str):
+  data = load_yaml(path)
+  debug(f'load YAML file: {data}')
+  if not isinstance(data, dict): raise ValueError('invalid YAML file')
+
+  for key, value in data.items():
+    cond = 'True'
+    if '[' in key and ']' in key and key.index('[') < key.rindex(']'):
+      cond = key[key.index('[') + 1:key.rindex(']')]
+      key = key[:key.index('[')] + key[key.rindex(']') + 1:]
+    key = [k.lower() for k in key.split('.') if len(k) > 0 and not k.isdigit()]
+    try:
+      cond = eval(cond, deepcopy(SAFE_GLOBALS), ENV_VARS)
+    except Exception as e:
+      warn(f'cond error: {cond}', e=e)
+      cond = False
+    if cond:
+      print(key, value)
+
+
+def build_project(name: str | None = None):
+  if name is None:
+    for proj in projects.keys():
+      build_project(proj)
+    return
+
+  debug(f'build project: {name}')
+  proj = projects.get(name)
+  if proj is None: raise ValueError(f'project not found: {name}')
+
+
+expression = "a + b"
+
+result = eval(expression, deepcopy(SAFE_GLOBALS), {'a': 5, 'b': 10})
+
+print(f"Result of '{expression}': {result}")
+
+if __name__ == '__main__':
+  load_options()
+
+  parse_yaml(getopt('file', 'project.yaml'))
+
+  if len(projects) == 0:
+    print('There is no project to build.')
+    exit(1)
+
+  build_project()
