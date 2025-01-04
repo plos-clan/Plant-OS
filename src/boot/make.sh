@@ -26,7 +26,7 @@ mcopy -i hd.img zstd-test.bin ::
 mcopy -i hd.img plui-app.bin ::
 mcopy -i hd.img test.qoi ::
 mcopy -i hd.img pf.bin ::
-
+mcopy -i hd.img 魔女之旅_片头_リテラチュア.mp3 ::/Wandering_Witch.mp3
 echo -n '
 echo Hello, world!
 /fatfs1/testapp.bin
