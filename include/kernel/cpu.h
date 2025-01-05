@@ -97,7 +97,11 @@ void v86_int(byte intnum, regs16 *regs); // 调用虚拟86模式中断
 void init_paging();                      // 初始化分页
 void init_gdtidt();                      // 初始化全局描述符表和中断描述符表
 void init_error_inthandler();            // 初始化错误中断处理程序
+void fpu_enable();                       // 启用浮点运算单元
 void fpu_disable();                      // 禁用浮点运算单元
+void fpu_do_save(void *extra_regs);
+void fpu_save(void *extra_regs);
+void fpu_init();
 
 #if __x86_64__
 typedef void(inthandler_f)(i32 id, regs64 *regs);

@@ -183,21 +183,20 @@ extern void asm_task_switch(task_t current, task_t next) FASTCALL; // 切换任�
 extern void asm_task_start(task_t current, task_t next) FASTCALL;  // 开始任务
 
 finline void task_switch(task_t next) {
-  var is_sti = asm_is_sti;
-  asm_cli;
-  val task = task_current;
-  kassert(next != null, "Can't switch to null task");
-  kassert(task != null, "Can't switch from null task");
-  if (next == task) {
-    klogw("task_switch next == current");
-  } else {
-    task_ref(next);
-    task_unref(task);
-    task_current = next;
-    asm_task_switch(task, next);
-    kassert(task->state == THREAD_RUNNING);
-  }
-  if (is_sti) asm_sti;
+  with_no_interrupts({
+    val task = task_current;
+    kassert(next != null, "Can't switch to null task");
+    kassert(task != null, "Can't switch from null task");
+    if (next == task) {
+      klogw("task_switch next == current");
+    } else {
+      task_ref(next);
+      task_unref(task);
+      task_current = next;
+      asm_task_switch(task, next);
+      kassert(task->state == THREAD_RUNNING);
+    }
+  });
 }
 
 __attr(noreturn) finline void task_start(task_t task) {
@@ -251,18 +250,15 @@ void task_next() {
   next->jiffies = system_tick;
 
   if (next != task) {
-    asm_clr_em, asm_clr_ts;
-    if (task->fpu_enabled) {
-      if (cpuids.sse) {
-        asm volatile("fnsave (%0)\n\t" ::"r"(task->extra_regs) : "memory");
-      } else {
-        asm volatile("fnsave (%0)\n\t" ::"r"(task->extra_regs) : "memory");
-      }
+    if (!next->fpu_enabled) {
+      fpu_init();
+      next->fpu_enabled = true;
     }
-    fpu_disable(); // 禁用fpu 如果使用FPU就会调用ERROR7
-  }
 
-  if (next != task) task_switch(next);
+    fpu_disable();
+
+    task_switch(next);
+  }
 
   asm_sti;
 }
@@ -296,14 +292,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
 
 void task_to_user_mode(u32 eip, u32 esp) {
   regs32 *iframe = (regs32 *)task_current->stack_bottom - 1;
-
-  iframe->edi = 0;
-  iframe->esi = 0;
-  iframe->ebp = 0;
-  iframe->ebx = 0;
-  iframe->edx = 0;
-  iframe->ecx = 0;
-  iframe->eax = 0;
+  *iframe        = (regs32){};
 
   iframe->gs    = 0;
   iframe->ds    = GET_SEL(RING3_DS, SA_RPL3);
@@ -334,7 +323,10 @@ void into_mtask() {
   set_segmdesc(gdt + 103, sizeof(TSS32), (u32)&tss, AR_TSS32);
   load_tr(103 * 8);
   val task = task_run(create_task(&user_init, 5, 1));
-  asm_set_ts, asm_set_em, asm_set_ne;
+  asm_set_ne;
+  task->fpu_enabled = true;
+  fpu_init();
+  fpu_disable();
   task_start(task);
 }
 

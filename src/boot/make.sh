@@ -29,6 +29,9 @@ mcopy -i hd.img pf.bin ::
 mcopy -i hd.img 魔女之旅_片头_リテラチュア.mp3 ::/Wandering_Witch.mp3
 mcopy -i hd.img plos_start.mp3 ::
 
+qemu-img create hd1.img 128M
+mformat -t 64 -h 64 -i hd1.img
+
 echo -n '
 echo Hello, world!
 /fatfs1/testapp.bin

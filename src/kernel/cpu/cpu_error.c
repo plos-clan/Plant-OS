@@ -1,33 +1,11 @@
 #include <kernel.h>
 
 static inthandler_f error_inthandler;
-static inthandler_f ERROR7;
-static inthandler_f ERROR13;
 static inthandler_f irq13;
 
-void fpu_disable() {
-  asm_set_ts, asm_set_em;
-}
-
-void fpu_enable(task_t task) {
-  asm_clr_ts, asm_clr_em;
-  if (!task->fpu_enabled) {
-    task->fpu_enabled = true;
-    if (cpuids.sse) {
-      asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
-    } else {
-      asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
-    }
-    memset(task->extra_regs, 0, sizeof(task->extra_regs));
-    klogd("FPU create state for task %p\n", task);
-  } else {
-    if (cpuids.sse) {
-      asm volatile("frstor (%0) \n" ::"r"(task->extra_regs) : "memory");
-    } else {
-      asm volatile("frstor (%0) \n" ::"r"(task->extra_regs) : "memory");
-    }
-  }
-}
+// 从 fpu.c 导入
+inthandler_f ERROR7;
+inthandler_f ERROR13;
 
 // View https://wiki.osdev.org/Exceptions for more information
 
@@ -82,15 +60,6 @@ FASTCALL void error_inthandler(i32 id, regs32 *regs) {
   }
   klogf("error %02x: %s (#%s)", id, error_names[id].fullname, error_names[id].shortname);
   abort();
-}
-
-FASTCALL void ERROR7(i32 id, regs32 *reg) {
-  fpu_enable(current_task);
-}
-
-FASTCALL void irq13(i32 id, regs32 *reg) {
-  kloge("IRQ 13 should not be triggered");
-  fpu_enable(current_task);
 }
 
 void init_error_inthandler() {

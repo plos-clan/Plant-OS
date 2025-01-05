@@ -1,5 +1,6 @@
 #pragma once
 #include <define.h>
+
 struct pci_config_space_public {
   u16 VendorID;
   u16 DeviceID;

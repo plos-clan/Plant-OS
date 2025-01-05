@@ -18,5 +18,8 @@ int main(int argc, char **argv) {
     printf("child\n");
   }
 
+  printf("%f\n", sin(1));
+  printf("%f\n", log(1));
+
   return 0;
 }

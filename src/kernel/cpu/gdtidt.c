@@ -29,6 +29,10 @@ static inthandler_t handlers[IDT_LEN];
 size_t syscall(size_t eax, size_t ebx, size_t ecx, size_t edx, size_t esi, size_t edi);
 
 FASTCALL void inthandler(i32 id, regs32 *regs) {
+  fpu_disable(); //
+
+  fpu_enable();
+
   if (id >= 0x20 && id < 0x30) send_eoi(id - 0x20);
   if (id == 0x36) {
     regs->eax = syscall(regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi);
@@ -48,7 +52,6 @@ inthandler_t inthandler_set(i32 id, inthandler_t handler) {
   kassert(0 <= id && id < IDT_LEN);
   var old      = handlers[id];
   handlers[id] = handler;
-  if (old != null) klogw("Overwrite interrupt %02x's (%d's) handler", id, id);
   return old;
 }
 

@@ -29,12 +29,18 @@ typedef struct task {
 #define _NAME
 #include "task/user-part"
   };
-  byte extra_regs[4096]; // FPU 108
-                         // SSE 512
-                         // AVX 4096
+  byte kernel_extra_regs[4096]; // FPU 108
+                                // SSE 512
+                                // AVX 4096
+  byte extra_regs[4096];        // FPU 108
+                                // SSE 512
+                                // AVX 4096
 } *task_t;
 
 #define current_task (get_current_task())
+
+extern task_t fpu_using_task;
+extern bool   fpu_ctx_usermod;
 
 void task_tick(); // 时间片调度
 void task_next(); // 请求切换任务

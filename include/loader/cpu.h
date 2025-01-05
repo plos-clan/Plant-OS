@@ -1,8 +1,6 @@
 #pragma once
 #include <define.h>
 
-#include <libc-base.h>
-
 #define IDT_ADDR     0x0026f800 // IDT 地址
 #define IDT_LEN      256
 #define GDT_ADDR     0x00270000 // GDT 地址

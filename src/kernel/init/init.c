@@ -19,13 +19,17 @@ void virtio_gpu_init();
 #define KERNEL_HEAP_SIZE (128 * 1024 * 1024)
 
 void sysinit() {
-  total_mem_size = memtest(0x00400000, 0xbfffffff);
-  init_paging();
+  klogi("kernel is starting");
 
   cpuid_do_cache(); // 缓存 CPUID 信息
 
   klogd("%s", cpuids.x2apic ? "x2apic" : "apic");
-  // kassert(!cpuids.x2apic, "x2apic is not supported");
+
+  if (cpuids.fpu) asm_clr_ts, asm_clr_em;
+  if (cpuids.sse) asm_set_osfxsr, asm_set_osxmmexcpt;
+
+  total_mem_size = memtest(0x00400000, 0xbfffffff);
+  init_paging();
 
   IVT = page_alloc(0x500);
 #if USE_UBSCAN

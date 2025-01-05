@@ -1,9 +1,11 @@
 #include <loader.h>
+
 #define vfs(task)           ((task)->nfs)
 #define toupper(c)          ((c) >= 'a' && (c) <= 'z' ? c - 32 : c)
 #define PDEBUG(str, ...)    printf(str "\n", ##__VA_ARGS__)
 #define WARNING_K(str, ...) printf(str "\n", ##__VA_ARGS__)
 #define Panic_K(str, ...)   printf(str "\n", ##__VA_ARGS__)
+
 vfs_t vfsstl[5];
 vfs_t vfsMount_Stl[5];
 
