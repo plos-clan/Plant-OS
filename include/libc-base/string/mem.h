@@ -99,7 +99,7 @@ finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) noexcept {
 #  if __has(memcpy)
   return __builtin_memcpy(_d, _s, _n);
 #  else
-  if (_n >= MEM_LARGE_SIZE) return lgmemcpy(_d, _s, _n);
+  // if (_n >= MEM_LARGE_SIZE) return lgmemcpy(_d, _s, _n);
   auto d = (volatile byte *)_d;
   auto s = (volatile const byte *)_s;
   auto e = (volatile const byte *)((byte *)_s + _n);
@@ -142,7 +142,7 @@ finline void *memset(void *_s, int _c, size_t _n) noexcept {
 #  if __has(memset)
   return __builtin_memset(_s, _c, _n);
 #  else
-  if (_n >= MEM_LARGE_SIZE) return lgmemset(_s, _c, _n);
+  // if (_n >= MEM_LARGE_SIZE) return lgmemset(_s, _c, _n);
   auto       s = (volatile byte *)_s;
   auto       e = (volatile byte *)((byte *)_s + _n);
   const byte c = _c;
@@ -416,28 +416,28 @@ finline int bcmp(const void *s1, const void *s2, size_t n) noexcept {
 #endif
 
 finline u8 *memcpy8(u8 *_rest _d, const u8 *_rest _s, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE) return lgmemcpy8(_d, _s, _n);
+  // if (_n >= MEM_LARGE_SIZE) return lgmemcpy8(_d, _s, _n);
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
   return _d;
 }
 finline u16 *memcpy16(u16 *_rest _d, const u16 *_rest _s, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE / 2) return lgmemcpy16(_d, _s, _n);
+  // if (_n >= MEM_LARGE_SIZE / 2) return lgmemcpy16(_d, _s, _n);
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
   return _d;
 }
 finline u32 *memcpy32(u32 *_rest _d, const u32 *_rest _s, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE / 4) return lgmemcpy32(_d, _s, _n);
+  // if (_n >= MEM_LARGE_SIZE / 4) return lgmemcpy32(_d, _s, _n);
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
   return _d;
 }
 finline u64 *memcpy64(u64 *_rest _d, const u64 *_rest _s, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE / 8) return lgmemcpy64(_d, _s, _n);
+  // if (_n >= MEM_LARGE_SIZE / 8) return lgmemcpy64(_d, _s, _n);
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
@@ -485,28 +485,28 @@ finline u64 *lgmemcpy64(u64 *_rest dst, const u64 *_rest src, size_t n) noexcept
 }
 
 finline u8 *memset8(u8 *_s, u8 _c, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE) return lgmemset8(_s, _c, _n);
+  // if (_n >= MEM_LARGE_SIZE) return lgmemset8(_s, _c, _n);
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
   return _s;
 }
 finline u16 *memset16(u16 *_s, u16 _c, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE / 2) return lgmemset16(_s, _c, _n);
+  // if (_n >= MEM_LARGE_SIZE / 2) return lgmemset16(_s, _c, _n);
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
   return _s;
 }
 finline u32 *memset32(u32 *_s, u32 _c, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE / 4) return lgmemset32(_s, _c, _n);
+  // if (_n >= MEM_LARGE_SIZE / 4) return lgmemset32(_s, _c, _n);
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
   return _s;
 }
 finline u64 *memset64(u64 *_s, u64 _c, size_t _n) noexcept {
-  if (_n >= MEM_LARGE_SIZE / 8) return lgmemset64(_s, _c, _n);
+  // if (_n >= MEM_LARGE_SIZE / 8) return lgmemset64(_s, _c, _n);
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
