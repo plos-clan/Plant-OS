@@ -2,6 +2,8 @@
 	global asm_inthandler, asm_inthandler_quit, asm_sysenter_handler, asm_syscall_quit
 	extern inthandler
 	
+	%define RING0_CS 1 * 8
+	%define RING0_DS 2 * 8
 	%define RING3_CS 3 * 8
 	%define RING3_DS 4 * 8
 	
@@ -13,9 +15,11 @@ asm_inthandler_main:
 	push fs
 	push gs
 	pusha
-	mov ax, ss                   ; 这三行里必须要有 因为从 v86 到这里，必须要切换段寄存器
-	mov ds, ax                   ; 不要像我一样看不开 kvm 没必要切换就删掉 QwQ
+	mov ax, RING0_DS
+	mov ds, ax
 	mov es, ax
+	mov fs, ax
+	mov gs, ax
 	mov ecx, dword [esp + 12 * 4]; arg1 <== id
 	mov edx, esp                 ; arg2 <== regs
 	call inthandler              ; void inthandler(i32 id, regs32 * regs) __attribute__((fastcall));
@@ -123,6 +127,11 @@ asm_sysenter_handler:
 	mov edi, dword [ebx + 4]     ; edi <== syscall arg5 ring3 [esp + 4]
 	mov dword [esp + 4], esi     ; set syscall arg4 esi
 	mov dword [esp], edi         ; set syscall arg5 edi
+	mov ax, RING0_DS
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
 	mov ecx, 0x36                ; arg1 <== id
 	mov edx, esp                 ; arg2 <== regs
 	call inthandler              ; void inthandler(i32 id, regs32 * regs) __attribute__((fastcall));

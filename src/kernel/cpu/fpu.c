@@ -1,7 +1,7 @@
 #include <kernel.h>
 
-task_t fpu_using_task  = null;
-bool   fpu_ctx_usermod = false; // 当前的 fpu 上下文是否是用户态的，否则是内核态的
+static task_t fpu_using_task  = null;
+static bool   fpu_ctx_usermod = false; // 当前的 fpu 上下文是否是用户态的，否则是内核态的
 
 static void fpu_save(void *extra_regs) {
   if (cpuids.avx) {
@@ -37,6 +37,18 @@ static void fpu_init() {
   if (ts_seted) asm_set_ts;
 }
 
+void fpu_copy_ctx(task_t dst, task_t src) {
+  kassert(dst != null);
+  kassert(src != null);
+  dst->fpu_enabled = src->fpu_enabled;
+  if (!src->fpu_enabled) return;
+  bool ts_seted = asm_get_cr0() & CR0_TS;
+  if (ts_seted) asm_clr_ts;
+  fpu_save(src->extra_regs);
+  if (ts_seted) asm_set_ts;
+  memcpy(dst->extra_regs, src->extra_regs, 4096);
+}
+
 static void fpu_fix_ctx(task_t task, bool is_usermode) {
   asm_clr_ts;
 
@@ -47,7 +59,8 @@ static void fpu_fix_ctx(task_t task, bool is_usermode) {
 
   if (old_regs == new_regs) return;
 
-  klogw("%d -> %d", fpu_using_task->tid, task->tid);
+  klogw("%d (ring%d) -> %d (ring%d)", fpu_using_task->tid, fpu_ctx_usermod ? 3 : 0, task->tid,
+        is_usermode ? 3 : 0);
   klogw("%p -> %p", old_regs, new_regs);
 
   if (fpu_using_task && fpu_using_task->state != THREAD_DEAD) fpu_save(old_regs);

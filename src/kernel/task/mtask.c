@@ -443,9 +443,7 @@ int task_fork() {
   if (!task_current->user_mode) return -1;
   val m = task_alloc();
   if (m == null) return -1;
-  m->fpu_enabled = task_current->fpu_enabled;
-  memcpy(m->kernel_extra_regs, task_current->kernel_extra_regs, 4096);
-  memcpy(m->extra_regs, task_current->extra_regs, 4096);
+  fpu_copy_ctx(m, task_current);
   with_no_interrupts({
     val stack       = (usize)page_alloc(STACK_SIZE);
     m->stack_bottom = stack + STACK_SIZE;

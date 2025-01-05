@@ -39,8 +39,7 @@ typedef struct task {
 
 #define current_task (get_current_task())
 
-extern task_t fpu_using_task;
-extern bool   fpu_ctx_usermod;
+void fpu_copy_ctx(task_t dst, task_t src);
 
 task_t task_ref(task_t t);
 void   task_unref(task_t t);
