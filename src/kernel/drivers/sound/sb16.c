@@ -138,7 +138,7 @@ static vsound_t snd;
 
 static inthandler_f sb16_handler;
 
-__attr(fastcall) void sb16_handler(i32 id, regs32 *regs) {
+FASTCALL void sb16_handler(i32 id, regs32 *regs) {
   asm_in8(sb.depth == 16 ? SB_INTR16 : SB_STATE);
 
 #if VSOUND_RWAPI

@@ -179,8 +179,8 @@ task_t running_tasks_pop() {
 // --------------------------------------------------
 //; 调度
 
-extern void asm_task_switch(task_t current, task_t next) __attr(fastcall); // 切换任务
-extern void asm_task_start(task_t current, task_t next) __attr(fastcall);  // 开始任务
+extern void asm_task_switch(task_t current, task_t next) FASTCALL; // 切换任务
+extern void asm_task_start(task_t current, task_t next) FASTCALL;  // 开始任务
 
 finline void task_switch(task_t next) {
   var is_sti = asm_is_sti;

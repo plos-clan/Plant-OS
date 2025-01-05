@@ -69,7 +69,7 @@ static const struct {
     [31] = {"--", "Reserved"                      },
 };
 
-__attr(fastcall) void error_inthandler(i32 id, regs32 *regs) {
+FASTCALL void error_inthandler(i32 id, regs32 *regs) {
   kassert(id >= 0);
   kassert(id < 32);
   kassert(regs != null);
@@ -84,11 +84,11 @@ __attr(fastcall) void error_inthandler(i32 id, regs32 *regs) {
   abort();
 }
 
-__attr(fastcall) void ERROR7(i32 id, regs32 *reg) {
+FASTCALL void ERROR7(i32 id, regs32 *reg) {
   fpu_enable(current_task);
 }
 
-__attr(fastcall) void irq13(i32 id, regs32 *reg) {
+FASTCALL void irq13(i32 id, regs32 *reg) {
   kloge("IRQ 13 should not be triggered");
   fpu_enable(current_task);
 }
@@ -111,7 +111,7 @@ extern byte *IVT;
 
 extern task_t v86_using_task;
 
-__attr(fastcall) void ERROR13(i32 id, regs32 *regs) {
+FASTCALL void ERROR13(i32 id, regs32 *regs) {
   val frame = regs;
   val task  = current_task;
   if (current_task->v86_mode != 1) {

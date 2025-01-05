@@ -53,7 +53,7 @@ struct timespec calc_time_by_tick(u64 tick) {
   return time;
 }
 
-__attr(fastcall) void inthandler20(i32 id, regs32 *regs) {
+FASTCALL void inthandler20(i32 id, regs32 *regs) {
   if (acpi_inited) gettime_ns(null); // 更新时间
 
   system_tick++;

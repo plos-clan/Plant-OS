@@ -631,7 +631,7 @@ static int hda_open(vsound_t vsound) {
   return 0;
 }
 
-__attr(fastcall) void hda_interrupt_handler(i32 id, regs32 *regs) {
+FASTCALL void hda_interrupt_handler(i32 id, regs32 *regs) {
   // printf("hda interrupt has been called");
   if (prev_handler) { prev_handler(id, regs); }
   bool result = pci_check_interrupt_status(hda_bus, hda_slot, hda_func);

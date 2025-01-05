@@ -112,3 +112,7 @@
 #endif
 
 #define INLINE __attr(always_inline) __nif
+
+#define CDECL    __attr(cdecl)
+#define STDCALL  __attr(stdcall)
+#define FASTCALL __attr(fastcall)

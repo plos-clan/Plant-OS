@@ -104,9 +104,9 @@ typedef void(inthandler_f)(i32 id, regs64 *regs);
 typedef void (*inthandler_t)(i32 id, regs64 *regs);
 #else
 //. 注意 fastcall 调用约定
-typedef void(inthandler_f)(i32 id, regs32 *regs) __attr(fastcall);
+typedef void(inthandler_f)(i32 id, regs32 *regs) FASTCALL;
 //. 注意 fastcall 调用约定
-typedef void (*inthandler_t)(i32 id, regs32 *regs) __attr(fastcall);
+typedef void (*inthandler_t)(i32 id, regs32 *regs) FASTCALL;
 #endif
 
 /**

@@ -54,10 +54,10 @@ memtest_sub:                  ; u32 memtest_sub(u32 start, u32 end)
 	extern task_current
 	global asm_task_switch, asm_task_start
 	; 注意进入函数时必须 cli
-asm_task_switch:              ; void asm_task_switch(task_t current, task_t next) __attr(fastcall);
+asm_task_switch:              ; void asm_task_switch(task_t current, task_t next) FASTCALL;
 	pusha
 	mov [ecx], esp               ; 保存esp
-asm_task_start:               ; void asm_task_start(task_t current, task_t next) __attr(fastcall);
+asm_task_start:               ; void asm_task_start(task_t current, task_t next) FASTCALL;
 	mov esp, [edx]
 	mov eax, [edx + 4]
 	mov cr3, eax

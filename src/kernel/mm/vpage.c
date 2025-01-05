@@ -581,7 +581,7 @@ void page_set_physics_attr_pde(u32 vaddr, void *paddr, u32 attr, u32 cr3_backup)
   flush_tlb(vaddr);
 }
 
-__attr(fastcall) void page_fault(i32 id, regs32 *regs) {
+FASTCALL void page_fault(i32 id, regs32 *regs) {
   u32 pd = current_task->cr3;
   asm_set_cr3(PD_ADDRESS); // 设置一个安全的页表
 

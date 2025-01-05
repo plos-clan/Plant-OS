@@ -87,7 +87,7 @@ static void Write(int drive, byte *buffer, uint number, uint lba) {
 
 static inthandler_f flint;
 
-__attr(fastcall) void flint(i32 id, regs32 *regs) {
+FASTCALL void flint(i32 id, regs32 *regs) {
   floppy_int_count = 1; // 设置中断计数器为1，代表中断已经发生（或者是系统已经收到了中断）
   asm_out8(0x20, 0x20); // 发送EOI信号，告诉PIC，我们已经处理完了这个中断
   // task_run(waiter);
