@@ -77,7 +77,7 @@ typedef struct __PACKED__ PageInfo {
  *\param off      页内偏移地址
  *\return 线性地址
  */
-finline size_t mk_linear_addr(size_t pml4, size_t pdpt, size_t pd, size_t pt, size_t off) {
+inline_const usize mk_linear_addr(usize pml4, usize pdpt, usize pd, usize pt, usize off) {
   return (pml4 << 39) + (pdpt << 30) + (pd << 21) + (pt << 12) + off;
 }
 #else
@@ -89,7 +89,7 @@ finline size_t mk_linear_addr(size_t pml4, size_t pdpt, size_t pd, size_t pt, si
  *\param off      页内偏移地址
  *\return 线性地址
  */
-finline usize mk_linear_addr(usize table, usize page, usize off) {
+inline_const usize mk_linear_addr(usize table, usize page, usize off) {
   kassert(table < 1024);
   kassert(page < 1024);
   kassert(off < 4096);

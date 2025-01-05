@@ -374,39 +374,44 @@ int get_pageinpte_address(int t, int p) {
   return (PT_ADDRESS + page * 4);
 }
 
-int find_kpage(int line, int n) {
-  int free = 0;
-  // 找一个连续的线性地址空间
-  for (; line != 1024 * 1024; line++) {
-    if (pages[line].count == 0) {
-      free++;
-    } else {
+static usize page_alloc_line_cache = 0;
+
+static vectorize isize find_kpage(usize line, usize n) {
+  line       = max(line, page_alloc_line_cache);
+  usize free = 0;
+  for (; line < 1024 * 1024; line++) {
+    if (pages[line].count != 0) {
       free = 0;
+      continue;
     }
-    if (free == n) {
-      for (int j = line - n + 1; j != line + 1; j++) {
+    if (++free == n) {
+      val begin = line - n + 1;
+      for (usize j = begin; j <= line; j++) {
         pages[j].count++;
       }
-      line -= n - 1;
-      break;
+      page_alloc_line_cache = line + 1;
+      return begin;
     }
   }
-  return line;
+  page_alloc_line_cache = SIZE_MAX;
+  return -1;
 }
 
-void *page_alloc(size_t size) {
-  int n = ((size - 1) / (4 * 1024)) + 1;
-  int i = find_kpage(0, n);
+void *page_alloc(usize size) {
+  val npages = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
+  val idx    = find_kpage(0, npages);
+  if (idx < 0) return null;
   int t, p;
-  page2tpo(i, &t, &p);
-  bzero((char *)mk_linear_addr(t, p, 0), n * 4 * 1024);
-  u32 addr = mk_linear_addr(t, p, 0);
-  return (void *)addr;
+  page2tpo(idx, &t, &p);
+  val addr = (void *)mk_linear_addr(t, p, 0);
+  memset(addr, 0, npages * PAGE_SIZE);
+  return addr;
 }
 
-void page_free(void *p, size_t size) {
-  if (((size_t)p & (PAGE_SIZE - 1)) != 0) fatal("炸啦！");
-  for (size_t id = (size_t)p / PAGE_SIZE, i = 0; i < size; i += PAGE_SIZE, id++) {
+void page_free(void *ptr, usize size) {
+  kassert(((usize)ptr & (PAGE_SIZE - 1)) == 0);
+  page_alloc_line_cache = min(page_alloc_line_cache, (usize)ptr);
+  for (size_t id = (size_t)ptr / PAGE_SIZE, i = 0; i < size; i += PAGE_SIZE, id++) {
     if (id >= 1024 * 1024) fatal("炸啦！"); // 超过最大页
     // page_free只应用于free page_malloc分配的内存，因此count直接设置为0
     // 如果是page_link出来的，那么task_free_all_pages会清理，free_pde也会清理
