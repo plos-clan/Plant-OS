@@ -27,13 +27,15 @@ static void fpu_load(const void *extra_regs) {
   }
 }
 
-static void fpu_init() {
+static void fpu_init(task_t task) {
   bool ts_seted = asm_get_cr0() & CR0_TS;
   if (ts_seted) asm_clr_ts;
   if (cpuids.fpu) asm volatile("fninit\n\t");
   const u32 value = 0x1f80;
   if (cpuids.sse) asm volatile("ldmxcsr (%0)" ::"r"(&value));
   if (cpuids.avx) asm volatile("vzeroupper\n\t");
+  fpu_save(task->extra_regs);
+  fpu_save(task->kernel_extra_regs);
   if (ts_seted) asm_set_ts;
 }
 
@@ -71,7 +73,7 @@ static void fpu_fix_ctx(task_t task, bool is_usermode) {
   task_ref(fpu_using_task);
 
   if (!task->fpu_enabled) {
-    fpu_init();
+    fpu_init(task);
     task->fpu_enabled = true;
     return;
   }

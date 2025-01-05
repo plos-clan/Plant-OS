@@ -9,6 +9,7 @@
 //
 
 // plreadln.c: 实现pl_readline的核心功能
+
 #include <pl_readline.h>
 
 int pl_readline_add_history(_self, char *line) {
@@ -145,7 +146,6 @@ void pl_readline_insert_char_and_view(_self, char ch) {
     self->pl_readline_hal_putch(ch);
   }
 }
-
 void pl_readline_next_line(_self) {
   int  n        = self->length - self->ptr;
   char buf[255] = {0};
@@ -292,6 +292,7 @@ int pl_readline_handle_key(_self, int ch) {
     } else if (word_seletion.first) {
       pl_readline_print(self, "\n");
       pl_readline_print(self, self->prompt);
+      self->buffer[self->length] = '\0';
       pl_readline_print(self, self->buffer);
       int  n        = self->length - self->ptr;
       char buf[255] = {0};
