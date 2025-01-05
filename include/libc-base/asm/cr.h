@@ -92,6 +92,20 @@
 
 // [CR4_OSXMMEXCPT]: Operating System Support for Unmasked SIMD Floating-Point Exceptions
 
+#define asm_get_xcr0()                                                                             \
+  ({                                                                                               \
+    u32 eax, edx;                                                                                  \
+    asm volatile("xgetbv" : "=a"(eax), "=d"(edx) : "c"(0));                                        \
+    u64 xcr0 = ((u64)edx << 32) | eax;                                                             \
+    xcr0;                                                                                          \
+  })
+
+#define asm_set_xcr0(xcr0)                                                                         \
+  ({                                                                                               \
+    u64 _xcr0_ = (xcr0);                                                                           \
+    asm volatile("xsetbv" : : "a"((u32)_xcr0_), "d"((u32)(_xcr0_ >> 32)), "c"(0));                 \
+  })
+
 // set: 设置标志  clr: 清除标志
 
 // --------------------------------------------------

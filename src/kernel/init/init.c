@@ -25,9 +25,23 @@ void sysinit() {
 
   klogd("%s", cpuids.x2apic ? "x2apic" : "apic");
 
+  if (cpuids.fpu) klogi("Your cpu supports fpu.");
+  if (cpuids.sse) klogi("Your cpu supports sse.");
+  if (cpuids.avx) klogi("Your cpu supports avx.");
+
+  kassert(!!cpuids.avx == !!cpuids.xsave, "That's impossible.");
+  kassert(!!cpuids.avx == !!cpuids.osxsave, "Maybe that's an error of QEMU.");
+
   if (cpuids.fpu) asm_clr_ts, asm_clr_em;
   if (cpuids.sse) asm_set_mp, asm_set_osfxsr, asm_set_osxmmexcpt;
+  if (cpuids.avx) asm_set_osxsave;
   if (cpuids.fpu) asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
+  if (cpuids.avx) {
+    const u64 xcr0 = asm_get_xcr0();
+    asm_set_xcr0(xcr0 | 0x6);
+  }
+
+  klogd("fpu/sse/avx inited.");
 
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_paging();
