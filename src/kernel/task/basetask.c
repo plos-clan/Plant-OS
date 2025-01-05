@@ -47,7 +47,7 @@ void stdout_write(int drive, u8 *buffer, u32 number, u32 lba) {
 }
 void random_read(int drive, u8 *buffer, u32 number, u32 lba) {
   for (int i = 0; i < number; i++) {
-    buffer[i] = rand() % 256;
+    buffer[i] = krandb();
   }
 }
 void  random_write(int drive, u8 *buffer, u32 number, u32 lba) {}
@@ -98,8 +98,6 @@ void user_init() {
   vd.write       = stdout_write;
   vd.type        = VDISK_STREAM;
   regist_vdisk(vd);
-
-  srand(system_tick);
 
   vdisk rnd;
   strcpy(rnd.drive_name, "random");

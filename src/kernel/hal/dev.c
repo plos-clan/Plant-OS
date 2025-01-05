@@ -92,14 +92,14 @@ write:
 int devfs_stat(void *handle, vfs_node_t node) {
   if (node->type == file_dir) return 0;
   node->handle = rbtree_sp_get(dev_rbtree, node->name);
-  node->type   = file_block;
+  node->type   = vdisk_ctl[(int)node->handle].type == VDISK_STREAM ? file_stream : file_block;
   node->size   = disk_size((int)node->handle);
   return 0;
 }
 static void devfs_open(void *parent, cstr name, vfs_node_t node) {
   if (node->type == file_dir) return;
   node->handle = rbtree_sp_get(dev_rbtree, name);
-  node->type   = file_block;
+  node->type   = vdisk_ctl[(int)node->handle].type == VDISK_STREAM ? file_stream : file_block;
   node->size   = disk_size((int)node->handle);
 }
 static struct vfs_callback callbacks = {

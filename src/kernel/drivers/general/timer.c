@@ -54,8 +54,6 @@ struct timespec calc_time_by_tick(u64 tick) {
 }
 
 FASTCALL void inthandler20(i32 id, regs32 *regs) {
-  if (acpi_inited) gettime_ns(null); // 更新时间
-
   system_tick++;
 
   kenel_debugger_tick();

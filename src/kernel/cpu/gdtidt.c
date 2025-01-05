@@ -31,6 +31,13 @@ size_t syscall(size_t eax, size_t ebx, size_t ecx, size_t edx, size_t esi, size_
 FASTCALL void inthandler(i32 id, regs32 *regs) {
   if (id != 0x07 && id != 0x2d) asm_set_ts;
   if (id >= 0x20 && id < 0x30) send_eoi(id - 0x20);
+
+  if (acpi_inited) {
+    timespec time;
+    gettime_ns(&time); // 同时更新时间
+    ksrand((u32)time.tv_nsec);
+  }
+
   if (id == 0x36) {
     regs->eax = syscall(regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi);
   } else if (handlers[id]) {
@@ -38,6 +45,7 @@ FASTCALL void inthandler(i32 id, regs32 *regs) {
   } else {
     klogw("Unknown interrupt %02x (%d)", id, id);
   }
+
   if (id != 0x07 && id != 0x2d) asm_set_ts;
 }
 

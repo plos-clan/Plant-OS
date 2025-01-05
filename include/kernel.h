@@ -22,6 +22,7 @@ extern "C" {
 #include "kernel/page.h"
 #include "kernel/pci.h"
 #include "kernel/ps2.h"
+#include "kernel/random.h"
 #include "kernel/screen.h"
 #include "kernel/shared.h"
 #include "kernel/sound.h"

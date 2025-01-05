@@ -114,13 +114,35 @@ static bool isprint(char c) {
   return c >= 0x20 && c <= 0x7e;
 }
 
+static void print_data(const byte *data, usize len) {
+  for (usize i = 0; i < len; i += 16) {
+    printf("\033[1;33m%08x\033[0m  ", i);
+    for (usize j = 0; j < 16; j++) {
+      if (i + j < len) {
+        printf("%02x ", data[i + j]);
+      } else {
+        printf("   ");
+      }
+    }
+    printf(" ");
+    for (usize j = 0; j < 16; j++) {
+      if (i + j >= len) break;
+      if (isprint(data[i + j]))
+        printf("\033[1;32m%c\033[0m", data[i + j]);
+      else
+        printf("\033[1;30m.\033[0m");
+    }
+    printf("\n");
+  }
+}
+
 static int print_file(cstr path) {
   vfs_node_t file = vfs_open(path);
   if (file == null) {
     printf("open %s failed\n", path);
     return 1;
   }
-  if (file->type != file_block) {
+  if (file->type != file_block && file->type != file_stream) {
     printf("not a file\n");
     return 1;
   }
@@ -128,33 +150,28 @@ static int print_file(cstr path) {
     printf("file too large\n");
     return 1;
   }
-  byte *buf = malloc(file->size);
-  vfs_read(file, buf, 0, file->size);
+
   printf("\033[1;35mHEX DUMP\033[0m  ");
   for (usize j = 0; j < 16; j++) {
     printf("\033[1;37m%02x\033[0m ", j);
   }
   printf(" \033[1;36mCHAR\033[0m\n");
-  for (usize i = 0; i < file->size; i += 16) {
-    printf("\033[1;33m%08x\033[0m  ", i);
-    for (usize j = 0; j < 16; j++) {
-      if (i + j < file->size) {
-        printf("%02x ", buf[i + j]);
-      } else {
-        printf("   ");
-      }
+
+  if (file->type == file_block) {
+    byte *buf = malloc(file->size);
+    vfs_read(file, buf, 0, file->size);
+    print_data(buf, file->size);
+    free(buf);
+  } else {
+    byte *buf = malloc(1024);
+    while (true) {
+      val len = vfs_read(file, buf, 0, 1024);
+      if (len == 0) break;
+      print_data(buf, len);
     }
-    printf(" ");
-    for (usize j = 0; j < 16; j++) {
-      if (i + j >= file->size) break;
-      if (isprint(buf[i + j]))
-        printf("\033[1;32m%c\033[0m", buf[i + j]);
-      else
-        printf("\033[1;30m.\033[0m");
-    }
-    printf("\n");
+    free(buf);
   }
-  free(buf);
+
   return 0;
 }
 
