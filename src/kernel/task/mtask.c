@@ -366,6 +366,10 @@ void task_kill(task_t task) {
 
   avltree_free_with(task->children, (free_t)task_kill);
 
+  kassert(task->parent != null, "Init task exited");
+
+  avltree_delete(task->parent->children, task->tid);
+
   with_no_interrupts({
     list_foreach(task->waiting_list, node) {
       task_run(node->data);

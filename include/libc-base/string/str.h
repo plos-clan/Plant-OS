@@ -158,7 +158,7 @@ finline char *strncpy(char *_rest d, cstr _rest s, size_t n) noexcept {
 
 finline char *strcat(char *_rest d, cstr _rest s) noexcept {
 #  if __has(strcat)
-  return __builtin_strcat(_d, _s);
+  return __builtin_strcat(d, s);
 #  else
   char *const _d = d;
   while (*d++ != '\0') {}
@@ -170,7 +170,7 @@ finline char *strcat(char *_rest d, cstr _rest s) noexcept {
 
 finline char *strncat(char *_rest d, cstr _rest s, size_t n) noexcept {
 #  if __has(strncat)
-  return __builtin_strncat(d, _s, _n);
+  return __builtin_strncat(d, s, n);
 #  else
   char *const _d = d;
   while (*d++ != '\0') {}

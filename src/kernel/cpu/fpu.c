@@ -59,8 +59,8 @@ static void fpu_fix_ctx(task_t task, bool is_usermode) {
 
   if (old_regs == new_regs) return;
 
-  klogw("%d (ring%d) -> %d (ring%d)", fpu_using_task->tid, fpu_ctx_usermod ? 3 : 0, task->tid,
-        is_usermode ? 3 : 0);
+  klogw("%d (ring%d) -> %d (ring%d)", fpu_using_task == null ? -1 : fpu_using_task->tid,
+        fpu_ctx_usermod ? 3 : 0, task->tid, is_usermode ? 3 : 0);
   klogw("%p -> %p", old_regs, new_regs);
 
   if (fpu_using_task && fpu_using_task->state != THREAD_DEAD) fpu_save(old_regs);

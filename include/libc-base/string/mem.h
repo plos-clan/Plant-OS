@@ -99,7 +99,9 @@ finline void *memcpy(void *_rest _d, const void *_rest _s, size_t _n) noexcept {
 #  if __has(memcpy)
   return __builtin_memcpy(_d, _s, _n);
 #  else
-  // if (_n >= MEM_LARGE_SIZE) return lgmemcpy(_d, _s, _n);
+#    if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE) return lgmemcpy(_d, _s, _n);
+#    endif
   auto d = (volatile byte *)_d;
   auto s = (volatile const byte *)_s;
   auto e = (volatile const byte *)((byte *)_s + _n);
@@ -142,7 +144,9 @@ finline void *memset(void *_s, int _c, size_t _n) noexcept {
 #  if __has(memset)
   return __builtin_memset(_s, _c, _n);
 #  else
-  // if (_n >= MEM_LARGE_SIZE) return lgmemset(_s, _c, _n);
+#    if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE) return lgmemset(_s, _c, _n);
+#    endif
   auto       s = (volatile byte *)_s;
   auto       e = (volatile byte *)((byte *)_s + _n);
   const byte c = _c;
@@ -416,28 +420,36 @@ finline int bcmp(const void *s1, const void *s2, size_t n) noexcept {
 #endif
 
 finline u8 *memcpy8(u8 *_rest _d, const u8 *_rest _s, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE) return lgmemcpy8(_d, _s, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE) return lgmemcpy8(_d, _s, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
   return _d;
 }
 finline u16 *memcpy16(u16 *_rest _d, const u16 *_rest _s, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE / 2) return lgmemcpy16(_d, _s, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE / 2) return lgmemcpy16(_d, _s, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
   return _d;
 }
 finline u32 *memcpy32(u32 *_rest _d, const u32 *_rest _s, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE / 4) return lgmemcpy32(_d, _s, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE / 4) return lgmemcpy32(_d, _s, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
   return _d;
 }
 finline u64 *memcpy64(u64 *_rest _d, const u64 *_rest _s, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE / 8) return lgmemcpy64(_d, _s, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE / 8) return lgmemcpy64(_d, _s, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _d[i] = _s[i];
   }
@@ -448,65 +460,89 @@ finline void *lgmemcpy(void *_rest dst, const void *_rest src, size_t n) noexcep
   return (void *)lgmemcpy8((u8 *)dst, (const u8 *)src, n);
 }
 finline u8 *lgmemcpy8(u8 *_rest dst, const u8 *_rest src, size_t n) noexcept {
+#if USE_SSE
+  return memcpy8(dst, src, n);
+#else
   size_t _1, _2;
   asm volatile("rep movsb"
                : "=D"(_1), "=S"(_2)
                : "D"((size_t)dst), "S"((size_t)src), "c"(n)
                : "memory");
   return dst;
+#endif
 }
 finline u16 *lgmemcpy16(u16 *_rest dst, const u16 *_rest src, size_t n) noexcept {
+#if USE_SSE
+  return memcpy16(dst, src, n);
+#else
   size_t _1, _2;
   asm volatile("rep movsw"
                : "=D"(_1), "=S"(_2)
                : "D"((size_t)dst), "S"((size_t)src), "c"(n)
                : "memory");
   return dst;
+#endif
 }
 finline u32 *lgmemcpy32(u32 *_rest dst, const u32 *_rest src, size_t n) noexcept {
+#if USE_SSE
+  return memcpy32(dst, src, n);
+#else
   size_t _1, _2;
   asm volatile("rep movsl"
                : "=D"(_1), "=S"(_2)
                : "D"((size_t)dst), "S"((size_t)src), "c"(n)
                : "memory");
   return dst;
+#endif
 }
 finline u64 *lgmemcpy64(u64 *_rest dst, const u64 *_rest src, size_t n) noexcept {
-#if __x86_64__
+#if USE_SSE
+  return memcpy64(dst, src, n);
+#else
+#  if __x86_64__
   size_t _1, _2;
   asm volatile("rep movsq"
                : "=D"(_1), "=S"(_2)
                : "D"((size_t)dst), "S"((size_t)src), "c"(n)
                : "memory");
   return dst;
-#else
+#  else
   return (u64 *)lgmemcpy32((u32 *)dst, (u32 *)src, n * 2);
+#  endif
 #endif
 }
 
 finline u8 *memset8(u8 *_s, u8 _c, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE) return lgmemset8(_s, _c, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE) return lgmemset8(_s, _c, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
   return _s;
 }
 finline u16 *memset16(u16 *_s, u16 _c, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE / 2) return lgmemset16(_s, _c, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE / 2) return lgmemset16(_s, _c, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
   return _s;
 }
 finline u32 *memset32(u32 *_s, u32 _c, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE / 4) return lgmemset32(_s, _c, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE / 4) return lgmemset32(_s, _c, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
   return _s;
 }
 finline u64 *memset64(u64 *_s, u64 _c, size_t _n) noexcept {
-  // if (_n >= MEM_LARGE_SIZE / 8) return lgmemset64(_s, _c, _n);
+#if !USE_SSE
+  if (_n >= MEM_LARGE_SIZE / 8) return lgmemset64(_s, _c, _n);
+#endif
   for (size_t i = 0; i < _n; i++) {
     _s[i] = _c;
   }
@@ -517,28 +553,44 @@ finline void *lgmemset(void *_s, byte _c, size_t _n) noexcept {
   return (void *)lgmemset8((u8 *)_s, _c, _n);
 }
 finline u8 *lgmemset8(u8 *s, u8 c, size_t n) noexcept {
+#if USE_SSE
+  return memset8(s, c, n);
+#else
   size_t _1, _2;
   asm volatile("rep stosb" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
   return s;
+#endif
 }
 finline u16 *lgmemset16(u16 *s, u16 c, size_t n) noexcept {
+#if USE_SSE
+  return memset16(s, c, n);
+#else
   size_t _1, _2;
   asm volatile("rep stosw" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
   return s;
+#endif
 }
 finline u32 *lgmemset32(u32 *s, u32 c, size_t n) noexcept {
+#if USE_SSE
+  return memset32(s, c, n);
+#else
   size_t _1, _2;
   asm volatile("rep stosl" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
   return s;
+#endif
 }
 finline u64 *lgmemset64(u64 *s, u64 c, size_t n) noexcept {
-#if __x86_64__
+#if USE_SSE
+  return memset64(s, c, n);
+#else
+#  if __x86_64__ && !USE_SSE
   size_t _1, _2;
   asm volatile("rep stosq" : "=D"(_1), "=c"(_2) : "D"((size_t)s), "a"(c), "c"(n) : "memory");
-#else
+#  else
   for (size_t i = 0; i < n; i++) {
     s[i] = c;
   }
-#endif
+#  endif
   return s;
+#endif
 }

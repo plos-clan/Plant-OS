@@ -35,7 +35,7 @@ FASTCALL void inthandler(i32 id, regs32 *regs) {
   if (acpi_inited) {
     timespec time;
     gettime_ns(&time); // 同时更新时间
-    ksrand((u32)time.tv_nsec);
+    // ksrand((u32)time.tv_nsec);
   }
 
   if (id == 0x36) {

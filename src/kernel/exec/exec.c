@@ -86,26 +86,17 @@ void task_to_user_mode_elf() {
   }
 
   regs32 *iframe = (regs32 *)current_task->stack_bottom - 1;
+  *iframe        = (regs32){};
   iframe->edi    = (size_t)args.argc;
   iframe->esi    = (size_t)args.argv;
-  iframe->ebp    = 0;
-  iframe->_      = 0;
-  iframe->ebx    = 0;
   iframe->edx    = (size_t)args.envp;
-  iframe->ecx    = 0;
-  iframe->eax    = 0;
-  iframe->gs     = 0;
   iframe->fs     = GET_SEL(RING3_DS, SA_RPL3);
   iframe->es     = GET_SEL(RING3_DS, SA_RPL3);
   iframe->ds     = GET_SEL(RING3_DS, SA_RPL3);
-  iframe->id     = 0;
-  iframe->err    = 0;
-  iframe->eip    = 0;
   iframe->cs     = GET_SEL(RING3_CS, SA_RPL3);
   iframe->flags  = (0 << 12 | 0b10 | 1 << 9);
-  iframe->esp    = 0;
   iframe->ss     = GET_SEL(RING3_DS, SA_RPL3);
-  tss.eflags     = 0x202;
+  tss.eflags     = iframe->flags;
 
   klogd("%lu", file->size);
   char *elf_data = page_alloc(file->size);
