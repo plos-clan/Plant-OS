@@ -7,7 +7,7 @@
 #endif
 
 // 不包含 16 位和 128 位浮点
-#define NO_EXTFLOAT 1
+#define NO_EXTFLOAT 0
 
 // 优化选项，是否不使用编译器内置函数
 // 一些内置函数会被编译器替换为对标准库函数的调用

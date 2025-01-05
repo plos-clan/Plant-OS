@@ -40,7 +40,7 @@ void sysinit() {
     asm_set_xcr0(xcr0 | 0x6);
   }
 
-  if (cpuids.fpu) asm volatile("fninit\n\t" ::: "memory");
+  if (cpuids.fpu) asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
   const u32 value = 0x1f80;
   if (cpuids.sse) asm volatile("ldmxcsr (%0)" ::"r"(&value));
   if (cpuids.avx) asm volatile("vzeroupper\n\t");

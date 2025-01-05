@@ -396,8 +396,8 @@ void ahci_init() {
     for (j = 0; j < 32; j++) {
       for (k = 0; k < 8; k++) {
         u32  p     = read_pci(i, j, k, 0x8);
-        u16 *reg   = &p;        // reg[0] ---> P & R, reg[1] ---> Sub Class Class Code
-        u8  *codes = &(reg[1]); // codes[0] --> Sub Class Code  codes[1] Class Code
+        u16 *reg   = (u16 *)&p;       // reg[0] ---> P & R, reg[1] ---> Sub Class Class Code
+        u8  *codes = (u8 *)&(reg[1]); // codes[0] --> Sub Class Code  codes[1] Class Code
         if (codes[1] == 0x1 && codes[0] == 0x6) {
           ahci_bus  = i;
           ahci_slot = j;
@@ -471,7 +471,7 @@ void io_delay(u32 delay_cycles) {
 static void ahci_vdisk_read(int drive, u8 *buffer, u32 number, u32 lba) {
   int i;
   for (i = 0; i < 5; i++)
-    if (ahci_read(&(hba_mem_address->ports[drive_mapping[drive]]), lba, 0, number, cache)) {
+    if (ahci_read(&(hba_mem_address->ports[drive_mapping[drive]]), lba, 0, number, (u16 *)cache)) {
       break;
     }
   if (i == 5) {
@@ -488,7 +488,7 @@ static void ahci_vdisk_write(int drive, u8 *buffer, u32 number, u32 lba) {
 
   int i;
   for (i = 0; i < 5; i++)
-    if (ahci_write(&(hba_mem_address->ports[drive_mapping[drive]]), lba, 0, number, cache)) {
+    if (ahci_write(&(hba_mem_address->ports[drive_mapping[drive]]), lba, 0, number, (u16 *)cache)) {
       break;
     }
   if (i == 5) {

@@ -38,6 +38,7 @@ typedef unsigned char      __v16qu __attribute__((__vector_size__(16)));
 typedef signed char __v16qs __attribute__((__vector_size__(16)));
 
 #ifdef __SSE2__
+#  if 0
 /* Both _Float16 and __bf16 require SSE2 being enabled. */
 typedef _Float16 __v8hf __attribute__((__vector_size__(16), __aligned__(16)));
 typedef _Float16 __m128h __attribute__((__vector_size__(16), __aligned__(16)));
@@ -45,6 +46,7 @@ typedef _Float16 __m128h_u __attribute__((__vector_size__(16), __aligned__(1)));
 
 typedef __bf16 __v8bf __attribute__((__vector_size__(16), __aligned__(16)));
 typedef __bf16 __m128bh __attribute__((__vector_size__(16), __aligned__(16)));
+#  endif
 #endif
 
 /* Define the default attributes for the functions in this file. */
