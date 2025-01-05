@@ -1,0 +1,86 @@
+site_name: Plant-OS 文档
+docs_dir: src
+repo_name: plos-clan/Plant-OS
+repo_url: https://github.com/plos-clan/Plant-OS
+site_url: https://plos.plos-clan.org
+
+copyright: Copyright &copy; 2024 plos-clan
+
+theme:
+  favicon: assets/favicon.ico
+  logo: assets/favicon.ico
+  name: material
+  custom_dir: overrides
+  language: zh
+  features:
+    - content.tooltips
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.instant.preview
+    - navigation.sections
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    # - toc.integrate
+    - search.suggest
+    - search.highlight
+    - search.share
+
+extra:
+  generator: false # 删除 Made with Material for MkDocs 文本
+  license: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+  search:
+    language: en, zh
+
+plugins:
+  - search
+  - awesome-pages
+  - markdownextradata
+  - exclude:
+      glob:
+        - README.md
+
+markdown_extensions:
+  - pymdownx.arithmatex # latex 支持
+  - scripts.include_file_extension: # 这玩意必须放这里
+      base_path: ["include"]
+  - abbr # 缩写
+  - meta # 支持 meta 信息
+  - toc:
+      permalink: true
+  - tables # 支持表格
+  - fenced_code # 支持围栏代码块
+  - admonition # 支持附注框
+  - pymdownx.superfences # 增强的围栏代码块支持
+  - pymdownx.tasklist # 支持任务列表
+  - pymdownx.emoji # 支持表情符号
+  - pymdownx.magiclink # 自动处理链接
+  - pymdownx.tabbed # 支持选项卡布局
+  - pymdownx.betterem # 改进的强调（斜体和粗体）
+  - pymdownx.caret # 支持^上标^
+  - pymdownx.tilde # 支持~删除线~
+  - pymdownx.mark
+  - pymdownx.details
+  - mdx_truly_sane_lists
+  - footnotes
+  - pymdownx.snippets:
+      auto_append:
+        - abbreviations.md
+  - codehilite: # 代码高亮
+      guess_lang: false # 不猜测语言
+      use_pygments: true
+  - scripts.text_align_extension
+  - scripts.column_extension
+  - scripts.hidden_content_extension # ??隐藏内容??
+
+extra_javascript:
+  - assets/MathJax.js
+  - assets/script.js
+
+extra_css:
+  - assets/style.css
+  - assets/highlight.css
