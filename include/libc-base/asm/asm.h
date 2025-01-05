@@ -17,10 +17,9 @@
     _var;                                                                                          \
   })
 
-#define asm_setreg(reg, value)                                                                     \
-  ({ asm volatile("mov %0, %%" #reg "\n\t" : : "r"((size_t)(value))); })
+#define asm_setreg(reg, value) ({ asm volatile("mov %0, %%" #reg "\n\t" ::"r"((size_t)(value))); })
 
-#define used_val(value) ({ asm volatile("" : "r,m"(value) : : "memory"); })
+#define used_val(value) ({ asm volatile("" ::"r,m"(value) : "memory"); })
 
 #define compiler_barrier ({ asm volatile("" ::: "memory"); })
 

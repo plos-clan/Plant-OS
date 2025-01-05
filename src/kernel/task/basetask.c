@@ -81,11 +81,14 @@ extern bool debug_enabled;
 void user_init() {
   klogd("init function has been called successfully!");
   printf("Hello Plant-OS!\n");
+
   vfs_mkdir("/dev");
   vfs_mount(null, vfs_open("/dev"));
+
   floppy_init();
   ide_initialize(0x1F0, 0x3F6, 0x170, 0x376, 0x000);
   ahci_init();
+
   vdisk vd;
   strcpy(vd.drive_name, "stdout");
   vd.flag        = 1;
@@ -95,7 +98,9 @@ void user_init() {
   vd.write       = stdout_write;
   vd.type        = VDISK_STREAM;
   regist_vdisk(vd);
+
   srand(system_tick);
+
   vdisk rnd;
   strcpy(rnd.drive_name, "random");
   rnd.flag        = 1;
@@ -105,11 +110,15 @@ void user_init() {
   rnd.write       = random_write;
   rnd.type        = VDISK_STREAM;
   regist_vdisk(rnd);
+
+  vfs_mkdir("/fatfs0");
+  vfs_mount("/dev/floppy", vfs_open("/fatfs0"));
+
   vfs_mkdir("/fatfs1");
   vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
 
   vfs_mkdir("/fatfs2");
-  vfs_mount("/dev/floppy", vfs_open("/fatfs2"));
+  vfs_mount("/dev/ahci0", vfs_open("/fatfs2"));
 
   // vfs_node_t p = vfs_open("/dev/stdout");
   // assert(p, "open /dev/stdout failed");
@@ -145,6 +154,13 @@ void user_init() {
   klogd("ok vram = %p", vram);
   lgmemset32(vram, 0, screen_w * screen_h);
 
+#if 0
+  for (volatile size_t i = 0;; i++) {
+    draw(i);
+    vbe_flip();
+  }
+#endif
+
   task_kill(v86_task);
 
 #if 0 // 尝试 os-terminal 库
@@ -165,18 +181,11 @@ void user_init() {
   infinite_loop;
 #endif
 
-#if 0
-  for (volatile size_t i = 0;; i++) {
-    draw(i);
-    vbe_flip();
-  }
-#endif
-
-  val font1 = load_font("/fatfs1/font1.plff");
-  // val font2 = load_font("/fatfs1/font2.plff");
-
-  val tty = plty_alloc(vram, screen_w, screen_h, font1);
-  // plty_addfont(tty, font2);
+  val font1 = load_font("/fatfs2/font1.plff");
+  val font2 = load_font("/fatfs2/font2.plff");
+  val tty   = plty_alloc(vram, screen_w, screen_h, font1);
+  plty_addfont(tty, font2);
+  plty_set_default(tty);
 
 #if 0
   char s[128];
@@ -189,7 +198,7 @@ void user_init() {
     plty_flush(tty);
   }
 #endif
-  plty_set_default(tty);
+
   val debug_shell_task = task_run(create_task(&debug_shell, 1, 1));
 
   val autorun_task = task_run(create_task(&autorun, 1, 1));

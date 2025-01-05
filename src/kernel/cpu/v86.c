@@ -28,8 +28,8 @@ void v86_task_main() {
   // 读出代码
   void *code = page_malloc_one();
   assert(code != null, "page_malloc_one failed");
-  vfs_node_t p = vfs_open("/fatfs2/v86_service.bin");
-  assert(p, "open /fatfs2/v86_service.bin failed");
+  vfs_node_t p = vfs_open("/fatfs0/v86_service.bin");
+  assert(p, "open /fatfs0/v86_service.bin failed");
   vfs_read(p, code, 0, p->size);
   // 映射页面
   u32 pde = current_task->cr3;

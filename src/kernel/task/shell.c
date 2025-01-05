@@ -246,7 +246,7 @@ int shell_exec(char *path, cstr comand) {
 }
 
 void autorun() {
-  var file = vfs_open("/fatfs2/autorun.txt");
+  var file = vfs_open("/fatfs0/autorun.txt");
   if (file == null) return;
   size_t size = file->size;
   char  *buf  = malloc(size + 1);
