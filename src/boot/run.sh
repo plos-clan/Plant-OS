@@ -3,6 +3,7 @@ qemu-system-i386 \
   -smp sockets=1,cores=2,threads=2,maxcpus=4 \
   -m 512 \
   -device virtio-mouse-pci \
+  -device virtio-keyboard-pci \
   -device virtio-gpu-pci,hostmem=128M \
   -vga virtio -global VGA.vgamem_mb=32 \
   -net nic,model=pcnet -net user \

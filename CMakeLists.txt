@@ -78,6 +78,8 @@ add_subdirectory(util)
 # ----------------------------------------------------------------------------------------------------
 # 以下设定 PLOS 编译配置
 
+include_directories(${PROJECT_SOURCE_DIR}/include/stdinc) # 导入一些编译器标准头文件
+
 set_compile_flag("-std=gnu2x" "-std=gnu++2b") # 使用新的 C/C++ 版本
 set_link_flag("")
 
@@ -96,7 +98,7 @@ add_compile_flag("-fvisibility=hidden") # 隐藏符号
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_flag("-target i386-none-elf")
 endif()
-add_compile_flag("-m32 -mmmx -msse")
+add_compile_flag("-m32 -mmmx -msse -msse2")
 add_compile_flag("-nostdlib -nostdinc") # 不使用标准库和标准头
 add_compile_flag("-ffreestanding") # 我们希望我们的标准库函数能够有和标准库一样的行为，所以我们希望可以不设置此项
 # add_link_flag("-nolibc -Qn") # 告诉编译器没有标准库 (但似乎不需要这个)

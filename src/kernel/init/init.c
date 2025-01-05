@@ -34,12 +34,16 @@ void sysinit() {
 
   if (cpuids.fpu) asm_clr_ts, asm_clr_em;
   if (cpuids.sse) asm_set_mp, asm_set_osfxsr, asm_set_osxmmexcpt;
-  if (cpuids.avx) asm_set_osxsave;
-  if (cpuids.fpu) asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
   if (cpuids.avx) {
+    asm_set_osxsave;
     const u64 xcr0 = asm_get_xcr0();
     asm_set_xcr0(xcr0 | 0x6);
   }
+
+  if (cpuids.fpu) asm volatile("fninit\n\t" ::: "memory");
+  const u32 value = 0x1f80;
+  if (cpuids.sse) asm volatile("ldmxcsr (%0)" ::"r"(&value));
+  if (cpuids.avx) asm volatile("vzeroupper\n\t");
 
   klogd("fpu/sse/avx inited.");
 

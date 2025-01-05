@@ -43,9 +43,23 @@ static bool is_ide_device(u8 bus, u8 device, u8 function) {
 int get_vdisk_type(int drive);
 
 void DOSLDR_MAIN() {
-  // init_gdtidt();
+  cpuid_do_cache(); // 缓存 CPUID 信息
+
+  if (cpuids.fpu) asm_clr_ts, asm_clr_em;
+  if (cpuids.sse) asm_set_mp, asm_set_osfxsr, asm_set_osxmmexcpt;
+  if (cpuids.avx) {
+    asm_set_osxsave;
+    const u64 xcr0 = asm_get_xcr0();
+    asm_set_xcr0(xcr0 | 0x6);
+  }
+
+  if (cpuids.fpu) asm volatile("fninit\n\t" ::: "memory");
+  const u32 value = 0x1f80;
+  if (cpuids.sse) asm volatile("ldmxcsr (%0)" ::"r"(&value));
+  if (cpuids.avx) asm volatile("vzeroupper\n\t");
+
   init_pic();
-  asm_sti; // IDT/PIC的初始化已经完成，于是开放CPU的中断
+  asm_sti;
   u32 memtotal = 128 * 1024 * 1024;
   memman_init((void *)0x00600000, memtotal - 0x00600000);
   screen_clear();
