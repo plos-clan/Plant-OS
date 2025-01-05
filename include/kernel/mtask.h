@@ -42,6 +42,9 @@ typedef struct task {
 extern task_t fpu_using_task;
 extern bool   fpu_ctx_usermod;
 
+task_t task_ref(task_t t);
+void   task_unref(task_t t);
+
 void task_tick(); // 时间片调度
 void task_next(); // 请求切换任务
 

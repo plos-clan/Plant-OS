@@ -26,7 +26,8 @@ void sysinit() {
   klogd("%s", cpuids.x2apic ? "x2apic" : "apic");
 
   if (cpuids.fpu) asm_clr_ts, asm_clr_em;
-  if (cpuids.sse) asm_set_osfxsr, asm_set_osxmmexcpt;
+  if (cpuids.sse) asm_set_mp, asm_set_osfxsr, asm_set_osxmmexcpt;
+  if (cpuids.fpu) asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
 
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_paging();

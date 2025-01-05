@@ -108,7 +108,7 @@ static void task_free(task_t t) {
   page_free(t, sizeof(*t));
 }
 
-finline task_t task_ref(task_t t) {
+task_t task_ref(task_t t) {
   if (t == null) {
     kloge("task_ref null");
     return null;
@@ -122,7 +122,7 @@ finline task_t task_ref(task_t t) {
   return t;
 }
 
-finline void task_unref(task_t t) {
+void task_unref(task_t t) {
   if (t == null) {
     kloge("task_unref null");
     return;
@@ -193,6 +193,7 @@ finline void task_switch(task_t next) {
       task_ref(next);
       task_unref(task);
       task_current = next;
+      asm_set_ts;
       asm_task_switch(task, next);
       kassert(task->state == THREAD_RUNNING);
     }
@@ -205,6 +206,7 @@ __attr(noreturn) finline void task_start(task_t task) {
   kassert(task_current == null);
   task_ref(task);
   task_current = task;
+  asm_set_ts;
   asm_task_start(null, task);
   klogf("task_start error");
   abort();
@@ -249,16 +251,7 @@ void task_next() {
 
   next->jiffies = system_tick;
 
-  if (next != task) {
-    if (!next->fpu_enabled) {
-      fpu_init();
-      next->fpu_enabled = true;
-    }
-
-    fpu_disable();
-
-    task_switch(next);
-  }
+  if (next != task) task_switch(next);
 
   asm_sti;
 }
@@ -324,9 +317,6 @@ void into_mtask() {
   load_tr(103 * 8);
   val task = task_run(create_task(&user_init, 5, 1));
   asm_set_ne;
-  task->fpu_enabled = true;
-  fpu_init();
-  fpu_disable();
   task_start(task);
 }
 
@@ -453,6 +443,9 @@ int task_fork() {
   if (!task_current->user_mode) return -1;
   val m = task_alloc();
   if (m == null) return -1;
+  m->fpu_enabled = task_current->fpu_enabled;
+  memcpy(m->kernel_extra_regs, task_current->kernel_extra_regs, 4096);
+  memcpy(m->extra_regs, task_current->extra_regs, 4096);
   with_no_interrupts({
     val stack       = (usize)page_alloc(STACK_SIZE);
     m->stack_bottom = stack + STACK_SIZE;

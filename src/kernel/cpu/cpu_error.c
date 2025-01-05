@@ -84,9 +84,8 @@ FASTCALL void ERROR13(i32 id, regs32 *regs) {
   val frame = regs;
   val task  = current_task;
   if (current_task->v86_mode != 1) {
-    error("fault, gp at 0x%x\n", frame->eip);
-    syscall_exit(1);
-    infinite_loop;
+    error("fault, gp at 0x%x", frame->eip);
+    task_abort();
   }
 
   u8  *ip           = (u8 *)FP_TO_LINEAR(frame->cs, frame->eip);

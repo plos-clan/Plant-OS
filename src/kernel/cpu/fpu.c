@@ -3,16 +3,6 @@
 task_t fpu_using_task  = null;
 bool   fpu_ctx_usermod = false; // 当前的 fpu 上下文是否是用户态的，否则是内核态的
 
-void fpu_disable() {
-  if (cpuids.fpu) asm_set_ts, asm_set_em;
-  if (cpuids.sse) asm_clr_mp;
-}
-
-void fpu_enable() {
-  if (cpuids.fpu) asm_clr_ts, asm_clr_em;
-  if (cpuids.sse) asm_set_mp;
-}
-
 void fpu_do_save(void *extra_regs) {
   if (cpuids.sse) {
     asm volatile("fxsave (%0)\n\t" ::"r"(extra_regs) : "memory");
@@ -24,22 +14,23 @@ void fpu_do_save(void *extra_regs) {
 }
 
 void fpu_save(void *extra_regs) {
-  bool em_seted = asm_get_cr0() & CR0_EM;
-  if (em_seted) fpu_enable();
+  bool ts_seted = asm_get_cr0() & CR0_TS;
+  if (ts_seted) asm_clr_ts;
   fpu_do_save(extra_regs);
-  if (em_seted) fpu_disable();
+  if (ts_seted) asm_set_ts;
 }
 
 void fpu_init() {
-  bool em_seted = asm_get_cr0() & CR0_EM;
-  if (em_seted) fpu_enable();
-  asm volatile("fnclex\n\tfninit\n\t" ::: "memory");
-  if (em_seted) fpu_disable();
+  bool ts_seted = asm_get_cr0() & CR0_TS;
+  if (ts_seted) asm_clr_ts;
+  if (cpuids.fpu) asm volatile("fnclex\n\tfninit\n\t");
+  const u32 value = 0x1f80;
+  if (cpuids.sse) asm volatile("ldmxcsr (%0)" ::"r"(&value));
+  if (ts_seted) asm_set_ts;
 }
 
 static void fpu_fix_ctx(task_t task, bool is_usermode) {
-  kassert(task->fpu_enabled);
-  fpu_enable();
+  asm_clr_ts;
 
   val old_regs =
       fpu_using_task == null ? null : //
@@ -48,7 +39,21 @@ static void fpu_fix_ctx(task_t task, bool is_usermode) {
 
   if (old_regs == new_regs) return;
 
-  if (old_regs) fpu_do_save(old_regs);
+  klogw("%d -> %d", fpu_using_task->tid, task->tid);
+  klogw("%p -> %p", old_regs, new_regs);
+
+  if (fpu_using_task && fpu_using_task->state != THREAD_DEAD) fpu_do_save(old_regs);
+
+  if (fpu_using_task) task_unref(fpu_using_task);
+  fpu_using_task  = task;
+  fpu_ctx_usermod = is_usermode;
+  task_ref(fpu_using_task);
+
+  if (!task->fpu_enabled) {
+    fpu_init();
+    task->fpu_enabled = true;
+    return;
+  }
 
   if (cpuids.sse) {
     asm volatile("fxrstor (%0) \n" ::"r"(new_regs) : "memory");
@@ -58,8 +63,7 @@ static void fpu_fix_ctx(task_t task, bool is_usermode) {
     fatal("FPU not supported");
   }
 
-  fpu_using_task  = task;
-  fpu_ctx_usermod = is_usermode;
+  asm volatile("fnclex\n\t");
 }
 
 FASTCALL void ERROR7(i32 id, regs32 *regs) {
