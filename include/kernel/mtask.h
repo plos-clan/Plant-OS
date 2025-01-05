@@ -37,7 +37,10 @@ typedef struct task {
                                 // AVX 4096
 } *task_t;
 
-#define current_task (get_current_task())
+extern task_t current_task;
+
+extern task_t fpu_using_task;  // 当前 fpu 上下文所属的进程
+extern bool   fpu_ctx_usermod; // 当前的 fpu 上下文是否是用户态的，否则是内核态的
 
 void fpu_copy_ctx(task_t dst, task_t src);
 

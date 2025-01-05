@@ -51,7 +51,7 @@ memtest_sub:                  ; u32 memtest_sub(u32 start, u32 end)
 	POP EDI
 	RET
 	
-	extern task_current
+	extern current_task
 	global asm_task_switch, asm_task_start
 	; 注意进入函数时必须 cli
 asm_task_switch:              ; void asm_task_switch(task_t current, task_t next) FASTCALL;

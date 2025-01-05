@@ -46,7 +46,10 @@ FASTCALL void inthandler(i32 id, regs32 *regs) {
     klogw("Unknown interrupt %02x (%d)", id, id);
   }
 
-  if (id != 0x07 && id != 0x2d) asm_set_ts;
+  if (id != 0x07 && id != 0x2d) {
+    val from_usermod = (regs->cs & 3) == 3;
+    (current_task == fpu_using_task && fpu_ctx_usermod == from_usermod) ? asm_clr_ts : asm_set_ts;
+  }
 }
 
 inthandler_t inthandler_get(i32 id) {

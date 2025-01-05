@@ -5,12 +5,11 @@
 // 内核栈不应该超过 64K
 #define STACK_SIZE (64 * 1024)
 
-TSS32  tss;
-task_t task_current = null;
-
-static avltree_t tasks      = null;
-static task_t    next_set   = null;
-struct task      empty_task = {.tid = -1, .cr3 = PD_ADDRESS};
+TSS32            tss;
+static avltree_t tasks        = null;
+static task_t    next_set     = null;
+struct task      empty_task   = {.tid = -1, .cr3 = PD_ADDRESS};
+task_t           current_task = &empty_task;
 
 // --------------------------------------------------
 //; 分配任务
@@ -183,29 +182,29 @@ extern void asm_task_switch(task_t current, task_t next) FASTCALL; // 切换任�
 extern void asm_task_start(task_t current, task_t next) FASTCALL;  // 开始任务
 
 finline void task_switch(task_t next) {
-  with_no_interrupts({
-    val task = task_current;
-    kassert(next != null, "Can't switch to null task");
-    kassert(task != null, "Can't switch from null task");
-    if (next == task) {
-      klogw("task_switch next == current");
-    } else {
+  val task = current_task;
+  kassert(next != null, "Can't switch to null task");
+  kassert(task != null, "Can't switch from null task");
+  if (next == task) {
+    klogw("task_switch next == current");
+  } else {
+    with_no_interrupts({
       task_ref(next);
       task_unref(task);
-      task_current = next;
+      current_task = next;
       asm_set_ts;
       asm_task_switch(task, next);
       kassert(task->state == THREAD_RUNNING);
-    }
-  });
+    });
+  }
 }
 
 __attr(noreturn) finline void task_start(task_t task) {
   asm_cli;
   kassert(task != null, "task_start null");
-  kassert(task_current == null);
+  kassert(current_task == &empty_task);
   task_ref(task);
-  task_current = task;
+  current_task = task;
   asm_set_ts;
   asm_task_start(null, task);
   klogf("task_start error");
@@ -217,7 +216,7 @@ __attr(noreturn) finline void task_start(task_t task) {
 extern task_t mouse_use_task;
 
 void task_tick() {
-  val task = task_current;
+  val task = current_task;
   kassert(task != null);
   if (task->state == THREAD_RUNNING) {
     task->running++;
@@ -229,7 +228,7 @@ void task_tick() {
 void task_next() {
   asm_cli;
 
-  val task = task_current;
+  val task = current_task;
   kassert(task != null);
 
   task->running = 0;
@@ -265,10 +264,10 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->esp      = (stack_frame *)esp - 1; // switch用到的栈帧
   t->esp->eip = (usize)entry;           // 设置跳转地址
 
-  if (task_current != null) {
-    t->ptid   = task_current->tid;
-    t->parent = task_current;
-    avltree_insert(task_current->children, t->tid, t);
+  if (current_task != null) {
+    t->ptid   = current_task->tid;
+    t->parent = current_task;
+    avltree_insert(current_task->children, t->tid, t);
   }
 
   t->cr3          = pd_clone(current_task->cr3);
@@ -284,7 +283,7 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
 }
 
 void task_to_user_mode(u32 eip, u32 esp) {
-  regs32 *iframe = (regs32 *)task_current->stack_bottom - 1;
+  regs32 *iframe = (regs32 *)current_task->stack_bottom - 1;
   *iframe        = (regs32){};
 
   iframe->gs    = 0;
@@ -297,16 +296,12 @@ void task_to_user_mode(u32 eip, u32 esp) {
   iframe->flags = (0 << 12 | 0b10 | 1 << 9);
   iframe->esp   = esp; // 设置用户态堆栈
 
-  task_current->user_mode = true;
-  tss.esp0                = task_current->stack_bottom;
+  current_task->user_mode = true;
+  tss.esp0                = current_task->stack_bottom;
 
   asm volatile("mov %0, %%esp\n\t" ::"r"(iframe));
   asm volatile("jmp asm_inthandler_quit\n\t");
   __builtin_unreachable();
-}
-
-task_t get_current_task() {
-  return task_current ?: &empty_task;
 }
 
 void into_mtask() {
@@ -411,12 +406,12 @@ void task_abort() {
 }
 
 i32 task_wait(task_t target) {
-  kassert(task_current != null);
+  kassert(current_task != null);
   if (target == null) return -1;
   task_ref(target);
 
-  task_ref(task_current);
-  list_prepend(target->waiting_list, task_current);
+  task_ref(current_task);
+  list_prepend(target->waiting_list, current_task);
 
   while (target->state != THREAD_DEAD) {
     task_fall_blocked();
@@ -434,7 +429,7 @@ i32 waittid(i32 tid) {
 }
 
 static void build_fork_stack(task_t task) {
-  val old_regs = (regs32 *)task_current->stack_bottom - 1;
+  val old_regs = (regs32 *)current_task->stack_bottom - 1;
   val regs     = (regs32 *)task->stack_bottom - 1;
   *regs        = *old_regs;
   regs->eax    = 0;
@@ -444,44 +439,44 @@ static void build_fork_stack(task_t task) {
 }
 
 int task_fork() {
-  if (!task_current->user_mode) return -1;
+  if (!current_task->user_mode) return -1;
   val m = task_alloc();
   if (m == null) return -1;
-  fpu_copy_ctx(m, task_current);
+  fpu_copy_ctx(m, current_task);
   with_no_interrupts({
     val stack       = (usize)page_alloc(STACK_SIZE);
     m->stack_bottom = stack + STACK_SIZE;
-    if (task_current->press_key_fifo) {
+    if (current_task->press_key_fifo) {
       m->press_key_fifo = malloc(sizeof(struct cir_queue8));
-      memcpy(m->press_key_fifo, task_current->press_key_fifo, sizeof(struct cir_queue8));
+      memcpy(m->press_key_fifo, current_task->press_key_fifo, sizeof(struct cir_queue8));
       m->press_key_fifo->buf = page_alloc(4096);
-      memcpy(m->press_key_fifo->buf, task_current->press_key_fifo->buf, 4096);
+      memcpy(m->press_key_fifo->buf, current_task->press_key_fifo->buf, 4096);
     }
-    if (task_current->release_keyfifo) {
+    if (current_task->release_keyfifo) {
       m->release_keyfifo = malloc(sizeof(struct cir_queue8));
-      memcpy(m->release_keyfifo, task_current->release_keyfifo, sizeof(struct cir_queue8));
+      memcpy(m->release_keyfifo, current_task->release_keyfifo, sizeof(struct cir_queue8));
       m->release_keyfifo->buf = page_alloc(4096);
-      memcpy(m->release_keyfifo->buf, task_current->release_keyfifo->buf, 4096);
+      memcpy(m->release_keyfifo->buf, current_task->release_keyfifo->buf, 4096);
     }
-    if (task_current->keyfifo) {
+    if (current_task->keyfifo) {
       m->keyfifo = malloc(sizeof(struct cir_queue8));
-      memcpy(m->keyfifo, task_current->keyfifo, sizeof(struct cir_queue8));
+      memcpy(m->keyfifo, current_task->keyfifo, sizeof(struct cir_queue8));
       m->keyfifo->buf = page_malloc_one();
-      memcpy(m->keyfifo->buf, task_current->keyfifo->buf, 4096);
+      memcpy(m->keyfifo->buf, current_task->keyfifo->buf, 4096);
     }
-    if (task_current->mousefifo) {
+    if (current_task->mousefifo) {
       m->mousefifo = malloc(sizeof(struct cir_queue8));
-      memcpy(m->mousefifo, task_current->mousefifo, sizeof(struct cir_queue8));
+      memcpy(m->mousefifo, current_task->mousefifo, sizeof(struct cir_queue8));
       m->mousefifo->buf = page_malloc_one();
-      memcpy(m->mousefifo->buf, task_current->mousefifo->buf, 4096);
+      memcpy(m->mousefifo->buf, current_task->mousefifo->buf, 4096);
     }
-    m->cr3       = pd_clone(task_current->cr3);
+    m->cr3       = pd_clone(current_task->cr3);
     m->user_mode = true;
     m->running   = 0;
     m->jiffies   = 0;
     m->timeout   = 1;
-    m->ptid      = task_current->tid;
-    m->parent    = task_current;
+    m->ptid      = current_task->tid;
+    m->parent    = current_task;
     build_fork_stack(m);
   });
   task_run(m);

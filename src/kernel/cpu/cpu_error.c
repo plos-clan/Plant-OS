@@ -1,11 +1,11 @@
 #include <kernel.h>
 
 static inthandler_f error_inthandler;
-static inthandler_f irq13;
+static inthandler_f ERROR13;
 
 // 从 fpu.c 导入
 inthandler_f ERROR7;
-inthandler_f ERROR13;
+inthandler_f irq13;
 
 // View https://wiki.osdev.org/Exceptions for more information
 

@@ -1,7 +1,7 @@
 #include <kernel.h>
 
-static task_t fpu_using_task  = null;
-static bool   fpu_ctx_usermod = false; // 当前的 fpu 上下文是否是用户态的，否则是内核态的
+task_t fpu_using_task  = null;  // 当前 fpu 上下文所属的进程
+bool   fpu_ctx_usermod = false; // 当前的 fpu 上下文是否是用户态的，否则是内核态的
 
 static void fpu_save(void *extra_regs) {
   if (cpuids.avx) {
