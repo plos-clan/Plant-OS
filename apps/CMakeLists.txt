@@ -3,6 +3,8 @@ add_subdirectory(include)
 include(../cmake/use-ubscan)
 
 include_directories("${CMAKE_SOURCE_DIR}/apps/include")
+include_directories("${CMAKE_SOURCE_DIR}/apps/include/c")
+include_directories("${CMAKE_SOURCE_DIR}/apps/include/c++")
 link_directories("${CMAKE_SOURCE_DIR}/apps/lib")
 
 add_exe_link_flag("-static -Wl,-Ttext=0x70000000 -e __libc_start_main")
