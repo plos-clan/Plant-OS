@@ -4,3 +4,4 @@ nav:
   - 计划: todo
   - 库: libraries
   - 历史: history.md
+  - 编译: compile.md

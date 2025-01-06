@@ -22,8 +22,8 @@ check() {
   if [ "$GITHUB_ACTIONS" = "true" ]; then
     $*
   else
-    $* &>>init.log
     echo "$ $*" >>init.log
+    $* &>>init.log
   fi
   retcode=$?
   if [ $retcode -ne 0 ]; then
@@ -97,33 +97,35 @@ ln -s ../src/boot/netlog.py netlog.py &>>init.log
 ln -s ../src/boot/templates templates &>>init.log
 cd ..
 
+# 资源镜像站设置，默认为 'plos-resources.pages.dev'
+SRC_MIRROR_SITE='plos-resources.pages.dev'
 # 由于挂载资源的网站在某些地区无法正常访问，因此我们提供了一些等效的资源网站
 # 开发者如果因网络问题无法下载资源，可以替换域名后尝试
 # 目前支持的镜像资源站有：
-# plos-rsc.github.io
+#   plos-rsc.github.io
 
 cd ./bin
 info 下载资源文件
 check_command curl '需要使用 curl 来下载资源文件'
 check_command unzip '需要使用 unzip 来解压资源文件'
 info 下载并解压系统必须资源文件...
-check curl -O 'https://plos-resources.pages.dev/resource-files.zip'
+check curl -O "https://${SRC_MIRROR_SITE}/resource-files.zip"
 check unzip resource-files.zip
 check rm resource-files.zip
 if [ "$GITHUB_ACTIONS" = "true" ]; then
   info 'GitHub Actions 中跳过下载并解压其它资源文件'
 else
   info 下载并解压其它资源文件...
-  check curl -O 'https://plos-resources.pages.dev/ext-resources.zip'
+  check curl -O "https://${SRC_MIRROR_SITE}/ext-resources.zip"
   check unzip ext-resources.zip
   check rm ext-resources.zip
-  check curl -O 'https://plos-resources.pages.dev/Ligconsolata-Regular.ttf'
-  check curl -O 'https://plos-resources.pages.dev/SourceHanSans-Light.ttc'
+  check curl -O "https://${SRC_MIRROR_SITE}/Ligconsolata-Regular.ttf"
+  check curl -O "https://${SRC_MIRROR_SITE}/SourceHanSans-Light.ttc"
 fi
 cd ..
 cd ./apps/lib
 info 下载并解压应用程序资源文件...
-check curl -O 'https://plos-resources.pages.dev/lib.zip'
+check curl -O "https://${SRC_MIRROR_SITE}/lib.zip"
 check unzip lib.zip
 check rm lib.zip
 cd ../..
