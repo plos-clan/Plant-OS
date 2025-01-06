@@ -3,10 +3,10 @@
 #define PIDX(addr) ((usize)(addr) >> 12)           // 获取 addr 的页索引
 #define PDI(addr)  (((usize)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
 #define PTI(addr)  (((usize)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PADDR(idx) ((usize)(idx) << 12)            // 获取页索引 idx 对应的页开始的位置
 
 #define pdeof(addr, pd) ((PDE *)(pd) + PDI(addr))
 #define pteof(addr, pt) ((PTE *)(pt) + PTI(addr))
+#define paddr(entry)    (((PTE *)(entry))->addr << 12)
 
 //* ----------------------------------------------------------------------------------------------------
 //; 页表管理
@@ -60,7 +60,7 @@ usize pd_clone(usize addr) {
     var pde = &pd[i];
     pages[pde->addr].count++;
     pde->wrable = false;
-    var pt      = (PTE *)(pde->addr << 12);
+    var pt      = (PTE *)paddr(pde);
     for (usize j = 0; j < 1024; j++) {
       var pte = &pt[j];
       if (pte->user) pages[pte->addr].count++;
@@ -88,7 +88,7 @@ void pd_free(usize addr) {
     val pde = (PDE *)addr + i;
     if (!pde->present || !pde->user) continue;
     for (usize j = 0; j < 1024; j++) {
-      val pte = (PTE *)(pde->addr << 12) + j;
+      val pte = (PTE *)(paddr(pde)) + j;
       if (!pte->present || !pte->user) continue;
       pages[pte->addr].count--;
     }
@@ -99,35 +99,35 @@ void pd_free(usize addr) {
 }
 
 void page_link2(usize addr, usize pd) {
-  u32 cr3_backup    = current_task->cr3;
+  val cr3_backup    = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
-  u32  t   = PDI(addr);
-  u32  p   = PTI(addr);
-  PDE *pde = (PDE *)((pd + t * 4));
+
+  val pde = pdeof(addr, pd);
 
   // 其实我们应该判断一下这里user能不能写的
   // 但是大多数情况下pde都比较干净，所以先不判断了
+  // TODO ?????
   if (pages[pde->addr].count > 1) {
     // 这个页目录还有人引用，所以需要复制
     pages[pde->addr].count--;
-    void *old = (void *)PADDR(pde->addr);
+    void *old = (void *)paddr(pde);
     pde->addr = PIDX(page_malloc_one_count_from_4gb());
-    memcpy((void *)(PADDR(pde->addr)), old, PAGE_SIZE);
+    memcpy((void *)paddr(pde), old, PAGE_SIZE);
   }
   pde->wrable  = true;
   pde->user    = true;
   pde->present = true;
 
-  PTE *physics = (PTE *)(PADDR(pde->addr) + p * 4); // PTE页表
+  val pte = pteof(addr, paddr(pde));
   // COW
   // 本来就不是给你用户访问的就不需要操作引用计数了
   // 这里不需要大于1,因为我们就相当于是抛弃了原来的页
-  if (pages[physics->addr].count && physics->user) { pages[physics->addr].count--; }
-  physics->addr    = PIDX(page_malloc_one_count_from_4gb());
-  physics->wrable  = true;
-  physics->user    = true;
-  physics->present = true;
+  if (pages[pte->addr].count && pte->user) { pages[pte->addr].count--; }
+  pte->addr    = PIDX(page_malloc_one_count_from_4gb());
+  pte->wrable  = true;
+  pte->user    = true;
+  pte->present = true;
   flush_tlb((void *)pde);
   flush_tlb(addr);
   current_task->cr3 = cr3_backup;
@@ -135,37 +135,35 @@ void page_link2(usize addr, usize pd) {
 }
 
 void page_link_addr_pde(usize addr, usize pd, usize map_addr) {
-  u32 cr3_backup    = current_task->cr3;
+  val cr3_backup    = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
-  u32 t, p;
-  t        = PDI(addr);
-  p        = PTI(addr);
-  PDE *pde = (PDE *)((pd + t * 4));
+
+  val pde = pdeof(addr, pd);
 
   // 其实我们应该判断一下这里user能不能写的
   // 但是大多数情况下pde都比较干净，所以先不判断了
   if (pages[pde->addr].count > 1) {
     // 这个页目录还有人引用，所以需要复制
     pages[pde->addr].count--;
-    void *old = (void *)PADDR(pde->addr);
+    void *old = (void *)paddr(pde);
     pde->addr = PIDX(page_malloc_one_count_from_4gb());
-    memcpy((void *)(PADDR(pde->addr)), old, PAGE_SIZE);
+    memcpy((void *)paddr(pde), old, PAGE_SIZE);
   }
   pde->wrable  = true;
   pde->user    = true;
   pde->present = true;
 
-  var physics = (PTE *)(PADDR(pde->addr) + p * 4); // PTE页表
+  val pte = pteof(addr, paddr(pde));
 
   // COW
   // 这里不需要大于1,因为我们就相当于是抛弃了原来的页
-  if (pages[physics->addr].count && physics->user) pages[physics->addr].count--;
+  if (pages[pte->addr].count && pte->user) pages[pte->addr].count--;
   pages[PIDX(map_addr)].count++;
-  physics->addr    = PIDX(map_addr);
-  physics->wrable  = true;
-  physics->user    = true;
-  physics->present = true;
+  pte->addr    = PIDX(map_addr);
+  pte->wrable  = true;
+  pte->user    = true;
+  pte->present = true;
   flush_tlb((void *)pde);
   flush_tlb(addr);
   current_task->cr3 = cr3_backup;
@@ -301,7 +299,7 @@ void page_unlink_pd(usize addr, usize pd) {
     pde->user    = true;
   }
 
-  var pte = pteof(addr, pde->addr << 12);
+  var pte = pteof(addr, paddr(pde));
   if (pages[pte->addr].count && pte->user) pages[pte->addr].count--;
   pte->present = false;
   flush_tlb((u32)pde);
@@ -327,51 +325,28 @@ void init_paging() {
   asm_set_pg;
 }
 
-int get_page_from_line_address(int line_address) {
-  int t, p, page;
-  t = line_address >> 22;
-  p = (line_address >> 12) & 0x3ff;
-  tpo2page(&page, t, p);
-  return page;
-}
-
-void page2tpo(int page, int *t, int *p) {
-  *t = page / 1024;
-  *p = page % 1024;
-}
-
 void tpo2page(int *page, int t, int p) {
   *page = (t * 1024) + p;
 }
 
 void *page_malloc_one() {
-  for (usize i = 0; i != 1024 * 1024; i++) {
+  for (isize i = 0; i < 1024 * 1024; i++) {
     if (pages[i].count == 0) {
-      int t, p;
-      page2tpo(i, &t, &p);
-      u32 addr = mk_linear_addr(t, p, 0);
       pages[i].count++;
-      return (void *)addr;
+      return (void *)(i << 12);
     }
   }
   return null;
 }
 
 void *page_malloc_one_count_from_4gb() {
-  for (usize i = PIDX(total_mem_size) - 1; i >= 0; i--) {
+  for (isize i = PIDX(total_mem_size) - 1; i >= 0; i--) {
     if (pages[i].count == 0) {
-      u32 addr = PADDR(i);
       pages[i].count++;
-      return (void *)addr;
+      return (void *)(i << 12);
     }
   }
   return null;
-}
-
-int get_pageinpte_address(int t, int p) {
-  int page;
-  tpo2page(&page, t, p);
-  return (PT_ADDRESS + page * 4);
 }
 
 static usize page_alloc_line_cache = 0;
@@ -401,9 +376,7 @@ void *page_alloc(usize size) {
   val npages = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
   val idx    = find_kpage(0, npages);
   if (idx < 0) return null;
-  int t, p;
-  page2tpo(idx, &t, &p);
-  val addr = (void *)mk_linear_addr(t, p, 0);
+  val addr = (void *)(idx << 12);
   memset(addr, 0, npages * PAGE_SIZE);
   return addr;
 }
@@ -419,16 +392,12 @@ void page_free(void *ptr, usize size) {
   }
 }
 
-void *phy_addr_from_linear_addr(void *line) {
-  int t, p;
-  page2tpo(get_page_from_line_address((int)line), &t, &p);
-  return (void *)(*(int *)get_pageinpte_address(t, p));
+static void *phy_addr_from_linear_addr(void *line) {
+  return (void *)(*(usize *)getlinearpte((usize)line));
 }
 
-void set_phy_addr_of_linear_addr(void *line, void *phy) {
-  int t, p;
-  page2tpo(get_page_from_line_address((int)line), &t, &p);
-  *(int *)get_pageinpte_address(t, p) = (int)phy;
+static void set_phy_addr_of_linear_addr(void *line, void *phy) {
+  *(usize *)getlinearpte((usize)line) = (usize)phy;
 }
 
 // 映射地址
@@ -447,9 +416,9 @@ void page_map(void *target, void *start, void *end) {
 }
 
 usize page_get_attr2(usize addr, usize pd) {
-  var pde = pdeof(addr, pd);
-  var pte = pteof(addr, pde->addr << 12);
-  return *(usize *)pte & 0xfff;
+  val pde = pdeof(addr, pd);
+  val pte = pteof(addr, paddr(pde));
+  return *(const usize *)pte & 0xfff;
 }
 
 usize page_get_attr1(usize addr) {
@@ -457,9 +426,9 @@ usize page_get_attr1(usize addr) {
 }
 
 usize page_get_phy2(usize addr, usize pd) {
-  var pde = pdeof(addr, pd);
-  var pte = pteof(addr, pde->addr << 12);
-  return pte->addr << 12;
+  val pde = pdeof(addr, pd);
+  val pte = pteof(addr, paddr(pde));
+  return paddr(pte);
 }
 
 usize page_get_phy1(usize addr) {
@@ -513,7 +482,7 @@ void copy_on_write(u32 vaddr) {
     u32 attr = old_pte & 0x00000fff;
 
     // 设置PWU
-    attr = attr | PAGE_WRABLE;
+    attr |= PAGE_WRABLE;
 
     // 计算新PTE
     u32 new_pte  = 0;
@@ -525,13 +494,13 @@ void copy_on_write(u32 vaddr) {
     *(u32 *)pte = new_pte;
   FLUSH:
     // 刷新TLB快表
-    flush_tlb((u32)pte);
+    flush_tlb(pte);
   }
-  flush_tlb((u32)vaddr);
+  flush_tlb(vaddr);
 }
 
 // 设置页属性和物理地址
-void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
+void page_set_physics_attr(usize vaddr, void *paddr, usize attr) {
   u32 cr3_backup    = current_task->cr3;
   current_task->cr3 = PD_ADDRESS;
   asm_set_cr3(PD_ADDRESS);
@@ -544,10 +513,8 @@ void page_set_physics_attr(u32 vaddr, void *paddr, u32 attr) {
     u32 old = *pte & 0xfffff000;
     *pte    = (u32)page_malloc_one_count_from_4gb();
     memcpy((void *)(*pte), (void *)old, PAGE_SIZE);
-    *pte |= 7;
-  } else {
-    *pte |= 7;
   }
+  *pte |= 7;
 
   u32 *physics = (u32 *)((*pte & 0xfffff000) + p * 4);
 
@@ -593,7 +560,7 @@ FASTCALL void page_fault(i32 id, regs32 *regs) {
   val addr = asm_get_cr2();
 
   var pde = pdeof(addr, pd);
-  var pte = pteof(addr, pde->addr << 12);
+  var pte = pteof(addr, paddr(pde));
 
   if (!pte->present || !pte->user) {
     info("task %d", current_task->tid);
@@ -630,11 +597,11 @@ void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
 //* ----------------------------------------------------------------------------------------------------
 
 bool check_address_permission3(const void *addr, bool wr, usize cr3) {
-  var pde = pdeof(addr, cr3);
+  val pde = pdeof(addr, cr3);
   if (!pde->present) return false;
   if (wr && !pde->wrable) return false;
   if (!pde->user) return false;
-  var pte = pteof(addr, pde->addr << 12);
+  val pte = pteof(addr, paddr(pde));
   if (!pte->present) return false;
   if (wr && !pte->wrable) return false;
   if (!pte->user) return false;

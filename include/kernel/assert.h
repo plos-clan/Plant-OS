@@ -13,5 +13,6 @@
         asm_cli, asm_hlt;                                                                          \
       }                                                                                            \
     }                                                                                              \
+    __builtin_assume(_val_);                                                                       \
     _val_;                                                                                         \
   })

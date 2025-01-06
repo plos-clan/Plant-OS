@@ -3,7 +3,6 @@
 #define PIDX(addr) ((u32)addr >> 12)           // 获取 addr 的页索引
 #define PDI(addr)  (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
 #define PTI(addr)  (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
-#define PADDR(idx) ((u32)idx << 12)            // 获取页索引 idx 对应的页开始的位置
 
 extern PageInfo *pages;
 
