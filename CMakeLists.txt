@@ -127,6 +127,10 @@ add_compile_flag("-fno-pic -fno-pie") # 不使用 pic 和 pie
 add_compile_flag("-fno-asynchronous-unwind-tables")
 add_compile_flag("-fno-exceptions")
 
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_compile_flag("-ffreestanding") # GCC 编译必须全局 freestanding
+endif()
+
 set(USE_UBSCAN OFF)
 if(USE_UBSCAN)
   add_compile_definitions(USE_UBSCAN=1)

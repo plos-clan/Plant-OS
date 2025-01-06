@@ -20,6 +20,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     add_compile_flag("-fseparate-named-sections") # 对命名部分使用单独的段
   endif()
   add_compile_flag("-fshort-enums") # 为枚举类型分配声明的可能值范围所需的字节数
+  add_compile_flag("-ftree-vectorize") # 启用树形向量化
   add_compile_flag("-ftree-slp-vectorize") # 启用树形 SLP 向量化
   add_compile_flag("-fsplit-lto-unit") # 将 LTO 单元拆分为更小的单元
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)

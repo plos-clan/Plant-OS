@@ -27,11 +27,7 @@
 #define CONCAT_(a, b) a##b
 #define CONCAT(a, b)  CONCAT_(a, b)
 
-#ifdef __clang__
-#  define assume(expr) (__builtin_assume(expr))
-#else
-#  define assume(expr) ((void)0)
-#endif
+#define assume(expr) (__builtin_assume(expr))
 
 #define likely(expr)   (__builtin_expect(!!(expr), 1))
 #define unlikely(expr) (__builtin_expect(!!(expr), 0))
