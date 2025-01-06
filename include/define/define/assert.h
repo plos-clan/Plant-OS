@@ -16,6 +16,7 @@
       } else {                                                                                     \
         fatal("assert " #expr " failed: " __VA_ARGS__);                                            \
       }                                                                                            \
+      __builtin_assume(_val_);                                                                     \
       _val_;                                                                                       \
     })
 
@@ -23,6 +24,7 @@
     ({                                                                                             \
       __auto_type _val_ = (expr);                                                                  \
       if (!_val_) fatal("assert " #expr " failed: " __VA_ARGS__);                                  \
+      __builtin_assume(_val_);                                                                     \
       _val_;                                                                                       \
     })
 
@@ -30,16 +32,18 @@
     ({                                                                                             \
       __auto_type _val1_ = (expr1);                                                                \
       __auto_type _val2_ = (expr2);                                                                \
-      if (!(_val1_ == _val2_)) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);      \
-      _va1_;                                                                                       \
+      __auto_type _val_  = _val1_ == _val2_;                                                       \
+      if (!_val_) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);                   \
+      __builtin_assume(_val_);                                                                     \
     })
 
 #  define assert_ne(expr1, expr2, ...)                                                             \
     ({                                                                                             \
       __auto_type _val1_ = (expr1);                                                                \
       __auto_type _val2_ = (expr2);                                                                \
-      if (!(_val1_ != _val2_)) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);      \
-      _va1_;                                                                                       \
+      __auto_type _val_  = _val1_ != _val2_;                                                       \
+      if (!_val_) fatal("assert " #expr1 " != " #expr2 " failed: " __VA_ARGS__);                   \
+      __builtin_assume(_val_);                                                                     \
     })
 
 #  define TODO(...) ({ fatal("TODO: " __VA_ARGS__); })
@@ -54,6 +58,7 @@
       } else {                                                                                     \
         fatal("assert " #expr " failed: " __VA_ARGS__);                                            \
       }                                                                                            \
+      __builtin_assume(_val_);                                                                     \
       _val_;                                                                                       \
     })
 
@@ -61,6 +66,7 @@
     ({                                                                                             \
       val &_val_ = (expr);                                                                         \
       if (!_val_) fatal("assert " #expr " failed: " __VA_ARGS__);                                  \
+      __builtin_assume(_val_);                                                                     \
       _val_;                                                                                       \
     })
 
@@ -68,16 +74,18 @@
     ({                                                                                             \
       val &_val1_ = (expr1);                                                                       \
       val &_val2_ = (expr2);                                                                       \
-      if (!(_val1_ == _val2_)) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);      \
-      _va1_;                                                                                       \
+      val &_val_  = _val1_ == _val2_;                                                              \
+      if (!_val_) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);                   \
+      __builtin_assume(_val_);                                                                     \
     })
 
 #  define assert_ne(expr1, expr2, ...)                                                             \
     ({                                                                                             \
       val &_val1_ = (expr1);                                                                       \
       val &_val2_ = (expr2);                                                                       \
-      if (!(_val1_ != _val2_)) fatal("assert " #expr1 " == " #expr2 " failed: " __VA_ARGS__);      \
-      _va1_;                                                                                       \
+      val &_val_  = _val1_ != _val2_;                                                              \
+      if (!_val_) fatal("assert " #expr1 " != " #expr2 " failed: " __VA_ARGS__);                   \
+      __builtin_assume(_val_);                                                                     \
     })
 
 #  define TODO(...) ({ fatal("TODO: " __VA_ARGS__); })

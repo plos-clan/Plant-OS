@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar) {
+void set_segmdesc(SegmentDescriptor *sd, usize limit, usize base, u32 ar) {
   if (limit > 0xfffff) {
     ar    |= 0x8000; // G_bit = 1
     limit /= 0x1000;
@@ -11,14 +11,22 @@ void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar) {
   sd->access_right = ar & 0xff;
   sd->limit_high   = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
   sd->base_high    = (base >> 24) & 0xff;
+#ifdef __x86_64__
+  sd->base_upper = (base >> 32) & 0xffffffff;
+  sd->reserved   = 0;
+#endif
 }
 
-void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar) {
+void set_gatedesc(GateDescriptor *gd, usize offset, u16 selector, u32 ar) {
   gd->offset_low   = offset & 0xffff;
   gd->selector     = selector;
   gd->dw_count     = (ar >> 8) & 0xff;
   gd->access_right = ar & 0xff;
   gd->offset_high  = (offset >> 16) & 0xffff;
+#ifdef __x86_64__
+  gd->offset_upper = (offset >> 32) & 0xffffffff;
+  gd->reserved     = 0;
+#endif
 }
 
 // --------------------------------------------------
@@ -67,7 +75,7 @@ inthandler_t inthandler_set(i32 id, inthandler_t handler) {
 // --------------------------------------------------
 //; 初始化GDT和IDT
 
-extern void asm_inthandler() __attr(naked);
+ASMFUNC void asm_inthandler();
 
 void init_gdtidt() {
   // 初始化 GDT

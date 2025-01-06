@@ -1,6 +1,8 @@
 #pragma once
 #include <define.h>
 
+#define ASMFUNC extern __attr(naked)
+
 // HLT
 #define asm_hlt ({ asm volatile("hlt\n\t" ::: "memory"); })
 

@@ -1,12 +1,19 @@
 #pragma once
 #include <define.h>
 
+#ifdef __x86_64__
+#  define RING0_CS (1 * 16)
+#  define RING0_DS (2 * 16)
+#  define RING3_CS (3 * 16)
+#  define RING3_DS (4 * 16)
+#else
 // 遵守 sysenter/sysexit 的要求
 // 原则上不应该修改，如要修改需同时修改汇编中的定义
-#define RING0_CS (1 * 8)
-#define RING0_DS (2 * 8)
-#define RING3_CS (3 * 8)
-#define RING3_DS (4 * 8)
+#  define RING0_CS (1 * 8)
+#  define RING0_DS (2 * 8)
+#  define RING3_CS (3 * 8)
+#  define RING3_DS (4 * 8)
+#endif
 
 typedef struct {
   u32 edi, esi, ebp, _, ebx, edx, ecx, eax;
@@ -31,8 +38,7 @@ typedef struct __PACKED__ TSS32 {
   byte io_map[8192];
 } TSS32;
 
-#define IDT_ADDR 0x0026f800 // IDT 地址
-
+#define IDT_ADDR     0x0026f800 // IDT 地址
 #define IDT_LEN      256
 #define GDT_ADDR     0x00270000 // GDT 地址
 #define GDT_LEN      8192
@@ -52,6 +58,10 @@ typedef struct SegmentDescriptor {
   byte access_right;
   byte limit_high;
   byte base_high;
+#ifdef __x86_64__
+  u32 base_upper;
+  u32 reserved;
+#endif
 } SegmentDescriptor;
 
 typedef struct GateDescriptor {
@@ -60,10 +70,14 @@ typedef struct GateDescriptor {
   byte dw_count;
   byte access_right;
   u16  offset_high;
+#ifdef __x86_64__
+  u32 offset_upper;
+  u32 reserved;
+#endif
 } GateDescriptor;
 
-void set_segmdesc(SegmentDescriptor *sd, u32 limit, u32 base, u32 ar);
-void set_gatedesc(GateDescriptor *gd, size_t offset, u32 selector, u32 ar);
+void set_segmdesc(SegmentDescriptor *sd, usize limit, usize base, u32 ar);
+void set_gatedesc(GateDescriptor *gd, usize offset, u16 selector, u32 ar);
 
 typedef struct regs16 {
   u16 di, si, bp, _, bx, dx, cx, ax;

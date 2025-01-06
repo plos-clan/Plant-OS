@@ -27,6 +27,11 @@
 #define CONCAT_(a, b) a##b
 #define CONCAT(a, b)  CONCAT_(a, b)
 
+#define assume(expr) (__builtin_assume(expr))
+
+#define likely(expr)   (__builtin_expect(!!(expr), 1))
+#define unlikely(expr) (__builtin_expect(!!(expr), 0))
+
 #if STD_SAFE_API
 #  define __std_safe__(...) ((void)({__VA_ARGS__}))
 #else
