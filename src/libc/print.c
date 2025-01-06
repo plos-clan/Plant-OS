@@ -17,3 +17,9 @@ int puts(cstr s) {
   print("\n");
   return 0;
 }
+
+int putchar(int c) {
+  char ch[2] = {c, '\0'};
+  print(ch);
+  return c;
+}

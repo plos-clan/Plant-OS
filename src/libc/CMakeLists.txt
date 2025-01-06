@@ -1,4 +1,5 @@
 # include(../../cmake/use-ubscan)
+add_compile_flag("-ffreestanding")
 mklib(c)
 tgtlib(c c-base sys)
 libdef(c RING3=1 LIBC=1)

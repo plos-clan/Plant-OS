@@ -106,7 +106,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 add_compile_flag("-m32 -mmmx -msse -msse2 -msse3")
 add_compile_flag("-nostdlib -nostdinc") # 不使用标准库和标准头
-add_compile_flag("-ffreestanding") # 我们希望我们的标准库函数能够有和标准库一样的行为，所以我们希望可以不设置此项
 # add_link_flag("-nolibc -Qn") # 告诉编译器没有标准库 (但似乎不需要这个)
 
 include(cmake/optim) # 优化选项

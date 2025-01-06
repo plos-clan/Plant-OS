@@ -49,7 +49,7 @@ static void handle_tab(cstr buf, pl_readline_words_t words) {
   char *s = malloc(strlen(buf) + 2);
   memcpy(s, buf, strlen(buf) + 1);
   if (strlen(s)) {
-    for (int i = strlen(s); i >= 0; i--) {
+    for (isize i = strlen(s); i >= 0; i--) {
       if (s[i] == '/') {
         s[i + 1] = '\0';
         break;
