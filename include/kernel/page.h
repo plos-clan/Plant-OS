@@ -11,8 +11,8 @@
 #define PAGE_DIRTY   MASK(6)  // 脏页
 #define PAGE_GLOBAL  MASK(8)  // 全局页
 #define PAGE_BIT9    MASK(9)  // 可自定义位 (bit9)
-#define PAGE_BIT10   MASK(10) // 可自定义位 (bit9)
-#define PAGE_BIT11   MASK(11) // 可自定义位 (bit9)
+#define PAGE_BIT10   MASK(10) // 可自定义位 (bit10)
+#define PAGE_BIT11   MASK(11) // 可自定义位 (bit11)
 #define PAGE_SHARED  MASK(10) // 自定义的
 #define PAGE_NX      MASK(63) // 不可执行
 

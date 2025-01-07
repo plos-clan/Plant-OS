@@ -2,7 +2,6 @@
 
 <div>
   <img id="logo"src="https://plos-logo.copi143.workers.dev" width="200" height="200" align="right">
-  <!-- 这不好笑 -->
 </div>
 
 A simple OS used to study made by several students。

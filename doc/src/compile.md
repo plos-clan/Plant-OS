@@ -143,6 +143,6 @@ make make
 
 ## 若编译时报错
 
-~~如果编译时出现报错 `undefined reference to` `__udivdi3` `__umoddi3` `__divdi3` `__moddi3` 等，可以尝试链接 `libgcc` 库 (`-lgcc`)~~ <span style="color: orange">已经修复</span>
+??~~如果编译时出现报错 `undefined reference to` `__udivdi3` `__umoddi3` `__divdi3` `__moddi3` 等，可以尝试链接 `libgcc` 库 (`-lgcc`)~~?? <span style="color: orange">已经修复</span>
 
 如果在 gcc11 或更早版本中编译时出现异常，可删除项目根目录 `CMakeLists.txt` 中的 `include(cmake/lto)`

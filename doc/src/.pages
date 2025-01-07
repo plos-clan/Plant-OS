@@ -1,7 +1,8 @@
 nav:
   - 主页: index.md
-  - 项目状态: projects.md
+  - 项目状态: projects
   - 计划: todo
   - 库: libraries
   - 历史: history.md
   - 编译: compile.md
+  - 内核: kernel
