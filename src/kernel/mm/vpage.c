@@ -14,13 +14,6 @@
 
 static inthandler_f page_fault;
 
-// 刷新虚拟地址 vaddr 的 块表 TLB
-finline void flush_tlb(usize vaddr) {
-  asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
-}
-
-#define flush_tlb(vaddr) flush_tlb((usize)(vaddr))
-
 PageInfo *pages = (PageInfo *)PAGE_MANNAGER;
 
 static void init_pdepte(size_t *pd, size_t *pt, size_t *page_end) {

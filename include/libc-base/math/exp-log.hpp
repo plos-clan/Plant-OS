@@ -8,10 +8,10 @@ namespace cpp {
 //; 对数 指数 幂
 
 #if __has(exp2)
-static __attr(const) auto exp2(f32 x) -> f32 {
+inline_const auto exp2(f32 x) -> f32 {
   return __builtin_exp2f(x);
 }
-static __attr(const) auto exp2(f64 x) -> f64 {
+inline_const auto exp2(f64 x) -> f64 {
   return __builtin_exp2(x);
 }
 #else
@@ -38,10 +38,10 @@ static __attr(const) auto exp2(f64 x) -> f64 {
 #endif
 
 #if __has(exp)
-static __attr(const) auto exp(f32 x) -> f32 {
+inline_const auto exp(f32 x) -> f32 {
   return __builtin_expf(x);
 }
-static __attr(const) auto exp(f64 x) -> f64 {
+inline_const auto exp(f64 x) -> f64 {
   return __builtin_exp(x);
 }
 #else
@@ -70,10 +70,10 @@ static __attr(const) auto exp(f64 x) -> f64 {
 #endif
 
 #if __has(log2)
-static __attr(const) auto log2(f32 x) -> f32 {
+inline_const auto log2(f32 x) -> f32 {
   return __builtin_log2f(x);
 }
-static __attr(const) auto log2(f64 x) -> f64 {
+inline_const auto log2(f64 x) -> f64 {
   return __builtin_log2(x);
 }
 #else
@@ -103,7 +103,7 @@ static __attr(const) auto log2(f64 x) -> f64 {
 }
 #endif
 
-static __attr(const) auto pow(f32 a, u32 b) -> f32 {
+inline_const auto pow(f32 a, u32 b) -> f32 {
   f32 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -113,11 +113,11 @@ static __attr(const) auto pow(f32 a, u32 b) -> f32 {
   return r;
 }
 
-static __attr(const) auto pow(f32 a, i32 b) -> f32 {
+inline_const auto pow(f32 a, i32 b) -> f32 {
   return b < 0 ? 1 / pow(a, (u32)-b) : pow(a, (u32)b);
 }
 
-static __attr(const) auto pow(i32 a, u32 b) -> i32 {
+inline_const auto pow(i32 a, u32 b) -> i32 {
   i32 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -127,7 +127,7 @@ static __attr(const) auto pow(i32 a, u32 b) -> i32 {
   return r;
 }
 
-static __attr(const) auto pow(f64 a, u64 b) -> f64 {
+inline_const auto pow(f64 a, u64 b) -> f64 {
   f64 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -137,11 +137,11 @@ static __attr(const) auto pow(f64 a, u64 b) -> f64 {
   return r;
 }
 
-static __attr(const) auto pow(f64 a, i64 b) -> f64 {
+inline_const auto pow(f64 a, i64 b) -> f64 {
   return b < 0 ? 1 / pow(a, (u64)-b) : pow(a, (u64)b);
 }
 
-static __attr(const) auto pow(i64 a, u64 b) -> i64 {
+inline_const auto pow(i64 a, u64 b) -> i64 {
   i64 r = 1;
   while (b > 0) {
     if (b & 1) r *= a;
@@ -152,10 +152,10 @@ static __attr(const) auto pow(i64 a, u64 b) -> i64 {
 }
 
 #if __has(pow)
-static __attr(const) auto pow(f32 a, f32 b) -> f32 {
+inline_const auto pow(f32 a, f32 b) -> f32 {
   return __builtin_powf(a, b);
 }
-static __attr(const) auto pow(f64 a, f64 b) -> f64 {
+inline_const auto pow(f64 a, f64 b) -> f64 {
   return __builtin_pow(a, b);
 }
 #else

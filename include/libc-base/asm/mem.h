@@ -2,6 +2,10 @@
 #include "asm.h"
 #include "cpuid.h"
 
+#define compiler_barrier ({ asm volatile("" ::: "memory"); })
+
+#define memory_barrier ({ asm volatile("mfence" ::: "memory"); })
+
 #define asm_mfence ({ asm volatile("mfence\n\t" ::: "memory"); })
 
 #define asm_cflush(addr) ({ asm volatile("clflush (%0)\n\t" ::"r"((size_t)(addr))); })
@@ -20,3 +24,10 @@ finline void sync_memory(void *addr, size_t size) {
   }
   asm_mfence;
 }
+
+// 刷新虚拟地址 vaddr 的 块表 TLB
+finline void flush_tlb(usize vaddr) {
+  asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
+}
+
+#define flush_tlb(vaddr) flush_tlb((usize)(vaddr))

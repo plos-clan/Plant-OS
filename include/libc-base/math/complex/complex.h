@@ -6,10 +6,10 @@
 #if NO_STD
 
 #  if __has(cexp)
-static cf32 cexpf(cf32 z) {
+inline_const cf32 cexpf(cf32 z) {
   return __builtin_cexpf(z);
 }
-static cf64 cexp(cf64 z) {
+inline_const cf64 cexp(cf64 z) {
   return __builtin_cexp(z);
 }
 #  else

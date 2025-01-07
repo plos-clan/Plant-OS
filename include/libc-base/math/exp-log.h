@@ -10,61 +10,53 @@
 // --------------------------------------------------
 //; 对数 指数
 
-inline_const_ncexpr f32 exp2f(f32 x) {
-  f32 y;
-  i32 e;
-  e   = (i32)(x + 127);
-  x  += 127 - e;
-  e <<= 23;
-  y   = *(f32 *)&e;
-  x  *= x * .339766027f + .660233972f;
-  return (x + 1) * y;
+#  if __has(exp2) && !defined(_EXP_LOG_C_)
+inline_const f32 exp2f(f32 x) {
+  return __builtin_exp2f(x);
 }
+inline_const f64 exp2(f64 x) {
+  return __builtin_exp2(x);
+}
+#  else
+dlimport __attr(const) f32 exp2f(f32 x);
+dlimport __attr(const) f64 exp2(f64 x);
+#  endif
 
-inline_const_ncexpr f32 log2f(f32 x) {
-  i32 y;
-  f32 r;
-  y   = *(i32 *)&x;
-  y >>= 23;
-  r   = (f32)y;
-  y   = *(i32 *)&x;
-  y   = (y & 0x007fffff) | 0x3f800000;
-  x   = *(f32 *)&y;
-  r  += -128 + x * (x * -0.333333333f + 2) - 0.666666666f;
-  return r;
+#  if __has(log2) && !defined(_EXP_LOG_C_)
+inline_const f32 log2f(f32 x) {
+  return __builtin_log2f(x);
 }
+inline_const f64 log2(f64 x) {
+  return __builtin_log2(x);
+}
+#  else
+dlimport __attr(const) f32 log2f(f32 x);
+dlimport __attr(const) f64 log2(f64 x);
+#  endif
 
-inline_const_ncexpr f64 exp2(f64 x) {
-  f64 y;
-  i64 e;
-  e   = (i64)(x + 1023);
-  x  += 1023 - e;
-  e <<= 52;
-  y   = *(f64 *)&e;
-  x  *= x * .339766027 + .660233972;
-  return (x + 1) * y;
+#  if __has(exp) && !defined(_EXP_LOG_C_)
+inline_const f32 expf(f32 x) {
+  return __builtin_expf(x);
 }
+inline_const f64 exp(f64 x) {
+  return __builtin_exp(x);
+}
+#  else
+dlimport __attr(const) f32 expf(f32 x);
+dlimport __attr(const) f64 exp(f64 x);
+#  endif
 
-inline_const_ncexpr f64 log2(f64 x) {
-  i64 y;
-  f64 r;
-  y   = *(i64 *)&x;
-  y >>= 52;
-  r   = (f64)y;
-  y   = *(i64 *)&x;
-  y   = (y & 0x000fffffffffffff) | 0x3ff0000000000000;
-  x   = *(f64 *)&y;
-  r  += -1024 + x * (x * -0.3333333333333333 + 2) - 0.6666666666666666;
-  return r;
+#  if __has(log) && !defined(_EXP_LOG_C_)
+inline_const f32 logf(f32 x) {
+  return __builtin_logf(x);
 }
-
-inline_const_ncexpr float expf(float x) {
-  return exp2f(x * 1.442695040888963f);
+inline_const f64 log(double x) {
+  return __builtin_log(x);
 }
-
-inline_const_ncexpr double exp(double x) {
-  return exp2(x * 1.442695040888963);
-}
+#  else
+dlimport __attr(const) float  logf(float x);
+dlimport __attr(const) double log(double x);
+#  endif
 
 inline_const f32 powfu(f32 a, u32 b) {
   f32 r = 1;
@@ -114,7 +106,7 @@ inline_const i64 powi64(i64 a, u64 b) {
   return r;
 }
 
-#  if __has(pow)
+#  if __has(pow) && !defined(_EXP_LOG_C_)
 inline_const f32 powf(f32 a, f32 b) {
   return __builtin_powf(a, b);
 }
@@ -122,33 +114,8 @@ inline_const f64 pow(f64 a, f64 b) {
   return __builtin_pow(a, b);
 }
 #  else
-inline_const_ncexpr f32 powf(f32 a, f32 b) {
-  i32 c  = b;
-  b     -= c;
-  return exp2(b * log2(a)) * powfi(a, c);
-}
-inline_const_ncexpr f64 pow(f64 a, f64 b) {
-  i64 c  = b;
-  b     -= c;
-  return exp2(b * log2(a)) * powi(a, c);
-}
-#  endif
-
-#  if __has(log)
-inline_const f32 logf(f32 x) {
-  return __builtin_logf(x);
-}
-inline_const f64 log(double x) {
-  return __builtin_log(x);
-}
-#  else
-inline_const_ncexpr float logf(float x) {
-  return log2f(x) * 0.693147180559945f;
-}
-
-inline_const_ncexpr double log(double x) {
-  return log2(x) * 0.693147180559945;
-}
+dlimport __attr(const) f32 powf(f32 a, f32 b);
+dlimport __attr(const) f64 pow(f64 a, f64 b);
 #  endif
 
 #endif

@@ -1,6 +1,8 @@
 #pragma once
 #include <define.h>
 
+// `` !defined(__cplusplus) ``
+
 #ifndef __cplusplus
 
 // --------------------------------------------------
