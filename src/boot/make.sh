@@ -9,6 +9,7 @@ mformat -f 1440 -B boot.bin -i disk.img
 mcopy -i disk.img loader.bin ::
 mcopy -i disk.img kernel.bin ::
 mcopy -i disk.img v86_service.bin ::
+mcopy -i disk.img ld-plos.bin ::
 
 qemu-img create hd.img 64M
 mformat -t 64 -h 64 -i hd.img

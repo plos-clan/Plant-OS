@@ -72,10 +72,12 @@ void task_to_user_mode_elf() {
   struct args args = {.cmdline = current_task->command_line, .sp = (void *)TASK_ARGS_ADDR};
   parse_args(&args);
   klogd("argc: %d", args.argc);
+  klogd("argv: %p", args.argv);
   for (int i = 0; i < args.argc; i++) {
     klogd("argv[%d]: %s", i, args.argv[i]);
   }
 
+  // vfs_node_t file = vfs_open("/fatfs0/ld-plos.bin");
   vfs_node_t file = vfs_open(args.argv[0]);
   if (file == null) {
     if (mouse_use_task == current_task) mouse_sleep(&mdec);
@@ -100,14 +102,14 @@ void task_to_user_mode_elf() {
   klogd("%lu", file->size);
   char *elf_data = page_alloc(file->size);
   vfs_read(file, elf_data, 0, file->size);
-  if (!elf32_is_validate((Elf32_Ehdr *)elf_data)) {
+  if (!elf32_is_validate((Elf32Header *)elf_data)) {
     page_free(elf_data, file->size);
     if (mouse_use_task == current_task) mouse_sleep(&mdec);
     kloge();
     task_exit(I32_MAX);
     __builtin_unreachable();
   }
-  u32 alloc_addr = (elf32_get_max_vaddr((Elf32_Ehdr *)elf_data) & 0xfffff000) + PAGE_SIZE;
+  u32 alloc_addr = (elf32_get_max_vaddr((Elf32Header *)elf_data) & 0xfffff000) + PAGE_SIZE;
   klogd("alloc_addr = %08x", alloc_addr);
 
   u32 pg = PADDING_UP(*(current_task->alloc_size), PAGE_SIZE) / PAGE_SIZE;
@@ -119,7 +121,7 @@ void task_to_user_mode_elf() {
   iframe->esp               = alloced_esp;
   current_task->alloc_addr  = alloc_addr;
   current_task->v86_mode    = 0;
-  iframe->eip               = load_elf((Elf32_Ehdr *)elf_data);
+  iframe->eip               = load_elf((Elf32Header *)elf_data);
   klogd("eip = %08x", iframe->eip);
   current_task->user_mode = 1;
   tss.esp0                = current_task->stack_bottom;

@@ -2,12 +2,11 @@
 
 struct TASK MainTask;
 
-bool elf32_is_validate(Elf32_Ehdr *hdr) {
-  return hdr->e_ident[EI_MAG0] == ELFMAG0 && hdr->e_ident[EI_MAG1] == ELFMAG1 &&
-         hdr->e_ident[EI_MAG2] == ELFMAG2 && hdr->e_ident[EI_MAG3] == ELFMAG3;
+bool elf32_is_validate(const Elf32Header *hdr) {
+  return *(u32 *)hdr->ident == ELF_MAGIC;
 }
 
-void load_segment(Elf32_Phdr *phdr, void *elf) {
+void load_segment(Elf32ProgramHeader *phdr, void *elf) {
   klogf("%08x %08x %d\n", phdr->p_vaddr, phdr->p_offset, phdr->p_filesz);
   memcpy((void *)phdr->p_vaddr, elf + phdr->p_offset, phdr->p_filesz);
   if (phdr->p_memsz > phdr->p_filesz) { // 这个是bss段
@@ -15,13 +14,13 @@ void load_segment(Elf32_Phdr *phdr, void *elf) {
   }
 }
 
-u32 load_elf(Elf32_Ehdr *hdr) {
-  Elf32_Phdr *phdr = (Elf32_Phdr *)((u32)hdr + hdr->e_phoff);
+u32 load_elf(Elf32Header *hdr) {
+  Elf32ProgramHeader *phdr = (Elf32ProgramHeader *)((u32)hdr + hdr->e_phoff);
   for (int i = 0; i < hdr->e_phnum; i++) {
     load_segment(phdr, (void *)hdr);
     phdr++;
   }
-  return hdr->e_entry;
+  return hdr->entry;
 }
 
 void read_pci_class(u8 bus, u8 device, u8 function, u8 *class_code, u8 *subclass_code) {
@@ -120,7 +119,7 @@ void DOSLDR_MAIN() {
   klogf("Will load in %08x size = %08x\n", s, sz);
   vfs_readfile(path, s);
   klogf("Loading...\n");
-  u32 entry = load_elf((Elf32_Ehdr *)s);
+  u32 entry = load_elf((Elf32Header *)s);
 
   asm volatile("push %0\n\t"
                "cli\n\t"

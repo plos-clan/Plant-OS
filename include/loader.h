@@ -6,16 +6,12 @@
 extern "C" {
 #endif
 #include "loader/8295a.h"
-#include "loader/ELF.h"
-#include "loader/ELF/ELF.h"
-#include "loader/ELF/header.h"
-#include "loader/ELF/pt.h"
-#include "loader/ELF/sht.h"
 #include "loader/ahci.h"
 #include "loader/base.h"
 #include "loader/cmos.h"
 #include "loader/cpu.h"
 #include "loader/dma.h"
+#include "loader/elf.h"
 #include "loader/fdc.h"
 #include "loader/file.h"
 #include "loader/fs/fat.h"

@@ -6,17 +6,27 @@
 
 extern PageInfo *pages;
 
-void *syscall_mmap(void *start, u32 length) {
+void *syscall_mmap(void *start, usize length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
   val page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
   val size_is_2M = page_count == 512;
+  val cr3        = current_task->cr3;
 
-  val   cr3             = current_task->cr3;
   void *line_addr_start = null;
-  for (int i = PDI(0x70000000), c = 0; i < 1024; i++) {
+
+  if (start != null) {
+    for (usize i = 0; i < page_count; i++) {
+      if (page_get_attr((u32)start + i * PAGE_SIZE, cr3) & PAGE_WRABLE) goto _0;
+    }
+    line_addr_start = start;
+    goto _1;
+  }
+
+_0:
+  for (usize i = PDI(0x70000000), c = 0; i < 1024; i++) {
     u32 *pde_entry = (u32 *)cr3 + i;
     u32  p         = *pde_entry & (0xfffff000);
-    for (int j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
+    for (usize j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
       u32 *pte_entry = (u32 *)p + j;
       if (!(page_get_attr(mk_linear_addr(i, j, 0), cr3) & PAGE_WRABLE)) {
         if (c == 0) line_addr_start = (void *)mk_linear_addr(i, j, 0);
@@ -30,13 +40,13 @@ void *syscall_mmap(void *start, u32 length) {
 _1:
   klogd("找到了一段空闲的没有被映射的线性地址%p-%p", line_addr_start,
         line_addr_start + page_count * PAGE_SIZE);
-  for (int i = 0; i < page_count; i++) {
+  for (usize i = 0; i < page_count; i++) {
     page_link_share((size_t)line_addr_start + i * PAGE_SIZE);
   }
   return line_addr_start;
 }
 
-void syscall_munmap(void *start, u32 length) {
+void syscall_munmap(void *start, usize length) {
   // 我们先算出需要占用几个页（对length进行向上取整）
   val page_count = PADDING_UP(length, PAGE_SIZE) / PAGE_SIZE;
 
