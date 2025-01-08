@@ -104,7 +104,11 @@ add_compile_flag("-fvisibility=hidden") # 隐藏符号
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_flag("-target i386-none-elf")
 endif()
-add_compile_flag("-m32 -mmmx -msse -msse2 -msse3")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  add_compile_flag("-m32 -mmmx -msse -msse2 -msse3")
+else()
+  add_compile_flag("-m32 -mmmx")
+endif()
 add_compile_flag("-nostdlib -nostdinc") # 不使用标准库和标准头
 # add_link_flag("-nolibc -Qn") # 告诉编译器没有标准库 (但似乎不需要这个)
 
