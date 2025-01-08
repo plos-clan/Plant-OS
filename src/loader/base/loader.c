@@ -77,25 +77,24 @@ void DOSLDR_MAIN() {
   ahci_init();
   char default_drive;
   u32  default_drive_number;
-  if (memcmp((void *)"FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) == 0 ||
-      memcmp((void *)"FAT16   ", (void *)0x7c00 + BS_FileSysType, 8) == 0) {
+  if (memeq("FAT12   ", (void *)0x7c00 + BS_FileSysType, 8) ||
+      memeq("FAT16   ", (void *)0x7c00 + BS_FileSysType, 8)) {
     if (*(u8 *)(0x7c00 + BS_DrvNum) >= 0x80) {
       default_drive_number = *(u8 *)(0x7c00 + BS_DrvNum) - 0x80 + 0x02;
     } else {
       default_drive_number = *(u8 *)(0x7c00 + BS_DrvNum);
     }
-  } else if (memcmp((void *)"FAT32   ", (void *)0x7c00 + BPB_Fat32ExtByts + BS_FileSysType, 8) ==
-             0) {
+  } else if (memeq("FAT32   ", (void *)0x7c00 + BPB_Fat32ExtByts + BS_FileSysType, 8)) {
     if (*(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) >= 0x80) {
       default_drive_number = *(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum) - 0x80 + 0x02;
     } else {
       default_drive_number = *(u8 *)(0x7c00 + BPB_Fat32ExtByts + BS_DrvNum);
     }
   } else {
-    if (*(u8 *)(0x7c00) >= 0x80) {
-      default_drive_number = *(u8 *)(0x7c00) - 0x80 + 0x02;
+    if (mem_get8(0x7c00) >= 0x80) {
+      default_drive_number = mem_get8(0x7c00) - 0x80 + 0x02;
     } else {
-      default_drive_number = *(u8 *)(0x7c00);
+      default_drive_number = mem_get8(0x7c00);
     }
   }
   default_drive = default_drive_number + 0x41;
@@ -124,6 +123,7 @@ void DOSLDR_MAIN() {
   u32 entry = load_elf((Elf32_Ehdr *)s);
 
   asm volatile("push %0\n\t"
+               "cli\n\t"
                "ret\n\t" ::"r"(entry));
 }
 

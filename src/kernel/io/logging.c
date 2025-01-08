@@ -4,12 +4,18 @@
 
 #define PORT 0x3f8 // 日志输出端口：COM1
 
-#if LOG_EXT
+#if PLOS_LOGGING == 0
+// 关闭日志
+#  include "logging/none.h"
+#elif PLOS_LOGGING == 1
+// 终端日志
+#  include "logging/default.h"
+#elif PLOS_LOGGING == 2
+// 终端日志 + 调试 shell
+#  include "logging/default.debug.h"
+#elif PLOS_LOGGING == 3
+// 扩展日志
 #  include "logging/ext.h"
 #else
-#  if PLOS_DEBUG_SHELL
-#    include "logging/default.debug.h"
-#  else
-#    include "logging/default.h"
-#  endif
+#  error "Invalid PLOS_LOGGING value"
 #endif

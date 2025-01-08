@@ -642,3 +642,19 @@ bool check_string_permission2(cstr addr, usize cr3) {
 bool check_string_permission1(cstr addr) {
   return check_string_permission2(addr, asm_get_cr3());
 }
+
+// --------------------------------------------------
+
+bool check_string_array_permission2(cstr *addr, usize cr3) {
+  for (;; addr++) {
+    if (!check_address_permission(addr, false, cr3)) return false;
+    if (!check_address_permission((void *)((usize)(addr + 1) - 1), false, cr3)) return false;
+    if (!*addr) break;
+    if (!check_string_permission(*addr, cr3)) return false;
+  }
+  return true;
+}
+
+bool check_string_array_permission1(cstr *addr) {
+  return check_string_array_permission2(addr, asm_get_cr3());
+}

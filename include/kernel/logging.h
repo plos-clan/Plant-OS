@@ -1,14 +1,22 @@
 #pragma once
 #include <libc-base.h>
 
-#define LOG_EXT 0 // 启用扩展的日志功能
-
 #include "logging/undef"
 
-#if LOG_EXT
+#if PLOS_LOGGING == 0
+// 关闭日志
+#  include "logging/default"
+#elif PLOS_LOGGING == 1
+// 终端日志
+#  include "logging/default"
+#elif PLOS_LOGGING == 2
+// 终端日志 + 调试 shell
+#  include "logging/default"
+#elif PLOS_LOGGING == 3
+// 扩展日志
 #  include "logging/ext"
 #else
-#  include "logging/default"
+#  error "Invalid PLOS_LOGGING value"
 #endif
 
 void kenel_debugger_tick();

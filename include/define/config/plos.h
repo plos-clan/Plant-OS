@@ -1,6 +1,8 @@
 
 #define SYSCALL_USE_INTERRPUT 0
 
-#define PLOS_DEBUG_SHELL 1
+#define PLOS_LOGGING 2
+
+#define PLOS_LOGGING_PRINTS 0
 
 #define USE_SSE 1

@@ -1,10 +1,13 @@
 // This code is released under the MIT License
 #include <kernel.h>
-int          devfs_id = 0;
-rbtree_sp_t  dev_rbtree;
+
+static int         devfs_id = 0;
+static rbtree_sp_t dev_rbtree;
+static vfs_node_t  devfs_root = null;
+
 extern vdisk vdisk_ctl[26];
-vfs_node_t   devfs_root = null;
-int          devfs_mount(cstr src, vfs_node_t node) {
+
+int devfs_mount(cstr src, vfs_node_t node) {
   if (src != null) return -1;
   if (devfs_root) {
     error("devfs has been mounted");
@@ -59,6 +62,7 @@ read:
   }
   return size;
 }
+
 static ssize_t devfs_write(void *file, const void *addr, size_t offset, size_t size) {
   int    dev_id = (int)file;
   size_t sector_size;
@@ -89,6 +93,7 @@ write:
   if (padding_up_to_sector_size != size) { page_free(buf, padding_up_to_sector_size); }
   return size;
 }
+
 int devfs_stat(void *handle, vfs_node_t node) {
   if (node->type == file_dir) return 0;
   node->handle = rbtree_sp_get(dev_rbtree, node->name);
@@ -96,12 +101,14 @@ int devfs_stat(void *handle, vfs_node_t node) {
   node->size   = disk_size((int)node->handle);
   return 0;
 }
+
 static void devfs_open(void *parent, cstr name, vfs_node_t node) {
   if (node->type == file_dir) return;
   node->handle = rbtree_sp_get(dev_rbtree, name);
   node->type   = vdisk_ctl[(int)node->handle].type == VDISK_STREAM ? file_stream : file_block;
   node->size   = disk_size((int)node->handle);
 }
+
 static struct vfs_callback callbacks = {
     .mount   = devfs_mount,
     .unmount = (void *)dummy,
@@ -118,7 +125,7 @@ void devfs_regist() {
   devfs_id = vfs_regist("devfs", &callbacks);
 }
 
-int dev_get_sector_size(char *path) {
+int dev_get_sector_size(cstr path) {
   vfs_node_t node = vfs_open(path);
   if (node == null) return -1;
   if (node->fsid != devfs_id) return -1; //不是devfs
@@ -126,7 +133,8 @@ int dev_get_sector_size(char *path) {
   int sector_size = vdisk_ctl[dev_id].sector_size;
   return sector_size;
 }
-int dev_get_size(char *path) {
+
+int dev_get_size(cstr path) {
   vfs_node_t node = vfs_open(path);
   if (node == null) return -1;
   if (node->fsid != devfs_id) return -1; //不是devfs

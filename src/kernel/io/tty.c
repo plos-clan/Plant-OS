@@ -1,6 +1,6 @@
 #include <kernel.h>
 
-list_t tty_list;
+static list_t tty_list;
 
 struct tty *tty_default;
 
@@ -57,10 +57,11 @@ static int default_tty_fifo_get(struct tty *res) {
 }
 
 static void default_flush(struct tty *res) {}
-void        init_tty() {
+
+void init_tty() {
   tty_default =
       tty_alloc((void *)0xb8000, 80, 25, putchar_TextMode, MoveCursor_TextMode, clear_TextMode,
-                       screen_ne_TextMode, default_tty_fifo_status, default_tty_fifo_get, default_flush);
+                screen_ne_TextMode, default_tty_fifo_status, default_tty_fifo_get, default_flush);
 }
 
 struct tty *tty_alloc(void *vram, int xsize, int ysize, void (*putchar)(struct tty *res, int c),

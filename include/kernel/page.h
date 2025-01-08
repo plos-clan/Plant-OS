@@ -335,3 +335,23 @@ bool check_string_permission1(cstr addr);
 
 #define check_string_permission(...)                                                               \
   CONCAT(check_string_permission, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
+
+/**
+  *\brief 检查用户是否有对指定字符串数组的读取权限
+  *
+  *\param addr     内存地址
+  *\param cr3      分页设置(cr3)  (默认 当前 cr3)
+  *\return 是否有权限
+  */
+bool check_string_array_permission2(cstr *addr, usize cr3);
+
+/**
+  *\brief 检查用户是否有对指定字符串数组的读取权限
+  *
+  *\param addr     内存地址
+  *\return 是否有权限
+  */
+bool check_string_array_permission1(cstr *addr);
+
+#define check_string_array_permission(...)                                                         \
+  CONCAT(check_string_array_permission, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)

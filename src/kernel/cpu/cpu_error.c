@@ -63,7 +63,7 @@ FASTCALL void error_inthandler(i32 id, regs32 *regs) {
 }
 
 void init_error_inthandler() {
-  for (int i = 0; i < 32; i++) {
+  for (usize i = 0; i < 32; i++) {
     inthandler_set(i, error_inthandler);
   }
   inthandler_set(0x07, ERROR7);
