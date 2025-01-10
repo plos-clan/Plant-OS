@@ -39,23 +39,26 @@ static plff_t load_font(cstr path) {
 }
 
 void plty_set_default(plty_t plty);
+
 void stdout_read() {}
 void stdout_write(int drive, u8 *buffer, u32 number, u32 lba) {
   for (int i = 0; i < number; i++) {
     putchar(buffer[i]);
   }
 }
+
 void random_read(int drive, u8 *buffer, u32 number, u32 lba) {
   for (int i = 0; i < number; i++) {
     buffer[i] = krandb();
   }
 }
-void  random_write(int drive, u8 *buffer, u32 number, u32 lba) {}
+void random_write(int drive, u8 *buffer, u32 number, u32 lba) {}
+
 char *GetSVGACharOEMString();
 bool  is_vbox = false;
 
 static void check_device() {
-  char *s = strdup(GetSVGACharOEMString());
+  char *s = GetSVGACharOEMString();
   info("VIDEO CARD: %s", s);
   if (strstr(s, "VirtualBox")) {
     info("VirtualBox detected");
@@ -63,16 +66,6 @@ static void check_device() {
   } else {
     is_vbox = false;
     info("VirtualBox not detected");
-  }
-  free(s);
-}
-
-static void draw(int n) {
-  u32 *buf = vbe_backbuffer;
-  for (size_t y = 0; y < screen_h; y++) {
-    for (size_t x = 0; x < screen_w; x++) {
-      buf[y * screen_w + x] = (0xff8000 + x + n) & 0xffffff;
-    }
   }
 }
 

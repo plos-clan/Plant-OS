@@ -21,7 +21,13 @@
 
 #define asm_setreg(reg, value) ({ asm volatile("mov %0, %%" #reg "\n\t" ::"r"((size_t)(value))); })
 
-#define used_val(value) ({ asm volatile("" ::"r,m"(value) : "memory"); })
+#define used_val1(value)      ({ asm volatile("" ::"r,m"(value)); })
+#define used_val2(value, ...) ({ used_val1(value), used_val1(__VA_ARGS__); })
+#define used_val3(value, ...) ({ used_val1(value), used_val2(__VA_ARGS__); })
+#define used_val4(value, ...) ({ used_val1(value), used_val3(__VA_ARGS__); })
+#define used_val5(value, ...) ({ used_val1(value), used_val4(__VA_ARGS__); })
+#define used_val6(value, ...) ({ used_val1(value), used_val5(__VA_ARGS__); })
+#define used_val(...)         CONCAT(used_val, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
 /**
  *\brief 加载 GDT

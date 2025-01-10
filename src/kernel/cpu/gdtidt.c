@@ -38,7 +38,7 @@ size_t syscall(size_t eax, size_t ebx, size_t ecx, size_t edx, size_t esi, size_
 
 FASTCALL void inthandler(i32 id, regs32 *regs) {
   kassert(id < 256);
-  if (id != 0x07 && id != 0x2d) asm_set_ts;
+  if (fpu_using_task != null && id != 0x07 && id != 0x2d) asm_set_ts;
   if (id >= 0x20 && id < 0x30) send_eoi(id - 0x20);
 
   if (acpi_inited) {
@@ -55,7 +55,7 @@ FASTCALL void inthandler(i32 id, regs32 *regs) {
     klogw("Unknown interrupt %02x (%d)", id, id);
   }
 
-  if (id != 0x07 && id != 0x2d) {
+  if (fpu_using_task != null && id != 0x07 && id != 0x2d) {
     val from_usermod = (regs->cs & 3) == 3;
     (current_task == fpu_using_task && fpu_ctx_usermod == from_usermod) ? asm_clr_ts : asm_set_ts;
   }
