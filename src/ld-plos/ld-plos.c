@@ -13,23 +13,29 @@ static void load_elf64(const Elf64Header *elf) {}
 
 #else
 
-// void print_num(usize num) {
-//   static char buffer[32];
-//   char       *buf = buffer + 32;
-//   *--buf          = '\0';
-//   *--buf          = '\n';
-//   while (num) {
-//     int digit  = num % 16;
-//     *--buf     = (digit < 10) ? digit + '0' : digit - 10 + 'a';
-//     num       /= 16;
-//   }
-//   syscall(SYSCALL_PRINT, buf);
-// }
+void print_num(usize num) {
+  static char buffer[32];
+  char       *buf = buffer + 32;
+  *--buf          = '\0';
+  *--buf          = '\n';
+  while (num) {
+    int digit  = num % 16;
+    *--buf     = (digit < 10) ? digit + '0' : digit - 10 + 'a';
+    num       /= 16;
+  }
+  syscall(SYSCALL_PRINT, buf);
+}
 
 int load_segment(const Elf32ProgramHeader *prog, const void *elf) {
+  print_num(prog->type);
+  print_num(prog->offset);
+  print_num(prog->vaddr);
+  print_num(prog->filesz);
+  print_num(prog->memsz);
+  print_num(prog->flags);
   if (prog->type != ELF_PROGRAM_TYPE_LOAD) return 0;
-  usize hi   = PADDING_UP(prog->paddr + prog->memsz, PAGE_SIZE);
-  usize lo   = PADDING_DOWN(prog->paddr, PAGE_SIZE);
+  usize hi   = PADDING_UP(prog->vaddr + prog->memsz, PAGE_SIZE);
+  usize lo   = PADDING_DOWN(prog->vaddr, PAGE_SIZE);
   usize addr = syscall(SYSCALL_MMAP, lo, hi - lo);
   if (addr != lo) syscall(SYSCALL_EXIT, 666);
   memcpy((void *)prog->vaddr, elf + prog->offset, prog->filesz);
@@ -50,9 +56,8 @@ static void load_elf64(const void *elf) {
 #endif
 
 void __linker_main(int argc, char **argv, char **envp) {
-  // if (argv == null) syscall(SYSCALL_EXIT, 123);
-  // if (argc <= 0 || argv == null || envp == null) syscall(SYSCALL_EXIT, 444);
-  // if (argv[0] == null) syscall(SYSCALL_EXIT, 555);
+  if (argc <= 0 || argv == null || envp == null) return;
+  if (argv[0] == null) return;
 
   usize size = syscall(SYSCALL_FILE_SIZE, argv[0]);
   void *file = (void *)syscall(SYSCALL_MMAP, null, size);

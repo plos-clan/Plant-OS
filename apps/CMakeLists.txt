@@ -10,11 +10,11 @@ link_directories("${CMAKE_SOURCE_DIR}/apps/lib")
 add_exe_link_flag("-static -Wl,-Ttext=0x80000000 -e __libc_start_main")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
-    add_exe_link_flag("-Wl,--image-base=0x80000000")
+    add_exe_link_flag("-Wl,--image-base=0x78000000")
   endif()
 endif()
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  add_exe_link_flag("-Wl,--image-base=0x80000000")
+  add_exe_link_flag("-Wl,--image-base=0x78000000")
 endif()
 
 file(

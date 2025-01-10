@@ -73,12 +73,13 @@ void task_to_user_mode_elf() {
   parse_args(&args);
   klogd("argc: %d", args.argc);
   klogd("argv: %p", args.argv);
+  klogd("argv: %p", args.envp);
   for (int i = 0; i < args.argc; i++) {
     klogd("argv[%d]: %s", i, args.argv[i]);
   }
 
-  // vfs_node_t file = vfs_open("/fatfs0/ld-plos.bin");
-  vfs_node_t file = vfs_open(args.argv[0]);
+  vfs_node_t file = vfs_open("/fatfs0/ld-plos.bin");
+  // vfs_node_t file = vfs_open(args.argv[0]);
   if (file == null) {
     if (mouse_use_task == current_task) mouse_sleep(&mdec);
     kloge();

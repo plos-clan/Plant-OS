@@ -1,5 +1,5 @@
 include(../../cmake/use-ubscan)
-add_exe_link_flag("-static -Wl,-Ttext=0x70000000 -e __linker_start")
+add_exe_link_flag("-static -Wl,-Ttext=0x71000000 -e __linker_start")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
     add_exe_link_flag("-Wl,--image-base=0x70000000")
