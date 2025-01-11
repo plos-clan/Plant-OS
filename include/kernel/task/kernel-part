@@ -22,8 +22,6 @@ struct _NAME {
   ThreadState   state;            //
   uint64_t      jiffies;          // 最后一次执行的全局时间片
   task_t        parent;           //
-  u32           alloc_addr;       //
-  u32          *alloc_size;       //
   cir_queue8_t  press_key_fifo;   // 基本输入设备的缓冲区
   cir_queue8_t  release_keyfifo;  // 基本输入设备的缓冲区
   cir_queue8_t  keyfifo;          // 基本输入设备的缓冲区

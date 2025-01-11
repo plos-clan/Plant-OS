@@ -8,3 +8,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 add_compile_flag("-Wno-address-of-packed-member")
 add_compile_flag("-Wno-attributes")
+
+# add_compile_flag("-w") # 如果你不想编译器输出 warning
+add_link_flag("-w") # 可恶的链接器警告

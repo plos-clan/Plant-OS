@@ -12,7 +12,7 @@ void printchar(char ch) {
   tty_default->print(tty_default, ch1);
 }
 
-static char eos[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'f', 'J', 'K', 'S', 'T', 'm'};
+static const char eos[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'f', 'J', 'K', 'S', 'T', 'm'};
 // end of string,
 // vt100控制字符中可能的结束符号
 

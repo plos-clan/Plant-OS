@@ -6,3 +6,4 @@ nav:
   - 历史: history.md
   - 编译: compile.md
   - 内核: kernel
+  - 应用程序: app

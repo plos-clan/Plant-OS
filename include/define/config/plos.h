@@ -1,7 +1,7 @@
 
 #define SYSCALL_USE_INTERRPUT 0
 
-#define PLOS_LOGGING 2
+#define PLOS_LOGGING 0
 
 #define PLOS_LOGGING_PRINTS 0
 

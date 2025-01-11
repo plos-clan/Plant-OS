@@ -45,11 +45,6 @@ set_optim_flag("-g -O3") # 默认参数，请一直开启调试符号
 # set_optim_flag("-O3") # 发布开 O3
 # set_optim_flag("-Ofast") #
 
-# add_compile_flag("-w") # 如果你不想编译器输出 warning
-add_link_flag("-w") # 可恶的链接器警告
-
-add_compile_flag("-fvisibility=hidden") # 隐藏符号
-
 # 目标环境
 add_compile_flag("-march=native")
 
@@ -95,11 +90,6 @@ set_optim_flag("-g -O3") # 默认参数，请一直开启调试符号
 # set_optim_flag("-O3") # 测试通过
 # set_optim_flag("-Ofast") #
 
-# add_compile_flag("-w") # 如果你不想编译器输出 warning
-add_link_flag("-w") # 可恶的链接器警告
-
-add_compile_flag("-fvisibility=hidden") # 隐藏符号
-
 # 目标环境
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_flag("-target i386-none-elf")
@@ -127,7 +117,6 @@ add_compile_flag("-fno-delete-null-pointer-checks") # 不删除程序员进行�
 add_compile_flag("-fno-strict-aliasing") # 禁用严格别名规则 (gcc 默认关闭)
 add_compile_flag("-finput-charset=UTF-8 -fexec-charset=UTF-8") # 使用 utf-8 (默认)
 add_compile_flag("-fno-stack-protector") # 不使用栈保护 (默认使用)
-add_compile_flag("-fno-pic -fno-pie") # 不使用 pic 和 pie
 add_compile_flag("-fno-asynchronous-unwind-tables")
 add_compile_flag("-fno-exceptions")
 

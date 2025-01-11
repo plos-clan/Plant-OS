@@ -1,4 +1,7 @@
 # 优化选项
+
+add_compile_flag("-fpie") # 生成位置无关代码
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   add_compile_flag("-fmodulo-sched") # 在第一次调度过程之前立即执行摇摆模调度 (gcc 默认关闭)
   add_compile_flag("-fsplit-loops") # 对于循环内的 if 语句，将其分割为两个循环 (gcc 默认关闭)
@@ -10,6 +13,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   add_compile_flag("-fipa-icf") # 对函数和只读变量执行相同的代码折叠 (gcc O2)
   add_compile_flag("-fipa-pta") # 过程间指针分析 (gcc 默认关闭)
 endif()
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
     add_compile_flag("-fcx-limited-range") # 启用涉及复杂算术运算的基本代数扩展 (?)
@@ -30,6 +34,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_flag("-fwhole-program-vtables") # 启用整个程序 vtable 优化
   add_compile_flag("-fwrapv") # 将有符号整数溢出视为二进制补码
 endif()
+
 add_compile_flag("-fmerge-all-constants") # 合并所有常量
 add_compile_flag("-fno-keep-static-consts") # 不保留 static 常量
 add_compile_flag("-fomit-frame-pointer") # 删除小函数的栈帧 (gcc O1)

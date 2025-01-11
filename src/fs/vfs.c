@@ -164,10 +164,10 @@ static vfs_node_t vfs_do_search(vfs_node_t dir, cstr name) {
   return list_first(dir->child, data, streq(name, ((vfs_node_t)data)->name));
 }
 
-vfs_node_t vfs_open(cstr str) {
-  if (str == null) return null;
-  if (str[1] == '\0') return rootdir;
-  char *path = strdup(str + 1);
+vfs_node_t vfs_open(cstr _path) {
+  if (_path == null) return null;
+  if (_path[1] == '\0') return rootdir;
+  char *path = strdup(_path + 1);
   if (path == null) return null;
 
   char      *save_ptr = path;

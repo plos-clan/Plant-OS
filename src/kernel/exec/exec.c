@@ -22,9 +22,7 @@ void task_app() {
   cir_queue8_init(mfifo, 4096, mbuf);
 
   task_set_fifo(current_task, kfifo, mfifo);
-  current_task->alloc_size    = (u32 *)malloc(4);
-  *(current_task->alloc_size) = 2 * 1024 * 1024;
-  u32 pde                     = current_task->cr3;
+  u32 pde = current_task->cr3;
   asm_cli;
   asm_set_cr3(PD_ADDRESS);
   current_task->cr3 = PD_ADDRESS;
@@ -108,19 +106,12 @@ void task_to_user_mode_elf() {
     task_exit(I32_MAX);
     __builtin_unreachable();
   }
-  u32 alloc_addr = (elf32_get_max_vaddr((Elf32Header *)elf_data) & 0xfffff000) + PAGE_SIZE;
-  klogd("alloc_addr = %08x", alloc_addr);
 
-  u32 pg = PADDING_UP(*(current_task->alloc_size), PAGE_SIZE) / PAGE_SIZE;
-  for (int i = 0; i < pg + STACK_SIZE; i++) {
-    page_link(alloc_addr + i * PAGE_SIZE);
+  for (usize i = 1; i <= STACK_SIZE; i++) {
+    page_link(0xf0000000 - i * PAGE_SIZE);
   }
-  u32 alloced_esp           = alloc_addr + STACK_SIZE * PAGE_SIZE;
-  alloc_addr               += STACK_SIZE * PAGE_SIZE;
-  iframe->esp               = alloced_esp;
-  current_task->alloc_addr  = alloc_addr;
-  current_task->v86_mode    = 0;
-  iframe->eip               = load_elf((Elf32Header *)elf_data);
+  iframe->esp = 0xf0000000 - STACK_SIZE;
+  iframe->eip = load_elf((Elf32Header *)elf_data);
   klogd("eip = %08x", iframe->eip);
   current_task->user_mode = 1;
   tss.esp0                = current_task->stack_bottom;

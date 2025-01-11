@@ -1,10 +1,14 @@
 #pragma once
 #include <sys/plos-syscall.h>
 
+#ifdef __x86_64__
+typedef isize (*syscall_t)(isize, isize, isize, isize, isize, isize);
+#else
+typedef isize (*syscall_t)(isize, isize, isize, isize, isize);
+#endif
+
 void    syscall_exit(int status);
 int     syscall_fork();
-void   *syscall_getheap();
-u32     syscall_heapsize();
 void   *syscall_mmap(void *start, u32 length);
 void    syscall_munmap(void *start, u32 length);
 ssize_t syscall_read(int fd, void *addr, size_t size);

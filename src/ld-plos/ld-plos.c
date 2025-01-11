@@ -31,7 +31,7 @@ static int load_elf64(const Elf64Header *elf) {
 
 #else
 
-int load_segment(const Elf32ProgramHeader *prog, const void *elf) {
+static int load_segment(const Elf32ProgramHeader *prog, const void *elf) {
   if (prog->type != ELF_PROGRAM_TYPE_LOAD) return 0;
   usize hi   = PADDING_UP(prog->vaddr + prog->memsz, PAGE_SIZE);
   usize lo   = PADDING_DOWN(prog->vaddr, PAGE_SIZE);
@@ -56,7 +56,7 @@ static int load_elf64(const void *elf) {
 
 #endif
 
-int __linker_main(int argc, char **argv, char **envp) {
+static int __linker_main(int argc, char **argv, char **envp) {
   if (argc <= 0 || argv == null || envp == null || argv[0] == null) return LDE_INVALID_INPUT;
 
   isize size = syscall(SYSCALL_FILE_SIZE, argv[0]);

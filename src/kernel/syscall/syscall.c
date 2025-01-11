@@ -1,11 +1,11 @@
 #include <kernel.h>
 
-void *syscall_getheap() {
-  return (void *)current_task->alloc_addr;
+static void *syscall_getheap() {
+  return (void *)ADDR_TASK_HEAP;
 }
 
-u32 syscall_heapsize() {
-  return *(current_task->alloc_size);
+static u32 syscall_heapsize() {
+  return current_task->heapsize;
 }
 
 static int syscall_vbe_getmode(void **vram, int *width, int *height) {
@@ -39,7 +39,7 @@ static int syscall_vbe_clear(byte r, byte g, byte b) {
   return vbe_clear(r, g, b);
 }
 
-static ssize_t syscall_file_size(cstr path) {
+static isize syscall_file_size(cstr path) {
   if (!check_string_permission(path)) task_abort();
   vfs_node_t file = vfs_open(path);
   if (file == null) return -1;
@@ -48,22 +48,22 @@ static ssize_t syscall_file_size(cstr path) {
   return size;
 }
 
-static ssize_t syscall_load_file(cstr path, void *buf, size_t size) {
+static isize syscall_load_file(cstr path, void *buf, usize size) {
   if (!check_string_permission(path)) task_abort();
   if (!check_memory_permission(buf, size, true)) task_abort();
-  vfs_node_t file = vfs_open(path);
+  val file = vfs_open(path);
   if (file == null) return -1;
-  size_t ret = vfs_read(file, buf, 0, size);
+  val ret = vfs_read(file, buf, 0, size);
   vfs_close(file);
   return ret;
 }
 
-static ssize_t syscall_save_file(cstr path, const void *buf, size_t size) {
+static isize syscall_save_file(cstr path, const void *buf, usize size) {
   if (!check_string_permission(path)) task_abort();
-  if (!check_memory_permission(buf, size, false)) task_abort();
-  vfs_node_t file = vfs_open(path);
+  if (!check_memory_permission(buf, size)) task_abort();
+  val file = vfs_open(path);
   if (file == null) return -1;
-  size_t ret = vfs_write(file, buf, 0, size);
+  val ret = vfs_write(file, buf, 0, size);
   vfs_close(file);
   return ret;
 }
@@ -73,7 +73,7 @@ void syscall_print(cstr s) {
   print(s);
 }
 
-void *sycall_handlers[MAX_SYSCALLS] = {
+static void *const sycall_handlers[MAX_SYSCALLS] = {
     [SYSCALL_EXIT]    = &syscall_exit,
     [SYSCALL_PUTC]    = &putchar,
     [SYSCALL_FORK]    = &task_fork,
@@ -133,9 +133,7 @@ void *sycall_handlers[MAX_SYSCALLS] = {
     [SYSCALL_SAVE_FILE]   = &syscall_save_file,
 };
 
-typedef ssize_t (*syscall_t)(ssize_t, ssize_t, ssize_t, ssize_t, ssize_t);
-
-ssize_t syscall(ssize_t eax, ssize_t ebx, ssize_t ecx, ssize_t edx, ssize_t esi, ssize_t edi) {
+isize syscall(isize eax, isize ebx, isize ecx, isize edx, isize esi, isize edi) {
   klogi("eax: %d, ebx: %d, ecx: %d, edx: %d, esi: %d, edi: %d", eax, ebx, ecx, edx, esi, edi);
   if (0 <= eax && eax < MAX_SYSCALLS && sycall_handlers[eax] != null) {
     eax = ((syscall_t)sycall_handlers[eax])(ebx, ecx, edx, esi, edi);

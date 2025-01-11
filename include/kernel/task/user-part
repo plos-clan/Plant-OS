@@ -13,6 +13,7 @@ struct _NAME {
   u32      signal_mask; //
   timespec starttime;   // 程序开始运行的时间
   timespec cputime;     // 程序实际运行的 CPU 时间
+  usize    heapsize;
 };
 
 #undef _NAME

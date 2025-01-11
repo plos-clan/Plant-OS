@@ -134,7 +134,7 @@ int vfs_regist(cstr name, vfs_callback_t callback);
 #define PATH_MAX     4096 // 路径最大长度
 #define FILENAME_MAX 256  // 文件名最大长度
 
-vfs_node_t vfs_open(cstr str);
+vfs_node_t vfs_open(cstr _path);
 
 /**
  *\brief 创建文件夹

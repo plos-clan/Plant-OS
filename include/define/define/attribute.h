@@ -118,5 +118,3 @@
 #define FASTCALL __attr(fastcall)
 
 #define vectorize __attr(vectorize(enable))
-
-#define where(expr) __attr(assume(expr))

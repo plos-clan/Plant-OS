@@ -37,6 +37,30 @@ typedef struct task {
                                 // AVX 4096
 } *task_t;
 
+#ifdef __x86_64__
+#  define ADDR_TASK_CODE  ((usize)0x800000000000) // 代码段、数据段、bss 段
+#  define ADDR_TASK_HEAP  ((usize)0x900000000000) // 堆
+#  define ADDR_TASK_MMAP  ((usize)0xa00000000000) // mmap 区域
+#  define ADDR_TASK_STACK ((usize)0xe00000000000) // 栈
+#  define ADDR_TASK_SHARE ((usize)0xf00000000000) // 内核共享数据
+#  define SIZE_TASK_CODE  (ADDR_TASK_HEAP - ADDR_TASK_CODE)
+#  define SIZE_TASK_HEAP  (ADDR_TASK_MMAP - ADDR_TASK_HEAP)
+#  define SIZE_TASK_MMAP  (ADDR_TASK_STACK - ADDR_TASK_MMAP)
+#  define SIZE_TASK_STACK (ADDR_TASK_SHARE - ADDR_TASK_STACK)
+#  define SIZE_TASK_SHARE (0 - ADDR_TASK_SHARE)
+#else
+#  define ADDR_TASK_CODE  ((usize)0x70000000) // 代码段、数据段、bss 段
+#  define ADDR_TASK_HEAP  ((usize)0x90000000) // 堆
+#  define ADDR_TASK_MMAP  ((usize)0xb0000000) // mmap 区域
+#  define ADDR_TASK_STACK ((usize)0xe0000000) // 栈
+#  define ADDR_TASK_SHARE ((usize)0xf0000000) // 内核共享数据
+#  define SIZE_TASK_CODE  (ADDR_TASK_HEAP - ADDR_TASK_CODE)
+#  define SIZE_TASK_HEAP  (ADDR_TASK_MMAP - ADDR_TASK_HEAP)
+#  define SIZE_TASK_MMAP  (ADDR_TASK_STACK - ADDR_TASK_MMAP)
+#  define SIZE_TASK_STACK (ADDR_TASK_SHARE - ADDR_TASK_STACK)
+#  define SIZE_TASK_SHARE (0 - ADDR_TASK_SHARE)
+#endif
+
 extern task_t current_task;
 
 extern task_t fpu_using_task;  // 当前 fpu 上下文所属的进程
