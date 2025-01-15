@@ -18,7 +18,7 @@ void load_segment(const Elf32ProgramHeader *prog, const void *elf) {
   if (prog->memsz < prog->filesz) return;
   val hi = PADDING_UP(prog->vaddr + prog->memsz, PAGE_SIZE);
   val lo = PADDING_DOWN(prog->vaddr, PAGE_SIZE);
-  for (size_t i = lo; i < hi; i += PAGE_SIZE) {
+  for (usize i = lo; i < hi; i += PAGE_SIZE) {
     page_link(i);
   }
   memcpy((void *)prog->vaddr, elf + prog->offset, prog->filesz);

@@ -2,7 +2,7 @@
 
 #include <libc.h>
 
-int printf(cstr _rest fmt, ...) {
+dlexport int printf(cstr _rest fmt, ...) {
   static char buf[4096];
   va_list     va;
   va_start(va, fmt);
@@ -12,13 +12,13 @@ int printf(cstr _rest fmt, ...) {
   return rets;
 }
 
-int puts(cstr s) {
+dlexport int puts(cstr s) {
   print(s);
   print("\n");
   return 0;
 }
 
-int putchar(int c) {
+dlexport int putchar(int c) {
   char ch[2] = {c, '\0'};
   print(ch);
   return c;

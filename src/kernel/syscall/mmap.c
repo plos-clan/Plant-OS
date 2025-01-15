@@ -16,20 +16,20 @@ void *syscall_mmap(void *start, usize length) {
 
   if (start != null) {
     for (usize i = 0; i < page_count; i++) {
-      if (page_get_attr((u32)start + i * PAGE_SIZE, cr3) & PAGE_WRABLE) goto _0;
+      if (page_get_attr((usize)start + i * PAGE_SIZE) & PAGE_USER) goto _0;
     }
     line_addr_start = start;
     goto _1;
   }
 
 _0:
-  for (usize i = PDI(0x70000000), c = 0; i < 1024; i++) {
-    u32 *pde_entry = (u32 *)cr3 + i;
-    u32  p         = *pde_entry & (0xfffff000);
+  for (usize i = PDI(ADDR_TASK_CODE), c = 0; i < 1024; i++) {
+    val pde_entry = (u32 *)cr3 + i;
+    u32 p         = *pde_entry & 0xfffff000;
     for (usize j = 0; j < 1024; size_is_2M ? j += 512 : j++) {
-      u32 *pte_entry = (u32 *)p + j;
-      if (!(page_get_attr(mk_linear_addr(i, j, 0), cr3) & PAGE_WRABLE)) {
-        if (c == 0) line_addr_start = (void *)mk_linear_addr(i, j, 0);
+      val pte_entry = (u32 *)p + j;
+      if (!(page_get_attr(mk_linear_addr(i, j)) & PAGE_USER)) {
+        if (c == 0) line_addr_start = (void *)mk_linear_addr(i, j);
         c++;
       } else {
         c = 0;
@@ -41,7 +41,7 @@ _1:
   klogd("找到了一段空闲的没有被映射的线性地址%p-%p", line_addr_start,
         line_addr_start + page_count * PAGE_SIZE);
   for (usize i = 0; i < page_count; i++) {
-    page_link_share((size_t)line_addr_start + i * PAGE_SIZE);
+    page_link_share((usize)line_addr_start + i * PAGE_SIZE);
   }
   return line_addr_start;
 }

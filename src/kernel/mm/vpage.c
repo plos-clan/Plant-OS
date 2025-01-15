@@ -49,7 +49,7 @@ void page_set_alloced(PageInfo *pg, u32 start, u32 end) {
 
 usize pd_clone(usize addr) {
   val pd = (PDE *)addr;
-  for (usize i = PDI(0x70000000); i < 1024; i++) {
+  for (usize i = PDI(ADDR_TASK_CODE); i < 1024; i++) {
     var pde = &pd[i];
     pages[pde->addr].count++;
     pde->wrable = false;
@@ -69,7 +69,7 @@ usize pd_clone(usize addr) {
 }
 
 static void pd_reset(u32 addr) {
-  for (usize i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
+  for (usize i = PDI(ADDR_TASK_CODE) * 4; i < PAGE_SIZE; i += 4) {
     var pde     = (PDE *)(addr + i);
     pde->wrable = true;
   }
@@ -77,7 +77,7 @@ static void pd_reset(u32 addr) {
 
 void pd_free(usize addr) {
   if (addr == PD_ADDRESS) return;
-  for (usize i = PDI(0x70000000); i < 1024; i++) {
+  for (usize i = PDI(ADDR_TASK_CODE); i < 1024; i++) {
     val pde = (PDE *)addr + i;
     if (!pde->present || !pde->user) continue;
     for (usize j = 0; j < 1024; j++) {

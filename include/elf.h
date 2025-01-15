@@ -164,7 +164,7 @@ typedef struct Elf32ProgramHeader {
   u32 type;
   u32 offset;
   u32 vaddr;
-  u32 paddr;
+  u32 paddr; // (ignored)
   u32 filesz;
   u32 memsz;
   u32 flags;
@@ -177,26 +177,182 @@ typedef struct Elf64ProgramHeader {
   u32 flags;
   u64 offset;
   u64 vaddr;
-  u64 paddr;
+  u64 paddr; // (ignored)
   u64 filesz;
   u64 memsz;
   u64 align;
 } Elf64ProgramHeader;
 #endif
 
-#define ELF_PROGRAM_TYPE_NULL    0 // Program header table entry unused.
-#define ELF_PROGRAM_TYPE_LOAD    1 // Loadable segment.
-#define ELF_PROGRAM_TYPE_DYNAMIC 2 // Dynamic linking information.
-#define ELF_PROGRAM_TYPE_INTERP  3 // Interpreter information.
-#define ELF_PROGRAM_TYPE_NOTE    4 // Auxiliary information.
-#define ELF_PROGRAM_TYPE_SHLIB   5 // Reserved.
-#define ELF_PROGRAM_TYPE_PHDR    6 // Segment containing program header table itself.
-#define ELF_PROGRAM_TYPE_TLS     7 // Thread-Local Storage template.
-#define ELF_PROGRAM_TYPE_LOOS    0x60000000
-#define ELF_PROGRAM_TYPE_HIOS    0x6FFFFFFF
-#define ELF_PROGRAM_TYPE_LOPROC  0x70000000
-#define ELF_PROGRAM_TYPE_HIPROC  0x7fffffff
+#define ELF_PROGRAM_TYPE_NULL      0 // Program header table entry unused.
+#define ELF_PROGRAM_TYPE_LOAD      1 // Loadable segment.
+#define ELF_PROGRAM_TYPE_DYNAMIC   2 // Dynamic linking information.
+#define ELF_PROGRAM_TYPE_INTERP    3 // Interpreter information.
+#define ELF_PROGRAM_TYPE_NOTE      4 // Auxiliary information.
+#define ELF_PROGRAM_TYPE_SHLIB     5 // Reserved.
+#define ELF_PROGRAM_TYPE_PHDR      6 // Segment containing program header table itself.
+#define ELF_PROGRAM_TYPE_TLS       7 // Thread-Local Storage template.
+#define ELF_PROGRAM_TYPE_LOOS      0x60000000
+#define ELF_PROGRAM_TYPE_HIOS      0x6FFFFFFF
+#define ELF_PROGRAM_TYPE_LOPROC    0x70000000
+#define ELF_PROGRAM_TYPE_HIPROC    0x7fffffff
+#define ELF_PROGRAM_TYPE_GNU_STACK 0x6474e551
 
 #define ELF_PROGRAM_FLAG_EXEC  MASK(0)
 #define ELF_PROGRAM_FLAG_WRITE MASK(1)
 #define ELF_PROGRAM_FLAG_READ  MASK(2)
+
+// --------------------------------------------------
+//; Dynamic Section
+
+typedef struct Elf32Dynamic {
+  u32 tag;
+  u32 value;
+} Elf32Dynamic;
+
+#ifdef __x86_64__
+typedef struct Elf64Dynamic {
+  u64 tag;
+  u64 value;
+} Elf64Dynamic;
+#endif
+
+#define ELF_DYNAMIC_NULL            0 // 结束标记
+#define ELF_DYNAMIC_NEEDED          1 // 依赖库
+#define ELF_DYNAMIC_PLTRELSZ        2 // 重定位表大小
+#define ELF_DYNAMIC_PLTGOT          3 // 重定位表地址
+#define ELF_DYNAMIC_HASH            4 // 符号哈希表地址
+#define ELF_DYNAMIC_STRTAB          5 // 字符串表地址
+#define ELF_DYNAMIC_SYMTAB          6 // 符号表地址
+#define ELF_DYNAMIC_RELA            7
+#define ELF_DYNAMIC_RELASZ          8
+#define ELF_DYNAMIC_RELAENT         9
+#define ELF_DYNAMIC_STRSZ           10
+#define ELF_DYNAMIC_SYMENT          11
+#define ELF_DYNAMIC_INIT            12 // 初始化函数地址
+#define ELF_DYNAMIC_FINI            13 // 结束函数地址
+#define ELF_DYNAMIC_SONAME          14
+#define ELF_DYNAMIC_RPATH           15
+#define ELF_DYNAMIC_SYMBOLIC        16
+#define ELF_DYNAMIC_REL             17
+#define ELF_DYNAMIC_RELSZ           18
+#define ELF_DYNAMIC_RELENT          19
+#define ELF_DYNAMIC_PLTREL          20
+#define ELF_DYNAMIC_DEBUG           21
+#define ELF_DYNAMIC_TEXTREL         22
+#define ELF_DYNAMIC_JMPREL          23
+#define ELF_DYNAMIC_BIND_NOW        24
+#define ELF_DYNAMIC_INIT_ARRAY      25
+#define ELF_DYNAMIC_FINI_ARRAY      26
+#define ELF_DYNAMIC_INIT_ARRAYSZ    27
+#define ELF_DYNAMIC_FINI_ARRAYSZ    28
+#define ELF_DYNAMIC_RUNPATH         29
+#define ELF_DYNAMIC_FLAGS           30
+#define ELF_DYNAMIC_ENCODING        32
+#define ELF_DYNAMIC_PREINIT_ARRAY   32
+#define ELF_DYNAMIC_PREINIT_ARRAYSZ 33
+#define ELF_DYNAMIC_MAXPOSTAGS      34
+#define ELF_DYNAMIC_GNU_HASH        0x6ffffef5
+
+// --------------------------------------------------
+//; Symbol Table
+
+typedef struct Elf32Symbol {
+  u32 name;
+  u32 value;
+  u32 size;
+  u8  info;
+  u8  other;
+  u16 shndx;
+} Elf32Symbol;
+
+#ifdef __x86_64__
+typedef struct Elf64Symbol {
+  u32 name;
+  u8  info;
+  u8  other;
+  u16 shndx;
+  u64 value;
+  u64 size;
+} Elf64Symbol;
+#endif
+
+// --------------------------------------------------
+//; Hash Table
+
+typedef struct Elf32Hash {
+  u32 nbucket;
+  u32 nchain;
+  u32 bucket;
+  u32 chain;
+} Elf32Hash;
+
+typedef struct Elf64Hash {
+  u32 nbucket;
+  u32 nchain;
+  u32 bucket;
+  u32 chain;
+} Elf64Hash;
+
+finline u32 elf_hash(cstr name) {
+  u32 h = 0;
+  for (usize i = 0; name[i] != '\0'; i++) {
+    h     <<= 4;
+    h      += name[i];
+    u32 g   = h & 0xf0000000;
+    h      ^= g;
+    h      ^= g >> 24;
+  }
+  return h;
+}
+
+typedef struct Elf32GnuHash {
+  u32 nbuckets;
+  u32 symndx;
+  u32 maskwords;
+  u32 shift2;
+  u32 bloom[1];
+} Elf32GnuHash;
+
+// --------------------------------------------------
+//; elf 加载时数据
+
+typedef void (*ElfInitFunc)();
+typedef void (*ElfFiniFunc)();
+
+typedef struct Elf {
+  cstr  path; // 文件路径 (不属于结构体所有)
+  usize size; // 文件大小
+  union {
+    const void        *data;
+    const ElfIdent    *ident;
+    const Elf32Header *header32;
+#ifdef __x86_64__
+    const Elf64Header *header64;
+#endif
+  };
+  i32 errcode;
+
+  cstr strtab;
+
+  union {
+    const Elf32Symbol *sym32;
+#ifdef __x86_64__
+    const Elf64Symbol *sym64;
+#endif
+  };
+
+  union {
+    const Elf32Hash *hash32;
+#ifdef __x86_64__
+    const Elf32Hash *hash64;
+#endif
+  };
+
+  ElfInitFunc        init;
+  ElfFiniFunc        fini;
+  const ElfInitFunc *init_array;
+  usize              init_array_len;
+  const ElfFiniFunc *fini_array;
+  usize              fini_array_len;
+} Elf;

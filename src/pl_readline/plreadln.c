@@ -58,13 +58,13 @@ void pl_readline_uninit(_self) {
 }
 
 void pl_readline_insert_char(char *str, char ch, int idx) {
-  int len = strlen(str);
+  val len = strlen(str) + 1;
   if (len) memmove(str + idx + 1, str + idx, len - idx);
   str[idx] = ch;
 }
 
 static void pl_readline_delete_char(char *str, int idx) {
-  int len = strlen(str);
+  val len = strlen(str);
   if (len) memmove(str + idx, str + idx + 1, len - idx);
   str[len] = '\0';
 }

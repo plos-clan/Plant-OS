@@ -13,22 +13,22 @@ extern PageInfo *pages;
 
 void task_app() {
   klogd("%s", current_task->command_line);
-  klogd("%08x", current_task->stack_bottom);
-  cir_queue8_t kfifo = malloc(sizeof(struct cir_queue8));
-  cir_queue8_t mfifo = malloc(sizeof(struct cir_queue8));
+
+  cir_queue8_t kfifo = xmalloc(sizeof(struct cir_queue8));
+  cir_queue8_t mfifo = xmalloc(sizeof(struct cir_queue8));
   var          kbuf  = page_malloc_one();
   var          mbuf  = page_malloc_one();
   cir_queue8_init(kfifo, 4096, kbuf);
   cir_queue8_init(mfifo, 4096, mbuf);
-
   task_set_fifo(current_task, kfifo, mfifo);
+
   u32 pde = current_task->cr3;
   asm_cli;
   asm_set_cr3(PD_ADDRESS);
   current_task->cr3 = PD_ADDRESS;
-  klogd("P1 %08x", current_task->cr3);
-  for (int i = PDI(0x70000000) * 4; i < PAGE_SIZE; i += 4) {
-    u32 *pde_entry = (u32 *)(pde + i);
+
+  for (int i = PDI(ADDR_TASK_CODE) * 4; i < PAGE_SIZE; i += 4) {
+    val pde_entry = (u32 *)(pde + i);
 
     if ((*pde_entry & PAGE_SHARED) || pages[PIDX(*pde_entry)].count > 1) {
       if (pages[PIDX(*pde_entry)].count > 1) {
@@ -52,9 +52,10 @@ void task_app() {
       }
     }
   }
+
   current_task->cr3 = pde;
-  asm_sti;
   asm_set_cr3(pde);
+  asm_sti;
   klogd("go to task_to_usermode_elf");
   task_to_user_mode_elf();
   infinite_loop;
@@ -85,14 +86,14 @@ void task_to_user_mode_elf() {
 
   regs32 *iframe = (regs32 *)current_task->stack_bottom - 1;
   *iframe        = (regs32){};
-  iframe->edi    = (size_t)args.argc;
-  iframe->esi    = (size_t)args.argv;
-  iframe->edx    = (size_t)args.envp;
+  iframe->edi    = (usize)args.argc;
+  iframe->esi    = (usize)args.argv;
+  iframe->edx    = (usize)args.envp;
   iframe->fs     = GET_SEL(RING3_DS, SA_RPL3);
   iframe->es     = GET_SEL(RING3_DS, SA_RPL3);
   iframe->ds     = GET_SEL(RING3_DS, SA_RPL3);
   iframe->cs     = GET_SEL(RING3_CS, SA_RPL3);
-  iframe->flags  = (0 << 12 | 0b10 | 1 << 9);
+  iframe->flags  = FLAGS_IOPL_0 | FLAGS_IF | 0b10;
   iframe->ss     = GET_SEL(RING3_DS, SA_RPL3);
   tss.eflags     = iframe->flags;
 
@@ -146,8 +147,6 @@ i32 os_execute(cstr filename, cstr line) {
   val status              = waittid(t->tid);
   current_task->fifosleep = o;
 
-  klogd();
-
   if (backup) {
     mouse_ready(&mdec);
     mouse_use_task = backup;
@@ -155,8 +154,6 @@ i32 os_execute(cstr filename, cstr line) {
     mouse_sleep(&mdec);
   }
   current_task->sigint_up = old;
-
-  klogd();
 
   return status;
 }

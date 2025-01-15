@@ -1,2 +1,2 @@
-add_binary(app-file)
-target_link_libraries(app-file misc magic)
+add_binary(file)
+target_link_libraries(file misc magic)

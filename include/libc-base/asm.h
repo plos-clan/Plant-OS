@@ -11,6 +11,7 @@ extern "C" {
 #include "asm/cpuid/ids.h"
 #include "asm/cpuid/macros.h"
 #include "asm/cr.h"
+#include "asm/flags.h"
 #include "asm/io.h"
 #include "asm/mem.h"
 #include "asm/msr.h"

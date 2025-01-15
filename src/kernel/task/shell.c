@@ -175,7 +175,7 @@ static int print_file(cstr path) {
   return 0;
 }
 
-int shell_exec(char *path, cstr comand) {
+static int shell_exec(char *path, cstr comand) {
   if (!strlen(comand)) return 0;
   int retcode = 0;
   if (strneq(comand, "echo ", 5)) {
