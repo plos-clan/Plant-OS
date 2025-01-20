@@ -1,8 +1,8 @@
 	[bits 32]
-	extern main, __libc_start_main
+	global _start
+	extern __libc_start_main
 	section .text
 _start:
-	push main
 	push edx
 	push esi
 	push edi

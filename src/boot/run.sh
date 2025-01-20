@@ -1,3 +1,5 @@
+#!/usr/bin/sh
+
 qemu-system-i386 \
   -cpu qemu64 \
   -smp sockets=1,cores=2,threads=2,maxcpus=4 \
@@ -9,9 +11,9 @@ qemu-system-i386 \
   -net nic,model=pcnet -net user \
   -serial stdio \
   -device sb16 -device intel-hda -device hda-micro \
-  -device floppy,drive=fda -drive id=fda,if=none,format=raw,file=disk.img \
-  -device ide-hd,drive=hda,bus=ide.0 -drive id=hda,if=none,format=raw,file=hd.img \
-  -drive id=disk,file=hd1.img,if=none \
+  -device floppy,drive=fda -drive id=fda,if=none,format=raw,file=img/disk.img \
+  -device ide-hd,drive=hda,bus=ide.0 -drive id=hda,if=none,format=raw,file=img/hd.img \
+  -drive id=disk,if=none,format=raw,file=img/hd1.img \
   -device ahci,id=ahci \
   -device ide-hd,drive=disk,bus=ahci.0 \
   -boot a \

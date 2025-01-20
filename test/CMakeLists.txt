@@ -1,3 +1,6 @@
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/util)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/util)
+
 add_subdirectory(c)
 add_subdirectory(cpp)
 add_subdirectory(math)

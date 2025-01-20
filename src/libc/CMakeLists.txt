@@ -1,5 +1,6 @@
 # include(../../cmake/use-ubscan)
 add_compile_flag("-ffreestanding")
+add_link_flag("-Wl,-rpath=ld-plos.bin")
 mklib(c)
 tgtlib(c c-base sys)
 libdef(c RING3=1 LIBC=1)

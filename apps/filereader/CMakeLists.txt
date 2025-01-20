@@ -1,2 +1,2 @@
 add_binary(filereader)
-target_link_libraries(filereader misc)
+target_link_libraries(filereader c misc)

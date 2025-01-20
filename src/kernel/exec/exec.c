@@ -37,11 +37,10 @@ void task_app() {
         *pde_entry = (u32)page_malloc_one_count_from_4gb();
         memcpy((void *)(*pde_entry), (void *)old, PAGE_SIZE);
         pages[PIDX(old)].count--;
-        *pde_entry |= PAGE_USER | PAGE_PRESENT | PAGE_WRABLE;
       } else {
         *pde_entry &= 0xfffff;
-        *pde_entry |= 7;
       }
+      *pde_entry |= PAGE_USER | PAGE_PRESENT | PAGE_WRABLE;
     }
     u32 p = *pde_entry & (0xfffff000);
     for (int j = 0; j < PAGE_SIZE; j += 4) {
@@ -98,9 +97,9 @@ void task_to_user_mode_elf() {
   tss.eflags     = iframe->flags;
 
   klogd("%lu", file->size);
-  char *elf_data = page_alloc(file->size);
+  val elf_data = page_alloc(file->size);
   vfs_read(file, elf_data, 0, file->size);
-  if (!elf32_is_validate((Elf32Header *)elf_data)) {
+  if (!elf32_is_validate(elf_data)) {
     page_free(elf_data, file->size);
     if (mouse_use_task == current_task) mouse_sleep(&mdec);
     kloge();
@@ -111,8 +110,8 @@ void task_to_user_mode_elf() {
   for (usize i = 1; i <= STACK_SIZE; i++) {
     page_link(0xf0000000 - i * PAGE_SIZE);
   }
-  iframe->esp = 0xf0000000 - STACK_SIZE;
-  iframe->eip = load_elf((Elf32Header *)elf_data);
+  iframe->esp = 0xf0000000;
+  iframe->eip = load_elf(elf_data);
   klogd("eip = %08x", iframe->eip);
   current_task->user_mode = 1;
   tss.esp0                = current_task->stack_bottom;

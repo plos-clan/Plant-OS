@@ -16,13 +16,12 @@ void *syscall_mmap(void *start, usize length) {
 
   if (start != null) {
     for (usize i = 0; i < page_count; i++) {
-      if (page_get_attr((usize)start + i * PAGE_SIZE) & PAGE_USER) goto _0;
+      if (page_get_attr((usize)start + i * PAGE_SIZE) & PAGE_USER) return null;
     }
     line_addr_start = start;
-    goto _1;
+    goto success;
   }
 
-_0:
   for (usize i = PDI(ADDR_TASK_CODE), c = 0; i < 1024; i++) {
     val pde_entry = (u32 *)cr3 + i;
     u32 p         = *pde_entry & 0xfffff000;
@@ -34,10 +33,10 @@ _0:
       } else {
         c = 0;
       }
-      if (c == page_count) goto _1;
+      if (c == page_count) goto success;
     }
   }
-_1:
+success:
   klogd("找到了一段空闲的没有被映射的线性地址%p-%p", line_addr_start,
         line_addr_start + page_count * PAGE_SIZE);
   for (usize i = 0; i < page_count; i++) {

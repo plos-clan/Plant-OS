@@ -1,3 +1,5 @@
+#!/usr/bin/sh
+
 qemu-system-x86_64 \
   -smp sockets=1,cores=2,threads=2,maxcpus=4 \
   -bios OVMF.fd \

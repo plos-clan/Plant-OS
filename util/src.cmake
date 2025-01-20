@@ -28,5 +28,4 @@ tgtlib(util-audio util-misc)
 utillib(sound)
 tgtlib(util-sound)
 
-file(GLOB_RECURSE c_files "../src/libc-base/alloc/pool.c")
-add_library(alloc SHARED alloc.c ${c_files})
+add_library(alloc SHARED alloc.c ../src/libc-base/alloc/pool.c)
