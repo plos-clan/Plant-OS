@@ -122,7 +122,12 @@ int vfs_mkfile(cstr name) {
   char      *filename = path + strlen(path);
 
   while (*--filename != '/' && filename != path) {}
-  *filename++ = '\0';
+  if (filename != path) {
+    *filename++ = '\0';
+  } else {
+    goto create;
+  }
+
   if (strlen(path) == 0) {
     free(path);
     return -1;
@@ -138,6 +143,7 @@ int vfs_mkfile(cstr name) {
     if (current == null || current->type != file_dir) goto err;
   }
 
+create:
   vfs_node_t node = vfs_child_append(current, filename, null);
   node->type      = file_block;
   callbackof(current, mkfile)(current->handle, filename, node);
