@@ -23,6 +23,7 @@ extern "C" {
 #include "data-structure/sorted-map/rbtree-strptr.h"
 #include "data-structure/sorted-map/rbtree.h"
 #include "data-structure/sorted-map/trie.h"
+#include "data-structure/unordered-map/st.h"
 #ifdef __cplusplus
 }
 #endif
