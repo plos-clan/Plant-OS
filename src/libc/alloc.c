@@ -19,9 +19,10 @@ dlexport void free(void *ptr) {
 }
 
 dlexport void *calloc(size_t n, size_t size) {
-  void *ptr = malloc(n * size);
+  if (__builtin_mul_overflow(n, size, &size)) return null;
+  void *ptr = malloc(size);
   if (ptr == null) return null;
-  memset(ptr, 0, n * size);
+  memset(ptr, 0, size);
   return ptr;
 }
 
