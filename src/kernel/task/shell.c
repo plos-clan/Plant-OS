@@ -175,13 +175,13 @@ static int print_file(cstr path) {
   return 0;
 }
 
-static int shell_exec(char *path, cstr comand) {
-  if (!strlen(comand)) return 0;
+static int shell_exec(char *path, cstr command) {
+  if (!strlen(command)) return 0;
   int retcode = 0;
-  if (strneq(comand, "echo ", 5)) {
-    printf("%s\n", comand + 5);
-  } else if (strneq(comand, "cd ", 3)) {
-    char *s = comand + 3;
+  if (strneq(command, "echo ", 5)) {
+    printf("%s\n", command + 5);
+  } else if (strneq(command, "cd ", 3)) {
+    char *s = command + 3;
     if (s[strlen(s) - 1] == '/' && strlen(s) > 1) { s[strlen(s) - 1] = '\0'; }
     if (streq(s, ".")) return 0;
     if (streq(s, "..")) {
@@ -208,44 +208,51 @@ static int shell_exec(char *path, cstr comand) {
       return 1;
     }
     free(old);
-  } else if (streq(comand, "ls")) {
+  } else if (streq(command, "ls")) {
     list_files(path);
-  } else if (streq(comand, "pcils")) {
+  } else if (streq(command, "pcils")) {
     pci_list();
-  } else if (streq(comand, "exit")) {
+  } else if (streq(command, "exit")) {
     syscall_exit(0);
-  } else if (streq(comand, "clear")) {
+  } else if (streq(command, "clear")) {
     screen_clear();
-  } else if (streq(comand, "stdout_test")) {
+  } else if (streq(command, "stdout_test")) {
     vfs_node_t stdout = vfs_open("/dev/stdout");
     vfs_write(stdout, "Hello, world!\n", 0, 14);
-  } else if (strneq(comand, "file ", 5)) {
-    cstr type = filetype_from_name(comand + 5);
+  } else if (strneq(command, "file ", 5)) {
+    cstr type = filetype_from_name(command + 5);
     if (type) {
       printf("%s\n", type);
     } else {
       printf("unknown file\n");
     }
-  } else if (strneq(comand, "read ", 5)) {
-    return print_file(comand + 5);
-  } else if (strneq(comand, "mkdir ", 6)) {
-    vfs_mkdir(comand + 6);
-  } else if (strneq(comand, "mount ", 6)) {
+  } else if (strneq(command, "read ", 5)) {
+    return print_file(command + 5);
+  } else if (strneq(command, "mkdir ", 6)) {
+    vfs_mkdir(command + 6);
+  } else if (strneq(command, "mount ", 6)) {
     // 用strtok分割参数
-    cstr dev_name = strtok(comand + 6, " ");
+    cstr dev_name = strtok(command + 6, " ");
     cstr dir_name = strtok(null, " ");
     vfs_mount(dev_name, vfs_open(dir_name));
-  } else if (strneq(comand, "umount ", 7)) {
-    cstr dir_name = comand + 7;
+  } else if (strneq(command, "umount ", 7)) {
+    cstr dir_name = command + 7;
     if (vfs_unmount(dir_name) < 0) {
       printf("umount %s failed\n", dir_name);
       return 1;
     }
-  } else {
-    char *path = exec_name_from_cmdline(comand);
+  } else if (strneq(command, "test ", 5)) {
+    vfs_node_t n = vfs_open(command + 5);
+    if(n) {
+      char *path = vfs_get_fullpath(n);
+      printf("%s\n", path);
+      free(path);
+    }
+  }  else {
+    char *path = exec_name_from_cmdline(command);
     cstr  type = filetype_from_name(path);
     if (streq(type, "application/x-executable")) {
-      int status = os_execute(path, comand);
+      int status = os_execute(path, command);
       printf("%s exited with code %d\n", path, status);
     } else if (streq(type, "audio/x-qoa")) {
       qoa_player(path);

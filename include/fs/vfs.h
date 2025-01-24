@@ -204,3 +204,10 @@ int vfs_close(vfs_node_t node);
  *\param node     文件节点
  */
 void vfs_update(vfs_node_t node);
+
+/**
+ *\brief 获取文件的完整路径
+ *
+ *\param node     文件节点
+*/
+char *vfs_get_fullpath(vfs_node_t node);

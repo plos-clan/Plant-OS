@@ -273,3 +273,29 @@ int vfs_unmount(cstr path) {
   }
   return -1;
 }
+
+// 使用请记得free掉返回的buff
+char *vfs_get_fullpath(vfs_node_t node) {
+  if (node == null) return null;
+  int inital = 16;
+  vfs_node_t *nodes = (vfs_node_t *)malloc(sizeof(vfs_node_t) * inital);
+  int         count  = 0;
+  for (vfs_node_t cur = node; cur; cur = cur->parent) {
+    if (count >= inital) {
+      inital *= 2;
+      nodes   = (vfs_node_t *)realloc((void *)nodes, sizeof(vfs_node_t) * inital);
+      assert(nodes);
+    }
+    nodes[count++] = cur;
+  }
+  // 正常的路径都不应该超过这个数值
+  char *buff = (char *)malloc(256);
+  strcpy(buff, "/");
+  for (int j = count - 1; j >= 0; j--) {
+    if (nodes[j] == rootdir) continue;
+    strcat(buff, nodes[j]->name);
+    if (j != 0) strcat(buff, "/");
+  }
+  free(nodes);
+  return buff;
+}
