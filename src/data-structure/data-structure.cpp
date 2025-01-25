@@ -1,3 +1,4 @@
+#define COMPILE_DATA_STRUCTURE_LIBRARY
 #include <define.hpp>
 #include <libc-base.hpp>
 #define static dlexport

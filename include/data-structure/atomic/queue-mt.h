@@ -153,7 +153,6 @@ static size_t queue_mt_size(queue_mt_t queue) {
   return (queue == null) ? 0 : queue->size;
 }
 
-#  ifdef __libplos__
 static void queue_mt_print(queue_mt_t queue) {
   spin_lock(queue->spin);
   queue_mt_node_t current = queue->head;
@@ -164,7 +163,6 @@ static void queue_mt_print(queue_mt_t queue) {
   printf("null\n");
   spin_unlock(queue->spin);
 }
-#  endif
 
 #  undef QUEUE_MT_IMPLEMENTATION
 #endif

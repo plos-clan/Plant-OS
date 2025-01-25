@@ -182,7 +182,6 @@ static size_t queue_size(queue_t queue) {
   return (queue == null) ? 0 : queue->size;
 }
 
-#  ifdef __libplos__
 static void queue_print(queue_t queue) {
   queue_node_t current = queue->head;
   while (current != null) {
@@ -191,7 +190,6 @@ static void queue_print(queue_t queue) {
   }
   printf("null\n");
 }
-#  endif
 
 #  undef QUEUE_IMPLEMENTATION
 #endif

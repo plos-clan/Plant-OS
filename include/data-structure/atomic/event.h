@@ -181,7 +181,6 @@ static event_t event_copy(event_t event) {
   return e_new;
 }
 
-#  ifdef __libplos__
 static void event_print(event_t event) {
   spin_lock(event->spin);
   event_node_t current = event->head;
@@ -192,7 +191,6 @@ static void event_print(event_t event) {
   printf("null\n");
   spin_unlock(event->spin);
 }
-#  endif
 
 #  undef EVENT_IMPLEMENTATION
 #endif

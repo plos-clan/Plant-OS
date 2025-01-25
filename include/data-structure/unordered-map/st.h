@@ -178,6 +178,7 @@ static void st_free(st_t st) {
   for (usize i = 0; i <= st->mask; i++) {
     for (var node = st->buckets[i]; node;) {
       val next = node->next;
+      free(node->key);
       free(node);
       node = next;
     }
@@ -225,7 +226,7 @@ static void *st_set(st_t st, cstr key, void *value) {
   }
   st_node_t node   = xmalloc(sizeof(struct st_node));
   node->hash       = hash;
-  node->key        = key;
+  node->key        = strdup(key);
   node->value      = value;
   node->next       = st->buckets[idx];
   st->buckets[idx] = node;
@@ -245,7 +246,7 @@ static int st_insert(st_t st, cstr key, void *value) {
   st_node_t node = malloc(sizeof(struct st_node));
   if (node == null) return -1;
   node->hash       = hash;
-  node->key        = key;
+  node->key        = strdup(key);
   node->value      = value;
   node->next       = st->buckets[idx];
   st->buckets[idx] = node;
@@ -261,6 +262,7 @@ static void *st_remove2(st_t st, cstr key) {
     if (node->hash == hash && strcmp(node->key, key) == 0) {
       val value = node->value;
       *node_p   = node->next;
+      free(node->key);
       free(node);
       st->length--;
       return value;
@@ -277,12 +279,21 @@ static void *st_remove3(st_t st, cstr key, void *_default) {
     if (node->hash == hash && strcmp(node->key, key) == 0) {
       val value = node->value;
       *node_p   = node->next;
+      free(node->key);
       free(node);
       st->length--;
       return value;
     }
   }
   return _default;
+}
+
+static void st_print(st_t st) {
+  for (usize i = 0; i <= st->mask; i++) {
+    for (var node = st->buckets[i]; node; node = node->next) {
+      printf("%s -> %p\n", node->key, node->value);
+    }
+  }
 }
 
 #  undef SYMBOLTABLE_IMPLEMENTATION

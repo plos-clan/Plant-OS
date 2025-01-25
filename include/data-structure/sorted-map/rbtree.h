@@ -506,7 +506,6 @@ static rbtree_t rbtree_delete(rbtree_t root, int32_t key) noexcept {
   return rbtree_delete_with(root, key, null);
 }
 
-#  ifdef __libplos__
 static void rbtree_print_inorder(rbtree_t root, int deepth) noexcept {
   if (deepth == 0) printf("In-order traversal of the Red-Black Tree: \n");
   if (root == null) return;
@@ -536,7 +535,6 @@ static void rbtree_print_postorder(rbtree_t root, int deepth) noexcept {
     printf("| ");
   printf("%d %p\n", root->key, root->value);
 }
-#  endif
 
 #  undef RBTREE_IMPLEMENTATION
 #endif

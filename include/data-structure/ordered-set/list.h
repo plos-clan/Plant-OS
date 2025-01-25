@@ -335,7 +335,6 @@ static size_t list_length(list_t list) {
   return count;
 }
 
-#  ifdef __libplos__
 static void list_print(list_t list) {
   list_t current = list;
   while (current != null) {
@@ -344,7 +343,6 @@ static void list_print(list_t list) {
   }
   printf("null\n");
 }
-#  endif
 
 #  undef LIST_IMPLEMENTATION
 #endif
