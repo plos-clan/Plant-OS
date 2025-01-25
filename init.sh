@@ -141,6 +141,7 @@ cd bin
 step 创建符号链接
 run ln -s ../src/boot/run.sh run.sh &>>$INIT_LOG_PATH
 run ln -s ../src/boot/run-efi.sh run-efi.sh &>>$INIT_LOG_PATH
+run ln -s ../src/boot/bochsrc.txt bochsrc.txt &>>$INIT_LOG_PATH
 run ln -s ../src/boot/bochs.sh bochs.sh &>>$INIT_LOG_PATH
 run ln -s ../src/boot/netlog.py netlog.py &>>$INIT_LOG_PATH
 run ln -s ../src/boot/templates templates &>>$INIT_LOG_PATH

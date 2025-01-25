@@ -1,0 +1,23 @@
+megs: 2048
+romimage: file=./resource/BIOS-bochs-latest
+vgaromimage: file=./resource/VGABIOS-lgpl-latest
+vga: extension=vbe, update_freq=15
+floppya: 1_44="./img/disk.img", status=inserted
+ata0: enabled=1
+ata0-master: type=disk, mode=flat, translation=auto, path="hd.img"
+boot: a
+mouse: enabled=0
+cpu: ips=15000000
+pci: enabled=1, chipset=i440fx
+magic_break: enabled=1
+display_library: x
+keyboard: type=mf, serial_delay=200, paste_delay=100000
+keyboard:  keymap=/usr/share/bochs/keymaps/x11-pc-us.map
+keyboard: user_shortcut=ctrl-alt
+display_library: x, options="gui_debug"
+sound: enabled=1
+sb16: enabled=1
+com1: enabled=true, mode=file, dev=serial.txt
+com2: enabled=false
+com3: enabled=false
+com4: enabled=false

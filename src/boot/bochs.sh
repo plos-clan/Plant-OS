@@ -1,4 +1,3 @@
-rm ./bochsrc.txt
-cp ./resource/bochsrc.txt .
+#!/usr/bin/sh
 bochs
 rm ./bx_enh_dbg.ini
