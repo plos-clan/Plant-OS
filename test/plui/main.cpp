@@ -55,14 +55,14 @@ auto load_qoi_to_tex(const char *filename, T &tex) {
 
 auto init(void *buffer, u32 width, u32 height, pl2d::PixFmt fmt) -> int {
   for (int i = 0; i < 18; i++) {
-    load_qoi_to_tex(("frame" + std::to_string(i) + ".qoi").c_str(), frame_tex[i]);
+    load_qoi_to_tex(("../resource/frame" + std::to_string(i) + ".qoi").c_str(), frame_tex[i]);
     frame_tex[i].transform([](auto &pix) {
       if (pix.brightness() > 240) pix = 0;
     });
     frame_tex[i].gaussian_blur(11, 2);
   }
 
-  load_qoi_to_tex("test.qoi", image_tex);
+  load_qoi_to_tex("../resource/test.qoi", image_tex);
 
   return on::screen_resize(buffer, width, height, fmt);
 }

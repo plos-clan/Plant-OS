@@ -44,7 +44,7 @@ void program_exit() {
 }
 
 void create_img(u32 width, u32 height) {
-  image            = XShmCreateImage(display, NULL, 24, ZPixmap, 0, &shm_info, width, height);
+  image            = XShmCreateImage(display, null, 24, ZPixmap, 0, &shm_info, width, height);
   shm_info.shmid   = shmalloc((size_t)width * height * 4);
   shm_info.shmaddr = image->data = shmref(shm_info.shmid, null);
   shm_info.readOnly              = false;
@@ -65,7 +65,7 @@ void recreate_img(u32 width, u32 height) {
 static void init_xlib(u32 width, u32 height) {
   screen_width = width, screen_height = height;
 
-  display     = XOpenDisplay(NULL);
+  display     = XOpenDisplay(null);
   screen      = DefaultScreen(display);
   Window root = RootWindow(display, screen);
   window = XCreateSimpleWindow(display, root, 0, 0, width, height, 1, BlackPixel(display, screen),
@@ -128,26 +128,28 @@ int loop_body(XEvent e, int pending) {
   if (e.type == Expose) {}
 
   if (e.type == ButtonPress) {
-    if (--e.xbutton.button < 3) plds_on_button_down(e.xbutton.button, e.xbutton.x, e.xbutton.y);
-    if (e.xbutton.button == 3) plds_on_scroll(-3);
-    if (e.xbutton.button == 4) plds_on_scroll(3);
+    val btn = e.xbutton.button - 1;
+    if (btn < 3) plds_on_button_down(btn, e.xbutton.x, e.xbutton.y);
+    if (btn == 3) plds_on_scroll(-3);
+    if (btn == 4) plds_on_scroll(3);
   }
 
   if (e.type == ButtonRelease) {
-    if (--e.xbutton.button < 3) plds_on_button_up(e.xbutton.button, e.xbutton.x, e.xbutton.y);
+    val btn = e.xbutton.button - 1;
+    if (btn < 3) plds_on_button_up(btn, e.xbutton.x, e.xbutton.y);
   }
 
   if (e.type == MotionNotify) { plds_on_mouse_move(e.xmotion.x, e.xmotion.y); }
 
   if (e.type == KeyPress) {
     KeySym key;
-    XLookupString(&e.xkey, NULL, 0, &key, NULL);
+    XLookupString(&e.xkey, null, 0, &key, null);
     plds_on_key_down(key);
   }
 
   if (e.type == KeyRelease) {
     KeySym key;
-    XLookupString(&e.xkey, NULL, 0, &key, NULL);
+    XLookupString(&e.xkey, null, 0, &key, null);
     plds_on_key_up(key);
   }
 

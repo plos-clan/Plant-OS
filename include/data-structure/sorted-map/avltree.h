@@ -361,7 +361,7 @@ static avltree_t avltree_delete_with(avltree_t root, int32_t key,
   return avltree_balance(root);
 }
 
-static void avltree_print_inorder(avltree_t root, int depth) {
+static void avltree_print_inorder(avltree_t root, int depth) noexcept {
   if (depth == 0) printf("In-order traversal of the AVL Tree: \n");
   if (root == null) return;
   avltree_print_inorder(root->left, depth + 1);
@@ -371,7 +371,7 @@ static void avltree_print_inorder(avltree_t root, int depth) {
   avltree_print_inorder(root->right, depth + 1);
 }
 
-static void avltree_print_preorder(avltree_t root, int depth) {
+static void avltree_print_preorder(avltree_t root, int depth) noexcept {
   if (depth == 0) printf("Pre-order traversal of the AVL Tree: \n");
   if (root == null) return;
   for (int i = 0; i < depth; i++)
@@ -381,7 +381,7 @@ static void avltree_print_preorder(avltree_t root, int depth) {
   avltree_print_preorder(root->right, depth + 1);
 }
 
-static void avltree_print_postorder(avltree_t root, int depth) {
+static void avltree_print_postorder(avltree_t root, int depth) noexcept {
   if (depth == 0) printf("Post-order traversal of the AVL Tree: \n");
   if (root == null) return;
   avltree_print_postorder(root->left, depth + 1);

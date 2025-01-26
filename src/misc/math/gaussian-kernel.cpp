@@ -43,7 +43,7 @@ f32 gaussian_kernel_f15[15] = {
     4.4318483882e-03, 1.3383022505e-04, 1.4867195068e-06, 6.0758828173e-09, 9.1347203595e-12};
 
 // 一维高斯模糊卷积核
-void gaussian_kernel_1(f64 *kernel, i32 size, f64 sigma) {
+dlexport void gaussian_kernel_1(f64 *kernel, i32 size, f64 sigma) {
   i32 center = size / 2;
   f64 sum    = 0;
   f64 k      = -1 / (2 * sigma * sigma);
@@ -56,7 +56,7 @@ void gaussian_kernel_1(f64 *kernel, i32 size, f64 sigma) {
     kernel[i] /= sum;
   }
 }
-void gaussian_kernel_1(f32 *kernel, i32 size, f32 sigma) {
+dlexport void gaussian_kernel_1(f32 *kernel, i32 size, f32 sigma) {
   i32 center = size / 2;
   f32 sum    = 0;
   f32 k      = -1 / (2 * sigma * sigma);

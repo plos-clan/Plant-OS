@@ -1,4 +1,5 @@
+#include <libc-base.h>
 
-void __cxa_atexit() {
+dlexport void __cxa_atexit() {
   // TODO 目前暂时忽略
 }

@@ -374,7 +374,6 @@ void port_rebase(HBA_PORT *port, int portno) {
 //   return (regs[1] >> 8) & 0xFF;
 // }
 
-#define PAGE_SIZE 4096
 int  cache_line_size = 0;
 // 刷新缓存函数
 void flush_cache(void *addr) {

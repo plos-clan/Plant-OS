@@ -6,10 +6,10 @@ namespace pl2d {
 
 // 显式模板实例化
 #define BaseTextureInstantiation                                                                   \
-  template class BaseTexture<PixelB>;                                                              \
-  template class BaseTexture<PixelS>;                                                              \
-  template class BaseTexture<PixelF>;                                                              \
-  template class BaseTexture<PixelD>;
+  template class dlexport BaseTexture<PixelB>;                                                     \
+  template class dlexport BaseTexture<PixelS>;                                                     \
+  template class dlexport BaseTexture<PixelF>;                                                     \
+  template class dlexport BaseTexture<PixelD>;
 
 // BaseTexture 参数约定：
 //   图像宽度与高度必须是 2 的整数倍
@@ -38,7 +38,7 @@ struct BaseTexture {
   BaseTexture(T *pixels, u32 width, u32 height, u32 pitch); // 使用外部数据创建纹理
   BaseTexture(const BaseTexture &) = delete;                // 隐式地复制是不允许的
   BaseTexture(BaseTexture &&) noexcept;                     // 移动是可以的
-  ~BaseTexture() noexcept;
+  dlexport ~BaseTexture() noexcept;
   auto operator=(const BaseTexture &) -> BaseTexture & = delete; // 隐式地复制是不允许的
   auto operator=(BaseTexture &&) noexcept -> BaseTexture &;      // 移动是可以的
 

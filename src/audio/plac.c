@@ -14,7 +14,7 @@ static void _plac_decompress_block(f32 *block, void *_plac);
 
 #define block_len 2048
 
-plac_compress_t plac_compress_alloc() {
+dlexport plac_compress_t plac_compress_alloc() {
   plac_compress_t plac = malloc(sizeof(struct plac_compress));
   if (plac == null) return null;
   plac->mdct           = mdctf_alloc(2 * block_len, false, _plac_compress_block);
@@ -35,7 +35,7 @@ plac_compress_t plac_compress_alloc() {
   return plac;
 }
 
-void plac_compress_free(plac_compress_t plac) {
+dlexport void plac_compress_free(plac_compress_t plac) {
   if (plac == null) return;
   mdctf_free(plac->mdct);
   mostream_free(plac->stream);
@@ -61,11 +61,11 @@ void plac_write_header_v1(plac_compress_t plac, u32 samplerate, u64 nsamples) {
   mostream_write(plac->stream, &nsamples, 8);
 }
 
-void plac_write_header(plac_compress_t plac, u32 samplerate, u64 nsamples) {
+dlexport void plac_write_header(plac_compress_t plac, u32 samplerate, u64 nsamples) {
   plac_write_header_v1(plac, samplerate, nsamples);
 }
 
-void plac_write_data(plac_compress_t plac, quantized_t q) {
+dlexport void plac_write_data(plac_compress_t plac, quantized_t q) {
   mostream_write(plac->stream, &q->nbit, 2);
   mostream_write(plac->stream, &q->max, 2);
   if (q->nbit == 0) return;
@@ -95,15 +95,15 @@ static void _plac_compress_block(f32 *block, void *_plac) {
   plac_write_data(plac, &plac->q);
 }
 
-void plac_compress_block(plac_compress_t plac, f32 *block, size_t len) {
+dlexport void plac_compress_block(plac_compress_t plac, f32 *block, size_t len) {
   mdctf_put(plac->mdct, block, len);
 }
 
-void plac_compress_final(plac_compress_t plac) {
+dlexport void plac_compress_final(plac_compress_t plac) {
   mdctf_final(plac->mdct);
 }
 
-plac_decompress_t plac_decompress_alloc(const void *buffer, size_t size) {
+dlexport plac_decompress_t plac_decompress_alloc(const void *buffer, size_t size) {
   plac_decompress_t plac = malloc(sizeof(struct plac_decompress));
   if (plac == null) return null;
   plac->mdct           = mdctf_alloc(2 * block_len, true, _plac_decompress_block);
@@ -127,7 +127,7 @@ plac_decompress_t plac_decompress_alloc(const void *buffer, size_t size) {
   return plac;
 }
 
-void plac_decompress_free(plac_decompress_t plac) {
+dlexport void plac_decompress_free(plac_decompress_t plac) {
   if (plac == null) return;
   mdctf_free(plac->mdct);
   mistream_free(plac->stream);
@@ -136,7 +136,7 @@ void plac_decompress_free(plac_decompress_t plac) {
   free(plac);
 }
 
-bool plac_read_header(plac_decompress_t plac, u32 *samplerate, u64 *nsamples) {
+dlexport bool plac_read_header(plac_decompress_t plac, u32 *samplerate, u64 *nsamples) {
   u32 magic;
   mistream_read(plac->stream, &magic, 4);
   if (magic != MAGIC32('p', 'l', 'a', 'c')) return false;
@@ -154,7 +154,7 @@ bool plac_read_header(plac_decompress_t plac, u32 *samplerate, u64 *nsamples) {
   return true;
 }
 
-void plac_read_data(plac_decompress_t plac, quantized_t q) {
+dlexport void plac_read_data(plac_decompress_t plac, quantized_t q) {
   mistream_read(plac->stream, &q->nbit, 2);
   mistream_read(plac->stream, &q->max, 2);
   if (q->nbit == 0) return;
@@ -183,7 +183,7 @@ static void _plac_decompress_block(f32 *block, void *_plac) {
   if (plac->callback) plac->callback(block, block_len, plac->userdata);
 }
 
-bool plac_decompress_block(plac_decompress_t plac) {
+dlexport bool plac_decompress_block(plac_decompress_t plac) {
   if (plac->stream->pos == plac->stream->size) return false;
   plac_read_data(plac, &plac->q);
   dequantize(&plac->q);

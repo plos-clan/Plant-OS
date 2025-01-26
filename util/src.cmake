@@ -1,6 +1,6 @@
-utillib(asio)
+# utillib(asio)
 
-utillib(libc-base)
+utillib_exclude(libc-base math/i64-div.asm)
 libdef(util-libc-base NO_STD=0)
 
 utillib(misc)
@@ -8,6 +8,7 @@ tgtlib(util-misc util-libc-base)
 libdef(util-misc NO_STD=0)
 
 utillib(data-structure)
+tgtlib(util-data-structure util-libc-base)
 libdef(util-data-structure NO_STD=0)
 
 utillib(font)
