@@ -6,3 +6,4 @@
 #include "points/line.hpp"
 #include "points/rect.hpp"
 #include "points/row.hpp"
+#include "points/triangle.hpp"

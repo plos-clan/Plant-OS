@@ -31,7 +31,7 @@ static int syscall_vbe_flip() {
 }
 
 static int syscall_vbe_flush(const void *buf) {
-  if (!check_memory_permission(buf, screen_w * screen_h * 4, false)) task_abort();
+  if (!check_memory_permission(buf, screen_w * screen_h * 4)) task_abort();
   return vbe_flush(buf);
 }
 
@@ -43,7 +43,7 @@ static isize syscall_file_size(cstr path) {
   if (!check_string_permission(path)) task_abort();
   vfs_node_t file = vfs_open(path);
   if (file == null) return -1;
-  size_t size = file->size;
+  val size = file->size;
   vfs_close(file);
   return size;
 }

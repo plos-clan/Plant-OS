@@ -45,9 +45,8 @@ auto BasePixelT::mix_ratio(const BasePixelT &c1, const BasePixelT &c2, T k) -> B
 // 假如源和目标都没有透明度
 template <BasePixelTemplate>
 template <typename U>
-auto BasePixelT::mix_ratio(const BasePixelT &c1, const BasePixelT &c2, U k) -> BasePixelT
 requires(cpp::is_float<U> && !std::is_same_v<T, U>)
-{
+auto BasePixelT::mix_ratio(const BasePixelT &c1, const BasePixelT &c2, U k) -> BasePixelT {
   return BasePixelT{
       (T)((U)c1.r * k + (U)c2.r * (1 - k)),
       (T)((U)c1.g * k + (U)c2.g * (1 - k)),

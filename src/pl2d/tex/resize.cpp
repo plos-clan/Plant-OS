@@ -51,7 +51,15 @@ auto BaseTexture<T>::fft_resize(u32 w, u32 h) -> BaseTexture & {
 }
 
 template <typename T>
-auto BaseTexture<T>::fft_resize_copy(u32 w, u32 h) -> BaseTexture * {}
+auto BaseTexture<T>::fft_resize_copy(u32 w, u32 h) -> BaseTexture * {
+  TextureF tmp(width, height);
+  copy_to(tmp);
+  tmp.fft();
+  auto *tmp2 = new BaseTexture(w, h);
+  tmp.paste_to(*tmp2, 0, 0);
+  tmp2->ift();
+  return tmp2;
+}
 
 template <typename T>
 auto BaseTexture<T>::lerp_resize(f32 s) -> BaseTexture & {

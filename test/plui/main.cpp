@@ -67,16 +67,15 @@ auto init(void *buffer, u32 width, u32 height, pl2d::PixFmt fmt) -> int {
   return on::screen_resize(buffer, width, height, fmt);
 }
 
-int nframe = 0;
+static int nframe = 0;
 
 void flush() {
   nframe++;
 
   float        i = (f32)nframe * .01f;
-  pl2d::PixelF p = {.8, cpp::cos(i) * .1f, cpp::sin(i) * .1f, 1};
-  p.LAB2RGB();
-  tex.fill(p);
-  tex.transform([](auto &pix, i32 x, i32 y) {
+  pl2d::PixelF p = {.8f, cpp::cos(i) * .1f, cpp::sin(i) * .1f, 1};
+  tex.fill(p.copy().LAB2RGB());
+  tex.transform([](auto &pix, i32 x, i32 y) INLINE {
     f32 k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
     if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 64);
   });

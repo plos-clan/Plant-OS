@@ -20,7 +20,9 @@ namespace pl2d {
 
 template <typename T>
 struct BaseTexture {
-  T   *pixels          = null;  // 可以是内部通过 malloc 分配，也可以是外部数据
+  // 可以是内部通过 malloc 分配，也可以是外部数据
+  T *pixels sized_by(width *height) = null;
+
   bool own_pixels      = false; // pixels 是否为该结构体所有
   bool refcnted_pixels = false; // pixels 是否使用引用计数
   bool copy_on_write   = false; // TODO 是否在写时拷贝对象
@@ -38,7 +40,7 @@ struct BaseTexture {
   BaseTexture(T *pixels, u32 width, u32 height, u32 pitch); // 使用外部数据创建纹理
   BaseTexture(const BaseTexture &) = delete;                // 隐式地复制是不允许的
   BaseTexture(BaseTexture &&) noexcept;                     // 移动是可以的
-  dlexport ~BaseTexture() noexcept;
+  ~BaseTexture() noexcept;
   auto operator=(const BaseTexture &) -> BaseTexture & = delete; // 隐式地复制是不允许的
   auto operator=(BaseTexture &&) noexcept -> BaseTexture &;      // 移动是可以的
 
@@ -79,25 +81,25 @@ struct BaseTexture {
     return pixels[y * pitch + x];
   }
   // 进行安全检查
-  INLINE auto at(ssize_t i) const -> const T & {
+  FLATTEN auto at(ssize_t i) const -> const T & {
     i = cpp::clamp(i, (ssize_t)0, (ssize_t)size - 1);
     return pixels[i];
   }
-  INLINE auto at(ssize_t i) -> T & {
+  FLATTEN auto at(ssize_t i) -> T & {
     i = cpp::clamp(i, (ssize_t)0, (ssize_t)size - 1);
     return pixels[i];
   }
-  INLINE auto at(i32 x, i32 y) const -> const T & {
+  FLATTEN auto at(i32 x, i32 y) const -> const T & {
     x = cpp::clamp(x, 0, (i32)width - 1);
     y = cpp::clamp(y, 0, (i32)height - 1);
     return pixels[y * pitch + x];
   }
-  INLINE auto at(i32 x, i32 y) -> T & {
+  FLATTEN auto at(i32 x, i32 y) -> T & {
     x = cpp::clamp(x, 0, (i32)width - 1);
     y = cpp::clamp(y, 0, (i32)height - 1);
     return pixels[y * pitch + x];
   }
-  INLINE auto lerpat(f32 x, f32 y) const -> T {
+  FLATTEN auto lerpat(f32 x, f32 y) const -> T {
     x            = cpp::clamp(x, 0.f, (f32)width - 1);
     y            = cpp::clamp(y, 0.f, (f32)height - 1);
     const i32 x1 = (i32)x;
@@ -114,7 +116,7 @@ struct BaseTexture {
   }
 
   // 获取与 texture 一样大的 rect
-  INLINE auto size_rect() const -> Rect {
+  FLATTEN auto size_rect() const -> Rect {
     return {0, 0, (i32)width - 1, (i32)height - 1};
   }
 

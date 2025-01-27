@@ -1,10 +1,10 @@
-
-#include <pl2d.hpp>
+#pragma once
+#include "pixel.hpp"
 
 namespace pl2d {
 
 template <BasePixelTemplate>
-BasePixelT::BasePixel(u32 c) {
+INLINE_CONST BasePixelT::BasePixel(u32 c) {
   DESTRUCT_RGBA(c, r, g, b, a)
   if constexpr (cpp::is_float<T>) {
     this->r = r / (T)255;
@@ -21,7 +21,7 @@ BasePixelT::BasePixel(u32 c) {
 
 template <BasePixelTemplate>
 template <_BasePixelTemplate>
-BasePixelT::BasePixel(const _BasePixelT &p) {
+INLINE_CONST BasePixelT::BasePixel(const _BasePixelT &p) {
   if constexpr (cpp::is_float<T> && cpp::is_float<_T>) {
     r = (T)p.r, g = (T)p.g, b = (T)p.b, a = (T)p.a;
   } else if constexpr (cpp::is_float<T> && !cpp::is_float<_T>) {
@@ -39,34 +39,10 @@ BasePixelT::BasePixel(const _BasePixelT &p) {
   }
 }
 
-// 依托答辩 别管
-template BasePixelBT::BasePixel(const BasePixelST &);
-template BasePixelBT::BasePixel(const BasePixelIT &);
-template BasePixelBT::BasePixel(const BasePixelFT &);
-template BasePixelBT::BasePixel(const BasePixelDT &);
-template BasePixelST::BasePixel(const BasePixelBT &);
-template BasePixelST::BasePixel(const BasePixelIT &);
-template BasePixelST::BasePixel(const BasePixelFT &);
-template BasePixelST::BasePixel(const BasePixelDT &);
-template BasePixelIT::BasePixel(const BasePixelBT &);
-template BasePixelIT::BasePixel(const BasePixelST &);
-template BasePixelIT::BasePixel(const BasePixelFT &);
-template BasePixelIT::BasePixel(const BasePixelDT &);
-template BasePixelFT::BasePixel(const BasePixelBT &);
-template BasePixelFT::BasePixel(const BasePixelST &);
-template BasePixelFT::BasePixel(const BasePixelIT &);
-template BasePixelFT::BasePixel(const BasePixelDT &);
-template BasePixelDT::BasePixel(const BasePixelBT &);
-template BasePixelDT::BasePixel(const BasePixelST &);
-template BasePixelDT::BasePixel(const BasePixelIT &);
-template BasePixelDT::BasePixel(const BasePixelFT &);
-
 template <BasePixelTemplate>
-BasePixelT::operator u32() const {
+INLINE_CONST BasePixelT::operator u32() const {
   const PixelB p = *this;
   return RGBA(p.r, p.g, p.b, p.a);
 }
-
-BasePixelInstantiation
 
 } // namespace pl2d

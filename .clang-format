@@ -161,11 +161,12 @@ AttributeMacros:
   - __attribute_returns_twice__
   #% 我自己定义的
   - __attr
-  - __attr_NTHLF
-  - __attr_NTHLF_nnul
-  - ___inline
   - _il_
   - _rest
+  - FLATTEN
+  - HOT
+  - COLD
+  - sized_by
 # BinPackArguments (Boolean)
 # 如果 false, 一个函数调用的参数要么全部在 同一行或每行一行
 BinPackArguments: true

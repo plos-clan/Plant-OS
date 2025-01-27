@@ -9,63 +9,63 @@ namespace cpp {
 
 #if __has(clz)
 #  if defined(__GNUC__) && !defined(__clang__)
-finline auto clz(u8 x) -> int {
+inline_const auto clz(u8 x) -> isize {
   return __builtin_clz((u32)x) - 24;
 }
-finline auto clz(u16 x) -> int {
+inline_const auto clz(u16 x) -> isize {
   return __builtin_clz((u32)x) - 16;
 }
 #  else
-finline auto clz(u8 x) -> int {
+inline_const auto clz(u8 x) -> isize {
   return __builtin_clzs((u16)(x)) - 8;
 }
-finline auto clz(u16 x) -> int {
+inline_const auto clz(u16 x) -> isize {
   return __builtin_clzs(x);
 }
 #  endif
-finline auto clz(u32 x) -> int {
+inline_const auto clz(u32 x) -> isize {
   return __builtin_clz(x);
 }
 #  if defined(__LP64__)
-finline auto clz(u64 x) -> int {
+inline_const auto clz(u64 x) -> isize {
   return __builtin_clzl(x);
 }
 #  else
-finline auto clz(u64 x) -> int {
+inline_const auto clz(u64 x) -> isize {
   return __builtin_clzll(x);
 }
 #  endif
 #else
-#  define __(TYPE, NAME)                                                                           \
-    static auto clz(TYPE x) -> int {                                                               \
-      int  count = 0;                                                                              \
-      TYPE mask  = (TYPE)1 << (sizeof(TYPE) - 1);                                                  \
+#  define __(TYPE)                                                                                 \
+    inline_const auto clz(TYPE x) -> isize {                                                       \
+      isize count = 0;                                                                             \
+      TYPE  mask  = (TYPE)1 << (sizeof(TYPE) * 8 - 1);                                             \
       for (; mask && (x & mask) == 0; count++, mask = mask >> 1) {}                                \
       return count;                                                                                \
     }
-__(u8, clz)
-__(u16, clz)
-__(u32, clzl)
-__(u64, clzll)
+__(u8)
+__(u16)
+__(u32)
+__(u64)
 #  undef __
 #endif
 
 // --------------------------------------------------
 //; fhsb 返回 64 位无符号整数中最高有效位的索引，如果没有找到 1 位则返回 -1
 
-inline_const auto fhsb(u8 x) -> ssize_t {
+inline_const auto fhsb(u8 x) -> isize {
   if (x == 0) return -1;
   return 7 - clz(x);
 }
-inline_const auto fhsb(u16 x) -> ssize_t {
+inline_const auto fhsb(u16 x) -> isize {
   if (x == 0) return -1;
   return 15 - clz(x);
 }
-inline_const auto fhsb(u32 x) -> ssize_t {
+inline_const auto fhsb(u32 x) -> isize {
   if (x == 0) return -1;
   return 31 - clz(x);
 }
-inline_const auto fhsb(u64 x) -> ssize_t {
+inline_const auto fhsb(u64 x) -> isize {
   if (x == 0) return -1;
   return 63 - clz(x);
 }

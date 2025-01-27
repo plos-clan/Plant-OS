@@ -5,8 +5,8 @@ namespace pl2d {
 
 template <typename T>
 auto BaseTexture<T>::gaussian_blur(i32 size, f32 sigma) -> BaseTexture & {
-  auto *tmp    = (PixelF *)malloc(cpp::max(width, height) * sizeof(PixelF));
-  f32  *kernel = (f32 *)malloc(size * sizeof(f32));
+  auto *tmp    = (PixelF *)cache::alloc(cpp::max(width, height) * sizeof(PixelF));
+  f32  *kernel = (f32 *)cache::alloc(size * sizeof(f32));
   cpp::gaussian_kernel_1(kernel, size, sigma); // 生成一个一维的高斯核
 
   // 先进行横向卷积
@@ -39,8 +39,8 @@ auto BaseTexture<T>::gaussian_blur(i32 size, f32 sigma) -> BaseTexture & {
     }
   }
 
-  free(kernel);
-  free(tmp);
+  cache::free(kernel);
+  cache::free(tmp);
   return *this;
 }
 

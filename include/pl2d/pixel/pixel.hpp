@@ -27,22 +27,26 @@ struct BasePixel {
   T r = 0, g = 0, b = 0, a = 0;
 #endif
 
-  BasePixel() = default;
-  BasePixel(u32); // 0xRRGGBBAA 的格式来初始化颜色（仅当定义了 COLOR_READABLE_HEX）
-  BasePixel(T r, T g, T b) : r(r), g(g), b(b), a(T_MAX) {}
-  BasePixel(T r, T g, T b, T a) : r(r), g(g), b(b), a(a) {}
-  BasePixel(const BasePixel &)                         = default;
-  BasePixel(BasePixel &&) noexcept                     = default;
-  auto operator=(const BasePixel &) -> BasePixel &     = default;
-  auto operator=(BasePixel &&) noexcept -> BasePixel & = default;
+  INLINE_CONST   BasePixel() = default;
+  INLINE_CONST   BasePixel(u32); // 0xRRGGBBAA 的格式来初始化颜色（仅当定义了 COLOR_READABLE_HEX）
+  INLINE_CONST   BasePixel(T r, T g, T b) : r(r), g(g), b(b), a(T_MAX) {}
+  INLINE_CONST   BasePixel(T r, T g, T b, T a) : r(r), g(g), b(b), a(a) {}
+  INLINE_CONST   BasePixel(const BasePixel &)                    = default;
+  INLINE_CONST   BasePixel(BasePixel &&) noexcept                = default;
+  constexpr auto operator=(const BasePixel &) -> BasePixel &     = default;
+  constexpr auto operator=(BasePixel &&) noexcept -> BasePixel & = default;
 
   template <_BasePixelTemplate>
-  BasePixel(const _BasePixelT &p);
+  INLINE_CONST BasePixel(const _BasePixelT &p);
 
-  operator u32() const;
+  INLINE_CONST operator u32() const;
 
-  auto operator==(const BasePixel &p) const -> bool {
+  INLINE_CONST auto operator==(const BasePixel &p) const -> bool {
     return r == p.r && g == p.g && b == p.b && a == p.a;
+  }
+
+  INLINE_CONST auto copy() const -> BasePixel {
+    return *this;
   }
 
   // 元素逐个运算
@@ -62,20 +66,20 @@ struct BasePixel {
   auto operator/=(U s) -> BasePixel &requires(cpp::is_float<U>);
 
   // 计算颜色的差值
-  auto diff(const BasePixel &p) -> T;
+  CONST auto diff(const BasePixel &p) -> T;
 
   // 按比例进行颜色混合函数
-  void        mix_ratio(const BasePixel &s, T k);
-  static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, T k) -> BasePixel;
+  HOT void        mix_ratio(const BasePixel &s, T k);
+  HOT static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, T k) -> BasePixel;
   template <typename U>
-  static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, U k) -> BasePixel
-  requires(cpp::is_float<U> && !std::is_same_v<T, U>);
+  requires(cpp::is_float<U> && !std::is_same_v<T, U>)
+  HOT static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, U k) -> BasePixel;
   // 背景色不透明的混合函数
-  void        mix_opaque(const BasePixel &s);
-  static auto mix_opaque(const BasePixel &c1, const BasePixel &c2) -> BasePixel;
+  HOT void        mix_opaque(const BasePixel &s);
+  HOT static auto mix_opaque(const BasePixel &c1, const BasePixel &c2) -> BasePixel;
   // 通用的混合函数
-  void        mix(const BasePixel &s);
-  static auto mix(const BasePixel &c1, const BasePixel &c2) -> BasePixel;
+  HOT void        mix(const BasePixel &s);
+  HOT static auto mix(const BasePixel &c1, const BasePixel &c2) -> BasePixel;
 
   // 亮度
   auto brightness() const -> T;
@@ -84,19 +88,19 @@ struct BasePixel {
   auto gamma_correct() const -> BasePixel; // 进行 gamma 矫正
   auto reverse_gamma() const -> BasePixel; // 反向 gamma 矫正
 
-  auto to_u8() const -> PixelB {
+  INLINE_CONST auto to_u8() const -> PixelB {
     return *this;
   }
-  auto to_u16() const -> PixelS {
+  INLINE_CONST auto to_u16() const -> PixelS {
     return *this;
   }
-  auto to_u32() const -> PixelI {
+  INLINE_CONST auto to_u32() const -> PixelI {
     return *this;
   }
-  auto to_f32() const -> PixelF {
+  INLINE_CONST auto to_f32() const -> PixelF {
     return *this;
   }
-  auto to_f64() const -> PixelD {
+  INLINE_CONST auto to_f64() const -> PixelD {
     return *this;
   }
 
@@ -118,7 +122,7 @@ struct BasePixel {
 };
 
 template <BasePixelTemplate>
-auto BasePixelT::diff(const BasePixel &p) -> T {
+CONST auto BasePixelT::diff(const BasePixel &p) -> T {
   T dr = cpp::diff(r, p.r);
   T dg = cpp::diff(g, p.g);
   T db = cpp::diff(b, p.b);

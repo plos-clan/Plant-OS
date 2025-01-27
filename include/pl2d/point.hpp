@@ -7,87 +7,87 @@ template <typename T>
 struct BasePoint2 {
   T x, y;
 
-  auto operator+(const BasePoint2 &p) const -> BasePoint2 {
+  INLINE_CONST auto operator+(const BasePoint2 &p) const -> BasePoint2 {
     return {x + p.x, y + p.y};
   }
-  auto operator+(T d) const -> BasePoint2 {
+  INLINE_CONST auto operator+(T d) const -> BasePoint2 {
     return {x + d, y + d};
   }
-  auto operator-(const BasePoint2 &p) const -> BasePoint2 {
+  INLINE_CONST auto operator-(const BasePoint2 &p) const -> BasePoint2 {
     return {x - p.x, y - p.y};
   }
-  auto operator-(T d) const -> BasePoint2 {
+  INLINE_CONST auto operator-(T d) const -> BasePoint2 {
     return {x - d, y - d};
   }
-  auto operator*(const BasePoint2 &p) const -> BasePoint2 {
+  INLINE_CONST auto operator*(const BasePoint2 &p) const -> BasePoint2 {
     return {x * p.x, y * p.y};
   }
-  auto operator*(T s) const -> BasePoint2 {
+  INLINE_CONST auto operator*(T s) const -> BasePoint2 {
     return {x * s, y * s};
   }
-  auto operator/(const BasePoint2 &p) const -> BasePoint2 {
+  INLINE_CONST auto operator/(const BasePoint2 &p) const -> BasePoint2 {
     return {x / p.x, y / p.y};
   }
-  auto operator/(T s) const -> BasePoint2 {
+  INLINE_CONST auto operator/(T s) const -> BasePoint2 {
     return {x / s, y / s};
   }
 
-  auto operator+=(const BasePoint2 &p) -> BasePoint2 & {
+  INLINE_CONST auto operator+=(const BasePoint2 &p) -> BasePoint2 & {
     x += p.x;
     y += p.y;
     return *this;
   }
-  auto operator+=(T d) -> BasePoint2 & {
+  INLINE_CONST auto operator+=(T d) -> BasePoint2 & {
     x += d;
     y += d;
     return *this;
   }
-  auto operator-=(const BasePoint2 &p) -> BasePoint2 & {
+  INLINE_CONST auto operator-=(const BasePoint2 &p) -> BasePoint2 & {
     x -= p.x;
     y -= p.y;
     return *this;
   }
-  auto operator-=(T d) -> BasePoint2 & {
+  INLINE_CONST auto operator-=(T d) -> BasePoint2 & {
     x -= d;
     y -= d;
     return *this;
   }
-  auto operator*=(const BasePoint2 &p) -> BasePoint2 & {
+  INLINE_CONST auto operator*=(const BasePoint2 &p) -> BasePoint2 & {
     x *= p.x;
     y *= p.y;
     return *this;
   }
-  auto operator*=(T s) -> BasePoint2 & {
+  INLINE_CONST auto operator*=(T s) -> BasePoint2 & {
     x *= s;
     y *= s;
     return *this;
   }
-  auto operator/=(const BasePoint2 &p) -> BasePoint2 & {
+  INLINE_CONST auto operator/=(const BasePoint2 &p) -> BasePoint2 & {
     x /= p.x;
     y /= p.y;
     return *this;
   }
-  auto operator/=(T s) -> BasePoint2 & {
+  INLINE_CONST auto operator/=(T s) -> BasePoint2 & {
     x /= s;
     y /= s;
     return *this;
   }
 
-  auto dot(const BasePoint2 &p) const -> T {
+  INLINE_CONST auto dot(const BasePoint2 &p) const -> T {
     return x * p.x + y * p.y;
   }
 
-  auto mod() const -> T {
+  INLINE_CONST auto mod() const -> T {
     return cpp::sqrt(x * x + y * y);
   }
 
-  auto trans(const Matrix2 &m) const -> BasePoint2 {
+  INLINE_CONST auto trans(const Matrix2 &m) const -> BasePoint2 {
     T _x = m.xx * x + m.yx * y + m.dx;
     T _y = m.xy * x + m.yy * y + m.dy;
     return BasePoint2{_x, _y};
   }
 
-  auto apply(const Matrix2 &m) -> BasePoint2 & {
+  INLINE_CONST auto apply(const Matrix2 &m) -> BasePoint2 & {
     T _x = m.xx * x + m.yx * y + m.dx;
     T _y = m.xy * x + m.yy * y + m.dy;
     x    = _x;
@@ -95,16 +95,17 @@ struct BasePoint2 {
     return *this;
   }
 
-  auto operator*(const Matrix2 &m) const -> BasePoint2 {
+  INLINE_CONST auto operator*(const Matrix2 &m) const -> BasePoint2 {
     return trans(m);
   }
-  friend auto operator*(const Matrix2 &m, const BasePoint2 &p) -> BasePoint2 {
+  INLINE_CONST friend auto operator*(const Matrix2 &m, const BasePoint2 &p) -> BasePoint2 {
     return p.trans(m);
   }
-  auto operator*=(const Matrix2 &m) -> BasePoint2 {
+  INLINE_CONST auto operator*=(const Matrix2 &m) -> BasePoint2 {
     return apply(m);
   }
 };
+
 template <typename T>
 struct BasePoint3 {
   T x, y, z;

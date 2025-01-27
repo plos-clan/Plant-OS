@@ -34,22 +34,22 @@ auto BaseTexture<T>::copy_from(const BaseTexture<T2> &d) -> bool {
   return true;
 }
 
-template auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelB> &d) -> bool;
-template auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelS> &d) -> bool;
-template auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelF> &d) -> bool;
-template auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelD> &d) -> bool;
-template auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelB> &d) -> bool;
-template auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelS> &d) -> bool;
-template auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelF> &d) -> bool;
-template auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelD> &d) -> bool;
-template auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelB> &d) -> bool;
-template auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelS> &d) -> bool;
-template auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelF> &d) -> bool;
-template auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelD> &d) -> bool;
-template auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelB> &d) -> bool;
-template auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelS> &d) -> bool;
-template auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelF> &d) -> bool;
-template auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelD> &d) -> bool;
+template dlexport auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelB> &d) -> bool;
+template dlexport auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelS> &d) -> bool;
+template dlexport auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelF> &d) -> bool;
+template dlexport auto BaseTexture<PixelB>::copy_from(const BaseTexture<PixelD> &d) -> bool;
+template dlexport auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelB> &d) -> bool;
+template dlexport auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelS> &d) -> bool;
+template dlexport auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelF> &d) -> bool;
+template dlexport auto BaseTexture<PixelS>::copy_from(const BaseTexture<PixelD> &d) -> bool;
+template dlexport auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelB> &d) -> bool;
+template dlexport auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelS> &d) -> bool;
+template dlexport auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelF> &d) -> bool;
+template dlexport auto BaseTexture<PixelF>::copy_from(const BaseTexture<PixelD> &d) -> bool;
+template dlexport auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelB> &d) -> bool;
+template dlexport auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelS> &d) -> bool;
+template dlexport auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelF> &d) -> bool;
+template dlexport auto BaseTexture<PixelD>::copy_from(const BaseTexture<PixelD> &d) -> bool;
 
 BaseTextureInstantiation
 

@@ -95,26 +95,50 @@
 #  define finline static inline __attr(always_inline) __nif
 #endif
 
-#define NAKED __attr(naked)
-
 #ifdef __cplusplus
 #  define inline_const        finline __attr(const) constexpr
 #  define inline_const_ncexpr finline __attr(const)
 #  define inline_pure         finline __attr(pure)
+#  define CONST               __attr(const) constexpr
+#  define PURE                __attr(pure)
 #  define constfn             __attr(const) constexpr auto
 #  define purefn              __attr(pure) auto
 #else
 #  define inline_const        finline __attr(const)
 #  define inline_const_ncexpr finline __attr(const)
 #  define inline_pure         finline __attr(pure)
+#  define CONST               __attr(const)
+#  define PURE                __attr(pure)
 #  define constfn             __attr(const)
 #  define purefn              __attr(pure)
 #endif
 
-#define INLINE __attr(always_inline) __nif
+#ifdef __cplusplus
+#  define INLINE       __attr(always_inline) __nif
+#  define INLINE_CONST __attr(always_inline) __nif __attr(const) constexpr
+#else
+#  define INLINE       __attr(always_inline) __nif
+#  define INLINE_CONST __attr(always_inline) __nif __attr(const)
+#endif
 
+#define NAKED    __attr(naked)
 #define CDECL    __attr(cdecl)
 #define STDCALL  __attr(stdcall)
 #define FASTCALL __attr(fastcall)
 
 #define vectorize __attr(vectorize(enable))
+
+// 函数返回内存地址，调用者获得内存所有权
+#define ownership_returns(type)       __attr(ownership_returns(type))
+// 函数获取内存所有权并释放内存
+#define ownership_takes(type, nparam) __attr(ownership_takes(type, nparam))
+// 函数获取内存所有权
+#define ownership_holds(type, nparam) __attr(ownership_holds(type, nparam))
+
+// 强制函数内所有调用内联
+#define FLATTEN __attr(flatten, always_inline) __nif
+
+#define HOT  __attr(hot)  // 手动标记热点函数
+#define COLD __attr(cold) // 手动标记不常用函数
+
+#define sized_by(...) __attr(sized_by(__VA_ARGS__))

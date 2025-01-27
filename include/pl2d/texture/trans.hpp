@@ -14,7 +14,7 @@ auto BaseTexture<T>::replace(const T &src, const T &dst) -> BaseTexture & {
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(T &pix)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(T &pix)) -> BaseTexture & {
   for (val[x, y] : size_rect()) {
     cb((*this)(x, y));
   }
@@ -22,7 +22,7 @@ auto BaseTexture<T>::transform(void (*cb)(T &pix)) -> BaseTexture & {
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture & {
   for (val[x, y] : size_rect()) {
     cb(*this, (*this)(x, y));
   }
@@ -30,7 +30,7 @@ auto BaseTexture<T>::transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTextur
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture & {
   for (val[x, y] : size_rect()) {
     cb((*this)(x, y), x, y);
   }
@@ -38,7 +38,8 @@ auto BaseTexture<T>::transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture 
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y))
+    -> BaseTexture & {
   for (val[x, y] : size_rect()) {
     cb(*this, (*this)(x, y), x, y);
   }
@@ -58,7 +59,7 @@ auto BaseTexture<T>::replace(const T &src, const T &dst) -> BaseTexture & {
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(T &pix)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(T &pix)) -> BaseTexture & {
   for (i32 y = 0; y < height; y++) {
     for (i32 x = 0; x < width; x++) {
       cb((*this)(x, y));
@@ -68,7 +69,7 @@ auto BaseTexture<T>::transform(void (*cb)(T &pix)) -> BaseTexture & {
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture & {
   for (i32 y = 0; y < height; y++) {
     for (i32 x = 0; x < width; x++) {
       cb(*this, (*this)(x, y));
@@ -78,7 +79,7 @@ auto BaseTexture<T>::transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTextur
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture & {
   for (i32 y = 0; y < height; y++) {
     for (i32 x = 0; x < width; x++) {
       cb((*this)(x, y), x, y);
@@ -88,7 +89,8 @@ auto BaseTexture<T>::transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture 
 }
 
 template <typename T>
-auto BaseTexture<T>::transform(void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y)) -> BaseTexture & {
+auto BaseTexture<T>::transform(INLINE void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y))
+    -> BaseTexture & {
   for (i32 y = 0; y < height; y++) {
     for (i32 x = 0; x < width; x++) {
       cb(*this, (*this)(x, y), x, y);

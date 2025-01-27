@@ -9,21 +9,21 @@ struct BaseRect {
   T x1 = 0, y1 = 0; // 左上角坐标
   T x2 = 0, y2 = 0; // 右下角坐标
 
-  BaseRect() = default;
-  BaseRect(T w, T h) {
+  INLINE_CONST BaseRect() = default;
+  INLINE_CONST BaseRect(T w, T h) {
     this->x1 = 0, this->y1 = 0;
     this->x2 = w - 1, this->y2 = h - 1;
   }
-  BaseRect(T x1, T y1, T x2, T y2) {
+  INLINE_CONST BaseRect(T x1, T y1, T x2, T y2) {
     cpp::exch_if(x1 > x2, x1, x2);
     cpp::exch_if(y1 > y2, y1, y2);
     this->x1 = x1, this->y1 = y1;
     this->x2 = x2, this->y2 = y2;
   }
-  BaseRect(const BaseRect &)     = default;
-  BaseRect(BaseRect &&) noexcept = default;
+  INLINE_CONST BaseRect(const BaseRect &)     = default;
+  INLINE_CONST BaseRect(BaseRect &&) noexcept = default;
 
-  auto operator=(const BaseRect &) -> BaseRect     & = default;
+  auto operator=(const BaseRect &) -> BaseRect &     = default;
   auto operator=(BaseRect &&) noexcept -> BaseRect & = default;
 
   static auto from_points(BasePoint2<T> *points, size_t npoints) -> BaseRect && {
@@ -127,7 +127,7 @@ struct BaseRect {
         : x1(x1), y1(y1), x2(x2), y2(y2), x(x), y(y) {}
     Iterator(const Iterator &)                         = default;
     Iterator(Iterator &&) noexcept                     = default;
-    auto operator=(const Iterator &) -> Iterator     & = default;
+    auto operator=(const Iterator &) -> Iterator &     = default;
     auto operator=(Iterator &&) noexcept -> Iterator & = default;
 
     auto operator*() -> Point2I {

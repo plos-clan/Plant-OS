@@ -32,7 +32,7 @@
 
 // 使用 BGR 而不是 RGB 的通道顺序
 // 此项对通道分离的 FrameBuffer 无效，其通道顺序仍然按照 RGBA
-#define COLOR_USE_BGR 1
+#define COLOR_USE_BGR 0
 
 // 使用线性 RGB 而不是 sRGB 来存储颜色
 // 这对 8 位深度来说并不好，若开启此项，建议使用浮点存储颜色

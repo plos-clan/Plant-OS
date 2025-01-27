@@ -123,21 +123,23 @@ void FrameBuffer::clear(byte b) {
 }
 
 void FrameBuffer::init_texture(pl2d::TextureB &tex) {
-  if (pixfmt == texture_pixfmt && padding == 4 && pitch % 4 == 0) {
-    tex = pl2d::TextureB((pl2d::PixelB *)pix[0], width, height, pitch / 4);
-  } else {
-    tex = pl2d::TextureB(width, height);
-  }
+  tex = pl2d::TextureB(width, height);
+  // if (pixfmt == texture_pixfmt && padding == 4 && pitch % 4 == 0) {
+  //   tex = pl2d::TextureB((pl2d::PixelB *)pix[0], width, height, pitch / 4);
+  // } else {
+  //   tex = pl2d::TextureB(width, height);
+  // }
 }
 void FrameBuffer::init_texture(pl2d::TextureF &tex) {
   tex = pl2d::TextureF(width, height);
 }
 auto FrameBuffer::new_texture_b() -> pl2d::TextureB * {
-  if (pixfmt == texture_pixfmt && padding == 4 && pitch % 4 == 0) {
-    return new pl2d::TextureB((pl2d::PixelB *)pix[0], width, height, pitch / 4);
-  } else {
-    return new pl2d::TextureB(width, height);
-  }
+  return new pl2d::TextureB(width, height);
+  // if (pixfmt == texture_pixfmt && padding == 4 && pitch % 4 == 0) {
+  //   return new pl2d::TextureB((pl2d::PixelB *)pix[0], width, height, pitch / 4);
+  // } else {
+  //   return new pl2d::TextureB(width, height);
+  // }
 }
 auto FrameBuffer::new_texture_f() -> pl2d::TextureF * {
   return new pl2d::TextureF(width, height);
