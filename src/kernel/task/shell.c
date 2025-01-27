@@ -241,14 +241,22 @@ static int shell_exec(char *path, cstr command) {
       printf("umount %s failed\n", dir_name);
       return 1;
     }
-  } else if (strneq(command, "test ", 5)) {
-    vfs_node_t n = vfs_open(command + 5);
-    if(n) {
-      char *path = vfs_get_fullpath(n);
-      printf("%s\n", path);
-      free(path);
-    }
-  }  else {
+  } else if (streq(command, "test")) {
+    resman_descriptors_init();
+    resman_t man = resman_alloc();
+    resman_init(man);
+    printf("init a resman %p\n", man);
+    int root = resman_open_root_dir(man);
+    printf("open root dir %d\n", root);
+    int fatfs1 = resman_open(man, root, "fatfs1");
+    printf("open fatfs1 %d\n", fatfs1);
+    int disk = resman_open(man, fatfs1, "disk.img");
+    printf("open disk.img %d\n", disk);
+    resman_close(man, disk);
+    disk = resman_open(man, fatfs1, "testapp.bin");
+    printf("open testapp.bin %d\n", disk);
+
+  } else {
     char *path = exec_name_from_cmdline(command);
     cstr  type = filetype_from_name(path);
     if (streq(type, "application/x-executable")) {
