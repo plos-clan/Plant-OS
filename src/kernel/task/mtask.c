@@ -274,6 +274,10 @@ task_t create_task(void *entry, u32 ticks, u32 floor) {
   t->running      = 0;
   t->timeout      = ticks;
   t->jiffies      = 0;
+  t->resman       = resman_alloc();
+  resman_init(t->resman);
+  t->working_dir = resman_open_root_dir(t->resman);
+
   page_link_addr_pde(TASK_USER_PART_ADDR, t->cr3, (usize)t->_user_part);
 
   with_no_interrupts(avltree_insert(tasks, t->tid, t));
@@ -356,6 +360,8 @@ void task_kill(task_t task) {
   if (mouse_use_task == task) mouse_sleep(&mdec);
 
   task->state = THREAD_DEAD;
+  resman_deinit(task->resman);
+  resman_free(task->resman);
 
   avltree_free_with(task->children, (free_t)task_kill);
 
@@ -468,13 +474,15 @@ int task_fork() {
       m->mousefifo->buf = page_malloc_one();
       memcpy(m->mousefifo->buf, current_task->mousefifo->buf, 4096);
     }
-    m->cr3       = pd_clone(current_task->cr3);
-    m->user_mode = true;
-    m->running   = 0;
-    m->jiffies   = 0;
-    m->timeout   = 1;
-    m->ptid      = current_task->tid;
-    m->parent    = current_task;
+    m->cr3         = pd_clone(current_task->cr3);
+    m->user_mode   = true;
+    m->running     = 0;
+    m->jiffies     = 0;
+    m->timeout     = 1;
+    m->ptid        = current_task->tid;
+    m->parent      = current_task;
+    m->resman      = resman_clone(current_task->resman);
+    m->working_dir = current_task->working_dir;
     build_fork_stack(m);
   });
   task_run(m);

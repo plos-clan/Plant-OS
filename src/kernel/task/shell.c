@@ -242,7 +242,6 @@ static int shell_exec(char *path, cstr command) {
       return 1;
     }
   } else if (streq(command, "test")) {
-    resman_descriptors_init();
     resman_t man = resman_alloc();
     resman_init(man);
     printf("init a resman %p\n", man);

@@ -38,6 +38,8 @@ struct _NAME {
   avltree_t     children;         // 子线程
   bool          is_switched;      // 是否是因其它进程请求切换过来的
   bool          fpu_enabled;      // 是否开启了 fpu/sse/avx
+  resman_t      resman;           // 资源管理器
+  i32           working_dir;      // 工作目录
 };
 
 #undef _NAME

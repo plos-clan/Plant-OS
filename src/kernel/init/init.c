@@ -85,6 +85,8 @@ void sysinit() {
   tmpfs_regist();
   iso9660_regist();
 
+  resman_descriptors_init(); // 初始化文件描述符表
+
   if (total_mem_size < 256 * 1024 * 1024) {
     fatal("You should have at least 256MiB memory in your pc to start Plant-OS.");
   } else {

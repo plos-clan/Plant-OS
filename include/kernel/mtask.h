@@ -1,10 +1,10 @@
 #pragma once
 #include "00-include.h"
 #include "cpu.h"
+#include "resman.h"
 #include <data-structure.h>
 #include <define.h>
 #include <libc-base.h>
-
 #define SIGINT 0
 #define SIGKIL 1
 

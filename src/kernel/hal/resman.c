@@ -109,6 +109,24 @@ int resman_close(resman_t man, i32 id) {
   return 0;
 }
 
+static void clone_avltree(avltree_t src, avltree_t dst) {
+  if (src == null) return;
+  if (src->left) clone_avltree(src->left, dst);
+  avltree_insert(dst, src->key, src->value);
+  describtor_t fd = src->value;
+  fd->refrence_cout++;
+  if (src->right) clone_avltree(src->right, dst);
+}
+
+resman_t resman_clone(resman_t man) {
+  resman_t new_resman = resman_alloc();
+  resman_init(new_resman);
+  clone_avltree(man->avltree, new_resman->avltree);
+  return new_resman;
+}
+static void close_file(void *p) {
+  descriptor_close(p);
+}
 void resman_deinit(resman_t man) {
-  avltree_free(man->avltree);
+  avltree_free_with(man->avltree, close_file);
 }
