@@ -20,7 +20,7 @@ namespace pl2d {
   } while (0)
 
 #define CASE(_name_)                                                                               \
-  case PixFmt::_name_: framebuffer::fb_flush<PixFmt::_name_>(*this, tex, rect); break
+  case PixFmt::_name_: ::fb_flush<PixFmt::_name_>(*this, tex, rect); break
 auto FrameBuffer::flush(const pl2d::TextureB &tex, const pl2d::Rect &rect) -> int {
   RUN;
 }
@@ -30,7 +30,7 @@ auto FrameBuffer::flush(const pl2d::TextureF &tex, const pl2d::Rect &rect) -> in
 #undef CASE
 
 #define CASE(_name_)                                                                               \
-  case PixFmt::_name_: framebuffer::fb_copy_to<PixFmt::_name_>(*this, tex, rect); break
+  case PixFmt::_name_: ::fb_copy_to<PixFmt::_name_>(*this, tex, rect); break
 auto FrameBuffer::copy_to(pl2d::TextureB &tex, const pl2d::Rect &rect) const -> int {
   RUN;
 }

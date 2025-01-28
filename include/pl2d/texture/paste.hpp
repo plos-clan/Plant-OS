@@ -5,7 +5,8 @@ namespace pl2d {
 
 template <typename T>
 template <typename T2>
-auto BaseTexture<T>::paste_from(const BaseTexture<T2> &tex, i32 dx, i32 dy) -> BaseTexture & {
+FLATTEN auto BaseTexture<T>::paste_from(const BaseTexture<T2> &tex, i32 dx, i32 dy)
+    -> BaseTexture & {
   Rect rect = {(i32)tex.width, (i32)tex.height};
   rect.trunc(-dx, -dy, (i32)width - dx - 1, (i32)height - dy - 1);
 #if USE_ITERATOR
@@ -24,7 +25,8 @@ auto BaseTexture<T>::paste_from(const BaseTexture<T2> &tex, i32 dx, i32 dy) -> B
 
 template <typename T>
 template <typename T2>
-auto BaseTexture<T>::paste_from_mix(const BaseTexture<T2> &tex, i32 dx, i32 dy) -> BaseTexture & {
+FLATTEN auto BaseTexture<T>::paste_from_mix(const BaseTexture<T2> &tex, i32 dx, i32 dy)
+    -> BaseTexture & {
   Rect rect = {(i32)tex.width, (i32)tex.height};
   rect.trunc(-dx, -dy, (i32)width - dx - 1, (i32)height - dy - 1);
 #if USE_ITERATOR
@@ -43,7 +45,7 @@ auto BaseTexture<T>::paste_from_mix(const BaseTexture<T2> &tex, i32 dx, i32 dy) 
 
 template <typename T>
 template <typename T2>
-auto BaseTexture<T>::paste_from_opaque(const BaseTexture<T2> &tex, i32 dx, i32 dy)
+FLATTEN auto BaseTexture<T>::paste_from_opaque(const BaseTexture<T2> &tex, i32 dx, i32 dy)
     -> BaseTexture & {
   Rect rect = {(i32)tex.width, (i32)tex.height};
   rect.trunc(-dx, -dy, (i32)width - dx - 1, (i32)height - dy - 1);

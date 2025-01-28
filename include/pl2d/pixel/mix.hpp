@@ -102,7 +102,6 @@ auto BasePixelT::mix(const BasePixelT &c1, const BasePixelT &c2) -> BasePixelT {
 // 假如源和目标都有透明度
 template <BasePixelTemplate>
 void BasePixelT::mix(const BasePixelT &s) {
-  if (a == T_MAX) return mix_opaque(s);
   T2 _a = (T2)T_MAX * (a + s.a) - a * s.a;
   T2 sw = (T2)T_MAX * s.a;
   T2 dw = a * ((T2)T_MAX - s.a);
@@ -115,7 +114,6 @@ void BasePixelT::mix(const BasePixelT &s) {
 // 假如源和目标都有透明度
 template <BasePixelTemplate>
 auto BasePixelT::mix(const BasePixelT &c1, const BasePixelT &c2) -> BasePixelT {
-  if (c1.a == T_MAX) return mix_opaque(c1, c2);
   T2 _a = (T2)T_MAX * (c1.a + c2.a) - c1.a * c2.a;
   T2 w1 = (T2)T_MAX * c1.a;
   T2 w2 = (T2)T_MAX * c2.a;

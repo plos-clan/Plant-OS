@@ -94,6 +94,8 @@ static void init_xlib(u32 width, u32 height) {
   create_img(width, height);
 }
 
+static int _cnt = 0;
+
 void screen_flush() {
   XShmPutImage(display, window, DefaultGC(display, screen), image, 0, 0, 0, 0, screen_width,
                screen_height, true);
@@ -115,8 +117,11 @@ void screen_flush() {
     old_time = monotonic_us();
   } else {
     u64 time = monotonic_us();
-    printf("%lf\n", 1e6 / (time - old_time));
-    old_time = time;
+    if (++_cnt == 10) {
+      printf("%lf\n", 1e6 / (time - old_time) * 10);
+      old_time = time;
+      _cnt     = 0;
+    }
   }
 }
 

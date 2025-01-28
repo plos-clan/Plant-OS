@@ -1,10 +1,10 @@
 #pragma once
 #include "private.hpp"
 
-namespace pl2d::framebuffer {
+namespace {
 
 template <>
-finline void fb_flush_pix<PixFmt::BGR>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
+INLINE void fb_flush_pix<PixFmt::BGR>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   fb_p[0]           = tex_p->b;
@@ -12,7 +12,7 @@ finline void fb_flush_pix<PixFmt::BGR>(FrameBuffer &fb, const pl2d::TextureB &te
   fb_p[2]           = tex_p->r;
 }
 template <>
-finline void fb_flush_pix<PixFmt::BGR>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
+INLINE void fb_flush_pix<PixFmt::BGR>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   fb_p[0]           = tex_p->b * 255.f;
@@ -20,7 +20,7 @@ finline void fb_flush_pix<PixFmt::BGR>(FrameBuffer &fb, const pl2d::TextureF &te
   fb_p[2]           = tex_p->r * 255.f;
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::BGR>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x, u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::BGR>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->b          = fb_p[0];
@@ -29,7 +29,7 @@ finline void fb_copy_to_pix<PixFmt::BGR>(const FrameBuffer &fb, pl2d::TextureB &
   tex_p->a          = 255;
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::BGR>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x, u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::BGR>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->b          = fb_p[0] / 255.f;
@@ -39,7 +39,7 @@ finline void fb_copy_to_pix<PixFmt::BGR>(const FrameBuffer &fb, pl2d::TextureF &
 }
 
 template <>
-finline void fb_flush_pix<PixFmt::BGRA>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
+INLINE void fb_flush_pix<PixFmt::BGRA>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   fb_p[0]           = tex_p->b;
@@ -48,7 +48,7 @@ finline void fb_flush_pix<PixFmt::BGRA>(FrameBuffer &fb, const pl2d::TextureB &t
   fb_p[3]           = tex_p->a;
 }
 template <>
-finline void fb_flush_pix<PixFmt::BGRA>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
+INLINE void fb_flush_pix<PixFmt::BGRA>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   fb_p[0]           = tex_p->b * 255.f;
@@ -57,8 +57,7 @@ finline void fb_flush_pix<PixFmt::BGRA>(FrameBuffer &fb, const pl2d::TextureF &t
   fb_p[3]           = tex_p->a * 255.f;
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::BGRA>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::BGRA>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->b          = fb_p[0];
@@ -67,8 +66,7 @@ finline void fb_copy_to_pix<PixFmt::BGRA>(const FrameBuffer &fb, pl2d::TextureB 
   tex_p->a          = fb_p[3];
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::BGRA>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::BGRA>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->b          = fb_p[0] / 255.f;
@@ -78,7 +76,7 @@ finline void fb_copy_to_pix<PixFmt::BGRA>(const FrameBuffer &fb, pl2d::TextureF 
 }
 
 template <>
-finline void fb_flush_pix<PixFmt::ABGR>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
+INLINE void fb_flush_pix<PixFmt::ABGR>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   fb_p[0]           = tex_p->a;
@@ -87,7 +85,7 @@ finline void fb_flush_pix<PixFmt::ABGR>(FrameBuffer &fb, const pl2d::TextureB &t
   fb_p[3]           = tex_p->r;
 }
 template <>
-finline void fb_flush_pix<PixFmt::ABGR>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
+INLINE void fb_flush_pix<PixFmt::ABGR>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   fb_p[0]           = tex_p->a * 255.f;
@@ -96,8 +94,7 @@ finline void fb_flush_pix<PixFmt::ABGR>(FrameBuffer &fb, const pl2d::TextureF &t
   fb_p[3]           = tex_p->r * 255.f;
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::ABGR>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::ABGR>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->a          = fb_p[0];
@@ -106,8 +103,7 @@ finline void fb_copy_to_pix<PixFmt::ABGR>(const FrameBuffer &fb, pl2d::TextureB 
   tex_p->r          = fb_p[3];
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::ABGR>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::ABGR>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x, u32 y) {
   byte *_rest fb_p  = &fb.pix8[0][y * fb.pitch + x * fb.padding];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->a          = fb_p[0] / 255.f;
@@ -116,4 +112,4 @@ finline void fb_copy_to_pix<PixFmt::ABGR>(const FrameBuffer &fb, pl2d::TextureF 
   tex_p->r          = fb_p[3] / 255.f;
 }
 
-} // namespace pl2d::framebuffer
+} // namespace

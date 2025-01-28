@@ -75,10 +75,10 @@ void flush() {
   float        i = (f32)nframe * .01f;
   pl2d::PixelF p = {.8f, cpp::cos(i) * .1f, cpp::sin(i) * .1f, 1};
   tex.fill(p.copy().LAB2RGB());
-  tex.transform([](auto &pix, i32 x, i32 y) INLINE {
-    f32 k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
-    if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 64);
-  });
+  // tex.transform([](auto &pix, i32 x, i32 y) INLINE {
+  //   f32 k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
+  //   if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 64);
+  // });
   frame_tex[nframe / 60 % 19].paste_to_mix(tex, 20, 20);
   image_tex.paste_to_mix(tex, 900, 0);
   tex.fill_trangle({100, 100}, {200, 200}, {100, 200},

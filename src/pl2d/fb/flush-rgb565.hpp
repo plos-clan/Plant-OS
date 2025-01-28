@@ -1,11 +1,10 @@
 #pragma once
 #include "private.hpp"
 
-namespace pl2d::framebuffer {
+namespace {
 
 template <>
-finline void fb_flush_pix<PixFmt::RGB565>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_flush_pix<PixFmt::RGB565>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
   auto *_rest fb_p  = &fb.pix16[0][y * fb.pitch + x];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   u16         r     = tex_p->r >> 3;
@@ -14,8 +13,7 @@ finline void fb_flush_pix<PixFmt::RGB565>(FrameBuffer &fb, const pl2d::TextureB 
   *fb_p             = little_endian((b << 11) | (g << 5) | r);
 }
 template <>
-finline void fb_flush_pix<PixFmt::RGB565>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_flush_pix<PixFmt::RGB565>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
   auto *_rest fb_p  = &fb.pix16[0][y * fb.pitch + x];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   u16         r     = (u8)(tex_p->r * 255.f) >> 3;
@@ -24,8 +22,8 @@ finline void fb_flush_pix<PixFmt::RGB565>(FrameBuffer &fb, const pl2d::TextureF 
   *fb_p             = little_endian((b << 11) | (g << 5) | r);
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::RGB565>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x,
-                                            u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::RGB565>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x,
+                                           u32 y) {
   auto        value = little_endian(fb.pix16[0][y * fb.pitch + x]);
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->r          = (value & 0b11111) << 3;
@@ -34,8 +32,8 @@ finline void fb_copy_to_pix<PixFmt::RGB565>(const FrameBuffer &fb, pl2d::Texture
   tex_p->a          = 255;
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::RGB565>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x,
-                                            u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::RGB565>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x,
+                                           u32 y) {
   auto        value = little_endian(fb.pix16[0][y * fb.pitch + x]);
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->r          = (value & 0b11111) / 31.f;
@@ -45,8 +43,7 @@ finline void fb_copy_to_pix<PixFmt::RGB565>(const FrameBuffer &fb, pl2d::Texture
 }
 
 template <>
-finline void fb_flush_pix<PixFmt::BGR565>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_flush_pix<PixFmt::BGR565>(FrameBuffer &fb, const pl2d::TextureB &tex, u32 x, u32 y) {
   auto *_rest fb_p  = &fb.pix16[0][y * fb.pitch + x];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   u16         r     = tex_p->r >> 3;
@@ -55,8 +52,7 @@ finline void fb_flush_pix<PixFmt::BGR565>(FrameBuffer &fb, const pl2d::TextureB 
   *fb_p             = little_endian((r << 11) | (g << 5) | b);
 }
 template <>
-finline void fb_flush_pix<PixFmt::BGR565>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x,
-                                          u32 y) {
+INLINE void fb_flush_pix<PixFmt::BGR565>(FrameBuffer &fb, const pl2d::TextureF &tex, u32 x, u32 y) {
   auto *_rest fb_p  = &fb.pix16[0][y * fb.pitch + x];
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   u16         r     = (u8)(tex_p->r * 255.f) >> 3;
@@ -65,8 +61,8 @@ finline void fb_flush_pix<PixFmt::BGR565>(FrameBuffer &fb, const pl2d::TextureF 
   *fb_p             = little_endian((r << 11) | (g << 5) | b);
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::BGR565>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x,
-                                            u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::BGR565>(const FrameBuffer &fb, pl2d::TextureB &tex, u32 x,
+                                           u32 y) {
   auto        value = little_endian(fb.pix16[0][y * fb.pitch + x]);
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->b          = (value & 0b11111) << 3;
@@ -75,8 +71,8 @@ finline void fb_copy_to_pix<PixFmt::BGR565>(const FrameBuffer &fb, pl2d::Texture
   tex_p->a          = 255;
 }
 template <>
-finline void fb_copy_to_pix<PixFmt::BGR565>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x,
-                                            u32 y) {
+INLINE void fb_copy_to_pix<PixFmt::BGR565>(const FrameBuffer &fb, pl2d::TextureF &tex, u32 x,
+                                           u32 y) {
   auto        value = little_endian(fb.pix16[0][y * fb.pitch + x]);
   auto *_rest tex_p = &tex.pixels[y * tex.pitch + x];
   tex_p->b          = (value & 0b11111) / 31.f;
@@ -85,4 +81,4 @@ finline void fb_copy_to_pix<PixFmt::BGR565>(const FrameBuffer &fb, pl2d::Texture
   tex_p->a          = 1;
 }
 
-} // namespace pl2d::framebuffer
+} // namespace
