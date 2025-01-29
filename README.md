@@ -6,13 +6,6 @@
 
 A simple OS used to study made by several students.
 
-<p style="font-size: x-large;">
-Happy New Year!<br>
-新年快乐！
-</p>
-
-<p style="font-size: x-large;">今年是 <img src="https://www.python.org/static/favicon.ico" alt="蛇" style="height: 1em;" /> 年！</p>
-
 ![Static Badge](https://img.shields.io/badge/License-MIT-blue)
 ![Static Badge](https://img.shields.io/badge/Language-3-orange)
 ![Static Badge](https://img.shields.io/badge/hardware-x86-green)
@@ -21,6 +14,10 @@ Happy New Year!<br>
 [网页版文档 (plos.plos-clan.org)](https://plos.plos-clan.org/)
 
 [项目历史](https://plos.plos-clan.org/history/)
+
+> [!IMPORTANT]
+> 新年快乐！
+> 今年是 <img src="https://www.python.org/static/favicon.ico" alt="蛇" style="height: 1em;" /> 年！
 
 ## 编译 Plant-OS
 
