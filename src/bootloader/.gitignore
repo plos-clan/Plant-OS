@@ -1,0 +1,5 @@
+run
+build
+run.sh
+uefi/*.o
+uefi/*.a
