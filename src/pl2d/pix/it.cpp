@@ -7,6 +7,7 @@ namespace pl2d {
 // #  warning "启用 BETTER_COLOR_INTERPOLATE 的情况下启用 FAST_COLOR_INTERPOLATE 也快不到哪去"
 // #endif
 
+#if 0
 template <typename T>
 void color_lerp(T *buf, size_t n, T src, T dst) {
   if (buf == null || n == 0) return;
@@ -16,6 +17,16 @@ void color_lerp(T *buf, size_t n, T src, T dst) {
     buf[i].g = (1 - k) * src.g + k * dst.g;
     buf[i].b = (1 - k) * src.b + k * dst.b;
     buf[i].a = (1 - k) * src.a + k * dst.a;
+  }
+}
+#endif
+
+template <typename T>
+void color_lerp(T *buf, size_t n, T src, T dst) {
+  if (buf == null || n == 0) return;
+  for (size_t i = 0; i < n; i++) {
+    val k  = (f32)i / (f32)(n - 1);
+    buf[i] = (1 - k) * src + k * dst;
   }
 }
 

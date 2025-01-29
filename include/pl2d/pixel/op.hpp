@@ -4,7 +4,7 @@
 namespace pl2d {
 
 template <BasePixelTemplate>
-auto BasePixelT::operator+(const BasePixel &s) const -> BasePixel {
+constexpr auto BasePixelT::operator+(const BasePixel &s) const -> BasePixel {
   return BasePixel{
       (T)(r + s.r),
       (T)(g + s.g),
@@ -14,7 +14,7 @@ auto BasePixelT::operator+(const BasePixel &s) const -> BasePixel {
 }
 
 template <BasePixelTemplate>
-auto BasePixelT::operator+=(const BasePixel &s) -> BasePixel & {
+constexpr auto BasePixelT::operator+=(const BasePixel &s) -> BasePixel & {
   r += s.r;
   g += s.g;
   b += s.b;
@@ -23,7 +23,7 @@ auto BasePixelT::operator+=(const BasePixel &s) -> BasePixel & {
 }
 
 template <BasePixelTemplate>
-auto BasePixelT::operator-(const BasePixel &s) const -> BasePixel {
+constexpr auto BasePixelT::operator-(const BasePixel &s) const -> BasePixel {
   return BasePixel{
       (T)(r - s.r),
       (T)(g - s.g),
@@ -33,7 +33,7 @@ auto BasePixelT::operator-(const BasePixel &s) const -> BasePixel {
 }
 
 template <BasePixelTemplate>
-auto BasePixelT::operator-=(const BasePixel &s) -> BasePixel & {
+constexpr auto BasePixelT::operator-=(const BasePixel &s) -> BasePixel & {
   r -= s.r;
   g -= s.g;
   b -= s.b;
@@ -42,10 +42,93 @@ auto BasePixelT::operator-=(const BasePixel &s) -> BasePixel & {
 }
 
 template <BasePixelTemplate>
+constexpr auto BasePixelT::operator*(const BasePixel &s) const -> BasePixel {
+  return BasePixel{
+      (T)(r * s.r),
+      (T)(g * s.g),
+      (T)(b * s.b),
+      (T)(a * s.a),
+  };
+}
+
+template <BasePixelTemplate>
+constexpr auto BasePixelT::operator*=(const BasePixel &s) -> BasePixel & {
+  r *= s.r;
+  g *= s.g;
+  b *= s.b;
+  a *= s.a;
+  return *this;
+}
+
+template <BasePixelTemplate>
+constexpr auto BasePixelT::operator/(const BasePixel &s) const -> BasePixel {
+  return BasePixel{
+      (T)(r / s.r),
+      (T)(g / s.g),
+      (T)(b / s.b),
+      (T)(a / s.a),
+  };
+}
+
+template <BasePixelTemplate>
+constexpr auto BasePixelT::operator/=(const BasePixel &s) -> BasePixel & {
+  r /= s.r;
+  g /= s.g;
+  b /= s.b;
+  a /= s.a;
+  return *this;
+}
+
+template <BasePixelTemplate>
 template <typename U>
-auto BasePixelT::operator*(U s) const -> BasePixel
-requires(cpp::is_float<U>)
-{
+requires(cpp::is_num<U>)
+auto BasePixelT::operator+(U s) const -> BasePixel {
+  return BasePixel{
+      (T)(r + s),
+      (T)(g + s),
+      (T)(b + s),
+      (T)(a + s),
+  };
+}
+
+template <BasePixelTemplate>
+template <typename U>
+requires(cpp::is_num<U>)
+auto BasePixelT::operator+=(U s) -> BasePixel & {
+  r += s;
+  g += s;
+  b += s;
+  a += s;
+  return *this;
+}
+
+template <BasePixelTemplate>
+template <typename U>
+requires(cpp::is_num<U>)
+auto BasePixelT::operator-(U s) const -> BasePixel {
+  return BasePixel{
+      (T)(r - s),
+      (T)(g - s),
+      (T)(b - s),
+      (T)(a - s),
+  };
+}
+
+template <BasePixelTemplate>
+template <typename U>
+requires(cpp::is_num<U>)
+auto BasePixelT::operator-=(U s) -> BasePixel & {
+  r -= s;
+  g -= s;
+  b -= s;
+  a -= s;
+  return *this;
+}
+
+template <BasePixelTemplate>
+template <typename U>
+requires(cpp::is_num<U>)
+auto BasePixelT::operator*(U s) const -> BasePixel {
   return BasePixel{
       (T)(r * s),
       (T)(g * s),
@@ -56,10 +139,9 @@ requires(cpp::is_float<U>)
 
 template <BasePixelTemplate>
 template <typename U>
-auto BasePixelT::operator*=(U s) -> BasePixel &
-requires(cpp::is_float<U>)
-{
-  r *= r;
+requires(cpp::is_num<U>)
+auto BasePixelT::operator*=(U s) -> BasePixel & {
+  r *= s;
   g *= s;
   b *= s;
   a *= s;
@@ -68,9 +150,8 @@ requires(cpp::is_float<U>)
 
 template <BasePixelTemplate>
 template <typename U>
-auto BasePixelT::operator/(U s) const -> BasePixel
-requires(cpp::is_float<U>)
-{
+requires(cpp::is_num<U>)
+auto BasePixelT::operator/(U s) const -> BasePixel {
   return BasePixel{
       (T)(r / s),
       (T)(g / s),
@@ -81,9 +162,8 @@ requires(cpp::is_float<U>)
 
 template <BasePixelTemplate>
 template <typename U>
-auto BasePixelT::operator/=(U s) -> BasePixel &
-requires(cpp::is_float<U>)
-{
+requires(cpp::is_num<U>)
+auto BasePixelT::operator/=(U s) -> BasePixel & {
   r /= s;
   g /= s;
   b /= s;

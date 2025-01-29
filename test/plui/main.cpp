@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 #include <string>
 
 #define NO_STD 0
@@ -42,27 +43,39 @@ static auto &fb  = screen_fb;
 static auto &tex = screen_tex;
 
 template <typename T>
-auto load_qoi_to_tex(const char *filename, T &tex) {
+auto load_qoi_to_tex(const char *filename, T &tex) -> ErrCode {
   int   img_width, img_height, img_channels;
   void *data = qoi_load(filename, &img_width, &img_height, &img_channels);
-  if (data == null) abort();
+  if (data == null) return -1;
   pl2d::FrameBuffer img_fb(data, img_width, img_height,
                            img_channels == 3 ? pl2d::PixFmt::RGB : pl2d::PixFmt::RGBA);
   img_fb.init_texture(tex);
   img_fb.copy_to(tex);
   free(data);
+  return 0;
 }
 
 auto init(void *buffer, u32 width, u32 height, pl2d::PixFmt fmt) -> int {
   for (int i = 0; i < 18; i++) {
-    load_qoi_to_tex(("../resource/frame" + std::to_string(i) + ".qoi").c_str(), frame_tex[i]);
+    val path = "../resource/frame" + std::to_string(i) + ".qoi";
+    if (load_qoi_to_tex(path.c_str(), frame_tex[i]) < 0) {
+      std::cout << "load " << path << " failed" << std::endl;
+      exit(1);
+    }
     frame_tex[i].transform([](auto &pix) {
       if (pix.brightness() > 240) pix = 0;
     });
     frame_tex[i].gaussian_blur(11, 2);
   }
 
-  load_qoi_to_tex("../resource/test.qoi", image_tex);
+  if (load_qoi_to_tex("../resource/test.qoi", image_tex) < 0) {
+    std::cout << "load ../resource/test.qoi failed" << std::endl;
+    exit(1);
+  }
+  val texf32 = image_tex.copy_f32();
+  texf32->mulby(1.5).glow();
+  image_tex.copy_from(*texf32);
+  delete texf32;
 
   return on::screen_resize(buffer, width, height, fmt);
 }
@@ -72,13 +85,12 @@ static int nframe = 0;
 void flush() {
   nframe++;
 
-  float        i = (f32)nframe * .01f;
-  pl2d::PixelF p = {.8f, cpp::cos(i) * .1f, cpp::sin(i) * .1f, 1};
-  tex.fill(p.copy().LAB2RGB());
-  // tex.transform([](auto &pix, i32 x, i32 y) INLINE {
-  //   f32 k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
-  //   if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 64);
-  // });
+  float i = (f32)nframe * .01f;
+  tex.fill(pl2d::PixelF::lab(.8f, cpp::cos(i) * .1f, cpp::sin(i) * .1f));
+  tex.transform([](auto &pix, i32 x, i32 y) {
+    f32 k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
+    if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 64);
+  });
   frame_tex[nframe / 60 % 19].paste_to_mix(tex, 20, 20);
   image_tex.paste_to_mix(tex, 900, 0);
   tex.fill_trangle({100, 100}, {200, 200}, {100, 200},

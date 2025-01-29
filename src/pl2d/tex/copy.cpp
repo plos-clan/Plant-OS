@@ -4,8 +4,24 @@
 namespace pl2d {
 
 template <typename T>
-auto BaseTexture<T>::copy() -> BaseTexture<T> * {
+auto BaseTexture<T>::copy() -> BaseTexture * {
   auto *d = new BaseTexture(width, height, pitch);
+  if (d == null) return null;
+  d->copy_from(*this);
+  return d;
+}
+
+template <typename T>
+auto BaseTexture<T>::copy_u8() -> TextureB * {
+  auto *d = new TextureB(width, height, pitch);
+  if (d == null) return null;
+  d->copy_from(*this);
+  return d;
+}
+
+template <typename T>
+auto BaseTexture<T>::copy_f32() -> TextureF * {
+  auto *d = new TextureF(width, height, pitch);
   if (d == null) return null;
   d->copy_from(*this);
   return d;

@@ -10,11 +10,17 @@
 
 namespace cpp {
 
-template <bool cond>
-using enable_if = std::enable_if_t<cond>;
+template <bool cond, typename type = void>
+using enable_if = std::enable_if_t<cond, type>;
 
 template <typename T>
 inline constexpr bool is_float = std::is_floating_point_v<T>;
+
+template <typename T>
+inline constexpr bool is_int = std::is_integral_v<T>;
+
+template <typename T>
+inline constexpr bool is_num = is_int<T> || is_float<T>;
 
 template <typename base, typename derived>
 inline constexpr bool is_base_of = std::is_base_of_v<base, derived>;

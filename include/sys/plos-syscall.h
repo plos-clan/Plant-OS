@@ -25,7 +25,7 @@ enum {
   MAX_SYSCALLS = 256,
 };
 
-#if !RING0 && NO_STD
+#if !RING0 && NO_STD && !PLOS_NO_SYSCALL_WARP
 dlimport ssize_t syscall(ssize_t id, ...);
 
 dlimport void exit(int status) __attr(noreturn);

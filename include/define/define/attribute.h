@@ -114,11 +114,11 @@
 #endif
 
 #ifdef __cplusplus
-#  define INLINE       __attr(always_inline) __nif
-#  define INLINE_CONST __attr(always_inline) __nif __attr(const) constexpr
+#  define INLINE       inline __attr(always_inline) __nif
+#  define INLINE_CONST inline __attr(always_inline) __nif __attr(const) constexpr
 #else
-#  define INLINE       __attr(always_inline) __nif
-#  define INLINE_CONST __attr(always_inline) __nif __attr(const)
+#  define INLINE       inline __attr(always_inline) __nif
+#  define INLINE_CONST inline __attr(always_inline) __nif __attr(const)
 #endif
 
 #define NAKED    __attr(naked)

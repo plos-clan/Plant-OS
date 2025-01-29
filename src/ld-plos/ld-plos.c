@@ -1,8 +1,15 @@
+#define PLOS_NO_SYSCALL_WARP 1
 #include <elf.h>
 #include <libc-base.h>
 #include <sys.h>
 
+#define SYMBOLTABLE_IMPLEMENTATION
+#include <data-structure/unordered-map/st.h>
+
 #include "ld-plos.h"
+
+static st_t libs; // path -> data
+static st_t syms; // symbol -> address
 
 // 一个在没有标准库的环境下加载动态链接 elf 文件的程序
 
@@ -10,10 +17,7 @@ static int    argc;
 static char **argv;
 static char **envp;
 
-finline void println(cstr text) {
-  syscall(SYSCALL_PRINT, text);
-  syscall(SYSCALL_PRINT, "\n");
-}
+#include "sysfn.h"
 
 static i32 load_elf(cstr path, bool run);
 
@@ -109,6 +113,8 @@ static int load_elf64(Elf *elf, const Elf64Header *header) {
 static usize elf_file_map_addr = 0xb0000000;
 
 static i32 load_elf(cstr path, bool run) {
+  if (st_has(libs, path)) return 0;
+
   const isize size = syscall(SYSCALL_FILE_SIZE, path);
   if (size < 0) return LDE_FILE_NOT_FOUND;
 
@@ -121,6 +127,8 @@ static i32 load_elf(cstr path, bool run) {
   elf_file_map_addr += PADDING_UP(size, PAGE_SIZE);
 
   if (syscall(SYSCALL_LOAD_FILE, path, file->data, size) < 0) return LDE_FILE_UNREADABLE;
+
+  if (st_insert(libs, path, file) < 0) return LDE_OUT_OF_MEMORY;
 
   val ident = file->ident;
   if (ident->magic != ELF_MAGIC) return LDE_FILE_UNPARSABLE;
@@ -150,6 +158,7 @@ static i32 __linker_main(int argc, char **argv, char **envp) {
   return load_elf(argv[0], true);
 }
 
+// 链接器入口点
 void __linker_start() {
   asm("mov %%edi, %0\n\t" : "=r"(argc));
   asm("mov %%esi, %0\n\t" : "=r"(argv));
@@ -160,6 +169,7 @@ void __linker_start() {
   syscall(SYSCALL_EXIT, MASK(30) | MASK(29) | (errcode << 16));
 }
 
+// 应用程序异常处理
 void __linker_handler() {
   //
 }

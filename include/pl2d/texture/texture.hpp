@@ -19,6 +19,15 @@ namespace pl2d {
 // 可以用来实现链式调用
 
 template <typename T>
+struct BaseTexture;
+
+using TextureB = BaseTexture<PixelB>;
+using TextureS = BaseTexture<PixelS>;
+using TextureF = BaseTexture<PixelF>;
+using TextureD = BaseTexture<PixelD>;
+using Texture  = TextureB;
+
+template <typename T>
 struct BaseTexture {
   // 可以是内部通过 malloc 分配，也可以是外部数据
   T *pixels sized_by(width *height) = null;
@@ -47,7 +56,10 @@ struct BaseTexture {
   auto reset() -> BaseTexture &; // 重置 texture 为未初始化状态
 
   // 与另一个纹理交换数据
-  auto exch(BaseTexture &tex) -> BaseTexture &;
+  auto        exch(BaseTexture &tex) -> BaseTexture &;
+  static void exch(BaseTexture &tex1, BaseTexture &tex2) {
+    tex1.exch(tex2);
+  }
 
   // 是否已经初始化
   auto ready() const -> bool {
@@ -122,6 +134,8 @@ struct BaseTexture {
 
   // 拷贝到另一个 texture，从另一个 texture 拷贝
   auto copy() -> BaseTexture *;
+  auto copy_u8() -> TextureB *;
+  auto copy_f32() -> TextureF *;
   template <typename T2>
   auto copy_to(BaseTexture<T2> &d) const -> bool {
     return d.copy_from(*this);
@@ -216,12 +230,51 @@ struct BaseTexture {
   INLINE auto transform(void (*cb)(BaseTexture &t, T &pix)) -> BaseTexture &;
   INLINE auto transform(void (*cb)(T &pix, i32 x, i32 y)) -> BaseTexture &;
   INLINE auto transform(void (*cb)(BaseTexture &t, T &pix, i32 x, i32 y)) -> BaseTexture &;
-};
 
-using TextureB = BaseTexture<PixelB>;
-using TextureS = BaseTexture<PixelS>;
-using TextureF = BaseTexture<PixelF>;
-using TextureD = BaseTexture<PixelD>;
-using Texture  = TextureB;
+  template <typename U>
+  auto add_clamp(const BaseTexture<U> &tex) -> BaseTexture &;
+  auto clamp() -> BaseTexture &;                          // 将颜色值限制在 0 到 1 之间
+  auto copy_clamp() -> BaseTexture *;                     // 将颜色值限制在 0 到 1 之间
+  auto clamp(T::TYPE low, T::TYPE high) -> BaseTexture &; // 将颜色值限制在 low 到 high 之间
+  auto glow() -> BaseTexture &;                           // 亮度超过 1 的像素的辉光效果
+
+  auto add(f32 v) -> BaseTexture & {
+    for (usize i = 0; i < size; i++) {
+      pixels[i] = (pixels[i].to_float() + PixelF(v, v, v, 0)).clamp();
+    }
+    return *this;
+  }
+  auto minus_clamp(f32 v) -> BaseTexture & {
+    for (usize i = 0; i < size; i++) {
+      pixels[i] = (pixels[i].to_float() - PixelF(v, v, v, 0)).clamp();
+    }
+    return *this;
+  }
+
+  auto mulby(f32 s) -> BaseTexture & {
+    for (usize i = 0; i < size; i++) {
+      pixels[i] *= s;
+    }
+    return *this;
+  }
+  auto divby(f32 s) -> BaseTexture & {
+    for (usize i = 0; i < size; i++) {
+      pixels[i] /= s;
+    }
+    return *this;
+  }
+  auto mulby_clamp(f32 s) -> BaseTexture & {
+    for (usize i = 0; i < size; i++) {
+      pixels[i] = (pixels[i].to_float() * s).clamp();
+    }
+    return *this;
+  }
+  auto divby_clamp(f32 s) -> BaseTexture & {
+    for (usize i = 0; i < size; i++) {
+      pixels[i] = (pixels[i].to_float() / s).clamp();
+    }
+    return *this;
+  }
+};
 
 } // namespace pl2d
