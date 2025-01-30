@@ -126,11 +126,8 @@ struct BasePixel {
   CONST auto diff(const BasePixel &p) -> T;
 
   // 按比例进行颜色混合函数
-  HOT void        mix_ratio(const BasePixel &s, T k);
-  HOT static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, T k) -> BasePixel;
-  template <typename U>
-  requires(cpp::is_float<U> && !std::is_same_v<T, U>)
-  HOT static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, U k) -> BasePixel;
+  HOT void        mix_ratio(const BasePixel &s, FT k);
+  HOT static auto mix_ratio(const BasePixel &c1, const BasePixel &c2, FT k) -> BasePixel;
   // 背景色不透明的混合函数
   HOT void        mix_opaque(const BasePixel &s);
   HOT static auto mix_opaque(const BasePixel &c1, const BasePixel &c2) -> BasePixel;

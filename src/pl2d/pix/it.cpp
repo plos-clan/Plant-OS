@@ -3,9 +3,9 @@
 
 namespace pl2d {
 
-// #if BETTER_COLOR_INTERPOLATE && FAST_COLOR_INTERPOLATE
-// #  warning "启用 BETTER_COLOR_INTERPOLATE 的情况下启用 FAST_COLOR_INTERPOLATE 也快不到哪去"
-// #endif
+#if BETTER_COLOR_INTERPOLATE && FAST_COLOR_INTERPOLATE
+#  warning "启用 BETTER_COLOR_INTERPOLATE 的情况下启用 FAST_COLOR_INTERPOLATE 也快不到哪去"
+#endif
 
 #if 0
 template <typename T>
@@ -31,7 +31,7 @@ void color_lerp(T *buf, size_t n, T src, T dst) {
 }
 
 // 我不知道这个是否真的有效
-#if FAST_COLOR_INTERPOLATE && 0
+#if FAST_COLOR_INTERPOLATE
 template <>
 void color_lerp<PixelB>(PixelB *buf, size_t n, PixelB src, PixelB dst) {
   if (buf == null || n == 0) return;

@@ -20,38 +20,21 @@ namespace pl2d {
 
 // 假如源和目标都没有透明度
 template <BasePixelTemplate>
-void BasePixelT::mix_ratio(const BasePixelT &s, T k) {
-  T2 sw = k;
-  T2 dw = T_MAX_ - k;
-  r     = (r * dw + s.r * sw) / T_MAX_;
-  g     = (g * dw + s.g * sw) / T_MAX_;
-  b     = (b * dw + s.b * sw) / T_MAX_;
-  a     = (a * dw + s.a * sw) / T_MAX_;
+void BasePixelT::mix_ratio(const BasePixelT &s, FT k) {
+  r = (FT)r * (1 - k) + (FT)s.r * k;
+  g = (FT)g * (1 - k) + (FT)s.g * k;
+  b = (FT)b * (1 - k) + (FT)s.b * k;
+  a = (FT)a * (1 - k) + (FT)s.a * k;
 }
 
 // 假如源和目标都没有透明度
 template <BasePixelTemplate>
-auto BasePixelT::mix_ratio(const BasePixelT &c1, const BasePixelT &c2, T k) -> BasePixelT {
-  T2 w1 = k;
-  T2 w2 = T_MAX_ - k;
+auto BasePixelT::mix_ratio(const BasePixelT &c1, const BasePixelT &c2, FT k) -> BasePixelT {
   return BasePixelT{
-      (T)((c1.r * w1 + c2.r * w2) / T_MAX_),
-      (T)((c1.g * w1 + c2.g * w2) / T_MAX_),
-      (T)((c1.b * w1 + c2.b * w2) / T_MAX_),
-      (T)((c1.a * w1 + c2.a * w2) / T_MAX_),
-  };
-}
-
-// 假如源和目标都没有透明度
-template <BasePixelTemplate>
-template <typename U>
-requires(cpp::is_float<U> && !std::is_same_v<T, U>)
-auto BasePixelT::mix_ratio(const BasePixelT &c1, const BasePixelT &c2, U k) -> BasePixelT {
-  return BasePixelT{
-      (T)((U)c1.r * k + (U)c2.r * (1 - k)),
-      (T)((U)c1.g * k + (U)c2.g * (1 - k)),
-      (T)((U)c1.b * k + (U)c2.b * (1 - k)),
-      (T)((U)c1.a * k + (U)c2.a * (1 - k)),
+      (T)((FT)c1.r * (1 - k) + (FT)c2.r * k),
+      (T)((FT)c1.g * (1 - k) + (FT)c2.g * k),
+      (T)((FT)c1.b * (1 - k) + (FT)c2.b * k),
+      (T)((FT)c1.a * (1 - k) + (FT)c2.a * k),
   };
 }
 

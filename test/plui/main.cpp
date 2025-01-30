@@ -72,10 +72,6 @@ auto init(void *buffer, u32 width, u32 height, pl2d::PixFmt fmt) -> int {
     std::cout << "load ../resource/test.qoi failed" << std::endl;
     exit(1);
   }
-  val texf32 = image_tex.copy_f32();
-  texf32->mulby(1.5).glow();
-  image_tex.copy_from(*texf32);
-  delete texf32;
 
   return on::screen_resize(buffer, width, height, fmt);
 }
@@ -88,8 +84,8 @@ void flush() {
   float i = (f32)nframe * .01f;
   tex.fill(pl2d::PixelF::lab(.8f, cpp::cos(i) * .1f, cpp::sin(i) * .1f));
   tex.transform([](auto &pix, i32 x, i32 y) {
-    f32 k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
-    if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 64);
+    val k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f + .5f;
+    if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 0.25);
   });
   frame_tex[nframe / 60 % 19].paste_to_mix(tex, 20, 20);
   image_tex.paste_to_mix(tex, 900, 0);
