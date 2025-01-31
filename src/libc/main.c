@@ -4,14 +4,16 @@
 
 typedef int (*main_t)(int argc, char **argv, char **envp);
 
+int main(int argc, char **argv, char **envp);
+
 dlimport bool __libc_init_mman();
 
 dlexport void __libc_start_main(int argc, char **argv, char **envp) {
   __libc_init_mman();
 
-  exit(1);
+  // exit(1);
 
-  // val ret = main(argc, argv, envp);
+  val ret = main(argc, argv, envp);
 
-  // exit(ret);
+  exit(ret);
 }
