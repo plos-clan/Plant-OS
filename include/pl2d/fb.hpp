@@ -69,27 +69,27 @@ constexpr PixFmt texture_pixfmt = PixFmt::RGBA;
 #endif
 
 struct FrameBuffer {
-  union {                             //
-    void *pix[4] = {};                //
-    u8   *pix8[4];                    //
-    u16  *pix16[4];                   //
-    u32  *pix32[4];                   //
-    struct {                          //
-      byte *plane1;                   //
-      byte *plane2;                   //
-      byte *plane3;                   //
-      byte *plane4;                   //
-    };                                //
-  };                                  // 缓冲区
-  union {                             //
-    u32 plane_size[4] = {};           //
-    struct {                          //
-      u32 plane1_size;                //
-      u32 plane2_size;                //
-      u32 plane3_size;                //
-      u32 plane4_size;                //
-    };                                //
-  };                                  // 缓冲区大小
+  union {              // 缓冲区
+    void *pix[4] = {}; //
+    u8   *pix8[4];     //
+    u16  *pix16[4];    //
+    u32  *pix32[4];    //
+    struct {           //
+      byte *plane1;    //
+      byte *plane2;    //
+      byte *plane3;    //
+      byte *plane4;    //
+    };
+  };
+  union {                   // 缓冲区大小
+    u32 plane_size[4] = {}; //
+    struct {                //
+      u32 plane1_size;      //
+      u32 plane2_size;      //
+      u32 plane3_size;      //
+      u32 plane4_size;      //
+    };
+  };
   u32      *pal     = null;           // 调色板
   u32       width   = 0;              // 宽度（可自动计算） width = pitch / size_of_pixel
   u32       height  = 0;              // 高度
@@ -114,7 +114,7 @@ struct FrameBuffer {
   FrameBuffer(const FrameBuffer &)     = delete;
   FrameBuffer(FrameBuffer &&) noexcept = default;
 
-  auto operator=(const FrameBuffer &) -> FrameBuffer     & = delete;
+  auto operator=(const FrameBuffer &) -> FrameBuffer &     = delete;
   auto operator=(FrameBuffer &&) noexcept -> FrameBuffer & = default;
 
   void reset() {

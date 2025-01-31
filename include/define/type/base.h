@@ -29,3 +29,7 @@ typedef __UINT8_TYPE__ byte;
 typedef int errno_t;
 
 typedef __INT64_TYPE__ time_t;
+
+#ifdef __cplusplus
+#  define lit constexpr
+#endif

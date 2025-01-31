@@ -8,6 +8,8 @@ namespace plui {
 
 struct Style {
 
+  u32 padding;
+
   u32         border_width; // 边框宽度
   pl2d::Pixel border_color; // 边框颜色
 
@@ -31,15 +33,7 @@ struct Style {
 using ChildList = cpp::List<Element *>;
 
 struct Element : Style {
-  union {
-    struct {
-      i32 x;      // 元素左上角横坐标
-      i32 y;      // 元素左上角纵坐标
-      i32 width;  // 元素宽度
-      i32 height; // 元素高度
-    };
-    Position pos;
-  };
+  Position       pos;                 // 位置
   pl2d::Rect     internal;            // 元素内部的区域
   Element       *parent;              // 父元素，表示当前元素的上一级元素
   bool           needdraw;            // 是否需要刷新，表示是否需要重新绘制元素

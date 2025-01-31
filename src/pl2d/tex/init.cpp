@@ -9,6 +9,7 @@ BaseTexture<T>::BaseTexture(u32 width, u32 height)
   own_pixels   = true;
   alloced_size = size;
   pixels       = (T *)malloc(size * sizeof(T));
+  free_pixels  = free;
   assert(pixels != null);
 }
 
@@ -18,6 +19,7 @@ BaseTexture<T>::BaseTexture(u32 width, u32 height, u32 pitch)
   own_pixels   = true;
   alloced_size = size;
   pixels       = (T *)malloc(size * sizeof(T));
+  free_pixels  = free;
   assert(pixels != null);
 }
 

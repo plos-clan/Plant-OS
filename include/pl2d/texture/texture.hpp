@@ -42,6 +42,8 @@ struct BaseTexture {
   u32  size            = 0;     // 储存 height * pitch 而不是占用的字节数
   u32  alloced_size    = 0;     // 储存实际分配的大小 像素数而不是字节数
 
+  free_t free_pixels = null; // 释放用的函数
+
   BaseTexture() = default;
   BaseTexture(u32 width, u32 height);                       // 创建一个空的纹理
   BaseTexture(u32 width, u32 height, u32 pitch);            // 创建一个空的纹理

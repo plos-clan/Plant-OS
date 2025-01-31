@@ -113,7 +113,7 @@ static int load_elf64(Elf *elf, const Elf64Header *header) {
 static usize elf_file_map_addr = 0xb0000000;
 
 static i32 load_elf(cstr path, bool run) {
-  if (st_has(libs, path)) return 0;
+  // if (st_has(libs, path)) return 0;
 
   const isize size = syscall(SYSCALL_FILE_SIZE, path);
   if (size < 0) return LDE_FILE_NOT_FOUND;
@@ -128,7 +128,7 @@ static i32 load_elf(cstr path, bool run) {
 
   if (syscall(SYSCALL_LOAD_FILE, path, file->data, size) < 0) return LDE_FILE_UNREADABLE;
 
-  if (st_insert(libs, path, file) < 0) return LDE_OUT_OF_MEMORY;
+  // if (st_insert(libs, path, file) < 0) return LDE_OUT_OF_MEMORY;
 
   val ident = file->ident;
   if (ident->magic != ELF_MAGIC) return LDE_FILE_UNPARSABLE;

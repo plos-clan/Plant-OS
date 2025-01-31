@@ -123,7 +123,12 @@ struct BasePixel {
   }
 
   // 计算颜色的差值
-  CONST auto diff(const BasePixel &p) -> T;
+  CONST auto diff(const BasePixel &p) -> T {
+    T dr = cpp::diff(r, p.r);
+    T dg = cpp::diff(g, p.g);
+    T db = cpp::diff(b, p.b);
+    return cpp::max(dr, dg, db);
+  }
 
   // 按比例进行颜色混合函数
   HOT void        mix_ratio(const BasePixel &s, FT k);
@@ -222,13 +227,5 @@ struct BasePixel {
     return BasePixel(l, u, v).LUV2RGB();
   }
 };
-
-template <BasePixelTemplate>
-CONST auto BasePixelT::diff(const BasePixel &p) -> T {
-  T dr = cpp::diff(r, p.r);
-  T dg = cpp::diff(g, p.g);
-  T db = cpp::diff(b, p.b);
-  return cpp::max(dr, dg, db);
-}
 
 } // namespace pl2d

@@ -31,7 +31,7 @@ enum class Event : u32 {
 
 namespace plds {
 
-// plui::Element root;
+plui::Element root;
 
 pl2d::FrameBuffer screen_fb;
 pl2d::TextureB    screen_tex;
@@ -84,13 +84,13 @@ void flush() {
   float i = (f32)nframe * .01f;
   tex.fill(pl2d::PixelF::lab(.8f, cpp::cos(i) * .1f, cpp::sin(i) * .1f));
   tex.transform([](auto &pix, i32 x, i32 y) {
-    val k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f + .5f;
+    val k = cpp::sin((x - y + nframe * 4) / 25.f) / 5.f + .8f;
     if ((x + y) / 25 % 2 == 0) pix.mix_ratio(pl2d::PixelF{k, k, k}, 0.25);
   });
   frame_tex[nframe / 60 % 19].paste_to_mix(tex, 20, 20);
   image_tex.paste_to_mix(tex, 900, 0);
   tex.fill_trangle({100, 100}, {200, 200}, {100, 200},
-                   pl2d::PixelF{.8, cpp::cos(i + 1.f) * .1f, cpp::sin(i + 1.f) * .1f, 1}.LAB2RGB());
+                   pl2d::PixelF::lab(.8, cpp::cos(i + 1.f) * .1f, cpp::sin(i + 1.f) * .1f));
   fb.flush(tex);
   screen_flush();
 }
