@@ -24,15 +24,21 @@ size_t memtest(size_t start, size_t end) {
   return size;
 }
 
-static struct mpool pool;
+static struct mman man;
+
+static void *_page_alloc(void *addr, usize size) {
+  return page_aligned_alloc(SIZE_2M, size);
+}
 
 void memory_init(void *ptr, u32 size) {
-  mpool_init(&pool, ptr, size);
+  mman_init(&man, ptr, size);
+  mman_setcb(&man, _page_alloc, page_free);
 }
 
 void *malloc(size_t size) {
-  void *ptr = mpool_alloc(&pool, size);
-  // klogd("alloc %-10p %d -> %d", ptr, size, mpool_msize(&pool, ptr));
+  if (size > 16 * 1024) klogw("malloc size too large: %d", size);
+  void *ptr = mman_alloc(&man, size);
+  // klogd("alloc %-10p %d -> %d", ptr, size, mman_msize(&pool, ptr));
   return ptr;
 }
 
@@ -43,12 +49,15 @@ void *xmalloc(size_t size) {
 }
 
 void free(void *ptr) {
-  // klogd("free  %-10p %d", ptr, mpool_msize(&pool, ptr));
-  mpool_free(&pool, ptr);
+  // klogd("free  %-10p %d", ptr, mman_msize(&pool, ptr));
+  mman_free(&man, ptr);
 }
 
 void *calloc(size_t n, size_t size) {
-  if (__builtin_mul_overflow(n, size, &size)) return null;
+  if (__builtin_mul_overflow(n, size, &size)) {
+    klogw("calloc overflow (size: %d * %d)", n, size);
+    return null;
+  }
   void *ptr = malloc(size);
   if (ptr == null) return null;
   memset(ptr, 0, size);
@@ -57,8 +66,8 @@ void *calloc(size_t n, size_t size) {
 
 void *realloc(void *ptr, size_t size) {
   // void *old_ptr = ptr;
-  ptr = mpool_realloc(&pool, ptr, size);
-  // klogd("realloc %-10p %d -> %-10p %d", old_ptr, mpool_msize(&pool, ptr), ptr, size);
+  ptr = mman_realloc(&man, ptr, size);
+  // klogd("realloc %-10p %d -> %-10p %d", old_ptr, mman_msize(&pool, ptr), ptr, size);
   return ptr;
 }
 
@@ -67,19 +76,19 @@ void *reallocarray(void *ptr, size_t n, size_t size) {
 }
 
 void *aligned_alloc(size_t align, size_t size) {
-  return mpool_aligned_alloc(&pool, size, align);
+  return mman_aligned_alloc(&man, size, align);
 }
 
 size_t malloc_usable_size(void *ptr) {
-  return mpool_msize(&pool, ptr);
+  return mman_msize(&man, ptr);
 }
 
 void *memalign(size_t align, size_t size) {
-  return mpool_aligned_alloc(&pool, size, align);
+  return mman_aligned_alloc(&man, size, align);
 }
 
 int posix_memalign(void **memptr, size_t alignment, size_t size) {
-  void *ptr = mpool_aligned_alloc(&pool, size, alignment);
+  void *ptr = mman_aligned_alloc(&man, size, alignment);
   if (ptr == null) return 1;
   *memptr = ptr;
   return 0;

@@ -331,6 +331,7 @@ void hda_init_codec(u32 codec) {
 }
 
 void pci_set_drive_irq(u8 bus, u8 slot, u8 func, u8 irq);
+
 void hda_init() {
   klogd("hda_init");
   // 许多 HDA 设备的 Vendor ID 为 8086（Intel），Device ID 为 2668 或

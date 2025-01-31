@@ -16,9 +16,10 @@ struct MOUSE_DEC {
   char roll;
 };
 
-void wait_KBC_sendready();
+void ps2_wait();
 void mouse_sleep(struct MOUSE_DEC *mdec);
-void init_keyboard();
+void keyboard_init();
+void mouse_init();
 int  getch();
 
 extern struct MOUSE_DEC mdec;

@@ -1,12 +1,13 @@
 #define PLOS_NO_SYSCALL_WARP 1
 #include <elf.h>
+#include <ld-plos.h>
 #include <libc-base.h>
 #include <sys.h>
 
 #define SYMBOLTABLE_IMPLEMENTATION
 #include <data-structure/unordered-map/st.h>
 
-#include "ld-plos.h"
+#define syscall(...) __syscall(__VA_ARGS__)
 
 static st_t libs; // path -> data
 static st_t syms; // symbol -> address
@@ -24,7 +25,7 @@ static i32 load_elf(cstr path, bool run);
 // 加载完毕后运行应用程序
 static __attr(noreturn) void run(usize entry) {
   asm("mov %0, %%edi\n\t" ::"r"(argc));
-  asm("mov %0, %%esi\n\t" ::"r"(argv));
+  asm("mov %0, %%esi\n\t" ::"r"(argv)); 
   asm("mov %0, %%edx\n\t" ::"r"(envp));
   asm volatile("jmp *%0" ::"r"(entry));
   __builtin_unreachable();

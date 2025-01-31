@@ -1,5 +1,5 @@
 
-#define ALLOC_FORCE_2M_PAGE 0
+#define ALLOC_FORCE_2M_PAGE 1
 
 #define ALLOC_LARGE_BLK_SIZE ((size_t)16384)
 

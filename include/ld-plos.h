@@ -12,5 +12,3 @@
 #define LDE_OUT_OF_MEMORY      8   // 内存不足
 #define LDE_ARCH_MISSMATCH     9   // 架构不匹配
 #define LDE_INVALID_INPUT      255 // 传入参数错误
-
-#define syscall(...) __syscall(__VA_ARGS__)

@@ -344,20 +344,26 @@ void *page_malloc_one_count_from_4gb() {
 
 static usize page_alloc_line_cache = 0;
 
-static vectorize isize find_kpage(usize line, usize n) {
-  line       = max(line, page_alloc_line_cache);
-  usize free = 0;
-  for (; line < 1024 * 1024; line++) {
+static isize find_kpage_aligned(usize align, usize npages) {
+  if (align & (align - 1)) return 0;
+  bool  skipped = false;
+  usize free    = 0;
+  vectorize for (var line = page_alloc_line_cache; line < 1024 * 1024; line++) {
     if (pages[line].count != 0) {
       free = 0;
       continue;
     }
-    if (++free == n) {
-      val begin = line - n + 1;
-      for (usize j = begin; j <= line; j++) {
+    if (free == 0 && (line & (align - 1)) != 0) {
+      skipped = true;
+      continue;
+    }
+    if (++free == npages) {
+      val begin = line - npages + 1;
+      val end   = line + 1;
+      for (usize j = begin; j < end; j++) {
         pages[j].count++;
       }
-      page_alloc_line_cache = line + 1;
+      if (!skipped) page_alloc_line_cache = end;
       return begin;
     }
   }
@@ -365,9 +371,39 @@ static vectorize isize find_kpage(usize line, usize n) {
   return -1;
 }
 
+static isize find_kpage(usize npages) {
+  usize free = 0;
+  vectorize for (var line = page_alloc_line_cache; line < 1024 * 1024; line++) {
+    if (pages[line].count != 0) {
+      free = 0;
+      continue;
+    }
+    if (++free == npages) {
+      val begin = line - npages + 1;
+      val end   = line + 1;
+      for (usize j = begin; j < end; j++) {
+        pages[j].count++;
+      }
+      page_alloc_line_cache = end;
+      return begin;
+    }
+  }
+  page_alloc_line_cache = SIZE_MAX;
+  return -1;
+}
+
+void *page_aligned_alloc(usize align, usize size) {
+  val npages = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
+  val idx    = find_kpage_aligned(align / PAGE_SIZE, npages);
+  if (idx < 0) return null;
+  val addr = (void *)(idx << 12);
+  memset(addr, 0, npages * PAGE_SIZE);
+  return addr;
+}
+
 void *page_alloc(usize size) {
   val npages = PADDING_UP(size, PAGE_SIZE) / PAGE_SIZE;
-  val idx    = find_kpage(0, npages);
+  val idx    = find_kpage(npages);
   if (idx < 0) return null;
   val addr = (void *)(idx << 12);
   memset(addr, 0, npages * PAGE_SIZE);

@@ -162,6 +162,7 @@ void sb16_init() {
   sb.status   = STAT_OFF;
   irq_enable(SB16_IRQ);
   inthandler_set(0x20 + SB16_IRQ, sb16_handler);
+  sb16_regist();
 }
 
 static void sb_reset() {

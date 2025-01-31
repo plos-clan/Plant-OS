@@ -16,8 +16,6 @@ void init_serial();
 void virtio_init();
 void virtio_gpu_init();
 
-#define KERNEL_HEAP_SIZE (128 * 1024 * 1024)
-
 void sysinit() {
   klogi("kernel is starting");
 
@@ -61,7 +59,7 @@ void sysinit() {
 
   asm_sti;
 
-  memory_init(page_alloc(KERNEL_HEAP_SIZE), KERNEL_HEAP_SIZE);
+  memory_init(page_alloc(SIZE_2M), SIZE_2M);
 
   vbe_init();
 
@@ -75,7 +73,6 @@ void sysinit() {
   virtio_gpu_init();
   init_acpi();
   sb16_init();
-  sb16_regist();
   hda_init();
   hda_regist();
   vdisk_init();
@@ -94,5 +91,6 @@ void sysinit() {
          total_mem_size / (1024 * 1024));
   }
 
-  init_keyboard();
+  keyboard_init();
+  mouse_init();
 }
