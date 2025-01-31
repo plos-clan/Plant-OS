@@ -12,5 +12,8 @@ finline void cpuid_do_cache() {
   cpuid(4, cpuids.ID4.eax, cpuids.ID4.ebx, cpuids.ID4.ecx, cpuids.ID4.edx);
   cpuid(15, cpuids.ID15.eax, cpuids.ID15.ebx, cpuids.ID15.ecx, cpuids.ID15.edx);
   cpuid(16, cpuids.ID16.eax, cpuids.ID16.ebx, cpuids.ID16.ecx, cpuids.ID16.edx);
+  cpuid(0x40000000, cpuids.IDV.eax, cpuids.IDV.ebx, cpuids.IDV.ecx, cpuids.IDV.edx);
+  cpuid(0x80000000, cpuids.IDX0.eax, cpuids.IDX0.ebx, cpuids.IDX0.ecx, cpuids.IDX0.edx);
+  cpuid(0x80000001, cpuids.IDX1.eax, cpuids.IDX1.ebx, cpuids.IDX1.ecx, cpuids.IDX1.edx);
   cpuids_cached = true;
 }

@@ -10,11 +10,29 @@ void abort() {
   }
 }
 
-void *pci_addr_base;
+#define vmware_send(cmd, arg)                                                                      \
+  ({                                                                                               \
+    __SIZE_TYPE__ eax = 0x564D5868;                                                                \
+    __SIZE_TYPE__ ebx = (arg);                                                                     \
+    __SIZE_TYPE__ ecx = (cmd);                                                                     \
+    __SIZE_TYPE__ edx = 0x5658;                                                                    \
+    asm volatile("in %%dx, %%eax\n\t" : "+a"(eax), "+b"(ebx), "+c"(ecx), "+d"(edx));               \
+    ebx;                                                                                           \
+  })
 
-void init_serial();
-void virtio_init();
-void virtio_gpu_init();
+#define vm_is_vmware()                                                                             \
+  ({                                                                                               \
+    __SIZE_TYPE__ eax = 0x564D5868;                                                                \
+    __SIZE_TYPE__ ebx = 0;                                                                         \
+    __SIZE_TYPE__ ecx = 0x0A;                                                                      \
+    __SIZE_TYPE__ edx = 0x5658;                                                                    \
+    asm volatile("in %%dx, %%eax\n\t" : "+a"(eax), "+b"(ebx), "+c"(ecx), "+d"(edx));               \
+    ebx == 0x564D5868;                                                                             \
+  })
+
+void serial_init();
+
+bool vmware_backdoor_available = false;
 
 void sysinit() {
   klogi("kernel is starting");
@@ -22,6 +40,8 @@ void sysinit() {
   cpuid_do_cache(); // 缓存 CPUID 信息
 
   klogd("%s", cpuids.x2apic ? "x2apic" : "apic");
+
+  //+ ========== fpu / sse / avx ==========
 
   if (cpuids.fpu) klogi("Your cpu supports fpu.");
   if (cpuids.sse) klogi("Your cpu supports sse.");
@@ -45,6 +65,49 @@ void sysinit() {
 
   klogd("fpu/sse/avx inited.");
 
+  //+ ========== vm ==========
+
+  if (memeq(cpuids.hypervisor_id, "KVMKVMKVM", 9)) {
+    klogi("You are running on KVM."); //
+  }
+
+  if (memeq(cpuids.hypervisor_id, "Linux KVM Hv", 12)) {
+    klogi("You are running on KVM (Hyper-V emulation)."); //
+  }
+
+  if (memeq(cpuids.hypervisor_id, "TCGTCGTCGTCG", 12)) {
+    klogi("You are running on QEMU."); //
+  }
+
+  if (memeq(cpuids.hypervisor_id, "VMwareVMware", 12)) {
+    klogi("You are running on VMware."); //
+  }
+
+  if (memeq(cpuids.hypervisor_id, "VBoxVBoxVBox", 12)) {
+    klogi("You are running on VBox."); //
+  }
+
+  if (memeq(cpuids.hypervisor_id, "Microsoft Hv", 9)) {
+    klogi("You are running on Hyper-V."); //
+  }
+
+  if (vm_is_vmware()) {
+    klogi("VMware Backdoor available."); //
+  }
+
+  // 取消鼠标捕获
+  vmware_send(41, 0x45414552);
+  vmware_send(40, 0);
+  vmware_send(39, 1);
+  vmware_send(41, 0x53424152);
+
+  //+ ========== VT-x / AMD-V ==========
+
+  if (cpuids.vmx) klogi("Your cpu supports VT-x.");
+  if (cpuids.svm) klogi("Your cpu supports AMD-V.");
+
+  //+ ========== memory / paging ==========
+
   total_mem_size = memtest(0x00400000, 0xbfffffff);
   init_paging();
 
@@ -53,21 +116,23 @@ void sysinit() {
   klogi("蹲一个 UB, 马上要把 0 地址的 IVT 备份了啊");
 #endif
   memcpy(IVT, null, 0x500); // 这是正确的，忽略这个 warning
+
+  memory_init(page_alloc(SIZE_2M), SIZE_2M);
+
+  //+ ========== ==========
+
   init_pic();
-  init_serial();
+  serial_init();
   init_pit();
 
   asm_sti;
-
-  memory_init(page_alloc(SIZE_2M), SIZE_2M);
 
   vbe_init();
 
   init_tty();
   screen_clear();
 
-  pci_addr_base = page_alloc(1 * 1024 * 1024);
-  init_pci(pci_addr_base);
+  init_pci(page_alloc(1 * 1024 * 1024));
 
   virtio_init();
   virtio_gpu_init();

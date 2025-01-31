@@ -95,7 +95,7 @@ u32 pci_get_port_base(u8 bus, u8 slot, u8 func) {
   return io_port;
 }
 
-extern void *pci_addr_base;
+void *pci_addr_base;
 
 int pci_get_device(int vendor_id, int device_id, int subsystem_id, u8 *bus, u8 *slot, u8 *func) {
   byte *pci_drive = pci_addr_base;
@@ -125,6 +125,7 @@ void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
 // TODO 重构循环体到新函数
 
 void init_pci(void *addr_base) {
+  pci_addr_base = addr_base;
   u32 i, bus, equipment, func, addr, *i1;
   u8 *pci_dat = (void *)addr_base, *pci_dat1;
   for (bus = 0; bus < 256; bus++) {                    //查询总线

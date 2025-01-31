@@ -2,7 +2,7 @@
 
 #define PORT 0x3f8 // COM1
 
-int init_serial() {
+int serial_init() {
   asm_out8(PORT + 1, 0x00);                // 禁止COM的中断发生
   asm_out8(PORT + 3, 0x80);                // 启用DLAB（设置波特率除数）。
   asm_out8(PORT + 0, 0x01);                // 设置除数为1，(低位) 115200波特

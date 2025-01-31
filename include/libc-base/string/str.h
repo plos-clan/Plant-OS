@@ -121,7 +121,7 @@ OAPI u16    *utf32to16a(cstr32 s);
 
 #define memeq(s1, s2, n)                                                                           \
   ({                                                                                               \
-    cstr _s1 = (s1), _s2 = (s2);                                                                   \
+    const void *_s1 = (const void *)(s1), *_s2 = (const void *)(s2);                               \
     (_s1 && _s2) ? memcmp(_s1, _s2, n) == 0 : _s1 == _s2;                                          \
   })
 

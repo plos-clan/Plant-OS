@@ -1,3 +1,4 @@
+#include <asio.h>
 #include <libc-base.h>
 
 typedef struct asio_regs {
@@ -21,8 +22,6 @@ typedef struct asio_regs {
   ssize_t ymm[16];
 #endif
 } *asio_regs_t;
-
-typedef struct asio *asio_t;
 
 typedef void *(*asio_func_t)(asio_t asio, void *userdata);
 
@@ -49,7 +48,7 @@ asio_t asio_task(asio_func_t func, void *userdata) {
   return asio;
 }
 
-asio_t asio_sleep(asio_t asio) {
+asio_t asio_sleep(asio_t asio, usize time_us) {
   return asio;
 }
 
@@ -57,10 +56,12 @@ asio_t asio_run(asio_t asio) {
   return asio;
 }
 
+asio_t asio_wait(void *data) {}
+asio_t asio_sync(asio_t asio) {}
+
 // 调用调度器
 void asio_schedule() {}
 
-// 开始运行 asio 任务
 void asio_main() {}
 
 #define asio_trylock()
