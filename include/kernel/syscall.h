@@ -13,3 +13,5 @@ void   *syscall_mmap(void *start, u32 length);
 void    syscall_munmap(void *start, u32 length);
 ssize_t syscall_read(int fd, void *addr, size_t size);
 ssize_t syscall_write(int fd, const void *addr, size_t size);
+int     syscall_open(const char *path, int flags, int mode);
+int     syscall_close(int fd);

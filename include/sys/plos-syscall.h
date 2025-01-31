@@ -12,6 +12,8 @@ enum {
   SYSCALL_MUNMAP  = 7,
   SYSCALL_READ    = 8,
   SYSCALL_WRITE   = 9,
+  SYSCALL_OPEN    = 10,
+  SYSCALL_CLOSE   = 11,
   //% 以下是临时 syscall，编号从 128 开始，可能随时删除
   SYSCALL_VBE_SETMODE = 128,
   SYSCALL_VBE_FLIP    = 129,

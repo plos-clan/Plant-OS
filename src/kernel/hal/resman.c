@@ -68,13 +68,23 @@ int resman_open(resman_t man, i32 working_dir, cstr path) {
     assert(dir, "open / failed");
     full_path = strdup(path);
   } else {
-    fd_dir = avltree_get(man->avltree, working_dir);
+    // 先取得工作目录的句柄
+    handle_t dir_hand = avltree_get(man->avltree, working_dir);
+    klogd("dir_hand is %p", dir_hand);
+    if (!dir_hand) return -1; // 无效的工作目录
+
+    // 然后取得工作目录的文件描述符
+    fd_dir = dir_hand->fd;
     klogd("fd_dir is %p", fd_dir);
     if (!fd_dir) return -1; // 无效的工作目录
+
+    // 然后取得工作目录的节点
     dir = fd_dir->node;
     if (dir->type != file_dir) return -1; // 工作目录不是一个目录
+
     full_path = vfs_get_fullpath(dir);
     full_path = (char *)realloc(full_path, strlen(full_path) + strlen(path) + 2);
+
     assert(full_path); // 这如果申请失败了，那么炸了算了
     if (full_path[strlen(full_path) - 1] != '/') strcat(full_path, "/");
     strcat(full_path, path);
@@ -87,8 +97,11 @@ int resman_open(resman_t man, i32 working_dir, cstr path) {
   klogd("we get the fd %p", fd);
   free(full_path);
 
-  int id = alloc_next_id(man);
-  avltree_insert(man->avltree, id, fd);
+  int      id     = alloc_next_id(man);
+  handle_t handle = malloc(sizeof(struct handle));
+  handle->fd      = fd;
+  handle->offset  = 0;
+  avltree_insert(man->avltree, id, handle);
   return id;
 
 err:
@@ -97,13 +110,27 @@ err:
 }
 
 // @return 0: success, -1: failed
+int resman_set_offset(resman_t man, i32 id, isize offset) {
+  handle_t hand = avltree_get(man->avltree, id);
+  if (!hand) return -1; // 无效的文件描述符
+
+  if (hand->fd->node->type == file_dir || hand->fd->node->type == file_none)
+    return -1; // 不是一个文件或者没有被vfs正常打开
+
+  if (hand->offset + offset > hand->fd->node->size) return -1; // 超出文件大小
+
+  hand->offset = offset;
+  return 0;
+}
+
+// @return 0: success, -1: failed
 int resman_close(resman_t man, i32 id) {
-  describtor_t fd = avltree_get(man->avltree, id);
-  if (!fd) return -1; // 无效的文件描述符
+  handle_t hand = avltree_get(man->avltree, id);
+  if (!hand) return -1; // 无效的文件描述符
 
-  int status = descriptor_close(fd);
+  int status = descriptor_close(hand->fd);
   if (status == -1) return -1;
-
+  free(hand);
   avltree_delete(man->avltree, id);
   man->next_id = id;
   return 0;
@@ -125,7 +152,9 @@ resman_t resman_clone(resman_t man) {
   return new_resman;
 }
 static void close_file(void *p) {
-  descriptor_close(p);
+  handle_t hand = p;
+  descriptor_close(hand->fd);
+  free(hand);
 }
 void resman_deinit(resman_t man) {
   avltree_free_with(man->avltree, close_file);

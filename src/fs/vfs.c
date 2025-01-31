@@ -248,7 +248,9 @@ ssize_t vfs_write(vfs_node_t file, const void *addr, size_t offset, size_t size)
   assert(addr != null);
   do_update(file);
   if (file->type != file_block) return -1;
-  return callbackof(file, write)(file->handle, addr, offset, size);
+  ssize_t write_bytes = callbackof(file, write)(file->handle, addr, offset, size);
+  if (write_bytes > 0) { file->size = max(file->size, offset + write_bytes); }
+  return write_bytes;
 }
 
 int vfs_unmount(cstr path) {
@@ -277,8 +279,8 @@ int vfs_unmount(cstr path) {
 // 使用请记得free掉返回的buff
 char *vfs_get_fullpath(vfs_node_t node) {
   if (node == null) return null;
-  int inital = 16;
-  vfs_node_t *nodes = (vfs_node_t *)malloc(sizeof(vfs_node_t) * inital);
+  int         inital = 16;
+  vfs_node_t *nodes  = (vfs_node_t *)malloc(sizeof(vfs_node_t) * inital);
   int         count  = 0;
   for (vfs_node_t cur = node; cur; cur = cur->parent) {
     if (count >= inital) {
