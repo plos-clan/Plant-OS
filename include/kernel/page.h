@@ -208,6 +208,8 @@ usize page_get_phy2(usize addr, usize pd);
 usize page_get_phy1(usize addr);
 #define page_get_phy(...) CONCAT(page_get_phy, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
+void page_free(void *p, usize size) ownership_takes(page, 1);
+
 void *page_malloc_one_count_from_4gb() __THROW __attr_dealloc(page_free, 1) ownership_returns(page);
 
 void *page_alloc(usize size) __THROW __attr_dealloc(page_free, 1) __attr_allocsize(1)
@@ -215,8 +217,6 @@ void *page_alloc(usize size) __THROW __attr_dealloc(page_free, 1) __attr_allocsi
 
 void *page_aligned_alloc(usize align, usize size) __THROW __attr_dealloc(page_free, 1)
 __attr_allocsize(2) ownership_returns(page);
-
-void page_free(void *p, usize size) ownership_takes(page, 1);
 
 usize pd_clone(usize addr);
 
