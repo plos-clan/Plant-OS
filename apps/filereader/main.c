@@ -5,9 +5,9 @@ static bool isprint(char c) {
   return c >= 0x20 && c <= 0x7e;
 }
 
-static void print_data(const byte *data, usize len) {
+static void print_data(const byte *data, usize current, usize len) {
   for (usize i = 0; i < len; i += 16) {
-    printf("\033[1;33m%08x\033[0m  ", i);
+    printf("\033[1;33m%08x\033[0m  ", i + current);
     for (usize j = 0; j < 16; j++) {
       if (i + j < len) {
         printf("%02x ", data[i + j]);
@@ -27,7 +27,7 @@ static void print_data(const byte *data, usize len) {
   }
 }
 int main(int argc, const char **argv) {
-  
+
   if (argc != 2) {
     printf("Usage: %s filename\n", argv[0]);
     return 1;
@@ -49,11 +49,13 @@ int main(int argc, const char **argv) {
   }
   printf(" \033[1;36mCHAR\033[0m\n");
 
-  byte *buf = malloc(1024);
+  byte *buf   = malloc(1024);
+  usize total = 0;
   while (true) {
-    val len = __syscall(SYSCALL_READ,fd, buf, 1024);
+    val len = __syscall(SYSCALL_READ, fd, buf, 1024);
     if (len == 0) break;
-    print_data(buf, len);
+    print_data(buf, total, len);
+    total += len;
   }
   free(buf);
   __syscall(SYSCALL_CLOSE, fd);

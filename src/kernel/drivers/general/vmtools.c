@@ -34,6 +34,7 @@ static inthandler_f inthandler2c;
 static void *ps2_mouse_handler = null;
 
 static void vmware_mouse_init() {
+  return;
   // 取消鼠标捕获
   vmware_send(41, 0x45414552);
   vmware_send(40, 0);

@@ -33,6 +33,7 @@ static int devfs_mkdir(void *parent, cstr name, vfs_node_t node) {
 static void    dummy() {}
 // offset 必须能被扇区大小整除
 static ssize_t devfs_read(void *file, void *addr, size_t offset, size_t size) {
+  // klogd("devfs_read");
   int    dev_id = (int)file;
   size_t sector_size;
   size_t sectors_to_do;

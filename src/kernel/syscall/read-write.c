@@ -40,8 +40,12 @@ isize syscall_read(int fd, void *addr, usize size) {
   if (file->fd->node == null) return -1;
   if (file->fd->node->type == file_dir) return -1;
 
-  isize read_bytes = vfs_read(file->fd->node, addr, file->offset, size);
+  klogd("read %s\n", file->fd->node->name);
+  klogd("read %p\n", file->fd->node->handle);
+  klogd("read %d\n", file->fd->node->fsid);
 
+  isize read_bytes = vfs_read(file->fd->node, addr, file->offset, size);
+  klogd("read_bytes %d\n", read_bytes);
   // 这里offset必不可能超过文件大小
   file->offset += read_bytes;
 
