@@ -11,7 +11,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/app)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/apps/lib)
 
 add_exe_link_flag("-Wl,--export-dynamic-symbol=main")
-add_exe_link_flag("-Wl,-Ttext=0x80000000 -e __libc_start_main")
+add_exe_link_flag("-Wl,-Ttext=0x80000000 -e _start")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
     add_exe_link_flag("-Wl,--image-base=0x78000000")
