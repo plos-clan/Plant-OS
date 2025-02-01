@@ -75,7 +75,7 @@ void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
   // cmd = cmd | 0x01;
   asm_out32(PCI_COMMAND_PORT, cmd);
 }
-void init_pci(u32 adder_Base) {
+void pci_init(u32 adder_Base) {
   u32 i, BUS, Equipment, F, ADDER, *i1;
   u8 *PCI_DATA = (u8 *)adder_Base, *PCI_DATA1;
   for (BUS = 0; BUS < 256; BUS++) {                    // 查询总线

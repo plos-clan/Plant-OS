@@ -34,6 +34,7 @@ extern "C" {
 #include "kernel/vbe.h"
 #include "kernel/vdisk.h"
 #include "kernel/virtio.h"
+#include "kernel/vmtools.h"
 #include "kernel/vsound.h"
 #ifdef __cplusplus
 }

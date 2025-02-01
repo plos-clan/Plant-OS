@@ -34,11 +34,11 @@ static inthandler_f inthandler21;
 // 初始化键盘控制电路
 void keyboard_init() {
   inthandler_set(0x21, inthandler21);
+  irq_enable(1);
   ps2_wait();
   asm_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
   ps2_wait();
   asm_out8(PORT_KEYDAT, KBC_MODE);
-  irq_enable(1);
 }
 
 int getch() {

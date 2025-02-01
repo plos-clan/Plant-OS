@@ -41,6 +41,7 @@ static void mouse_reset() {
 
 void mouse_init() {
   inthandler_set(0x2c, inthandler2c);
+  irq_enable(12);
   ps2_wait();
   asm_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
   ps2_wait();
@@ -52,7 +53,7 @@ void mouse_init() {
   mouse_write(0xf3);
   mouse_write(80);
   mouse_write(0xf2);
-  klogd("mouseId=%d\n", mouse_read());
+  klogd("mouseId=%d", mouse_read());
   /* 顺利的话，键盘控制器会返回ACK(0xfa) */
 }
 
@@ -65,6 +66,8 @@ void mouse_ready(struct MOUSE_DEC *mdec) {
   mouse_use_task = current_task;
   mdec->sleep    = 0;
 }
+
+void update_mouse() {}
 
 int mouse_decode(struct MOUSE_DEC *mdec, u8 dat) {
   if (mdec->phase == 1) {
@@ -109,5 +112,5 @@ int mouse_decode(struct MOUSE_DEC *mdec, u8 dat) {
 static FASTCALL void inthandler2c(i32 id, regs32 *regs) {
   byte data = asm_in8(PORT_KEYDAT);
 
-  klogd("mouse data=%02x\n", data);
+  klogd("mouse data=%02x", data);
 }

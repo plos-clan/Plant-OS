@@ -124,10 +124,12 @@ void pci_config(u32 bus, u32 f, u32 equipment, u32 adder) {
 
 // TODO 重构循环体到新函数
 
-void init_pci(void *addr_base) {
-  pci_addr_base = addr_base;
+void pci_init() {
+  pci_addr_base = page_alloc(1 * 1024 * 1024);
+  kassert(pci_addr_base != null, "Out of memory");
+
   u32 i, bus, equipment, func, addr, *i1;
-  u8 *pci_dat = (void *)addr_base, *pci_dat1;
+  u8 *pci_dat = (void *)pci_addr_base, *pci_dat1;
   for (bus = 0; bus < 256; bus++) {                    //查询总线
     for (equipment = 0; equipment < 32; equipment++) { //查询设备
       for (func = 0; func < 8; func++) {               //查询功能

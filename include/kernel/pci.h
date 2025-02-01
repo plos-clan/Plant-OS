@@ -27,7 +27,7 @@ struct pci_config_space_public {
   u8  MaxLatency;
 };
 
-void init_pci(void *adder_Base);
+void pci_init();
 void pci_classcode_print(const struct pci_config_space_public *pci_config_space_puclic);
 int  pci_get_device(int vendor_id, int device_id, int subsystem_id, u8 *bus, u8 *slot, u8 *func);
 u32  read_bar_n(u8 bus, u8 device, u8 function, u8 bar_n);
