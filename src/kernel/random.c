@@ -12,7 +12,7 @@ static u32   random_pool[RANDOM_POOL_LEN];
 static usize random_pool_h;
 static usize random_pool_t;
 
-static void randrom_pool_put(u32 value) {
+__nif static void randrom_pool_put(u32 value) {
   with_no_interrupts({
     random_pool[random_pool_t++] = value;
     if (random_pool_t == RANDOM_POOL_LEN) random_pool_t = 0;
@@ -23,7 +23,7 @@ static void randrom_pool_put(u32 value) {
   });
 }
 
-static bool randrom_pool_get(u32 *value) {
+__nif static bool randrom_pool_get(u32 *value) {
   bool rets = false;
   with_no_interrupts({
     if (random_pool_h != random_pool_t) {

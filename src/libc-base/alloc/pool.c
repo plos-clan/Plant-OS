@@ -124,7 +124,7 @@ dlexport void *mpool_aligned_alloc(mpool_t pool, size_t size, size_t align) {
     ptr = freelist_aligned_match(&pool->large_blk, size, align);
   }
 
-  size_t offset = PADDING_UP(ptr, align) - (size_t)ptr;
+  size_t offset = PADDING_UP(ptr, align) - ptr;
   if (offset > 0) {
     void *new_ptr = blk_split(ptr, offset - 2 * sizeof(size_t));
     do_free(pool, ptr);

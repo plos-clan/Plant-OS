@@ -11,12 +11,9 @@ qemu-system-i386 \
   -net nic,model=pcnet -net user \
   -serial stdio \
   -device sb16 -device intel-hda -device hda-micro \
-  -device floppy,drive=fda -drive id=fda,if=none,format=raw,file=img/disk.img \
-  -device ide-hd,drive=hda,bus=ide.0 -drive id=hda,if=none,format=raw,file=img/hd.img \
-  -drive id=disk,if=none,format=raw,file=img/hd1.img \
-  -device ahci,id=ahci \
-  -device ide-hd,drive=disk,bus=ahci.0 \
-  -boot a \
+  -device ide-hd,drive=hda,bus=ide.0 -drive id=hda,if=none,format=raw,file=img/disk.img \
+  -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -drive id=disk,if=none,format=raw,file=img/disk2.img \
+  -boot c \
   $*
 
 echo -n -e "\033[m\033[2K\033[A\033[2K\033[999D"

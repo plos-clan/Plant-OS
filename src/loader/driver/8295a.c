@@ -26,6 +26,7 @@ void Maskirq(u8 irq) {
   value = asm_in8(port) | (1 << irq);
   asm_out8(port, value);
 }
+
 void init_pic() {
   asm_out8(PIC0_IMR, 0xff); /* 初始化，所有中断均被屏蔽 */
   asm_out8(PIC1_IMR, 0xff);
@@ -42,7 +43,8 @@ void init_pic() {
   asm_out8(PIC0_IMR, 0xfb);
   asm_out8(PIC1_IMR, 0xff); /* 禁止所有中断 */
 }
-void send_eoi(int irq) {
+
+__nif void send_eoi(int irq) {
   if (irq >= 8) {
     asm_out8(PIC1_OCW2, 0x60 | (irq - 8));
     asm_out8(PIC0_OCW2, 0x60 | 2);

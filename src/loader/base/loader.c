@@ -1,3 +1,4 @@
+#include "../../apps/include/zstd.h"
 #include <loader.h>
 
 struct TASK MainTask;
@@ -106,20 +107,35 @@ void DOSLDR_MAIN() {
   klogf("MIT License\n");
   klogf("Copyright (c) 2024 plos-clan\n");
   klogf("memtotal=%dMB\n", memtotal / 1024 / 1024);
-  char path[15] = " :\\kernel.bin";
+  char path[15] = " :\\kernel.zst";
   path[0]       = NowTask()->drive;
   klogf("Load file:%s\n", path);
   int sz = vfs_filesize(path);
   if (sz == -1) {
-    klogf("DOSLDR can't find kernel.bin in Drive %c", path[0]);
+    klogf("DOSLDR can't find kernel.zst in Drive %c", path[0]);
     infinite_loop;
   }
-  // printf("fp = %08x\n%d\n",fp, fp->size);
   char *s = page_alloc(sz);
-  klogf("Will load in %08x size = %08x\n", s, sz);
-  vfs_readfile(path, s);
   klogf("Loading...\n");
-  u32 entry = load_elf((Elf32Header *)s);
+  vfs_readfile(path, s);
+  klogf("Decompressing...\n");
+  u32 size = ZSTD_getFrameContentSize(s, sz);
+  if (size == ZSTD_CONTENTSIZE_ERROR) {
+    klogf("Decompress error\n");
+    infinite_loop;
+  }
+  void *ptr = page_alloc(size);
+  if (ptr == null) {
+    klogf("Out of memory\n");
+    infinite_loop;
+  }
+  u32 rets = ZSTD_decompress(ptr, size, s, sz);
+  if (ZSTD_isError(rets)) {
+    klogf("Decompress error\n");
+    infinite_loop;
+  }
+  klogf("Booting...\n");
+  u32 entry = load_elf(ptr);
 
   asm volatile("push %0\n\t"
                "cli\n\t"

@@ -30,8 +30,8 @@ IAPI int   strcmp(cstr _s1, cstr _s2) __THROW;
 IAPI int   tolower(int c) __THROW;
 IAPI int   toupper(int c) __THROW;
 IAPI int   strncmp(cstr _s1, cstr _s2, size_t n) __THROW;
-IAPI char *strdup(cstr s) __THROW;
-IAPI char *strndup(cstr s, size_t n) __THROW;
+IAPI char *strdup(cstr s) __THROW ownership_returns(malloc);
+IAPI char *strndup(cstr s, size_t n) __THROW ownership_returns(malloc);
 #ifdef __cplusplus
 extern "C++" {
 IAPI cstr  strchr(cstr _s, int _c) __THROW;

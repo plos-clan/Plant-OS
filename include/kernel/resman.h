@@ -1,5 +1,5 @@
 #pragma once
-#include "kernel.h"
+#include "00-include.h"
 
 typedef struct resman {
   avltree_t avltree;

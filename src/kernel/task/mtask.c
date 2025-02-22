@@ -68,6 +68,10 @@ static task_t task_alloc() {
   t->starttime.tv_nsec = 0;
   t->cputime.tv_sec    = 0;
   t->cputime.tv_nsec   = 0;
+  t->call_log_ptr      = 0;
+  for (usize i = 0; i < CALL_LOG_MAX; i++) {
+    t->call_log[i] = (typeof(t->call_log[i])){};
+  }
   return t;
 }
 

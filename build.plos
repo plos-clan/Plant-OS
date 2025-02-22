@@ -189,11 +189,7 @@ def build_project(name: str | None = None):
   if proj is None: raise ValueError(f'project not found: {name}')
 
 
-expression = "a + b"
-
-result = eval(expression, deepcopy(SAFE_GLOBALS), {'a': 5, 'b': 10})
-
-print(f"Result of '{expression}': {result}")
+print(f'Using CC={CC}, CXX={CXX}')
 
 if __name__ == '__main__':
   load_options()

@@ -306,7 +306,7 @@ void hpet_initialize() {
   hpetInfo->generalConfiguration |= 1; //  启用hpet
 }
 
-void gettime_ns(timespec *ptr) {
+__nif void gettime_ns(timespec *ptr) {
   static timespec time     = {};
   static u64      val_old  = 0;
   u64             value    = hpetInfo->mainCounterValue * hpetPeriod - val_old;

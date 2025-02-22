@@ -25,7 +25,7 @@ static i32 load_elf(cstr path, bool run);
 // 加载完毕后运行应用程序
 static __attr(noreturn) void run(usize entry) {
   asm("mov %0, %%edi\n\t" ::"r"(argc));
-  asm("mov %0, %%esi\n\t" ::"r"(argv)); 
+  asm("mov %0, %%esi\n\t" ::"r"(argv));
   asm("mov %0, %%edx\n\t" ::"r"(envp));
   asm volatile("jmp *%0" ::"r"(entry));
   __builtin_unreachable();

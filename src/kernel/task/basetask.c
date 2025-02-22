@@ -18,7 +18,7 @@ static void scan_files(cstr path) {
   assert(dir->type == file_dir);
   list_foreach(dir->child, node) {
     val file     = (vfs_node_t)node->data;
-    val new_path = pathcat(path, file->name);
+    val new_path = pathacat(path, file->name);
     if (file->type == file_dir) {
       scan_files(new_path);
     } else {
@@ -103,18 +103,14 @@ void user_init() {
   regist_vdisk(rnd);
 
   vfs_mkdir("/fatfs0");
-  vfs_mount("/dev/floppy", vfs_open("/fatfs0"));
+  vfs_mount("/dev/ide0", vfs_open("/fatfs0"));
 
   vfs_mkdir("/fatfs1");
-  vfs_mount("/dev/ide0", vfs_open("/fatfs1"));
+  vfs_mount("/dev/ahci0", vfs_open("/fatfs1"));
 
-  vfs_mkdir("/fatfs2");
-  vfs_mount("/dev/ahci0", vfs_open("/fatfs2"));
-
-  // vfs_node_t p = vfs_open("/dev/stdout");
-  // assert(p, "open /dev/stdout failed");
-  // while(1) vfs_write(p, "你好，世界", 0, strlen("你好，世界"));
-  // infinite_loop;
+  val kernel_file = vfs_open("/fatfs0/kernel.bin");
+  kernel_data     = malloc(kernel_file->size);
+  vfs_read(kernel_file, kernel_data, 0, kernel_file->size);
 
   // const int bx = 200, by = 200, r = 100;
   // for (int y = 0; y < screen_w; y++) {
@@ -172,8 +168,8 @@ void user_init() {
   infinite_loop;
 #endif
 
-  val font1 = load_font("/fatfs2/font1.plff");
-  val font2 = load_font("/fatfs2/font2.plff");
+  val font1 = load_font("/fatfs1/font1.plff");
+  val font2 = load_font("/fatfs1/font2.plff");
   val tty   = plty_alloc(vram, screen_w, screen_h, font1);
   plty_addfont(tty, font2);
   plty_set_default(tty);

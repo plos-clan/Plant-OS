@@ -47,7 +47,7 @@ static void play_audio(f32 *block, size_t len, void *track) {
 void sound_test2() {
   klogd("sound test has been started");
 
-  auto  file = vfs_open("/fatfs1/audio.plac");
+  auto  file = vfs_open("/fatfs0/audio.plac");
   byte *buf  = malloc(file->size);
   vfs_read(file, buf, 0, file->size);
 

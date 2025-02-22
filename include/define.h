@@ -17,6 +17,7 @@ extern "C" {
 #include "define/define/assert.h"
 #include "define/define/attribute.h"
 #include "define/define/base.h"
+#include "define/define/int.h"
 #include "define/define/logging.h"
 #include "define/define/magic.h"
 #include "define/define/mem.h"

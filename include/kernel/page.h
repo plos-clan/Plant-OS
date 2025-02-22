@@ -2,6 +2,40 @@
 #include "assert.h"
 #include <define.h>
 
+#ifdef __x86_64__
+#  define VALID_LADDR_MASK ((usize)0x0000ffffffffffff)
+#else
+#  define VALID_LADDR_MASK ((usize)0xffffffff)
+#endif
+
+#if __x86_64__
+
+#  define PIDX(addr)  ((usize)(addr) >> 12)
+#  define PML5I(addr) (((usize)(addr) >> 48) & 0x1ff)
+#  define PML4I(addr) (((usize)(addr) >> 39) & 0x1ff)
+#  define PDPDI(addr) (((usize)(addr) >> 30) & 0x1ff)
+#  define PDI(addr)   (((usize)(addr) >> 21) & 0x1ff)
+#  define PTI(addr)   (((usize)(addr) >> 12) & 0x1ff)
+
+#  define pml5eof(addr, pml5) ((PML5E *)(pml5) + PML5I(addr))
+#  define pml4eof(addr, pml4) ((PML4E *)(pml4) + PML4I(addr))
+#  define pdpteof(addr, pdpt) ((PDPTE *)(pdpt) + PDPDI(addr))
+#  define pdeof(addr, pd)     ((PDE *)(pd) + PDI(addr))
+#  define pteof(addr, pt)     ((PTE *)(pt) + PTI(addr))
+#  define paddr(entry)        (((PTE *)(entry))->addr << 12)
+
+#else
+
+#  define PIDX(addr) ((usize)(addr) >> 12)
+#  define PDI(addr)  (((usize)(addr) >> 22) & 0x3ff)
+#  define PTI(addr)  (((usize)(addr) >> 12) & 0x3ff)
+
+#  define pdeof(addr, pd) ((PDE *)(pd) + PDI(addr))
+#  define pteof(addr, pt) ((PTE *)(pt) + PTI(addr))
+#  define paddr(entry)    (((PTE *)(entry))->addr << 12)
+
+#endif
+
 #define PAGE_PRESENT MASK(0)  // 存在
 #define PAGE_WRABLE  MASK(1)  // 可写
 #define PAGE_USER    MASK(2)  // 用户态
@@ -13,8 +47,9 @@
 #define PAGE_BIT9    MASK(9)  // 可自定义位 (bit9)
 #define PAGE_BIT10   MASK(10) // 可自定义位 (bit10)
 #define PAGE_BIT11   MASK(11) // 可自定义位 (bit11)
-#define PAGE_SHARED  MASK(10) // 自定义的
 #define PAGE_NX      MASK(63) // 不可执行
+
+#define PAGE_SHARED MASK(10) // 自定义的
 
 #define PD_ADDRESS    0x400000
 #define PT_ADDRESS    (PD_ADDRESS + 0x1000)
@@ -36,6 +71,8 @@
 
 #ifdef __x86_64__
 
+#  if !NO_MPL5
+
 typedef struct PML5E {
   usize present  : 1;  // 存在位
   usize wrable   : 1;  // 读写位
@@ -53,6 +90,8 @@ typedef struct PML5E {
   usize reserved : 11; // 保留位
   usize nx       : 1;  // 不可执行
 } PML5E;
+
+#  endif
 
 typedef struct PML4E {
   usize present  : 1;  // 存在位

@@ -40,6 +40,7 @@ extern "C" {
 #include "libc-base/stdlib/xtoa.h"
 #include "libc-base/string/alloc.h"
 #include "libc-base/string/mem.h"
+#include "libc-base/string/path.h"
 #include "libc-base/string/str.h"
 #include "libc-base/thread/spin.h"
 #include "libc-base/time.h"

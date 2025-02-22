@@ -64,7 +64,7 @@ finline xstr xstrdup(xstr s) {
   return x;
 }
 
-finline char *pathcat(cstr p1, cstr p2) {
+finline char *pathacat(cstr p1, cstr p2) {
   char *p = (char *)malloc(strlen(p1) + strlen(p2) + 2);
   if (p1[strlen(p1) - 1] == '/') {
     sprintf(p, "%s%s", p1, p2);

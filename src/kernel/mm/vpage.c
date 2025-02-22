@@ -1,13 +1,5 @@
 #include <kernel.h>
 
-#define PIDX(addr) ((usize)(addr) >> 12)           // 获取 addr 的页索引
-#define PDI(addr)  (((usize)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define PTI(addr)  (((usize)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
-
-#define pdeof(addr, pd) ((PDE *)(pd) + PDI(addr))
-#define pteof(addr, pt) ((PTE *)(pt) + PTI(addr))
-#define paddr(entry)    (((PTE *)(entry))->addr << 12)
-
 //* ----------------------------------------------------------------------------------------------------
 //; 页表管理
 //* ----------------------------------------------------------------------------------------------------
@@ -431,16 +423,20 @@ static void set_phy_addr_of_linear_addr(void *line, void *phy) {
 
 // 映射地址
 void page_map(void *target, void *start, void *end) {
-  target   = (void *)((size_t)target & 0xfffff000);
-  start    = (void *)((size_t)start & 0xfffff000);
-  end      = (void *)((size_t)end & 0xfffff000);
-  size_t n = end - start;
-  n        = n / 4 * 1024;
+  if (((usize)target & 0xfff) || ((usize)start & 0xfff) || ((usize)end & 0xfff)) {
+    klogw("target = %08x\n", target);
+    klogw("start = %08x\n", start);
+    klogw("end = %08x\n", end);
+  }
+  target  = (void *)((usize)target & 0xfffff000);
+  start   = (void *)((usize)start & 0xfffff000);
+  end     = (void *)((usize)end & 0xfffff000);
+  usize n = (end - start) / SIZE_4k;
   for (u32 i = 0; i <= n; i++) {
-    var tmp1 = phy_addr_from_linear_addr(target + i * 4 * 1024);
-    var tmp2 = phy_addr_from_linear_addr(start + i * 4 * 1024);
-    set_phy_addr_of_linear_addr(target + i * 4 * 1024, tmp2);
-    set_phy_addr_of_linear_addr(start + i * 4 * 1024, tmp1);
+    var tmp1 = phy_addr_from_linear_addr(target + i * SIZE_4k);
+    var tmp2 = phy_addr_from_linear_addr(start + i * SIZE_4k);
+    set_phy_addr_of_linear_addr(target + i * SIZE_4k, tmp2);
+    set_phy_addr_of_linear_addr(start + i * SIZE_4k, tmp1);
   }
 }
 
@@ -619,78 +615,4 @@ void page_set_attr(u32 start, u32 end, u32 attr, u32 pde) {
     *pte_entry     |= attr;
   }
   asm_set_cr3(pde);
-}
-
-//* ----------------------------------------------------------------------------------------------------
-//; 内存权限检查
-//* ----------------------------------------------------------------------------------------------------
-
-bool check_address_permission3(const void *addr, bool wr, usize cr3) {
-  val pde = pdeof(addr, cr3);
-  if (!pde->present) return false;
-  if (wr && !pde->wrable) return false;
-  if (!pde->user) return false;
-  val pte = pteof(addr, paddr(pde));
-  if (!pte->present) return false;
-  if (wr && !pte->wrable) return false;
-  if (!pte->user) return false;
-  return true;
-}
-
-bool check_address_permission2(const void *addr, bool wr) {
-  return check_address_permission3(addr, wr, asm_get_cr3());
-}
-
-bool check_address_permission1(const void *addr) {
-  return check_address_permission3(addr, false, asm_get_cr3());
-}
-
-// --------------------------------------------------
-
-bool check_memory_permission4(const void *_addr, size_t size, bool wr, usize cr3) {
-  const void *addr     = (void *)PADDING_DOWN(_addr, PAGE_SIZE);
-  const void *end_addr = _addr + size;
-  for (; addr < end_addr; addr += PAGE_SIZE) {
-    if (!check_address_permission(addr, wr, cr3)) return false;
-  }
-  return true;
-}
-
-bool check_memory_permission3(const void *_addr, size_t size, bool wr) {
-  return check_memory_permission4(_addr, size, wr, asm_get_cr3());
-}
-
-bool check_memory_permission2(const void *_addr, size_t size) {
-  return check_memory_permission4(_addr, size, false, asm_get_cr3());
-}
-
-// --------------------------------------------------
-
-bool check_string_permission2(cstr addr, usize cr3) {
-  if (!check_address_permission(addr, false)) return false;
-  for (addr++;; addr++) {
-    if (!((size_t)addr & 0xfff) && !check_address_permission(addr, false, cr3)) return false;
-    if (*addr == '\0') break;
-  }
-  return true;
-}
-
-bool check_string_permission1(cstr addr) {
-  return check_string_permission2(addr, asm_get_cr3());
-}
-
-// --------------------------------------------------
-
-bool check_string_array_permission2(cstr *addr, usize cr3) {
-  for (;; addr++) {
-    if (!check_address_permission(addr, false, cr3)) return false;
-    if (!check_address_permission((void *)((usize)(addr + 1) - 1), false, cr3)) return false;
-    if (!*addr) break;
-    if (!check_string_permission(*addr, cr3)) return false;
-  }
-  return true;
-}
-
-bool check_string_array_permission1(cstr *addr) {
-  return check_string_array_permission2(addr, asm_get_cr3());
 }

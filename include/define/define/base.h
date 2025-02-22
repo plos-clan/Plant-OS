@@ -18,6 +18,7 @@
 
 #define alloca(size) __builtin_alloca(size)
 
+// 获取是否有指定内置函数
 #if NO_BUILTIN
 #  define __has(name) (0)
 #else
@@ -58,8 +59,20 @@
 
 #define COUNT_ARGS(...) __ARGN__(__VA_ARGS__)
 
-#define PADDING_DOWN(size, to) ((size_t)(size) / (size_t)(to) * (size_t)(to))
-#define PADDING_UP(size, to)   PADDING_DOWN((size_t)(size) + (size_t)(to) - (size_t)1, to)
+#define PADDING_DOWN(size, to)                                                                     \
+  ({                                                                                               \
+    size_t _size_ = (size_t)(size);                                                                \
+    size_t _to_   = (to);                                                                          \
+    _size_        = _size_ / _to_ * _to_;                                                          \
+    (typeof(size))_size_;                                                                          \
+  })
+#define PADDING_UP(size, to)                                                                       \
+  ({                                                                                               \
+    size_t _size_ = (size_t)(size);                                                                \
+    size_t _to_   = (to);                                                                          \
+    _size_        = (_size_ + _to_ - 1) / _to_ * _to_;                                             \
+    (typeof(size))_size_;                                                                          \
+  })
 
 #define infinite_loop while (true)
 

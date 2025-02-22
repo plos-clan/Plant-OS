@@ -9,6 +9,7 @@ extern "C" {
 #include "define/assert.h"
 #include "define/attribute.h"
 #include "define/base.h"
+#include "define/int.h"
 #include "define/logging.h"
 #include "define/magic.h"
 #include "define/mem.h"

@@ -6,6 +6,7 @@
 
 #define SIZE_4k  ((size_t)4096)
 #define SIZE_16k ((size_t)16384)
+#define SIZE_4M  ((size_t)(4 * 1024 * 1024))
 #define SIZE_2M  ((size_t)(2 * 1024 * 1024))
 #define SIZE_1G  ((size_t)(1024 * 1024 * 1024))
 
@@ -23,11 +24,18 @@
 // 这些函数应该由 libc 本体提供
 // 而在没有 libc 的情况下管理内存请使用下方的自定义内存分配函数
 
-dlimport void  *malloc(size_t size) __THROW __attr_malloc __attr_allocsize(1);
-dlimport void  *xmalloc(size_t size) __THROW __attr_malloc __attr_allocsize(1);
-dlimport void   free(void *ptr) __THROW;
-dlimport void  *calloc(size_t n, size_t size) __THROW __attr_malloc __attr_allocsize(1, 2);
-dlimport void  *realloc(void *ptr, size_t newsize) __THROW __wur __attr_allocsize(2);
+// 分配器通用属性
+#define ALLOC __THROW __wur __attr_dealloc(free, 1) __attr_dealloc(realloc, 1)
+
+dlimport void *malloc(size_t size) ALLOC __attr_malloc __attr_allocsize(1)
+    ownership_returns(malloc);
+dlimport void *xmalloc(size_t size) ALLOC __attr_malloc __attr_allocsize(1)
+    ownership_returns(malloc) __attr(returns_nonnull);
+dlimport void  free(void *ptr) __THROW ownership_takes(malloc, 1);
+dlimport void *calloc(size_t n, size_t size) ALLOC __attr_malloc __attr_allocsize(1, 2)
+    ownership_returns(malloc);
+dlimport void *realloc(void *ptr, size_t newsize) ALLOC __attr_allocsize(2)
+    ownership_takes(malloc, 1) ownership_returns(malloc);
 dlimport void  *reallocarray(void *ptr, size_t n, size_t size) __THROW __wur __attr_allocsize(2, 3);
 dlimport void  *aligned_alloc(size_t align, size_t size) __THROW __attr_malloc __attr_allocsize(2);
 dlimport size_t malloc_usable_size(void *ptr) __THROW;
@@ -35,6 +43,8 @@ dlimport void  *memalign(size_t align, size_t size) __THROW __attr_malloc __attr
 dlimport int    posix_memalign(void **mem_p, size_t align, size_t sie) __THROW __nnull(1) __wur;
 dlimport void  *pvalloc(size_t size) __THROW __attr_malloc __attr_allocsize(1);
 dlimport void  *valloc(size_t size) __THROW __attr_malloc __attr_allocsize(1);
+
+#undef ALLOC
 
 //* ----------------------------------------------------------------------------------------------------
 //& 自定义内存分配

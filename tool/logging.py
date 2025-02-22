@@ -1,4 +1,4 @@
-from .color import randomize_color
+from .helper import randomize_color
 
 DEBUG = False
 LOG_COLOR_RANDOMIZE = False

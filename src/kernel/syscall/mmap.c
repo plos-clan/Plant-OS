@@ -1,9 +1,5 @@
 #include <kernel.h>
 
-#define PIDX(addr) ((u32)addr >> 12)           // 获取 addr 的页索引
-#define PDI(addr)  (((u32)addr >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define PTI(addr)  (((u32)addr >> 12) & 0x3ff) // 获取 addr 的页表索引
-
 extern PageInfo *pages;
 
 void *syscall_mmap(void *start, usize length) {

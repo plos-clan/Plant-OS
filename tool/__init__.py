@@ -1,6 +1,5 @@
+from .helper import *
 from .safe_globals import SAFE_GLOBALS
+from .env import *
 from .logging import *
-from . import color, logging
-
-if __name__ == 'main':
-  fatal('')
+from . import logging

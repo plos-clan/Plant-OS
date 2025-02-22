@@ -7,10 +7,6 @@ void task_to_user_mode_elf();
 extern TSS32     tss;
 extern PageInfo *pages;
 
-#define PIDX(addr) ((u32)(addr) >> 12)           // 获取 addr 的页索引
-#define PDI(addr)  (((u32)(addr) >> 22) & 0x3ff) // 获取 addr 的页目录索引
-#define PTI(addr)  (((u32)(addr) >> 12) & 0x3ff) // 获取 addr 的页表索引
-
 void task_app() {
   klogd("%s", current_task->command_line);
 

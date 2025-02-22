@@ -20,3 +20,7 @@
 #endif
 
 void kenel_debugger_tick();
+
+void panic();
+
+extern void *kernel_data;

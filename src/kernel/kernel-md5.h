@@ -43,7 +43,7 @@ static const u32 MD5_ac[4][16] = {
      0xeb86d391}
 };
 
-static void MD5_iterate(u32 h[4], const u32 b[16]) noexcept {
+__nif static void MD5_iterate(u32 h[4], const u32 b[16]) noexcept {
   u32 temp; // 临时变量
 
   // 第1轮变换

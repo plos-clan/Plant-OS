@@ -92,3 +92,5 @@ typedef float128_t f128;
 
 typedef intmax_t  imax_t;
 typedef uintmax_t umax_t;
+typedef intmax_t  imax;
+typedef uintmax_t umax;

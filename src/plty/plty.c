@@ -21,7 +21,9 @@ static void fontbuf_free(plty_fontbuf_t buf) {
   free(buf);
 }
 
-static void *getfont(plty_t tty, u32 ch) {}
+static void *getfont(plty_t tty, u32 ch) {
+  return null; // TODO
+}
 
 void plty_clear_fontbuf(plty_t tty) {
   if (tty == null) return;

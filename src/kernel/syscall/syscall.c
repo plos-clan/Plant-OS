@@ -123,6 +123,7 @@ static void *const sycall_handlers[MAX_SYSCALLS] = {
     // [SYSCALL_GETPEERNAME] = syscall_getpeername,
     // [SYSCALL_SETSOCKOPT] = syscall_setsockopt,
     // [SYSCALL_GETSOCKOPT] = syscall_getsockopt,
+    //% 临时 syscall
     [SYSCALL_VBE_SETMODE] = &syscall_vbe_setmode,
     [SYSCALL_VBE_FLIP]    = &syscall_vbe_flip,
     [SYSCALL_VBE_FLUSH]   = &syscall_vbe_flush,

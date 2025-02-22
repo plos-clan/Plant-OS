@@ -69,7 +69,7 @@ static void handle_tab(cstr buf, pl_readline_words_t words) {
   // 添加words中的单词
   list_foreach(p->child, i) {
     vfs_node_t c        = (vfs_node_t)i->data;
-    char      *new_path = pathcat(s, c->name);
+    char      *new_path = pathacat(s, c->name);
     vfs_update(c);
     if (c->type == file_dir) {
       pl_readline_word_maker_add(new_path, words, false, '/');
@@ -180,8 +180,10 @@ static int shell_exec(char *path, cstr command) {
   int retcode = 0;
   if (strneq(command, "echo ", 5)) {
     printf("%s\n", command + 5);
+  } else if (streq(command, "panic")) {
+    panic();
   } else if (strneq(command, "cd ", 3)) {
-    char *s = command + 3;
+    val s = (char *)command + 3;
     if (s[strlen(s) - 1] == '/' && strlen(s) > 1) { s[strlen(s) - 1] = '\0'; }
     if (streq(s, ".")) return 0;
     if (streq(s, "..")) {
@@ -196,10 +198,7 @@ static int shell_exec(char *path, cstr command) {
     if (s[0] == '/') {
       strcpy(path, s);
     } else {
-      if (streq(path, "/"))
-        sprintf(path, "%s%s", path, s);
-      else
-        sprintf(path, "%s/%s", path, s);
+      pathcat(path, s);
     }
     if (vfs_open(path) == null || vfs_open(path)->type != file_dir) {
       printf("cd: %s: No such directory\n", s);
@@ -247,12 +246,12 @@ static int shell_exec(char *path, cstr command) {
     printf("init a resman %p\n", man);
     int root = resman_open_root_dir(man);
     printf("open root dir %d\n", root);
-    int fatfs1 = resman_open(man, root, "fatfs1");
-    printf("open fatfs1 %d\n", fatfs1);
-    int disk = resman_open(man, fatfs1, "disk.img");
+    int fatfs0 = resman_open(man, root, "fatfs0");
+    printf("open fatfs0 %d\n", fatfs0);
+    int disk = resman_open(man, fatfs0, "disk.img");
     printf("open disk.img %d\n", disk);
     resman_close(man, disk);
-    disk = resman_open(man, fatfs1, "testapp.bin");
+    disk = resman_open(man, fatfs0, "testapp.bin");
     printf("open testapp.bin %d\n", disk);
 
   } else {
@@ -327,10 +326,10 @@ static const struct {
   cstr alias;
   cstr command;
 } debug_commands[] = {
-    {"test", "/fatfs1/testapp.bin"  },
-    {"zstd", "/fatfs1/zstd-test.bin"},
-    {"plui", "/fatfs1/plui-app.bin" },
-    {"pf",   "/fatfs1/pf.bin"       },
+    {"test", "/fatfs0/testapp.bin"  },
+    {"zstd", "/fatfs0/zstd-test.bin"},
+    {"plui", "/fatfs0/plui-app.bin" },
+    {"pf",   "/fatfs0/pf.bin"       },
 };
 
 void debug_shell() {

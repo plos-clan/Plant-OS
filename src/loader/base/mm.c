@@ -44,6 +44,12 @@ void *realloc(void *ptr, size_t size) {
   return mpool_realloc(&pool, ptr, size);
 }
 
+void *calloc(size_t nmemb, size_t size) {
+  void *p = mpool_alloc(&pool, nmemb * size);
+  bzero(p, nmemb * size);
+  return p;
+}
+
 void *page_alloc(int size) {
   void *p = mpool_alloc(&pool, size);
   bzero(p, size);

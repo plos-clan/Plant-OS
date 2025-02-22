@@ -2,11 +2,23 @@
 #ifndef _NAME
 #  include "../00-include.h"
 #  include "../cpu.h"
+#  include "../resman.h"
 #  include <data-structure.h>
 #  include <define.h>
 #  include <libc-base.h>
 #  define _NAME TaskKernelPart
 typedef struct _NAME _NAME;
+
+typedef enum ThreadState {
+  THREAD_IDLE,    // 线程被创建但未运行
+  THREAD_RUNNING, // 线程正在运行
+  THREAD_WAITING, // 线程正在等待
+  THREAD_STOPPED, // 线程已暂停
+  THREAD_DEAD,    // 线程已结束
+} ThreadState;
+
+typedef void (*cb_keyboard_t)(u8 data, u32 task);
+
 #endif
 
 struct _NAME {
@@ -40,6 +52,21 @@ struct _NAME {
   bool          fpu_enabled;      // 是否开启了 fpu/sse/avx
   resman_t      resman;           // 资源管理器
   i32           working_dir;      // 工作目录
+
+#define CALL_LOG_MAX 256
+
+#if __x86_64__
+  struct {
+    usize addr   : 63;
+    usize is_ret : 1;
+  } call_log[CALL_LOG_MAX];
+#else
+  struct {
+    usize addr   : 31;
+    usize is_ret : 1;
+  } call_log[CALL_LOG_MAX];
+#endif
+  usize call_log_ptr;
 };
 
 #undef _NAME

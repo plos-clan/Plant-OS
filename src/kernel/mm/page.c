@@ -91,7 +91,40 @@ void physical_mman_unref(void *ptr, size_t size) {
   if (size & (PAGE_SIZE - 1)) fatal("传入参数未对齐 size: %08x", size);
 }
 
-size_t physical_mman_rc(void *ptr) {
-  if ((size_t)ptr & (PAGE_SIZE - 1)) fatal("传入参数未对齐 ptr: %p", ptr);
+usize physical_mman_rc(void *ptr) {
+  if ((usize)ptr & (PAGE_SIZE - 1)) fatal("传入参数未对齐 ptr: %p", ptr);
   return 0;
+}
+
+// 获取地址所在页面的大小
+usize get_page_size(void *addr) {
+  if ((usize)addr & ~VALID_LADDR_MASK) fatal("传入地址非法 addr: %p", addr);
+#if __x86_64__
+
+  val pml4e = pml4eof(addr, asm_get_cr3());
+  if (!pml4e->present) return 0;
+  val pdpte = pdpteof(addr, paddr(pml4e));
+  if (!pdpte->present) return 0;
+  if (pdpte->ps) return SIZE_1G;
+  val pde = pdeof(addr, paddr(pdpte));
+  if (!pde->present) return 0;
+  if (pde->ps) return SIZE_2M;
+  val pte = pteof(addr, paddr(pde));
+  if (!pte->present) return 0;
+  return SIZE_4k;
+
+#else
+
+  val pde = pdeof(addr, asm_get_cr3());
+  if (!pde->present) return 0;
+  if (pde->ps) return SIZE_4M;
+  val pte = pteof(addr, paddr(pde));
+  if (!pte->present) return 0;
+  return SIZE_4k;
+
+  spin_t lock = false;
+  spin_lock(lock);
+  spin_unlock(lock);
+
+#endif
 }

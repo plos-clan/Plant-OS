@@ -106,28 +106,28 @@ typedef struct Elf64Header {
 //; Section Header
 
 // section type
-#define SHT_NULL     0
-#define SHT_PROGBITS 1
-#define SHT_SYMTAB   2
-#define SHT_STRTAB   3
-#define SHT_RELA     4
-#define SHT_HASH     5
-#define SHT_DYNAMIC  6
-#define SHT_NOTE     7
-#define SHT_NOBITS   8
-#define SHT_REL      9
-#define SHT_SHLIB    10
-#define SHT_DYNSYM   11
-#define SHT_LOPROC   0x70000000
-#define SHT_HIPROP   0x7fffffff
-#define SHT_LOUSER   0x80000000
-#define SHT_HIUSER   0xffffffff
+#define ELF_SECTION_TYPE_NULL     0
+#define ELF_SECTION_TYPE_PROGBITS 1
+#define ELF_SECTION_TYPE_SYMTAB   2
+#define ELF_SECTION_TYPE_STRTAB   3
+#define ELF_SECTION_TYPE_RELA     4
+#define ELF_SECTION_TYPE_HASH     5
+#define ELF_SECTION_TYPE_DYNAMIC  6
+#define ELF_SECTION_TYPE_NOTE     7
+#define ELF_SECTION_TYPE_NOBITS   8
+#define ELF_SECTION_TYPE_REL      9
+#define ELF_SECTION_TYPE_SHLIB    10
+#define ELF_SECTION_TYPE_DYNSYM   11
+#define ELF_SECTION_TYPE_LOPROC   0x70000000
+#define ELF_SECTION_TYPE_HIPROP   0x7fffffff
+#define ELF_SECTION_TYPE_LOUSER   0x80000000
+#define ELF_SECTION_TYPE_HIUSER   0xffffffff
 
 // section attribute flags
-#define SHF_WRITE     0x01
-#define SHF_ALLOC     0x02
-#define SHF_EXECINSTR 0x04
-#define SHF_MASKPROC  0xf0000000
+#define ELF_SECTION_FLAG_WRITE     0x01
+#define ELF_SECTION_FLAG_ALLOC     0x02
+#define ELF_SECTION_FLAG_EXECINSTR 0x04
+#define ELF_SECTION_FLAG_MASKPROC  0xf0000000
 
 typedef struct Elf32SectionHeader {
   u32 name; // An offset to a string in the .shstrtab section that represents the name of this section.
