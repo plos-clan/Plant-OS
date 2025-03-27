@@ -1,4 +1,4 @@
-#!build.plos -gui
+#!build.plos -wui
 name: Plant-OS
 version: 0.0.0
 target: [ia32-none-none, amd64-linux-gnu]
@@ -9,6 +9,8 @@ repo: https://github.com/plos-clan/Plant-OS
 type: meta
 issue: https://github.com/plos-clan/Plant-OS/issues
 sponsor: []
+
+compiler: [gnu, clang]
 
 languages: [c, c++, asm]
 

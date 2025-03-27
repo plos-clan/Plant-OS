@@ -42,6 +42,7 @@ extern "C" {
 #include "libc-base/string/mem.h"
 #include "libc-base/string/path.h"
 #include "libc-base/string/str.h"
+#include "libc-base/thread/rwlock.h"
 #include "libc-base/thread/spin.h"
 #include "libc-base/time.h"
 #ifdef __cplusplus

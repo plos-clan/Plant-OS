@@ -122,9 +122,12 @@ usize get_page_size(void *addr) {
   if (!pte->present) return 0;
   return SIZE_4k;
 
-  spin_t lock = false;
-  spin_lock(lock);
-  spin_unlock(lock);
-
 #endif
 }
+
+typedef struct pageman {
+  pages_info_t info;
+  usize        size;
+} *pageman_t;
+
+void pageman_ref(pageman_t man, usize page) {}

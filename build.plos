@@ -4,6 +4,7 @@ from copy import copy, deepcopy
 import os
 import fnmatch
 import sys
+import re
 from tool import *
 
 logging.LOG_COLOR_RANDOMIZE = True
@@ -16,27 +17,6 @@ new.target:
     amd64-linux-mylib: xxx
     arm64-linux-mylib: xxx
 '''
-
-
-def parse_target(target):
-  target = target.split('-')
-  return None if len(target) != 3 else target
-
-
-def scan_files(dirname: str) -> str:
-  ret = []
-  for root, dirs, files in os.walk(dirname):
-    for file in files:
-      ret.append(f'{root}/{file}')
-  return ret
-
-
-def match_files(pattern: str, base: str) -> str:
-  matches = []
-  for root, dirs, files in os.walk(base):
-    for filename in fnmatch.filter(files, pattern):
-      matches.append(os.path.join(root, filename))
-  return matches
 
 
 class Flags:

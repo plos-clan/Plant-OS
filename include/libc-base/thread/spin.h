@@ -5,6 +5,8 @@
 
 typedef atomic volatile bool spin_t;
 
+#define SPIN_INIT false
+
 #define spin_trylock(_spin_) (!atom_tas(&(_spin_)))
 #define spin_lock(_spin_)                                                                          \
   ({                                                                                               \
