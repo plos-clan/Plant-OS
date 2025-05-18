@@ -1,7 +1,8 @@
 #pragma once
 #include <define.h>
 
-#define NANOSEC_IN_SEC 1000000000
+#define MICROSEC_IN_SEC 1000000
+#define NANOSEC_IN_SEC  1000000000
 
 typedef struct timeval  timeval;
 typedef struct timespec timespec;

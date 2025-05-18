@@ -65,7 +65,7 @@ auto init(void *buffer, u32 width, u32 height, pl2d::PixFmt fmt) -> int {
     frame_tex[i].transform([](auto &pix) {
       if (pix.brightness() > 240) pix = 0;
     });
-    frame_tex[i].gaussian_blur(11, 2);
+    // frame_tex[i].gaussian_blur(11, 2);
   }
 
   if (load_qoi_to_tex("../resource/test.qoi", image_tex) < 0) {
@@ -91,6 +91,7 @@ void flush() {
   image_tex.paste_to_mix(tex, 900, 0);
   tex.fill_trangle({100, 100}, {200, 200}, {100, 200},
                    pl2d::PixelF::lab(.8, cpp::cos(i + 1.f) * .1f, cpp::sin(i + 1.f) * .1f));
+  tex.gaussian_blur(11, 3);
   fb.flush(tex);
   screen_flush();
 }

@@ -26,6 +26,7 @@ static int samplerate_id(int rate) {
   }
 }
 
+// 获取一个已经播放完的缓冲区
 static void *getbuffer(vsound_t snd) {
   if (snd->bufpos == snd->bufsize) {
     queue_enqueue(&snd->bufs1, snd->buf);

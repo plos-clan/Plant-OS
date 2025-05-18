@@ -3,7 +3,7 @@
 
 #define PLOS_HAS_RWLOCK 1
 
-typedef atomic volatile isize rwlock_t;
+typedef volatile isize rwlock_t;
 
 #define RWLOCK_INIT 0
 

@@ -5,28 +5,34 @@
 namespace pl2d {
 
 enum class PixFmt : u32 {
+  Unknown = 0, // 未知格式
+
   BlackWhite, // 黑白双色
-  Grayscale8, // 8位灰度
-  Palette16,  // 16色调色板
-  Palette256, // 256色调色板
+  Grayscale8, // 8 位灰度
+  Palette16,  // 16 色调色板
+  Palette256, // 256 色调色板
 
-  RGB565, //
-  BGR565, //
+  // 12 位彩色
+  RGB444,
+  BGR444,
+  // 16 位彩色
+  RGBA4444,
+  BGRA4444,
+  ARGB4444,
+  ABGR4444,
 
-  // 24位真彩色
+  // 16 位彩色
+  RGB565,
+  BGR565,
+
+  // 24 位真彩色
   RGB888,
-  RGB = RGB888,
   BGR888,
-  BGR = BGR888,
-  // 32位真彩色
+  // 32 位真彩色
   RGBA8888,
-  RGBA = RGBA8888,
   BGRA8888,
-  BGRA = BGRA8888,
   ARGB8888,
-  ARGB = ARGB8888,
   ABGR8888,
-  ABGR = ABGR8888,
 
   // 浮点
   RGB_FLT,
@@ -41,24 +47,36 @@ enum class PixFmt : u32 {
   RGBA_Plane,
   RGB_FLT_Plane,
   RGBA_FLT_Plane,
+
+  // 24 位真彩色 (简写)
+  RGB = RGB888,
+  BGR = BGR888,
+  // 32 位真彩色 (简写)
+  RGBA = RGBA8888,
+  BGRA = BGRA8888,
+  ARGB = ARGB8888,
+  ABGR = ABGR8888,
 };
 
 enum class PalFmt : u32 {
-  None,
+  None = 0, // 无调色板
 
   // 24位真彩色
   RGB888,
-  RGB = RGB888,
   BGR888,
-  BGR = BGR888,
   // 32位真彩色
   RGBA8888,
-  RGBA = RGBA8888,
   BGRA8888,
-  BGRA = BGRA8888,
   ARGB8888,
-  ARGB = ARGB8888,
   ABGR8888,
+
+  // 24位真彩色 (简写)
+  RGB = RGB888,
+  BGR = BGR888,
+  // 32位真彩色 (简写)
+  RGBA = RGBA8888,
+  BGRA = BGRA8888,
+  ARGB = ARGB8888,
   ABGR = ABGR8888,
 };
 

@@ -132,10 +132,10 @@ vsound_t vsound_find(cstr name);
 /**
  *\brief 打开声音对象
  *
- *\param name 声音对象
+ *\param snd 声音对象
  *\return int 成功返回0，失败返回错误码
  */
-int vsound_open(vsound_t name);
+int vsound_open(vsound_t snd);
 
 /**
  *\brief 关闭声音对象

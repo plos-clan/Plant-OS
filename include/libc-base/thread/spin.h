@@ -3,7 +3,7 @@
 
 #define PLOS_HAS_SPIN 1
 
-typedef atomic volatile bool spin_t;
+typedef volatile bool spin_t;
 
 #define SPIN_INIT false
 

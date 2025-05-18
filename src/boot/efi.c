@@ -103,7 +103,7 @@ isize efi_main(void *ImageHandle, void *SystemTable) {
   var idt = (GateDescriptor *)IDT_ADDR;
   for (size_t i = 0; i < IDT_LEN; i++) {
     int ar = i >= 0x30 ? AR_INTGATE32 | 3 << 5 : AR_INTGATE32;
-    set_gatedesc(idt + i, null, 16, ar);
+    set_gatedesc(idt + i, 0, 16, ar);
   }
   load_idt(idt, IDT_LEN); // 加载IDT表
 
